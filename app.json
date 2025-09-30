@@ -8,7 +8,7 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./src/assets/images/logos/SEDI_ERP.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
