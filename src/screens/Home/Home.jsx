@@ -12,6 +12,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withTiming,
 } from "react-native-reanimated";
 import Menu from "../Menu/Menu";
 import Inicio from "../Inicio/Inicio";
@@ -29,7 +30,11 @@ const Home = () => {
   const PANEL_HEIGHT = height * 0.6;
   const translateY = useSharedValue(PANEL_HEIGHT);
   const context = useSharedValue({ y: 0 });
-  const panelVisible = useRef(false);
+  const panelVisible = useSharedValue(false);
+  const opacity = useSharedValue(0);
+  const scrollY = useSharedValue(0);
+  const scrollAllowed = useSharedValue(false);
+  const isDragging = useSharedValue(false);
 
   useEffect(() => {
     const fetchMenuOptions = async () => {
@@ -51,6 +56,7 @@ const Home = () => {
         const data = await response.json();
         if (response.ok && data.result === 1) {
           setMenuOptions(data.data?.Menus || []);
+          console.log("Menu options fetched:", data.data?.Menus || []);
         }
       } catch (error) {
         console.error("Error fetching menu options:", error);
@@ -60,30 +66,42 @@ const Home = () => {
   }, [rolID, setMenuOptions]);
 
   // ---- Gesto manual (drag) ----
-  const gesture = Gesture.Pan()
-    .simultaneousWithExternalGesture(scrollRef)
-    .onStart(() => {
-      context.value = { y: translateY.value };
-    })
-    .onUpdate((event) => {
-      translateY.value = Math.min(
-        Math.max(context.value.y + event.translationY, 0),
-        PANEL_HEIGHT
-      );
-    })
-    .onEnd(() => {
-      if (translateY.value > PANEL_HEIGHT / 2) {
-        translateY.value = withSpring(PANEL_HEIGHT, { damping: 90 });
-        panelVisible.current = false;
-      } else {
-        translateY.value = withSpring(0, { damping: 90 });
-        panelVisible.current = true;
-      }
-    });
+const gesture = Gesture.Pan()
+.simultaneousWithExternalGesture(scrollRef)
+  .onStart(() => {
+    context.value = { y: translateY.value };
+  })
+  .onUpdate((event) => {
+    if (scrollY.value > 0) {
+      return;
+    }
+    translateY.value = Math.min(
+      Math.max(context.value.y + event.translationY, 0),
+      PANEL_HEIGHT
+    );
+  })
+  .onEnd(() => {
+    if (translateY.value > PANEL_HEIGHT / 2) {
+      translateY.value = withSpring(PANEL_HEIGHT, { damping: 90 });
+      opacity.value = withTiming(0);
+      panelVisible.value = false;
+    } else {
+      translateY.value = withSpring(0, { damping: 90 });
+      opacity.value = withTiming(1);
+      panelVisible.value = true;
+    }
+  });
 
-  const animatedStyle = useAnimatedStyle(() => ({
+
+const animatedStyle = useAnimatedStyle(() => {
+  const currentOpacity = 1 - (translateY.value / PANEL_HEIGHT);
+
+  return {
     transform: [{ translateY: translateY.value }],
-  }));
+    opacity: currentOpacity,
+  };
+});
+
 
   const AppTabs = () => (
     <Tab.Navigator
@@ -111,12 +129,14 @@ const Home = () => {
         listeners={{
           tabPress: (e) => {
             e.preventDefault();
-            if (panelVisible.current) {
+            if (panelVisible.value) {
               translateY.value = withSpring(PANEL_HEIGHT, { damping: 90 });
-              panelVisible.current = false;
+              opacity.value = withTiming(0);
+              panelVisible.value = false;
             } else {
               translateY.value = withSpring(0, { damping: 90 });
-              panelVisible.current = true;
+              opacity.value = withTiming(1);
+              panelVisible.value = true;
             }
           },
         }}
@@ -132,19 +152,26 @@ const Home = () => {
 
       {/* Panel flotante */}
       <GestureDetector gesture={gesture}>
-        <Animated.View
-          style={[
-            styles.bottomSheetContainer,
-            animatedStyle,
-            { position: "absolute", bottom: 0, zIndex: 10, elevation: 10 },
-          ]}
-        >
-          <View style={styles.panelContent}>
-            <View style={{ flex: 1, overflow: "hidden" }}>
-              <MenuPanel scrollRef={scrollRef} />
+      <Animated.View
+        style={[
+          styles.bottomSheetContainer,
+          animatedStyle,
+          { position: "absolute", bottom: 0, zIndex: 10, elevation: 10 },
+        ]}
+      >
+        
+          {panelVisible ? (
+            <View style={styles.dragHandleContainer}>
+              <View style={styles.dragHandle} />
             </View>
+          ) : null}
+        
+        <View style={styles.panelContent}>
+          <View style={{ flex: 1, overflow: "hidden" }}>
+            <MenuPanel scrollRef={scrollRef} scrollY={scrollY} />
           </View>
-        </Animated.View>
+        </View>
+      </Animated.View>
       </GestureDetector>
     </GestureHandlerRootView>
   );
@@ -173,7 +200,6 @@ const styles = StyleSheet.create({
   },
   panelContent: {
     flex: 1,
-    backgroundColor: "#ff4d4d",
     justifyContent: "center",
     alignItems: "center",
   },
