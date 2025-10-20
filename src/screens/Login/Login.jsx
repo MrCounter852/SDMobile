@@ -226,7 +226,8 @@ const Login = () => {
                           method: 'GET',
                         });
                         const sessionData = await sessionResponse.json();
-                        console.log('LoginAcceso response:', JSON.stringify(sessionData, null, 2));
+                        console.log("url acceso:", `https://ns2.sedierp.com//API_SIS/api/Login/LoginAcceso?TokenKey=${data.AccessToken}`)
+                        //console.log('LoginAcceso response:', JSON.stringify(sessionData, null, 2));
                         const usuarioID = sessionData.Session?.Usuario?.UsuarioID;
                         const rolID = sessionData.Session?.Usuario?.RolID;
                         const user = sessionData.Session?.Usuario || {};

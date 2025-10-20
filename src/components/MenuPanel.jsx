@@ -1,39 +1,29 @@
-				  import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  interpolate,
-  Extrapolate,
-} from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import useGlobal from "../core/global";
 import { ScrollView } from "react-native-gesture-handler";
 
-const iconMap = {
-  // Sistema / Configuración
+
+
+const ICON_MAP = {
   "fal fa-cogs": "settings-sharp",
   "fal fa-cog": "cog-sharp",
   "fal fa-sliders-v": "options-sharp",
   "fal fa-wrench": "construct-sharp",
   "fal fa-server": "server-sharp",
-
-  // Usuarios y seguridad
   "fal fa-user-alt": "person-sharp",
   "fal fa-user-circle": "person-circle-sharp",
   "fal fa-key": "key-sharp",
   "fal fa-lock-alt": "lock-closed-sharp",
-
-  // Ubicación y entorno
   "fal fa-map-marker-alt": "location-sharp",
   "fal fa-map-pin": "pin-sharp",
   "fal fa-globe": "globe-sharp",
   "fal fa-plane": "airplane-sharp",
   "fal fa-language": "language-sharp",
   "fal fa-sun": "sunny-sharp",
-
-  // Negocios / ERP General
-  "fal fa-handshake": "handshake", // FontAwesome
+  "fal fa-handshake": "handshake",
   "fal fa-envelope": "mail-sharp",
   "fal fa-chart-pie": "pie-chart-sharp",
   "fal fa-chart-line": "trending-up-sharp",
@@ -47,8 +37,6 @@ const iconMap = {
   "fal fa-industry": "business-sharp",
   "fal fa-cubes": "cube-sharp",
   "fal fa-hand-holding-box": "cube-sharp",
-
-  // Gestión de personas
   "far fa-list-alt": "list-sharp",
   "far fa-hands": "people-sharp",
   "fal fa-id-card": "id-card-sharp",
@@ -60,17 +48,20 @@ const iconMap = {
   "fal fa-hand-holding-usd": "cash-sharp",
   "fal fa-watch": "time-sharp",
   "fas fa-calendar-alt": "calendar-sharp",
-  "fal fa-child": "child", // FontAwesome
+  "fal fa-child": "child",
 };
 
-const isFontAwesome = (icon) => {
-  const faIcons = ["handshake", "child"];
-  return faIcons.includes(icon);
+const FONT_AWESOME_ICONS = new Set(["handshake", "child"]);
+
+const getIconName = (icon) => {
+  const clean = icon.replace(/fa[lrs] fa-/g, "").trim();
+  return ICON_MAP[icon] || clean;
 };
 
 const findMenuById = (menuList, id) => {
+  if (!id || !menuList) return null;
   for (const item of menuList) {
-    if (item.OpcionMenuID == id) return item;
+    if (item.OpcionMenuID === id) return item;
     if (item.__children__) {
       const found = findMenuById(item.__children__, id);
       if (found) return found;
@@ -80,117 +71,182 @@ const findMenuById = (menuList, id) => {
 };
 
 
-const getIconName = (icon) => {
-  const clean = icon
-    .replace("fal fa-", "")
-    .replace("fas fa-", "")
-    .replace("far fa-", "");
-  return iconMap[icon] || clean;
+const IconRenderer = ({ name, size, color }) => {
+  if (FONT_AWESOME_ICONS.has(name)) {
+    return <FontAwesome5 name={name} size={size} color={color} />;
+  }
+  return <Ionicons name={name} size={size} color={color} />;
 };
-const MenuPanel = ({ scrollRef, scrollY }) => {
-  const viewProgress = useSharedValue(0);
-  const [isSliderView, setIsSliderView] = React.useState(false);
-  const [selectedMenuOption, setSelectedMenuOption] = useState(null);
-  const { menuOptions } = useGlobal();
 
-  console.log(
-    "MenuPanel menuOptions:",
-    JSON.stringify(menuOptions[0], null, 2)
+const MainMenuItem = ({ item, onPress }) => (
+  <TouchableOpacity
+    style={styles.gridItem}
+    activeOpacity={0.75}
+    onPress={() => onPress(item.OpcionMenuID)}
+  >
+    <IconRenderer name={item.Icon} size={40} color="#337ab7" />
+    <Text style={styles.gridItemText} numberOfLines={2}>
+      {item.Nombre}
+    </Text>
+  </TouchableOpacity>
+);
+
+const VerticalMenuItem = ({ item, isSelected, onPress }) => {
+  const iconColor = isSelected ? "#337ab7" : "white";
+  return (
+    <TouchableOpacity
+      style={[
+        styles.verticalGridItem,
+        isSelected && styles.verticalGridItemSelected,
+      ]}
+      activeOpacity={0.75}
+      onPress={() => onPress(item.OpcionMenuID)}
+    >
+      <IconRenderer name={item.Icon} size={25} color={iconColor} />
+    </TouchableOpacity>
   );
-  menuOptions.map((item) => {
-    item.Icon = getIconName(item.Icon);
-  });
+};
 
-  const gridStyle = useAnimatedStyle(() => {
-    const p = viewProgress.value;
-    return {
-      opacity: interpolate(p, [0, 1], [1, 0]),
-      transform: [
-        { scale: interpolate(p, [0, 1], [1, 0.97]) },
-        { translateY: interpolate(p, [0, 1], [0, 10]) },
-      ],
-    };
-  });
+
+const MainMenuGrid = ({ menuOptions, onSelect, scrollRef, scrollY }) => (
+  <ScrollView
+    ref={scrollRef}
+    scrollEventThrottle={16}
+    nestedScrollEnabled={true}
+    showsVerticalScrollIndicator={false}
+    onScroll={(e) => {
+      scrollY.value = e.nativeEvent.contentOffset.y;
+    }}
+    contentContainerStyle={{ padding: 10 }}
+  >
+    <Animated.View style={styles.grid}>
+      {menuOptions.map((item) => (
+        <MainMenuItem key={item.OpcionMenuID} item={item} onPress={onSelect} />
+      ))}
+    </Animated.View>
+  </ScrollView>
+);
+
+const SubMenuView = ({
+  allOptions,
+  selectedOption,
+  onSelect,
+  scrollRef,
+  scrollY,
+}) => {
+  const subMenuItems = selectedOption?.__children__ || [];
 
   return (
-    <View style={styles.body}>
+    <View style={styles.subMenuContainer}>
+      {/* ScrollView 1: Menú Vertical (20% de ancho) */}
       <ScrollView
         ref={scrollRef}
         scrollEventThrottle={16}
-        contentContainerStyle={{ paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
-        nestedScrollEnabled={true}
-        onScroll={(e) => {
-          const y = e.nativeEvent.contentOffset.y;
-          scrollY.value = y;
-        }}
+        style={styles.verticalMenuScrollView}
       >
-        {!selectedMenuOption ? (
-          <Animated.View
-            style={[styles.grid, gridStyle]}
-            pointerEvents={isSliderView ? "none" : "auto"}
-          >
-            {menuOptions.map((item) => (
-              <TouchableOpacity
-                key={item.OpcionMenuID}
-                style={styles.gridItem}
-                activeOpacity={0.75}
-                onPress={() => setSelectedMenuOption(item.OpcionMenuID)}
-              >
-                {isFontAwesome(item.Icon) ? (
-                  <FontAwesome5 name={item.Icon} size={40} color="#337ab7" />
-                ) : (
-                  <Ionicons name={item.Icon} size={40} color="#337ab7" />
-                )}
-                <Text style={styles.gridItemText}>{item.Nombre}</Text>
-              </TouchableOpacity>
-            ))}
-          </Animated.View>
-        ) : (
-          <Animated.View
-            style={[styles.grid, gridStyle]}
-            pointerEvents={isSliderView ? "none" : "auto"}
-          >
-            <View style={styles.subMenuContainer}>
-              <View style={styles.verticalMenuContainer}>
-                {menuOptions.map((item) => (
-                  <TouchableOpacity
-                    key={item.OpcionMenuID}
-                    style={
-                      item.OpcionMenuID == selectedMenuOption
-                        ? styles.verticalGridItemSelected
-                        : styles.verticalGridItem
-                    }
-                    activeOpacity={0.75}
-                  >
-                    {isFontAwesome(item.Icon) ? (
-                      <FontAwesome5 name={item.Icon} size={20} color="white" />
-                    ) : (
-                      <Ionicons name={item.Icon} size={20} color="white" />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
-              <View style={styles.SubMenuOptionsContainer}>
+        <TouchableOpacity
+          onPress={() => onSelect(null)}
+          style={styles.backButton}
+        >
+          <Ionicons name="arrow-back-circle" size={32} color="#337ab7" />
+        </TouchableOpacity>
+        {allOptions.map((item) => (
+          <VerticalMenuItem
+            key={item.OpcionMenuID}
+            item={item}
+            isSelected={item.OpcionMenuID === selectedOption.OpcionMenuID}
+            onPress={onSelect}
+          />
+        ))}
+      </ScrollView>
 
-              </View>
-            </View>
-          </Animated.View>
-        )}
+      {/* ScrollView 2: Grid de Sub-opciones (80% de ancho) */}
+      <ScrollView
+        style={styles.subMenuGridScrollView}
+        ref={scrollRef}
+        scrollEventThrottle={16}
+        onScroll={(e) => {
+          scrollY.value = e.nativeEvent.contentOffset.y;
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        <Animated.View style={styles.grid}>
+          {subMenuItems.length > 0 ? (
+            subMenuItems.map((item) => (
+              <MainMenuItem
+                key={item.OpcionMenuID}
+                item={item}
+                onPress={() => {
+                }}
+              />
+            ))
+          ) : (
+            <Text style={styles.noSubMenuText}>No hay sub-opciones.</Text>
+          )}
+        </Animated.View>
       </ScrollView>
     </View>
   );
 };
 
+
+
+const MenuPanel = ({ scrollRef, scrollY }) => {
+  const { menuOptions } = useGlobal();
+  const [selectedMenuId, setSelectedMenuId] = useState(null);
+
+  const processedMenuOptions = useMemo(() => {
+    return menuOptions.map((item) => ({
+      ...item,
+      Icon: getIconName(item.Icon),
+      __children__: item.__children__
+        ? item.__children__.map((child) => ({
+            ...child,
+            Icon: getIconName(child.Icon),
+          }))
+        : [],
+    }));
+  }, [menuOptions]);
+
+  const selectedOption = useMemo(
+    () => findMenuById(processedMenuOptions, selectedMenuId),
+    [processedMenuOptions, selectedMenuId]
+  );
+
+  return (
+    <View style={styles.body}>
+      {!selectedOption ? (
+        <MainMenuGrid
+          menuOptions={processedMenuOptions}
+          onSelect={setSelectedMenuId}
+          scrollRef={scrollRef}
+          scrollY={scrollY}
+        />
+      ) : (
+        <SubMenuView
+          allOptions={processedMenuOptions}
+          selectedOption={selectedOption}
+          onSelect={setSelectedMenuId}
+          scrollRef={scrollRef}
+          scrollY={scrollY}
+        />
+      )}
+    </View>
+  );
+};
+
+
 const styles = StyleSheet.create({
-  body: { flex: 1, backgroundColor: "#f0f3f3", padding: 30 },
+  body: { flex: 1, backgroundColor: "#f0f3f3" },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
+    justifyContent: "space-around",
+    padding: 10,
   },
   gridItem: {
-    width: "30%",
+    width: "31%",
     aspectRatio: 1,
     backgroundColor: "white",
     justifyContent: "center",
@@ -198,44 +254,50 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderRadius: 10,
     padding: 5,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
   },
   gridItemText: {
     fontSize: 14,
     color: "#337ab7",
     textAlign: "center",
+    marginTop: 8,
+    fontWeight: "600",
   },
-  subMenuContainer: {
-    flexDirection: "row",
-    width: "100%",
-    backgroundColor: "red",
+  subMenuContainer: { flex: 1, flexDirection: "row" },
+
+  verticalMenuScrollView: {
+    width: "22%",
+    backgroundColor: "#e9ecef",
+    paddingTop: 10,
   },
-  SubMenuOptionsContainer: {
-    flex: 1,
-    marginLeft: 10,
-  },
-  verticalMenuContainer: {
-    width: "20%",
-    backgroundColor: "blue",
-  },
+  subMenuGridScrollView: { width: "78%" },
+
+  backButton: { alignItems: "center", marginBottom: 10 },
   verticalGridItem: {
-    width: "100%",
-    aspectRatio: 1,
+    width: 55,
+    height: 55,
     backgroundColor: "#337ab7",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 10,
     borderRadius: 10,
-    padding: 5,
+    alignSelf: "center",
   },
   verticalGridItemSelected: {
-    width: "100%",
-    aspectRatio: 1,
     backgroundColor: "white",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 12,
-    borderRadius: 10,
-    padding: 5,
+    borderWidth: 2,
+    borderColor: "#337ab7",
+  },
+  noSubMenuText: {
+    marginTop: 20,
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    width: "100%",
   },
 });
 

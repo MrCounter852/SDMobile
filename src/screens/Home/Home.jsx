@@ -56,7 +56,6 @@ const Home = () => {
         const data = await response.json();
         if (response.ok && data.result === 1) {
           setMenuOptions(data.data?.Menus || []);
-          console.log("Menu options fetched:", data.data?.Menus || []);
         }
       } catch (error) {
         console.error("Error fetching menu options:", error);
