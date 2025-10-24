@@ -5,7 +5,6 @@ import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import useGlobal from "../core/global";
 import { ScrollView } from "react-native-gesture-handler";
 
-// --- MAPA DE ICONOS (Sin cambios) ---
 const ICON_MAP = {
   "fal fa-cogs": "settings-sharp",
   "fal fa-cog": "cog-sharp",
@@ -77,9 +76,6 @@ const IconRenderer = ({ name, size, color }) => {
   return <Ionicons name={name} size={size} color={color} />;
 };
 
-
-// --- COMPONENTES DE MENÚ ---
-
 const MainMenuItem = ({ item, onPress }) => (
   <TouchableOpacity
     style={styles.gridItem}
@@ -93,57 +89,69 @@ const MainMenuItem = ({ item, onPress }) => (
   </TouchableOpacity>
 );
 
-/**
- * [REFACTORIZADO]
- * Componente recursivo que renderiza un ítem de submenú y a todos sus descendientes.
- * La indentación se aplica para mostrar la jerarquía.
- */
+const heightCalculate =(NumberItems) =>{
+  let result = ((1-1/(NumberItems*2))*100).toFixed(3)
+  return `${result}%`;
+
+}
+
+
 const SubMenuItem = ({ item, onAction, level = 0 }) => {
   const hasChildren = item.__children__ && item.__children__.length > 0;
-  
-  // Solo los nodos finales (sin hijos) son clickables.
   const isClickable = !hasChildren;
 
-  // Los elementos con hijos son tratados como títulos, los nodos finales como botones.
-  const containerStyle = isClickable ? styles.subGridButton : styles.subGridItem;
-  const indentationStyle = { marginLeft: level * 25 }; // 25px de indentación por nivel.
+  const containerStyle = isClickable
+    ? styles.subGridButton
+    : styles.subGridItem;
+  const indentationStyle = { marginLeft: level * 25 };
 
   const handlePress = () => {
     if (isClickable && onAction) {
       onAction(item);
     }
-    // No hace nada si no es clickable (es un título/padre).
   };
 
   return (
     <View>
       <TouchableOpacity
         style={[containerStyle, indentationStyle]}
-        activeOpacity={isClickable ? 0.7 : 1.0} // Sin feedback visual para títulos.
+        activeOpacity={isClickable ? 0.7 : 1.0}
         onPress={handlePress}
         disabled={!isClickable}
       >
         <IconRenderer name={item.Icon} size={20} color="#337ab7" />
         <Text style={styles.subGridText}>{item.Nombre}</Text>
       </TouchableOpacity>
-
-      {/* Si tiene hijos, los renderiza inmediatamente de forma recursiva. */}
+      {level > 0 && (
+        <View
+          style={[
+            styles.horizontalLine,
+            {
+              left: 8 + (level - 1) * 25 + 2,
+              width: 15
+            },
+          ]}
+        />
+      )}
       {hasChildren && (
-        <View>
-          {item.__children__.map((child) => (
-            <SubMenuItem
-              key={child.OpcionMenuID}
-              item={child}
-              onAction={onAction}
-              level={level + 1} // Incrementa el nivel para la indentación.
-            />
-          ))}
+        <View style={{ position: "relative" }}>
+          <View style={[styles.verticalLine, { left: 8 + level * 25, height: heightCalculate(item.__children__.length)}]} />
+          
+          <View>
+            {item.__children__.map((child) => (
+              <SubMenuItem
+                key={child.OpcionMenuID}
+                item={child}
+                onAction={onAction}
+                level={level + 1}
+              />
+            ))}
+          </View>
         </View>
       )}
     </View>
   );
 };
-
 
 const VerticalMenuItem = ({ item, isSelected, onPress }) => {
   const iconColor = isSelected ? "#337ab7" : "white";
@@ -184,7 +192,7 @@ const SubMenuView = ({
   allOptions,
   selectedOption,
   onSelect,
-  onAction, // Recibe la función de acción.
+  onAction,
   scrollRef,
   scrollY,
 }) => {
@@ -226,7 +234,11 @@ const SubMenuView = ({
       >
         <View style={styles.subGrid}>
           <View style={styles.subMenuTitleContainer}>
-            <IconRenderer name={selectedOption.Icon} size={20} color="#337ab7" />
+            <IconRenderer
+              name={selectedOption.Icon}
+              size={20}
+              color="#337ab7"
+            />
             <Text style={styles.subMenuTitleText}>{selectedOption.Nombre}</Text>
           </View>
           {subMenuItems.length > 0 ? (
@@ -234,7 +246,7 @@ const SubMenuView = ({
               <SubMenuItem
                 key={item.OpcionMenuID}
                 item={item}
-                onAction={onAction} // Pasa la acción al componente de submenú.
+                onAction={onAction}
               />
             ))
           ) : (
@@ -246,17 +258,13 @@ const SubMenuView = ({
   );
 };
 
-// --- COMPONENTE PRINCIPAL ---
-
 const MenuPanel = ({ scrollRef, scrollY }) => {
-  // Hook de ejemplo, reemplaza con tu lógica de estado global.
-  const { menuOptions } = useGlobal(); 
+  const { menuOptions } = useGlobal();
   const [selectedMenuId, setSelectedMenuId] = useState(null);
 
   const processedMenuOptions = useMemo(() => {
-    // Función recursiva para procesar los iconos en todos los niveles.
     const processItems = (items) => {
-      return items.map(item => ({
+      return items.map((item) => ({
         ...item,
         Icon: getIconName(item.Icon),
         __children__: item.__children__ ? processItems(item.__children__) : [],
@@ -270,11 +278,8 @@ const MenuPanel = ({ scrollRef, scrollY }) => {
     [processedMenuOptions, selectedMenuId]
   );
 
-  // Función que se ejecutará al presionar un ítem de menú final.
   const handleMenuAction = (item) => {
-    Alert.alert("Acción", `Has presionado en: ${item.Nombre}`);
-    // Aquí iría tu lógica de navegación, ej:
-    // navigation.navigate(item.RouteName, { id: item.OpcionMenuID });
+    Alert.alert("Acción", `${item.Nombre}`);
   };
 
   return (
@@ -291,7 +296,7 @@ const MenuPanel = ({ scrollRef, scrollY }) => {
           allOptions={processedMenuOptions}
           selectedOption={selectedOption}
           onSelect={setSelectedMenuId}
-          onAction={handleMenuAction} // Pasamos la función de acción.
+          onAction={handleMenuAction}
           scrollRef={scrollRef}
           scrollY={scrollY}
         />
@@ -300,10 +305,8 @@ const MenuPanel = ({ scrollRef, scrollY }) => {
   );
 };
 
-// --- ESTILOS ---
-
 const styles = StyleSheet.create({
-  body: { flex: 1, backgroundColor: "#f0f3f3" },
+  body: { flex: 1, backgroundColor: "#f0f3f3", paddingBottom: 50 },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -313,7 +316,7 @@ const styles = StyleSheet.create({
   subGrid: {
     padding: 10,
   },
-  // [MODIFICADO] Estilo para botones finales (sin hijos).
+
   subGridButton: {
     flexDirection: "row",
     backgroundColor: "white",
@@ -321,15 +324,15 @@ const styles = StyleSheet.create({
     marginTop: 5,
     borderRadius: 10,
     padding: 8,
-    alignItems: 'center',
-    alignSelf: "flex-start", // Para que el ancho se ajuste al contenido.
+    alignItems: "center",
+    alignSelf: "flex-start",
     elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 1.41,
   },
-  // [MODIFICADO] Estilo para items con hijos (actúan como títulos).
+
   subGridItem: {
     flexDirection: "row",
     paddingVertical: 8,
@@ -393,19 +396,29 @@ const styles = StyleSheet.create({
     textAlign: "center",
     width: "100%",
   },
-  subMenuTitleText:{
+  subMenuTitleText: {
     fontSize: 15,
     color: "#337ab7",
     fontWeight: "bold",
     marginLeft: 5,
   },
-  subMenuTitleContainer:{
-    flexDirection: 'row',
-    alignItems:'center',
+  subMenuTitleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd'
-  }
+    borderBottomColor: "#ddd",
+  },
+  verticalLine: {
+    position: "absolute",
+    width: 2,
+    backgroundColor: "#337ab7",
+  },
+
+  horizontalLine: {
+    height: 2,
+    backgroundColor: "#337ab7",
+  },
 });
 
 export default MenuPanel;
