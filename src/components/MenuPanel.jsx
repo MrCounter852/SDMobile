@@ -113,6 +113,7 @@ const SubMenuItem = ({ item, onAction, level = 0 }) => {
 
   return (
     <View>
+      
       <TouchableOpacity
         style={[containerStyle, indentationStyle]}
         activeOpacity={isClickable ? 0.7 : 1.0}
@@ -127,8 +128,9 @@ const SubMenuItem = ({ item, onAction, level = 0 }) => {
           style={[
             styles.horizontalLine,
             {
-              left: 8 + (level - 1) * 25 + 2,
-              width: 15
+              left: 8 + (level - 1) * 25,
+              width: 15,
+              top: 21
             },
           ]}
         />
@@ -416,6 +418,7 @@ const styles = StyleSheet.create({
   },
 
   horizontalLine: {
+    position: "absolute",
     height: 2,
     backgroundColor: "#337ab7",
   },
