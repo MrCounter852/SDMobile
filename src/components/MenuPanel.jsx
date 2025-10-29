@@ -105,48 +105,21 @@ const SubMenuItem = ({ item, onAction, level = 0, isLast }) => {
     }
   };
 
-  const heightCalculator =(children) =>{
-    let number = children.length
-    console.log(number)
-    let result = ((1-1/(2*number))*100).toString() + '%'
-    console.log(result)
-    return result 
-
-  }
-
   return (
     <View>
-
       <View>
-        
-      <TouchableOpacity
-        style={[containerStyle, indentationStyle]}
-        activeOpacity={isClickable ? 0.7 : 1.0}
-        onPress={handlePress}
-        disabled={!isClickable}
-      >
-        
-        {level > 0 && (
-          <View>
-            <View
-              style={[
-                styles.horizontalLine,
-                {
-                  left: -level / 2 - 22,
-                  width: 15,
-                },
-              ]}
-            />
-          </View>
-        )}
-
-        <IconRenderer name={item.Icon} size={20} color="#337ab7" />
-        <Text style={styles.subGridText}>{item.Nombre}</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[containerStyle, indentationStyle]}
+          activeOpacity={isClickable ? 0.7 : 1.0}
+          onPress={handlePress}
+          disabled={!isClickable}
+        >
+          <IconRenderer name={item.Icon} size={20} color="#337ab7" />
+          <Text style={styles.subGridText}>{item.Nombre}</Text>
+        </TouchableOpacity>
       </View>
       {hasChildren && (
         <View>
-           { (<View style={[styles.verticalLine, { top:0, bottom: 0, height: heightCalculator(item.__children__), left:level*35 }]}/>)}
           {item.__children__.map((child, index) => (
             <SubMenuItem
               key={child.OpcionMenuID}
@@ -158,7 +131,6 @@ const SubMenuItem = ({ item, onAction, level = 0, isLast }) => {
           ))}
         </View>
       )}
-      
     </View>
   );
 };
@@ -223,6 +195,7 @@ const SubMenuView = ({
           <Ionicons name="arrow-back-circle" size={32} color="#337ab7" />
         </TouchableOpacity>
         {allOptions.map((item) => (
+          
           <VerticalMenuItem
             key={item.OpcionMenuID}
             item={item}
@@ -253,12 +226,15 @@ const SubMenuView = ({
           </View>
           {subMenuItems.length > 0 ? (
             subMenuItems.map((item, index) => (
-              <SubMenuItem
-                key={item.OpcionMenuID}
-                item={item}
-                onAction={onAction}
-                isLast={index === subMenuItems.length - 1}
-              />
+              <View style={{border: 1, borderWidth: 2, flexDirection:'row'}}>
+                {<View style={styles.verticalLine}/>}
+                <SubMenuItem
+                  key={item.OpcionMenuID}
+                  item={item}
+                  onAction={onAction}
+                  isLast={index === subMenuItems.length - 1}
+                />
+              </View>
             ))
           ) : (
             <Text style={styles.noSubMenuText}>No hay sub-opciones.</Text>
@@ -333,6 +309,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 10,
     padding: 8,
+    marginVertical: 5,
     alignItems: "center",
     alignSelf: "flex-start",
     elevation: 2,
@@ -420,14 +397,19 @@ const styles = StyleSheet.create({
   },
   verticalLine: {
     width: 2,
-    position: 'absolute',
     backgroundColor: "#337ab7",
+    left: 10,
+    top: 30,
+    height: '40%'
+    
   },
 
   horizontalLine: {
-    position: "absolute",
     height: 2,
     backgroundColor: "#337ab7",
+    left: 10,
+    top: 10
+
   },
 });
 
