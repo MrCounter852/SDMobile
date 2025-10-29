@@ -89,14 +89,8 @@ const MainMenuItem = ({ item, onPress }) => (
   </TouchableOpacity>
 );
 
-const heightCalculate =(NumberItems) =>{
-  let result = ((1-1/(NumberItems*2))*100).toFixed(3)
-  return `${result}%`;
-
-}
-
-
-const SubMenuItem = ({ item, onAction, level = 0 }) => {
+const SubMenuItem = ({ item, onAction, level = 0, isLast }) => {
+  const [lineHeight, setLineHeight] = useState(0);
   const hasChildren = item.__children__ && item.__children__.length > 0;
   const isClickable = !hasChildren;
 
@@ -111,46 +105,60 @@ const SubMenuItem = ({ item, onAction, level = 0 }) => {
     }
   };
 
+  const heightCalculator =(children) =>{
+    let number = children.length
+    console.log(number)
+    let result = ((1-1/(2*number))*100).toString() + '%'
+    console.log(result)
+    return result 
+
+  }
+
   return (
     <View>
-      
+
+      <View>
+        
       <TouchableOpacity
         style={[containerStyle, indentationStyle]}
         activeOpacity={isClickable ? 0.7 : 1.0}
         onPress={handlePress}
         disabled={!isClickable}
       >
+        
+        {level > 0 && (
+          <View>
+            <View
+              style={[
+                styles.horizontalLine,
+                {
+                  left: -level / 2 - 22,
+                  width: 15,
+                },
+              ]}
+            />
+          </View>
+        )}
+
         <IconRenderer name={item.Icon} size={20} color="#337ab7" />
         <Text style={styles.subGridText}>{item.Nombre}</Text>
       </TouchableOpacity>
-      {level > 0 && (
-        <View
-          style={[
-            styles.horizontalLine,
-            {
-              left: 8 + (level - 1) * 25,
-              width: 15,
-              top: 21
-            },
-          ]}
-        />
-      )}
+      </View>
       {hasChildren && (
-        <View style={{ position: "relative" }}>
-          <View style={[styles.verticalLine, { left: 8 + level * 25, height: heightCalculate(item.__children__.length)}]} />
-          
-          <View>
-            {item.__children__.map((child) => (
-              <SubMenuItem
-                key={child.OpcionMenuID}
-                item={child}
-                onAction={onAction}
-                level={level + 1}
-              />
-            ))}
-          </View>
+        <View>
+           { (<View style={[styles.verticalLine, { top:0, bottom: 0, height: heightCalculator(item.__children__), left:level*35 }]}/>)}
+          {item.__children__.map((child, index) => (
+            <SubMenuItem
+              key={child.OpcionMenuID}
+              item={child}
+              onAction={onAction}
+              level={level + 1}
+              isLast={index === item.__children__.length - 1}
+            />
+          ))}
         </View>
       )}
+      
     </View>
   );
 };
@@ -244,11 +252,12 @@ const SubMenuView = ({
             <Text style={styles.subMenuTitleText}>{selectedOption.Nombre}</Text>
           </View>
           {subMenuItems.length > 0 ? (
-            subMenuItems.map((item) => (
+            subMenuItems.map((item, index) => (
               <SubMenuItem
                 key={item.OpcionMenuID}
                 item={item}
                 onAction={onAction}
+                isLast={index === subMenuItems.length - 1}
               />
             ))
           ) : (
@@ -322,8 +331,6 @@ const styles = StyleSheet.create({
   subGridButton: {
     flexDirection: "row",
     backgroundColor: "white",
-    marginBottom: 5,
-    marginTop: 5,
     borderRadius: 10,
     padding: 8,
     alignItems: "center",
@@ -374,7 +381,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#e9ecef",
     paddingTop: 10,
   },
-  subMenuGridScrollView: { width: "78%" },
+  subMenuGridScrollView: { width: "78%", paddingRight: 40 },
   backButton: { alignItems: "center", marginBottom: 10 },
   verticalGridItem: {
     width: 55,
@@ -412,8 +419,8 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ddd",
   },
   verticalLine: {
-    position: "absolute",
     width: 2,
+    position: 'absolute',
     backgroundColor: "#337ab7",
   },
 
