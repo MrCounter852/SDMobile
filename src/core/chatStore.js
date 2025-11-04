@@ -32,6 +32,9 @@ export const useChatStore = create((set, get) => ({
   // Estado de conexión
   isConnected: false,
 
+  // Estado de notificaciones
+  notifications: [],
+
   // Acciones para contactos
   setContacts: (contacts) => set({ contacts }),
   setSelectedContact: (contact) => set({ selectedContact: contact }),
@@ -80,6 +83,21 @@ export const useChatStore = create((set, get) => ({
 
   // Acciones para conexión
   setConnected: (connected) => set({ isConnected: connected }),
+
+  // Acciones para notificaciones
+  setNotifications: (notifications) => set({ notifications }),
+  addNotification: (notification) => set((state) => ({
+    notifications: [notification, ...state.notifications]
+  })),
+  markNotificationAsRead: (notificationId) => set((state) => ({
+    notifications: state.notifications.map(notif =>
+      notif.id === notificationId ? { ...notif, read: true } : notif
+    )
+  })),
+  removeNotification: (notificationId) => set((state) => ({
+    notifications: state.notifications.filter(notif => notif.id !== notificationId)
+  })),
+  clearNotifications: () => set({ notifications: [] }),
 
   // Acciones complejas
   loadContactsFromStorage: async () => {
@@ -142,6 +160,7 @@ export const useChatStore = create((set, get) => ({
     messageInput: '',
     attachments: [],
     isConnected: false,
+    notifications: [],
   }),
 }));
 

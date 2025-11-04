@@ -16,10 +16,21 @@ class ChatSocketService {
     if (this.socket?.connected) return;
 
     const { user } = useGlobal.getState();
-    // Para desarrollo local, usar HTTP. En producción cambiar a HTTPS/WSS
-    const serverUrl = __DEV__
-      ? 'http://localhost:3001' // Cambiar al puerto de tu servidor SignalR
-      : 'wss://tu-signalr-server.com/chat';
+
+    // Configuración de URLs basada en el ERP SignalR
+    const SIGNALR_CONFIG = {
+      development: {
+        url: 'http://dev.sedisolutions.co:81/API_SIS/signalr/',
+        protocol: 'http'
+      },
+      production: {
+        url: 'wss://admin.sedierp.com/API_SIS/signalr/',
+        protocol: 'wss'
+      }
+    };
+
+    const config = __DEV__ ? SIGNALR_CONFIG.development : SIGNALR_CONFIG.production;
+    const serverUrl = config.url;
 
     try {
       this.socket = io(serverUrl, {
@@ -28,7 +39,11 @@ class ChatSocketService {
         forceNew: true,
         query: {
           token: user?.Token,
-          usuarioID: useGlobal.getState().usuarioID,
+          usuarioID: user?.UsuarioID,
+          EmpresaUniqueID: user?.EmpresaUniqueID?.toLowerCase(),
+          UsuarioUniqueID: user?.UniqueID?.toLowerCase(),
+          SucursalUniqueID: user?.SucursalUniqueID?.toLowerCase(),
+          OpcionMenu: 'CentroContacto'
         },
         auth: {
           token: user?.Token,
@@ -128,25 +143,30 @@ class ChatSocketService {
       useChatStore.getState().setConnected(false);
     });
 
-    // Eventos de chat
-    this.socket.on('NuevoMensaje', (data) => {
-      console.log('Nuevo mensaje recibido:', data);
-      this.handleNewMessage(data);
+    // Eventos de chat basados en el ERP SignalR
+    this.socket.on('SincronizarOpcionMenuEmpresa', (data) => {
+      console.log('Sincronización de chat:', data);
+      this.handleChatSync(data);
     });
 
-    this.socket.on('MensajeActualizado', (data) => {
-      console.log('Mensaje actualizado:', data);
-      this.handleMessageUpdate(data);
+    this.socket.on('NotificacionPush', (data, IfPush) => {
+      console.log('Notificación push:', data);
+      this.handlePushNotification(data, IfPush);
     });
 
-    this.socket.on('ContactoActualizado', (data) => {
-      console.log('Contacto actualizado:', data);
-      this.handleContactUpdate(data);
+    this.socket.on('SyncNotificacionPush', (data) => {
+      console.log('Sincronización de notificaciones:', data);
+      this.handleSyncNotifications(data);
     });
 
-    this.socket.on('EstadoConexion', (data) => {
-      console.log('Estado de conexión:', data);
-      // Manejar estados de conexión específicos
+    this.socket.on('CerrarSession', () => {
+      console.log('Sesión cerrada por el servidor');
+      this.handleSessionClosed();
+    });
+
+    this.socket.on('SincronizarAccesos', (data) => {
+      console.log('Accesos sincronizados:', data);
+      this.handleAccessSync(data);
     });
 
     this.socket.on('pong', () => {
@@ -158,6 +178,24 @@ class ChatSocketService {
       console.error('Server error:', error);
       // Mostrar notificación de error al usuario si es necesario
     });
+  }
+
+  handleChatSync(data) {
+    console.log('Procesando sincronización de chat:', data);
+
+    // Procesar contactos actualizados
+    if (data.Contactos && data.Contactos.length > 0) {
+      data.Contactos.forEach(contacto => {
+        this.handleContactUpdate(contacto);
+      });
+    }
+
+    // Procesar mensajes nuevos/actualizados
+    if (data.Mensajes && data.Mensajes.length > 0) {
+      data.Mensajes.forEach(mensaje => {
+        this.handleNewMessage(mensaje);
+      });
+    }
   }
 
   handleNewMessage(data) {
@@ -212,13 +250,61 @@ class ChatSocketService {
   }
 
   handleContactUpdate(data) {
-    const { contacts, setContacts } = useChatStore.getState();
+    const { contacts, setContacts, selectedContact, setSelectedContact } = useChatStore.getState();
     const updatedContacts = contacts.map(contact =>
       contact.CuentaMensajeriaContactoID === data.CuentaMensajeriaContactoID
         ? { ...contact, ...data }
         : contact
     );
     setContacts(updatedContacts);
+
+    // Si el contacto actualizado es el seleccionado, actualizar también el estado
+    if (selectedContact && selectedContact.CuentaMensajeriaContactoID === data.CuentaMensajeriaContactoID) {
+      setSelectedContact({ ...selectedContact, ...data });
+    }
+  }
+
+  handlePushNotification(data, IfPush) {
+    console.log('Procesando notificación push:', data, IfPush);
+
+    // Si IfPush es true, mostrar notificación nativa
+    if (IfPush) {
+      // Aquí puedes integrar con una librería de notificaciones push
+      // Por ejemplo: react-native-push-notification o similar
+      console.log('Mostrar notificación push:', data.Titulo, data.Texto);
+    }
+
+    // Procesar la notificación en el store
+    const { addNotification } = useChatStore.getState();
+    addNotification({
+      id: data.NotificacionID,
+      title: data.Titulo,
+      message: data.Texto,
+      url: data.Url,
+      date: new Date(data.Fecha),
+      read: data.Visto || false,
+    });
+  }
+
+  handleSyncNotifications(data) {
+    console.log('Sincronizando notificaciones:', data);
+    const { setNotifications } = useChatStore.getState();
+    setNotifications(data);
+  }
+
+  handleSessionClosed() {
+    console.log('Sesión cerrada por el servidor');
+    // Cerrar conexión y redirigir a login
+    this.disconnect();
+    const { logout } = useGlobal.getState();
+    logout();
+  }
+
+  handleAccessSync(data) {
+    console.log('Sincronizando accesos:', data);
+    // Aquí puedes actualizar permisos o módulos si es necesario
+    // const { updatePermissions } = useGlobal.getState();
+    // updatePermissions(data);
   }
 
   updateContactInList(contactId, updates) {
@@ -238,10 +324,18 @@ class ChatSocketService {
     }
   }
 
-  // Enviar mensaje
+  // Enviar mensaje (compatible con API del ERP)
   sendMessage(messageData) {
     if (this.socket?.connected) {
-      this.socket.emit('EnviarMensaje', messageData);
+      // Formatear datos según la API del ERP
+      const formattedData = {
+        CuentaMensajeriaID: messageData.CuentaMensajeriaID,
+        CuentaMensajeriaContactoID: messageData.CuentaMensajeriaContactoID,
+        Mensaje: messageData.Mensaje,
+        Files: messageData.Files || [],
+        Token: useGlobal.getState().user?.Token
+      };
+      this.socket.emit('EnviarMensaje', formattedData);
     } else {
       console.warn('Socket not connected, cannot send message');
       throw new Error('No hay conexión con el servidor de chat');
@@ -262,17 +356,50 @@ class ChatSocketService {
     }
   }
 
-  // Confirmar lectura de mensajes
-  markAsRead(contactId) {
+  // Confirmar lectura de mensajes (compatible con ERP)
+  markAsRead(contactData) {
     if (this.socket?.connected) {
-      this.socket.emit('ConfirmarLectura', { contactId });
+      const formattedData = {
+        CuentaMensajeriaContactoID: contactData.CuentaMensajeriaContactoID,
+        UsuarioID: useGlobal.getState().user?.UsuarioID,
+        Token: useGlobal.getState().user?.Token
+      };
+      this.socket.emit('ConfirmarLectura', formattedData);
     }
   }
 
-  // Actualizar estado de contacto
+  // Actualizar estado de contacto (compatible con ERP)
   updateContactStatus(contactId, status) {
     if (this.socket?.connected) {
-      this.socket.emit('ActualizarEstadoContacto', { contactId, status });
+      const formattedData = {
+        CuentaMensajeriaContactoID: contactId,
+        EstadoGestionContactoID: status,
+        Token: useGlobal.getState().user?.Token
+      };
+      this.socket.emit('ActualizarEstadoContacto', formattedData);
+    }
+  }
+
+  // Asignar chat a usuario (compatible con ERP)
+  assignChat(contactData) {
+    if (this.socket?.connected) {
+      const formattedData = {
+        CuentaMensajeriaContactoID: contactData.CuentaMensajeriaContactoID,
+        NuevoUsuarioID: contactData.NuevoUsuarioID,
+        Token: useGlobal.getState().user?.Token
+      };
+      this.socket.emit('AsociarUsuario', formattedData);
+    }
+  }
+
+  // Iniciar nuevo chat (compatible con ERP)
+  startNewChat(chatData) {
+    if (this.socket?.connected) {
+      const formattedData = {
+        ...chatData,
+        Token: useGlobal.getState().user?.Token
+      };
+      this.socket.emit('NuevoChat', formattedData);
     }
   }
 
