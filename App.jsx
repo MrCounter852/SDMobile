@@ -8,6 +8,7 @@ import Login from './src/screens/Login/Login';
 import SplashScreen from './src/screens/SplashScreen/SplashScreen';
 import Home from './src/screens/Home/Home';
 import useGlobal from './src/core/global';
+import { ChatScreen, NewChat } from './src/screens/Chat';
 
 const Stack = createNativeStackNavigator();
 
@@ -38,11 +39,28 @@ export default function App() {
               options={{ headerShown: false }}
             />
           ) : (
-            <Stack.Screen
-              name="Home"
-              component={Home}
-              options={{ headerShown: false }}
-            />
+            <>
+              <Stack.Screen
+                name="Home"
+                component={Home}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="ChatScreen"
+                component={ChatScreen}
+                options={{ headerShown: true }}
+              />
+              <Stack.Screen
+                name="NewChat"
+                component={NewChat}
+                options={{ headerShown: true, title: 'Nuevo Chat' }}
+              />
+              <Stack.Screen
+                name="ContactInfo"
+                component={View} // Placeholder, implementar después
+                options={{ headerShown: true, title: 'Información del Contacto' }}
+              />
+            </>
           )}
         </Stack.Navigator>
       </NavigationContainer>

@@ -21,6 +21,7 @@ import Notificaciones from "../Notificaciones/Notificaciones";
 import Favoritos from "../Favoritos/Favoritos";
 import useGlobal from "../../core/global";
 import MenuPanel from "../../components/MenuPanel";
+import { ContactList } from "../Chat";
 const Tab = createBottomTabNavigator();
 
 const Home = () => {
@@ -65,31 +66,31 @@ const Home = () => {
   }, [rolID, setMenuOptions]);
 
   // ---- Gesto manual (drag) ----
-const gesture = Gesture.Pan()
-.simultaneousWithExternalGesture(scrollRef)
-  .onStart(() => {
-    context.value = { y: translateY.value };
-  })
-  .onUpdate((event) => {
-    if (scrollY.value > 0) {
-      return;
-    }
-    translateY.value = Math.min(
-      Math.max(context.value.y + event.translationY, 0),
-      PANEL_HEIGHT
-    );
-  })
-  .onEnd(() => {
-    if (translateY.value > PANEL_HEIGHT / 2) {
-      translateY.value = withSpring(PANEL_HEIGHT, { damping: 90 });
-      opacity.value = withTiming(0);
-      panelVisible.value = false;
-    } else {
-      translateY.value = withSpring(0, { damping: 90 });
-      opacity.value = withTiming(1);
-      panelVisible.value = true;
-    }
-  });
+ const gesture = Gesture.Pan()
+ .simultaneousWithExternalGesture(scrollRef)
+   .onStart(() => {
+     context.value = { y: translateY.value };
+   })
+   .onUpdate((event) => {
+     if (scrollY.value > 0) {
+       return;
+     }
+     translateY.value = Math.min(
+       Math.max(context.value.y + event.translationY, 0),
+       PANEL_HEIGHT
+     );
+   })
+   .onEnd(() => {
+     if (translateY.value > PANEL_HEIGHT / 2) {
+       translateY.value = withSpring(PANEL_HEIGHT, { damping: 90 });
+       opacity.value = withTiming(0);
+       panelVisible.value = false;
+     } else {
+       translateY.value = withSpring(0, { damping: 90 });
+       opacity.value = withTiming(1);
+       panelVisible.value = true;
+     }
+   });
 
 
 const animatedStyle = useAnimatedStyle(() => {
@@ -112,6 +113,7 @@ const animatedStyle = useAnimatedStyle(() => {
             Menu: "menu",
             Notificaciones: "notifications",
             Perfil: "person",
+            Chat: "chatbubble-ellipses",
           };
           const iconName = icons[route.name] || "circle";
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -140,6 +142,7 @@ const animatedStyle = useAnimatedStyle(() => {
           },
         }}
       />
+      <Tab.Screen name="Chat" component={ContactList} />
       <Tab.Screen name="Notificaciones" component={Notificaciones} />
       <Tab.Screen name="Perfil" component={Perfil} />
     </Tab.Navigator>
@@ -158,13 +161,13 @@ const animatedStyle = useAnimatedStyle(() => {
           { position: "absolute", bottom: 0, zIndex: 10, elevation: 10 },
         ]}
       >
-        
+
           {panelVisible ? (
             <View style={styles.dragHandleContainer}>
               <View style={styles.dragHandle} />
             </View>
           ) : null}
-        
+
         <View style={styles.panelContent}>
           <View style={{ flex: 1, overflow: "hidden" }}>
             <MenuPanel scrollRef={scrollRef} scrollY={scrollY} />
