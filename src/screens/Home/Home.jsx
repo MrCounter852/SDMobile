@@ -118,7 +118,7 @@ const animatedStyle = useAnimatedStyle(() => {
           const iconName = icons[route.name] || "circle";
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: "#2b8cff",
+        tabBarActiveTintColor: "#337ab7",
         headerShown: false,
       })}
     >

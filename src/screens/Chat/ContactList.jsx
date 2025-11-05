@@ -8,7 +8,9 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useChatStore } from '../../core/chatStore';
 import ChatApiService from '../../core/chatApi';
 import { useGlobal } from '../../core/global';
@@ -139,29 +141,32 @@ const ContactList = ({ navigation }) => {
 
   const renderStatusFilter = () => (
     <View style={styles.statusFilter}>
-      {statusOptions.map((status) => (
-        <TouchableOpacity
-          key={status.id}
-          style={[
-            styles.statusButton,
-            selectedStatus === status.id && styles.statusButtonActive
-          ]}
-          onPress={() => setSelectedStatus(status.id)}
-        >
-          <Text
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        {statusOptions.map((status) => (
+          <TouchableOpacity
+            key={status.id}
             style={[
-              styles.statusButtonText,
-              selectedStatus === status.id && styles.statusButtonTextActive
+              styles.statusButton,
+              selectedStatus === status.id && styles.statusButtonActive
             ]}
+            onPress={() => setSelectedStatus(status.id)}
           >
-            {status.name}
-          </Text>
-        </TouchableOpacity>
-      ))}
+            <Text
+              style={[
+                styles.statusButtonText,
+                selectedStatus === status.id && styles.statusButtonTextActive
+              ]}
+            >
+              {status.name}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
     </View>
   );
 
   return (
+    <SafeAreaView style={styles.container}>
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Centro de Contacto</Text>
@@ -186,7 +191,7 @@ const ContactList = ({ navigation }) => {
 
       {contactsLoading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007bff" />
+          <ActivityIndicator size="large" color="#337ab7" />
           <Text style={styles.loadingText}>Cargando contactos...</Text>
         </View>
       ) : (
@@ -204,6 +209,7 @@ const ContactList = ({ navigation }) => {
         />
       )}
     </View>
+    </SafeAreaView>
   );
 };
 
@@ -227,7 +233,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   newChatButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#337ab7',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
@@ -267,8 +273,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   statusButtonActive: {
-    backgroundColor: '#007bff',
-    borderColor: '#007bff',
+    backgroundColor: '#337ab7',
+    borderColor: '#337ab7',
   },
   statusButtonText: {
     fontSize: 12,
@@ -297,7 +303,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#007bff',
+    backgroundColor: '#337ab7',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -339,7 +345,7 @@ const styles = StyleSheet.create({
   },
   contactAccount: {
     fontSize: 12,
-    color: '#007bff',
+    color: '#337ab7',
     fontWeight: '500',
   },
   contactStatus: {

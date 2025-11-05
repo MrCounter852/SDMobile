@@ -227,13 +227,18 @@ const Login = () => {
                         });
                         const sessionData = await sessionResponse.json();
                         console.log("url acceso:", `https://ns2.sedierp.com//API_SIS/api/Login/LoginAcceso?TokenKey=${data.AccessToken}`)
-                        //console.log('LoginAcceso response:', JSON.stringify(sessionData, null, 2));
+                        console.log('LoginAcceso response - User Token:', sessionData.Session?.Usuario?.Token);
+                        console.log('LoginAcceso response - Full User:', JSON.stringify(sessionData.Session?.Usuario, null, 2));
                         const usuarioID = sessionData.Session?.Usuario?.UsuarioID;
                         const rolID = sessionData.Session?.Usuario?.RolID;
                         const user = sessionData.Session?.Usuario || {};
                         const accesos = sessionData.Session?.Accesos || [];
+
+                        // Guardar el token de OauthToken como erpToken (este es el que funciona para las APIs)
+                        await SecureStore.setItemAsync('erpToken', data.AccessToken);
+
                         login({
-                          user: { email: loginData.user.email, ...user },
+                          user: { email: loginData.user.email, ...user, Token: user.Token },
                           usuarioID,
                           rolID,
                           empresa: selectedEmpresa,

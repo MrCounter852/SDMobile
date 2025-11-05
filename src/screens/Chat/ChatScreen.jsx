@@ -182,7 +182,7 @@ const ChatScreen = ({ route, navigation }) => {
   if (messagesLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007bff" />
+        <ActivityIndicator size="large" color="#337ab7" />
         <Text style={styles.loadingText}>Cargando mensajes...</Text>
       </View>
     );
@@ -243,7 +243,7 @@ const ChatScreen = ({ route, navigation }) => {
 
       {sendingMessage && (
         <View style={styles.sendingIndicator}>
-          <ActivityIndicator size="small" color="#007bff" />
+          <ActivityIndicator size="small" color="#337ab7" />
           <Text style={styles.sendingText}>Enviando...</Text>
         </View>
       )}
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   headerButtonText: {
-    color: '#007bff',
+    color: '#337ab7',
     fontSize: 16,
     fontWeight: '500',
   },
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   sendButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#337ab7',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
     maxWidth: '80%',
   },
   sentMessage: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#337ab7',
     alignSelf: 'flex-end',
   },
   receivedMessage: {
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     maxWidth: '80%',
   },
   sentBubble: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#337ab7',
     alignSelf: 'flex-end',
     marginLeft: 60,
   },
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   scrollToBottom: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#337ab7',
   },
   sendingIndicator: {
     flexDirection: 'row',

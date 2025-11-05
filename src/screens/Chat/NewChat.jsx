@@ -194,10 +194,6 @@ const NewChat = ({ navigation }) => {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Nuevo Chat</Text>
-      </View>
-
       <View style={styles.form}>
         {/* Cuenta de mensajería */}
         <View style={styles.field}>
@@ -381,7 +377,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   submitButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#337ab7',
   },
   submitButtonText: {
     color: '#fff',
