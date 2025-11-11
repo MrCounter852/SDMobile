@@ -1,13 +1,9 @@
 import { useGlobal } from './global';
 import * as SecureStore from 'expo-secure-store';
 
-const API_BASE_COM = __DEV__
-  ? 'http://dev.sedisolutions.co:81/API_COM/api'
-  : 'https://admin.sedierp.com/API_COM/api';
+const API_BASE_COM = 'https://ns2.sedierp.com/API_COM/api';
 
-const API_BASE_CRM = __DEV__
-  ? 'http://dev.sedisolutions.co:81/API_CRM/api'
-  : 'https://admin.sedierp.com/API_CRM/api';
+const API_BASE_CRM = 'https://ns2.sedierp.com/API_CRM/api';
 
 class ChatApiService {
   constructor() {
@@ -55,7 +51,7 @@ class ChatApiService {
   }
 
   async makeRequest(endpoint, options = {}, useCRM = false) {
-    const baseUrl = useCRM ? API_BASE_CRM : API_BASE_COM;
+    const baseUrl = API_BASE_COM;
     const url = `${baseUrl}${endpoint}`;
     const headers = await this.getHeaders();
     const config = {
@@ -315,6 +311,63 @@ class ChatApiService {
         Token: this.global.user?.Token,
       }),
     }, true); // Usar API_CRM
+  }
+
+  // === NOTIFICACIONES PUSH ===
+
+  // Consultar notificaciones push
+  async consultarNotificacionesPush(filtros) {
+    const endpoint = '/NotificacionesPush/NotificacionesPushConsultar';
+    return this.makeRequest(endpoint, {
+      method: 'POST',
+      body: JSON.stringify({
+        Page: filtros?.Page || 1,
+        Rows: filtros?.Rows || 20,
+        UsuarioID: filtros?.UsuarioID || this.global.usuarioID,
+        Visto: filtros?.Visto,
+        FullSearch: filtros?.FullSearch || null,
+        SortColumn: filtros?.SortColumn || null,
+        SortDirection: filtros?.SortDirection || null,
+        Token: this.global.user?.Token,
+      }),
+    });
+  }
+
+  // Actualizar notificación (marcar como visto/no visto)
+  async actualizarNotificacionPush(notificacion) {
+    const endpoint = '/NotificacionesPush/NotificacionesPushActualizar';
+    return this.makeRequest(endpoint, {
+      method: 'POST',
+      body: JSON.stringify({
+        NotificacionUsuarioID: notificacion.NotificacionUsuarioID,
+        Visto: notificacion.Visto,
+        Token: this.global.user?.Token,
+      }),
+    });
+  }
+
+  // Eliminar notificación específica
+  async eliminarNotificacionPush(notificacion) {
+    const endpoint = '/NotificacionesPush/NotificacionesPushEliminar';
+    return this.makeRequest(endpoint, {
+      method: 'POST',
+      body: JSON.stringify({
+        NotificacionUsuarioID: notificacion.NotificacionUsuarioID,
+        Token: this.global.user?.Token,
+      }),
+    });
+  }
+
+  // Eliminar todas las notificaciones del usuario
+  async eliminarTodasNotificacionesPush() {
+    const endpoint = '/NotificacionesPush/NotificacionesUsuariosPushEliminar';
+    return this.makeRequest(endpoint, {
+      method: 'POST',
+      body: JSON.stringify({
+        UsuarioID: this.global.usuarioID,
+        Token: this.global.user?.Token,
+      }),
+    });
   }
 }
 

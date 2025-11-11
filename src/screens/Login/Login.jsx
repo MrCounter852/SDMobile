@@ -20,6 +20,12 @@ import * as SecureStore from 'expo-secure-store';
 import useGlobal from '../../core/global';
 import ExpandableDropdown from '../../assets/common/SearchableDropdownModal';
 
+// Environment-aware base URLs
+const BASE_URL_SIS =  'https://admin.sedierp.com';
+const BASE_URL_NS = 'https://ns2.sedierp.com';
+
+//const BASE_URL_SIS = 'https://devadmin.sedisolutions.co:444//'
+//const BASE_URL_NS = 'https://devns2.sedisolutions.co:444//'
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -42,7 +48,7 @@ const Login = () => {
 
     setLoading(true);
     try {
-      const response = await fetch('https://admin.sedierp.com//API_SIS/api/Login/ERPLogin/', {
+      const response = await fetch(`${BASE_URL_SIS}/API_SIS/api/Login/ERPLogin/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -80,7 +86,7 @@ const Login = () => {
   const fetchEmpresas = async (token, search = '') => {
     setEmpresasLoading(true);
     try {
-      const empresasResponse = await fetch('https://admin.sedierp.com//API_SIS/api/Login/ERPEmpresas/', {
+      const empresasResponse = await fetch(`${BASE_URL_SIS}/API_SIS/api/Login/ERPEmpresas/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -205,7 +211,7 @@ const Login = () => {
                 <TouchableOpacity style={styles.startButton} onPress={async () => {
                   setLoading(true);
                   try {
-                    const response = await fetch('https://admin.sedierp.com//API_SIS/api/Login/OauthToken/', {
+                    const response = await fetch(`${BASE_URL_SIS}/API_SIS/api/Login/OauthToken/`, {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',
@@ -222,7 +228,7 @@ const Login = () => {
                       await SecureStore.setItemAsync('accessToken', data.AccessToken);
                       // Call LoginAcceso to get session data
                       try {
-                        const sessionResponse = await fetch(`https://ns2.sedierp.com//API_SIS/api/Login/LoginAcceso?TokenKey=${data.AccessToken}`, {
+                        const sessionResponse = await fetch(`${BASE_URL_NS}/API_SIS/api/Login/LoginAcceso?TokenKey=${data.AccessToken}`, {
                           method: 'GET',
                         });
                         const sessionData = await sessionResponse.json();

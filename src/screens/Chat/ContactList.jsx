@@ -166,7 +166,7 @@ const ContactList = ({ navigation }) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Centro de Contacto</Text>
@@ -337,6 +337,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginBottom: 4,
+    paddingRight: 40,
   },
   contactFooter: {
     flexDirection: 'row',
@@ -364,9 +365,9 @@ const styles = StyleSheet.create({
   },
   unreadBadge: {
     position: 'absolute',
-    top: 8,
+    top: 25,
     right: 8,
-    backgroundColor: '#dc3545',
+    backgroundColor: '#88E782',
     borderRadius: 10,
     minWidth: 20,
     height: 20,

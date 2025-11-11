@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const useChatStore = create((set, get) => ({
   // Estado de contactos
@@ -29,11 +28,16 @@ export const useChatStore = create((set, get) => ({
   // Estado de archivos adjuntos
   attachments: [],
 
-  // Estado de conexión
-  isConnected: false,
-
   // Estado de notificaciones
   notifications: [],
+  notificationsLoading: false,
+  notificationFilters: {
+    Page: 1,
+    Rows: 20,
+    UsuarioID: null,
+    Visto: null,
+    FullSearch: null,
+  },
 
   // Acciones para contactos
   setContacts: (contacts) => set({ contacts }),
@@ -42,14 +46,6 @@ export const useChatStore = create((set, get) => ({
 
   // Acciones para mensajes
   setMessages: (messages) => set({ messages }),
-  addMessage: (message) => set((state) => ({
-    messages: [message, ...state.messages]
-  })),
-  updateMessage: (messageId, updates) => set((state) => ({
-    messages: state.messages.map(msg =>
-      msg.CuentaMensajeriaMensajeID === messageId ? { ...msg, ...updates } : msg
-    )
-  })),
   setMessagesLoading: (loading) => set({ messagesLoading: loading }),
 
   // Acciones para filtros
@@ -81,64 +77,31 @@ export const useChatStore = create((set, get) => ({
   })),
   clearAttachments: () => set({ attachments: [] }),
 
-  // Acciones para conexión
-  setConnected: (connected) => set({ isConnected: connected }),
 
   // Acciones para notificaciones
   setNotifications: (notifications) => set({ notifications }),
-  addNotification: (notification) => set((state) => ({
-    notifications: [notification, ...state.notifications]
-  })),
-  markNotificationAsRead: (notificationId) => set((state) => ({
+  setNotificationsLoading: (loading) => set({ notificationsLoading: loading }),
+  updateNotification: (notificationId, updates) => set((state) => ({
     notifications: state.notifications.map(notif =>
-      notif.id === notificationId ? { ...notif, read: true } : notif
+      notif.NotificacionUsuarioID === notificationId ? { ...notif, ...updates } : notif
     )
   })),
   removeNotification: (notificationId) => set((state) => ({
-    notifications: state.notifications.filter(notif => notif.id !== notificationId)
+    notifications: state.notifications.filter(notif => notif.NotificacionUsuarioID !== notificationId)
   })),
   clearNotifications: () => set({ notifications: [] }),
-
-  // Acciones complejas
-  loadContactsFromStorage: async () => {
-    try {
-      const storedContacts = await AsyncStorage.getItem('chat_contacts');
-      if (storedContacts) {
-        set({ contacts: JSON.parse(storedContacts) });
-      }
-    } catch (error) {
-      console.error('Error loading contacts from storage:', error);
+  updateNotificationFilters: (filters) => set((state) => ({
+    notificationFilters: { ...state.notificationFilters, ...filters }
+  })),
+  resetNotificationFilters: () => set({
+    notificationFilters: {
+      Page: 1,
+      Rows: 20,
+      UsuarioID: null,
+      Visto: null,
+      FullSearch: null,
     }
-  },
-
-  saveContactsToStorage: async () => {
-    try {
-      const { contacts } = get();
-      await AsyncStorage.setItem('chat_contacts', JSON.stringify(contacts));
-    } catch (error) {
-      console.error('Error saving contacts to storage:', error);
-    }
-  },
-
-  loadMessagesFromStorage: async (contactId) => {
-    try {
-      const storedMessages = await AsyncStorage.getItem(`chat_messages_${contactId}`);
-      if (storedMessages) {
-        set({ messages: JSON.parse(storedMessages) });
-      }
-    } catch (error) {
-      console.error('Error loading messages from storage:', error);
-    }
-  },
-
-  saveMessagesToStorage: async (contactId) => {
-    try {
-      const { messages } = get();
-      await AsyncStorage.setItem(`chat_messages_${contactId}`, JSON.stringify(messages));
-    } catch (error) {
-      console.error('Error saving messages to storage:', error);
-    }
-  },
+  }),
 
   // Reset completo del store
   reset: () => set({
@@ -159,8 +122,15 @@ export const useChatStore = create((set, get) => ({
     sendingMessage: false,
     messageInput: '',
     attachments: [],
-    isConnected: false,
     notifications: [],
+    notificationsLoading: false,
+    notificationFilters: {
+      Page: 1,
+      Rows: 20,
+      UsuarioID: null,
+      Visto: null,
+      FullSearch: null,
+    },
   }),
 }));
 

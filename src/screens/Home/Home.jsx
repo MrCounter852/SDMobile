@@ -15,7 +15,6 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import Menu from "../Menu/Menu";
-import Inicio from "../Inicio/Inicio";
 import Perfil from "../Perfil/Perfil";
 import Notificaciones from "../Notificaciones/Notificaciones";
 import Favoritos from "../Favoritos/Favoritos";
@@ -108,12 +107,11 @@ const animatedStyle = useAnimatedStyle(() => {
       screenOptions={({ route }) => ({
         tabBarIcon: ({ color, size }) => {
           const icons = {
-            Inicio: "home",
+            Chat: "chatbubble-ellipses",
             Favoritos: "heart",
             Menu: "menu",
             Notificaciones: "notifications",
             Perfil: "person",
-            Chat: "chatbubble-ellipses",
           };
           const iconName = icons[route.name] || "circle";
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -122,7 +120,7 @@ const animatedStyle = useAnimatedStyle(() => {
         headerShown: false,
       })}
     >
-      <Tab.Screen name="Inicio" component={Inicio} />
+      <Tab.Screen name="Chat" component={ContactList} />
       <Tab.Screen name="Favoritos" component={Favoritos} />
       <Tab.Screen
         name="Menu"
@@ -142,7 +140,6 @@ const animatedStyle = useAnimatedStyle(() => {
           },
         }}
       />
-      <Tab.Screen name="Chat" component={ContactList} />
       <Tab.Screen name="Notificaciones" component={Notificaciones} />
       <Tab.Screen name="Perfil" component={Perfil} />
     </Tab.Navigator>

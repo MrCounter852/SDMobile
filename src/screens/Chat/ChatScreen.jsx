@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,22 +6,50 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  KeyboardAvoidingView,
   Platform,
-} from 'react-native';
-import { GiftedChat, Send, InputToolbar } from 'react-native-gifted-chat';
-import { useChatStore } from '../../core/chatStore';
-import ChatApiService from '../../core/chatApi';
-import { useGlobal } from '../../core/global';
+  Dimensions,
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  StatusBar,
+  RefreshControl,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { GiftedChat, Send, InputToolbar } from "react-native-gifted-chat";
+import { useChatStore } from "../../core/chatStore";
+import ChatApiService from "../../core/chatApi";
+import { useGlobal } from "../../core/global";
+import { LinearGradient } from "expo-linear-gradient";
 
 const ChatScreen = ({ route, navigation }) => {
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => {
+        setIsKeyboardVisible(true);
+      }
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      () => {
+        setIsKeyboardVisible(false);
+      }
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
+
   const { contact } = route.params;
   const {
     messages,
     messagesLoading,
     setMessages,
-    addMessage,
-    updateMessage,
     setMessagesLoading,
     sendingMessage,
     setSendingMessage,
@@ -38,7 +66,7 @@ const ChatScreen = ({ route, navigation }) => {
       headerRight: () => (
         <TouchableOpacity
           style={styles.headerButton}
-          onPress={() => navigation.navigate('ContactInfo', { contact })}
+          onPress={() => navigation.navigate("ContactInfo", { contact })}
         >
           <Text style={styles.headerButtonText}>Info</Text>
         </TouchableOpacity>
@@ -63,24 +91,33 @@ const ChatScreen = ({ route, navigation }) => {
       };
 
       const response = await ChatApiService.consultarMensajes(filtros);
-      const formattedMessages = formatMessagesForGiftedChat(response.data || []);
+      const formattedMessages = formatMessagesForGiftedChat(
+        response.data || []
+      );
       setMessages(formattedMessages);
     } catch (error) {
-      console.error('Error loading messages:', error);
-      Alert.alert('Error', 'No se pudieron cargar los mensajes');
+      console.error("Error loading messages:", error);
+      Alert.alert("Error", "No se pudieron cargar los mensajes");
     } finally {
       setMessagesLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  // Pull to refresh
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadMessages();
   };
 
   const formatMessagesForGiftedChat = (apiMessages) => {
     return apiMessages.map((msg) => ({
       _id: msg.CuentaMensajeriaMensajeID,
-      text: msg.Texto || '',
+      text: msg.Texto || "",
       createdAt: new Date(msg.Fecha),
       user: {
         _id: msg.Recepcion ? 2 : 1, // 1 = usuario actual, 2 = contacto
-        name: msg.Recepcion ? contact.Nombre : user?.NombreCompleto || 'Yo',
+        name: msg.Recepcion ? contact.Nombre : user?.NombreCompleto || "Yo",
         avatar: null, // Puedes agregar avatares si están disponibles
       },
       // Para archivos adjuntos
@@ -93,64 +130,74 @@ const ChatScreen = ({ route, navigation }) => {
         },
       }),
       // Estado del mensaje
-      sent: msg.Status === 'sent' || msg.Status === 'delivered' || msg.Status === 'read',
+      sent:
+        msg.Status === "sent" ||
+        msg.Status === "delivered" ||
+        msg.Status === "read",
       received: msg.Recepcion,
       pending: false,
     }));
   };
 
-  const onSend = useCallback(async (messagesToSend = []) => {
-    const message = messagesToSend[0];
+  const onSend = useCallback(
+    async (messagesToSend = []) => {
+      const message = messagesToSend[0];
 
-    try {
-      setSendingMessage(true);
+      try {
+        setSendingMessage(true);
 
-      // Preparar datos para la API
-      const messageData = {
-        CuentaMensajeriaContactoID: contact.CuentaMensajeriaContactoID,
-        Mensaje: message.text,
-        Files: attachments.map(att => ({
-          TipoMensaje: att.type,
-          FileURL: att.uri,
-          FileName: att.name,
-          FileMime: att.type,
-        })),
-        Token: user?.Token,
-      };
+        // Preparar datos para la API
+        const messageData = {
+          CuentaMensajeriaContactoID: contact.CuentaMensajeriaContactoID,
+          Mensaje: message.text,
+          Files: attachments.map((att) => ({
+            TipoMensaje: att.type,
+            FileURL: att.uri,
+            FileName: att.name,
+            FileMime: att.type,
+          })),
+          Token: user?.Token,
+        };
 
-      // Enviar mensaje
-      const response = await ChatApiService.enviarMensaje(messageData);
+        // Enviar mensaje
+        const response = await ChatApiService.enviarMensaje(messageData);
 
-      if (response.success) {
-        // Agregar mensaje enviado a la lista
-        addMessage({
-          ...message,
-          sent: true,
-          pending: false,
-        });
+        if (response.success) {
+          // Recargar mensajes para mostrar el enviado
+          await loadMessages();
 
-        // Limpiar adjuntos
-        clearAttachments();
-      } else {
-        throw new Error(response.message || 'Error al enviar mensaje');
+          // Limpiar adjuntos
+          clearAttachments();
+        } else {
+          throw new Error(response.message || "Error al enviar mensaje");
+        }
+      } catch (error) {
+        console.error("Error sending message:", error);
+        Alert.alert("Error", "No se pudo enviar el mensaje");
+      } finally {
+        setSendingMessage(false);
       }
-    } catch (error) {
-      console.error('Error sending message:', error);
-      Alert.alert('Error', 'No se pudo enviar el mensaje');
-
-      // Marcar mensaje como fallido
-      updateMessage(message._id, { sent: false, pending: false });
-    } finally {
-      setSendingMessage(false);
-    }
-  }, [attachments, contact, user]);
+    },
+    [attachments, contact, user, loadMessages, clearAttachments]
+  );
 
   const renderSend = (props) => (
-    <Send {...props}>
-      <View style={styles.sendButton}>
-        <Text style={styles.sendButtonText}>Enviar</Text>
-      </View>
-    </Send>
+    <LinearGradient
+      colors={["#337ab7", "#88E782"]} // Replace with your desired start and end colors (e.g., blue to darker blue)
+      start={{ x: 0, y: 0 }} // Optional: gradient start point (top-left)
+      end={{ x: 1, y: 1 }} // Optional: gradient end point (bottom-right)
+      style={styles.sendButton}
+    >
+      <TouchableOpacity
+        onPress={() => {
+          if (props.text && props.onSend) {
+            props.onSend({ text: props.text.trim() }, true);
+          }
+        }}
+      >
+        <Ionicons name="send" size={20} color="white" />
+      </TouchableOpacity>
+    </LinearGradient>
   );
 
   const renderInputToolbar = (props) => (
@@ -164,16 +211,31 @@ const ChatScreen = ({ route, navigation }) => {
   const renderMessageText = (props) => {
     const { currentMessage } = props;
     return (
-      <View style={[
-        styles.messageTextContainer,
-        currentMessage.user._id === 1 ? styles.sentMessage : styles.receivedMessage
-      ]}>
-        <Text style={styles.messageText}>{currentMessage.text}</Text>
+      <View
+        style={[
+          styles.messageTextContainer,
+          currentMessage.user._id === 1
+            ? styles.sentMessage
+            : styles.receivedMessage,
+        ]}
+      >
+        <Text
+          style={[
+            styles.messageText,
+            currentMessage.user._id === 1
+              ? styles.sentMessageText
+              : styles.receivedMessageText,
+          ]}
+        >
+          {currentMessage.text}
+        </Text>
         <Text style={styles.messageTime}>
-          {currentMessage.createdAt.toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit'
-          })}
+          {currentMessage.createdAt.toLocaleDateString() +
+            " " +
+            currentMessage.createdAt.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
         </Text>
       </View>
     );
@@ -189,72 +251,95 @@ const ChatScreen = ({ route, navigation }) => {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-    >
-      <GiftedChat
-        messages={messages}
-        onSend={onSend}
-        user={{
-          _id: 1,
-          name: user?.NombreCompleto || 'Yo',
-        }}
-        placeholder="Escribe un mensaje..."
-        showAvatarForEveryMessage={false}
-        renderSend={renderSend}
-        renderInputToolbar={renderInputToolbar}
-        renderMessageText={renderMessageText}
-        isTyping={isTyping}
-        messagesContainerStyle={styles.messagesContainer}
-        textInputStyle={styles.textInput}
-        scrollToBottomStyle={styles.scrollToBottom}
-        alwaysShowSend={true}
-        renderUsernameOnMessage={false}
-        renderAvatarOnTop={false}
-        renderBubble={(props) => {
-          const { currentMessage } = props;
-          return (
-            <View style={[
-              styles.bubble,
-              currentMessage.user._id === 1 ? styles.sentBubble : styles.receivedBubble
-            ]}>
-              {currentMessage.text && (
-                <Text style={styles.bubbleText}>{currentMessage.text}</Text>
-              )}
-              {currentMessage.image && (
-                <Image
-                  source={{ uri: currentMessage.image }}
-                  style={styles.messageImage}
-                  resizeMode="contain"
-                />
-              )}
-              <Text style={styles.bubbleTime}>
-                {currentMessage.createdAt.toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-              </Text>
-            </View>
-          );
-        }}
-      />
+    <View style={[styles.container]}>
+      <SafeAreaView style={{ flex: 1 }} edges={['bottom', 'left', 'right']}>
+          <GiftedChat
+            messages={messages}
+            onSend={onSend}
+            user={{
+              _id: 1,
+              name: user?.NombreCompleto || "Yo",
+            }}
+            placeholder="Escribe un mensaje..."
+            showAvatarForEveryMessage={false}
+            renderSend={renderSend}
+            renderInputToolbar={renderInputToolbar}
+            renderMessageText={renderMessageText}
+            isTyping={isTyping}
+            messagesContainerStyle={styles.messagesContainer}
+            textInputStyle={styles.textInput}
+            scrollToBottomStyle={styles.scrollToBottom}
+            alwaysShowSend={true}
+            renderUsernameOnMessage={false}
+            renderAvatarOnTop={false}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+            renderBubble={(props) => {
+              const { currentMessage } = props;
+              return (
+                <View
+                  style={[
+                    styles.bubble,
+                    currentMessage.user._id === 1
+                      ? styles.sentBubble
+                      : styles.receivedBubble,
+                  ]}
+                >
+                  {currentMessage.text && (
+                    <Text
+                      style={[
+                        styles.bubbleText,
+                        currentMessage.user._id === 1
+                          ? styles.sentBubbleText
+                          : styles.receivedBubbleText,
+                      ]}
+                    >
+                      {currentMessage.text}
+                    </Text>
+                  )}
+                  {currentMessage.image && (
+                    <Image
+                      source={{ uri: currentMessage.image }}
+                      style={styles.messageImage}
+                      resizeMode="contain"
+                    />
+                  )}
+                  <Text
+                    style={[
+                      styles.bubbleTime,
+                      currentMessage.user._id === 1
+                        ? styles.sentBubbleTime
+                        : styles.receivedBubbleTime,
+                    ]}
+                  >
+                    {currentMessage.createdAt.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </Text>
 
-      {sendingMessage && (
-        <View style={styles.sendingIndicator}>
-          <ActivityIndicator size="small" color="#337ab7" />
-          <Text style={styles.sendingText}>Enviando...</Text>
-        </View>
-      )}
-    </KeyboardAvoidingView>
+                </View>
+
+              );
+            }}
+          />
+        </SafeAreaView>
+
+          {sendingMessage && (
+            <View style={styles.sendingIndicator}>
+              <ActivityIndicator size="small" color="#337ab7" />
+              <Text style={styles.sendingText}>Enviando...</Text>
+            </View>
+          )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: "#f8f9fa",
   },
   headerButton: {
     marginRight: 16,
@@ -262,104 +347,115 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   headerButtonText: {
-    color: '#337ab7',
+    color: "#337ab7",
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f8f9fa",
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
   messagesContainer: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: "#f8f9fa",
   },
   inputToolbar: {
-    backgroundColor: '#fff',
-    borderTopColor: '#e9ecef',
+    borderTopColor: "#e9ecef",
     borderTopWidth: 1,
     paddingHorizontal: 8,
     paddingVertical: 8,
   },
   inputPrimary: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   textInput: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: "#f8f9fa",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#ced4da',
+    borderColor: "#ced4da",
     paddingHorizontal: 16,
     paddingVertical: 8,
     marginHorizontal: 8,
     fontSize: 16,
   },
   sendButton: {
-    backgroundColor: '#337ab7',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  sendButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '500',
+    borderRadius: 100,
+    padding: 10,
   },
   messageTextContainer: {
     padding: 8,
     borderRadius: 8,
-    maxWidth: '80%',
+    maxWidth: "80%",
   },
   sentMessage: {
-    backgroundColor: '#337ab7',
-    alignSelf: 'flex-end',
+    backgroundColor: "#337ab7",
+    alignSelf: "flex-end",
   },
   receivedMessage: {
-    backgroundColor: '#e9ecef',
-    alignSelf: 'flex-start',
+    backgroundColor: "#e9ecef",
+    alignSelf: "flex-start",
   },
   messageText: {
     fontSize: 16,
-    color: '#333',
+  },
+  sentMessageText: {
+    color: "#fff",
+  },
+  receivedMessageText: {
+    color: "#333",
   },
   messageTime: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
     marginTop: 4,
   },
   bubble: {
     padding: 12,
-    borderRadius: 18,
     marginVertical: 2,
-    maxWidth: '80%',
+    maxWidth: "80%",
   },
   sentBubble: {
-    backgroundColor: '#337ab7',
-    alignSelf: 'flex-end',
+    backgroundColor: "#337ab7",
+    alignSelf: "flex-end",
     marginLeft: 60,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    borderBottomLeftRadius: 18,
   },
   receivedBubble: {
-    backgroundColor: '#e9ecef',
-    alignSelf: 'flex-start',
+    backgroundColor: "#e9ecef",
+    alignSelf: "flex-start",
     marginRight: 60,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    borderBottomRightRadius: 18,
   },
   bubbleText: {
     fontSize: 16,
-    color: '#333',
+  },
+  sentBubbleText: {
+    color: "#fff",
+  },
+  receivedBubbleText: {
+    color: "#333",
   },
   bubbleTime: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
     marginTop: 4,
-    textAlign: 'right',
+    textAlign: "right",
+  },
+  sentBubbleTime: {
+    color: "#fff",
+  },
+  receivedBubbleTime: {
+    color: "#333",
   },
   messageImage: {
     width: 200,
@@ -368,21 +464,21 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   scrollToBottom: {
-    backgroundColor: '#337ab7',
+    backgroundColor: "#337ab7",
   },
   sendingIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 8,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopWidth: 1,
-    borderTopColor: '#e9ecef',
+    borderTopColor: "#e9ecef",
   },
   sendingText: {
     marginLeft: 8,
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
 });
 
