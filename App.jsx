@@ -10,6 +10,8 @@ import Home from './src/screens/Home/Home';
 import useGlobal from './src/core/global';
 import { ChatScreen, NewChat } from './src/screens/Chat';
 
+import signalrService from './src/core/signalrService';
+
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -20,6 +22,15 @@ export default function App() {
   useEffect(() => {
     init();
   }, []);
+
+  // Gestionar conexión SignalR
+  useEffect(() => {
+    if (authenticated) {
+      signalrService.connect();
+    } else {
+      signalrService.stop();
+    }
+  }, [authenticated]);
 
   return (
     <SafeAreaProvider>

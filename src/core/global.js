@@ -10,8 +10,12 @@ export const useGlobal = create((set, get) => ({
     sucursal: null,
     accesos: [],
     menuOptions: [],
+    signalrConnected: false,
 
     init: () => set({ initialized: true }),
+    setInitialized: (status) => set({ initialized: status }),
+    setSignalRConnected: (status) => set({ signalrConnected: status }),
+
     login: (data) => set({
         authenticated: true,
         user: data.user || {},
@@ -31,7 +35,8 @@ export const useGlobal = create((set, get) => ({
         empresa: null,
         sucursal: null,
         accesos: [],
-        menuOptions: []
+        menuOptions: [],
+        signalrConnected: false
     }),
 
 }));

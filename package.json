@@ -34,6 +34,7 @@
     "react-native-vector-icons": "^10.3.0",
     "react-native-worklets": "0.5.1",
     "signalr-client": "^0.0.20",
+    "signalr-no-jquery": "^0.2.1",
     "socket.io-client": "^4.8.1",
     "zustand": "^5.0.8"
   },
