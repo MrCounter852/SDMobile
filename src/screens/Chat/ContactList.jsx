@@ -167,48 +167,48 @@ const ContactList = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Centro de Contacto</Text>
-        <TouchableOpacity
-          style={styles.newChatButton}
-          onPress={() => navigation.navigate('NewChat')}
-        >
-          <Text style={styles.newChatButtonText}>Nuevo Chat</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Buscar contactos..."
-          value={searchText}
-          onChangeText={setSearchText}
-        />
-      </View>
-
-      {renderStatusFilter()}
-
-      {contactsLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#337ab7" />
-          <Text style={styles.loadingText}>Cargando contactos...</Text>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Centro de Contacto</Text>
+          <TouchableOpacity
+            style={styles.newChatButton}
+            onPress={() => navigation.navigate('NewChat')}
+          >
+            <Text style={styles.newChatButtonText}>Nuevo Chat</Text>
+          </TouchableOpacity>
         </View>
-      ) : (
-        <FlatList
-          data={contacts}
-          renderItem={renderContact}
-          keyExtractor={(item) => item.CuentaMensajeriaContactoID.toString()}
-          style={styles.contactsList}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No hay contactos disponibles</Text>
-            </View>
-          }
-        />
-      )}
-    </View>
+
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Buscar contactos..."
+            value={searchText}
+            onChangeText={setSearchText}
+          />
+        </View>
+
+        {renderStatusFilter()}
+
+        {contactsLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#337ab7" />
+            <Text style={styles.loadingText}>Cargando contactos...</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={contacts}
+            renderItem={renderContact}
+            keyExtractor={(item) => item?.CuentaMensajeriaContactoID?.toString() || Math.random().toString()}
+            style={styles.contactsList}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No hay contactos disponibles</Text>
+              </View>
+            }
+          />
+        )}
+      </View>
     </SafeAreaView>
   );
 };

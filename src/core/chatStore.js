@@ -137,13 +137,33 @@ export const useChatStore = create((set, get) => ({
       const relevantMessages = Mensajes.filter(m => m.CuentaMensajeriaContactoID === updatedSelectedContact.CuentaMensajeriaContactoID);
 
       if (relevantMessages.length > 0) {
+        // Formatear mensajes para GiftedChat
+        const formattedNewMessages = relevantMessages.map(msg => ({
+          _id: msg.CuentaMensajeriaMensajeID,
+          text: msg.Texto || "",
+          createdAt: new Date(msg.Fecha),
+          user: {
+            _id: msg.Recepcion ? 2 : 1,
+            name: msg.Recepcion ? updatedSelectedContact.Nombre : "Yo",
+          },
+          sent: msg.Status === "sent" || msg.Status === "delivered" || msg.Status === "read",
+          received: msg.Recepcion,
+          pending: false,
+          // Adjuntos si los hubiera
+          ...(msg.FileID && {
+            image: msg.HttpUrl,
+          }),
+        }));
+
         // Filtrar duplicados
-        const uniqueNewMessages = relevantMessages.filter(newMsg =>
-          !newMessages.some(existingMsg => existingMsg.CuentaMensajeriaMensajeID === newMsg.CuentaMensajeriaMensajeID)
+        const uniqueNewMessages = formattedNewMessages.filter(newMsg =>
+          !newMessages.some(existingMsg => existingMsg._id === newMsg._id)
         );
 
         if (uniqueNewMessages.length > 0) {
-          newMessages = [...newMessages, ...uniqueNewMessages];
+          // Agregar al principio (GiftedChat usa orden inverso por defecto, pero depende de cómo se carguen)
+          // Si newMessages viene de loadMessages (descendente), los nuevos deben ir al principio.
+          newMessages = [...uniqueNewMessages, ...newMessages];
         }
       }
     }

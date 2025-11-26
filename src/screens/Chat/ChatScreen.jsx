@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { GiftedChat, Send, InputToolbar } from "react-native-gifted-chat";
+import { GiftedChat, Send, InputToolbar, Day } from "react-native-gifted-chat";
 import { useChatStore } from "../../core/chatStore";
 import ChatApiService from "../../core/chatApi";
 import { useGlobal } from "../../core/global";
@@ -275,6 +275,32 @@ const ChatScreen = ({ route, navigation }) => {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
+          listViewProps={{
+            stickyHeaderHiddenOnScroll: false,
+          }}
+          timeTextStyle={{
+            left: { color: '#666' },
+            right: { color: '#666' }
+          }}
+          renderDay={(props) => {
+            return (
+              <Day
+                {...props}
+                textStyle={{
+                  color: '#fff',
+                  fontWeight: 'bold',
+                }}
+                wrapperStyle={{
+                  backgroundColor: '#e9ecef',
+                  borderRadius: 12,
+                  paddingHorizontal: 12,
+                  paddingVertical: 4,
+                  marginTop: 10,
+                  marginBottom: 10,
+                }}
+              />
+            );
+          }}
           renderBubble={(props) => {
             const { currentMessage } = props;
             return (
@@ -452,7 +478,7 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   sentBubbleTime: {
-    color: "#fff",
+    color: "#333",
   },
   receivedBubbleTime: {
     color: "#333",
