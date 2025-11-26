@@ -84,7 +84,9 @@ class SignalRService {
         // Sincronización de opción de menú
         this.hubProxy.on('SincronizarOpcionMenuEmpresa', (data) => {
             console.log('[SignalR] SincronizarOpcionMenuEmpresa received:', data);
-            // Este evento trae datos actualizados para la pantalla actual
+            // Actualizar store de chat
+            const chatStore = require('./chatStore').default; // Lazy load para evitar ciclos si los hubiera
+            chatStore.getState().handleSignalRUpdate(data);
         });
 
         // Sincronización
@@ -102,7 +104,7 @@ class SignalRService {
             console.log('[SignalR] Disconnected event');
             this.handleDisconnect();
         });
-        
+
         this.connection.error((error) => {
             console.error('[SignalR] Error:', error);
         });

@@ -253,85 +253,85 @@ const ChatScreen = ({ route, navigation }) => {
   return (
     <View style={[styles.container]}>
       <SafeAreaView style={{ flex: 1 }} edges={['bottom', 'left', 'right']}>
-          <GiftedChat
-            messages={messages}
-            onSend={onSend}
-            user={{
-              _id: 1,
-              name: user?.NombreCompleto || "Yo",
-            }}
-            placeholder="Escribe un mensaje..."
-            showAvatarForEveryMessage={false}
-            renderSend={renderSend}
-            renderInputToolbar={renderInputToolbar}
-            renderMessageText={renderMessageText}
-            isTyping={isTyping}
-            messagesContainerStyle={styles.messagesContainer}
-            textInputStyle={styles.textInput}
-            scrollToBottomStyle={styles.scrollToBottom}
-            alwaysShowSend={true}
-            renderUsernameOnMessage={false}
-            renderAvatarOnTop={false}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-            renderBubble={(props) => {
-              const { currentMessage } = props;
-              return (
-                <View
-                  style={[
-                    styles.bubble,
-                    currentMessage.user._id === 1
-                      ? styles.sentBubble
-                      : styles.receivedBubble,
-                  ]}
-                >
-                  {currentMessage.text && (
-                    <Text
-                      style={[
-                        styles.bubbleText,
-                        currentMessage.user._id === 1
-                          ? styles.sentBubbleText
-                          : styles.receivedBubbleText,
-                      ]}
-                    >
-                      {currentMessage.text}
-                    </Text>
-                  )}
-                  {currentMessage.image && (
-                    <Image
-                      source={{ uri: currentMessage.image }}
-                      style={styles.messageImage}
-                      resizeMode="contain"
-                    />
-                  )}
+        <GiftedChat
+          messages={messages}
+          onSend={onSend}
+          user={{
+            _id: 1,
+            name: user?.NombreCompleto || "Yo",
+          }}
+          placeholder="Escribe un mensaje..."
+          showAvatarForEveryMessage={false}
+          renderSend={renderSend}
+          renderInputToolbar={renderInputToolbar}
+          renderMessageText={renderMessageText}
+          isTyping={isTyping}
+          messagesContainerStyle={styles.messagesContainer}
+          textInputStyle={styles.textInput}
+          scrollToBottomStyle={styles.scrollToBottom}
+          alwaysShowSend={true}
+          renderUsernameOnMessage={false}
+          renderAvatarOnTop={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          renderBubble={(props) => {
+            const { currentMessage } = props;
+            return (
+              <View
+                style={[
+                  styles.bubble,
+                  currentMessage.user._id === 1
+                    ? styles.sentBubble
+                    : styles.receivedBubble,
+                ]}
+              >
+                {currentMessage.text && (
                   <Text
                     style={[
-                      styles.bubbleTime,
+                      styles.bubbleText,
                       currentMessage.user._id === 1
-                        ? styles.sentBubbleTime
-                        : styles.receivedBubbleTime,
+                        ? styles.sentBubbleText
+                        : styles.receivedBubbleText,
                     ]}
                   >
-                    {currentMessage.createdAt.toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                    {currentMessage.text}
                   </Text>
+                )}
+                {currentMessage.image && (
+                  <Image
+                    source={{ uri: currentMessage.image }}
+                    style={styles.messageImage}
+                    resizeMode="contain"
+                  />
+                )}
+                <Text
+                  style={[
+                    styles.bubbleTime,
+                    currentMessage.user._id === 1
+                      ? styles.sentBubbleTime
+                      : styles.receivedBubbleTime,
+                  ]}
+                >
+                  {currentMessage.createdAt.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </Text>
 
-                </View>
+              </View>
 
-              );
-            }}
-          />
-        </SafeAreaView>
+            );
+          }}
+        />
+      </SafeAreaView>
 
-          {sendingMessage && (
-            <View style={styles.sendingIndicator}>
-              <ActivityIndicator size="small" color="#337ab7" />
-              <Text style={styles.sendingText}>Enviando...</Text>
-            </View>
-          )}
+      {sendingMessage && (
+        <View style={styles.sendingIndicator}>
+          <ActivityIndicator size="small" color="#337ab7" />
+          <Text style={styles.sendingText}>Enviando...</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
     maxWidth: "80%",
   },
   sentBubble: {
-    backgroundColor: "#337ab7",
+    backgroundColor: "#88E782",
     alignSelf: "flex-end",
     marginLeft: 60,
     borderTopLeftRadius: 18,
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   sentBubbleText: {
-    color: "#fff",
+    color: "#333",
   },
   receivedBubbleText: {
     color: "#333",

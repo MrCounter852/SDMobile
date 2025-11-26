@@ -103,6 +103,58 @@ export const useChatStore = create((set, get) => ({
     }
   }),
 
+  // Manejo de actualizaciones en tiempo real (SignalR)
+  handleSignalRUpdate: (data) => set((state) => {
+    const { Contactos, Mensajes } = data;
+    let newContacts = [...state.contacts];
+    let newMessages = [...state.messages];
+    let updatedSelectedContact = state.selectedContact;
+
+    // 1. Actualizar Contactos
+    if (Contactos && Contactos.length > 0) {
+      Contactos.forEach(updatedContact => {
+        const index = newContacts.findIndex(c => c.CuentaMensajeriaContactoID === updatedContact.CuentaMensajeriaContactoID);
+
+        if (index !== -1) {
+          // Actualizar existente y mover al inicio
+          const existingContact = newContacts[index];
+          newContacts.splice(index, 1);
+          newContacts.unshift({ ...existingContact, ...updatedContact });
+        } else {
+          // Agregar nuevo al inicio
+          newContacts.unshift(updatedContact);
+        }
+
+        // Actualizar contacto seleccionado si coincide
+        if (updatedSelectedContact && updatedSelectedContact.CuentaMensajeriaContactoID === updatedContact.CuentaMensajeriaContactoID) {
+          updatedSelectedContact = { ...updatedSelectedContact, ...updatedContact };
+        }
+      });
+    }
+
+    // 2. Actualizar Mensajes (solo si hay un chat abierto y coinciden)
+    if (Mensajes && Mensajes.length > 0 && updatedSelectedContact) {
+      const relevantMessages = Mensajes.filter(m => m.CuentaMensajeriaContactoID === updatedSelectedContact.CuentaMensajeriaContactoID);
+
+      if (relevantMessages.length > 0) {
+        // Filtrar duplicados
+        const uniqueNewMessages = relevantMessages.filter(newMsg =>
+          !newMessages.some(existingMsg => existingMsg.CuentaMensajeriaMensajeID === newMsg.CuentaMensajeriaMensajeID)
+        );
+
+        if (uniqueNewMessages.length > 0) {
+          newMessages = [...newMessages, ...uniqueNewMessages];
+        }
+      }
+    }
+
+    return {
+      contacts: newContacts,
+      messages: newMessages,
+      selectedContact: updatedSelectedContact
+    };
+  }),
+
   // Reset completo del store
   reset: () => set({
     contacts: [],
