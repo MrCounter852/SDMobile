@@ -146,9 +146,13 @@ export const useChatStore = create((set, get) => ({
             _id: msg.Recepcion ? 2 : 1,
             name: msg.Recepcion ? updatedSelectedContact.Nombre : "Yo",
           },
-          sent: msg.Status === "sent" || msg.Status === "delivered" || msg.Status === "read",
-          received: msg.Recepcion,
+          // Estado del mensaje - guardar el status original para mostrar iconos correctos
+          status: msg.Status, // "accepted", "pending", "sent", "delivered", "read"
           pending: msg.Status === "accepted" || msg.Status === "pending",
+          sent: msg.Status === "sent",
+          delivered: msg.Status === "delivered",
+          read: msg.Status === "read",
+          isIncoming: msg.Recepcion,
           // Adjuntos si los hubiera
           ...(msg.FileID && {
             image: msg.HttpUrl,

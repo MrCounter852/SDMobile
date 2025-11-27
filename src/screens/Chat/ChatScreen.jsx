@@ -55,6 +55,7 @@ const ChatScreen = ({ route, navigation }) => {
     setSendingMessage,
     attachments,
     clearAttachments,
+    setSelectedContact,
   } = useChatStore();
 
   const { user } = useGlobal();
@@ -73,9 +74,13 @@ const ChatScreen = ({ route, navigation }) => {
       ),
     });
 
+    // Set the selected contact in the store for SignalR updates
+    setSelectedContact(contact);
+
     loadMessages();
     return () => {
       clearAttachments();
+      setSelectedContact(null); // Clear when leaving the chat
     };
   }, []);
 
@@ -129,13 +134,13 @@ const ChatScreen = ({ route, navigation }) => {
           url: msg.HttpUrl,
         },
       }),
-      // Estado del mensaje
-      sent:
-        msg.Status === "sent" ||
-        msg.Status === "delivered" ||
-        msg.Status === "read",
-      received: msg.Recepcion,
-      pending: false,
+      // Estado del mensaje - guardar el status original para mostrar iconos correctos
+      status: msg.Status, // "accepted", "pending", "sent", "delivered", "read"
+      pending: msg.Status === "accepted" || msg.Status === "pending",
+      sent: msg.Status === "sent",
+      delivered: msg.Status === "delivered",
+      read: msg.Status === "read",
+      isIncoming: msg.Recepcion,
     }));
   };
 
@@ -292,7 +297,7 @@ const ChatScreen = ({ route, navigation }) => {
                   fontWeight: 'bold',
                 }}
                 wrapperStyle={{
-                  backgroundColor: '#e9ecef',
+                  backgroundColor: '#337ab7',
                   borderRadius: 12,
                   paddingHorizontal: 12,
                   paddingVertical: 4,
@@ -304,11 +309,12 @@ const ChatScreen = ({ route, navigation }) => {
           }}
           renderBubble={(props) => {
             const { currentMessage } = props;
+            const isSentByMe = currentMessage.user._id === 1;
             return (
               <View
                 style={[
                   styles.bubble,
-                  currentMessage.user._id === 1
+                  isSentByMe
                     ? styles.sentBubble
                     : styles.receivedBubble,
                 ]}
@@ -317,7 +323,7 @@ const ChatScreen = ({ route, navigation }) => {
                   <Text
                     style={[
                       styles.bubbleText,
-                      currentMessage.user._id === 1
+                      isSentByMe
                         ? styles.sentBubbleText
                         : styles.receivedBubbleText,
                     ]}
@@ -332,22 +338,40 @@ const ChatScreen = ({ route, navigation }) => {
                     resizeMode="contain"
                   />
                 )}
-                <Text
-                  style={[
-                    styles.bubbleTime,
-                    currentMessage.user._id === 1
-                      ? styles.sentBubbleTime
-                      : styles.receivedBubbleTime,
-                  ]}
-                >
-                  {currentMessage.createdAt.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </Text>
-
+                <View style={styles.bubbleFooter}>
+                  <Text
+                    style={[
+                      styles.bubbleTime,
+                      isSentByMe
+                        ? styles.sentBubbleTime
+                        : styles.receivedBubbleTime,
+                    ]}
+                  >
+                    {currentMessage.createdAt.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </Text>
+                  {/* Status indicators - only for sent messages (not incoming) */}
+                  {isSentByMe && (
+                    <View style={styles.statusContainer}>
+                      {currentMessage.sent && (
+                        <Ionicons name="checkmark" size={14} color="#999" style={styles.statusIcon} />
+                      )}
+                      {currentMessage.delivered && (
+                        <Ionicons name="checkmark-done" size={14} color="#999" style={styles.statusIcon} />
+                      )}
+                      {currentMessage.read && (
+                        <Ionicons name="checkmark-done" size={14} color="#337ab7" style={styles.statusIcon} />
+                      )}
+                      {/* Clock icon for pending, failed, or any unknown status */}
+                      {!currentMessage.sent && !currentMessage.delivered && !currentMessage.read && (
+                        <Ionicons name="time-outline" size={14} color="#999" style={styles.statusIcon} />
+                      )}
+                    </View>
+                  )}
+                </View>
               </View>
-
             );
           }}
         />
@@ -472,17 +496,29 @@ const styles = StyleSheet.create({
   receivedBubbleText: {
     color: "#333",
   },
+  bubbleFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    marginTop: 4,
+  },
   bubbleTime: {
     fontSize: 12,
     color: "#666",
-    marginTop: 4,
-    textAlign: "right",
   },
   sentBubbleTime: {
     color: "#333",
   },
   receivedBubbleTime: {
     color: "#333",
+  },
+  statusContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: 4,
+  },
+  statusIcon: {
+    marginLeft: 2,
   },
   messageImage: {
     width: 200,
