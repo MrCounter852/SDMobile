@@ -1,6 +1,6 @@
 import { useGlobal } from './global';
 import * as SecureStore from 'expo-secure-store';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 const API_BASE_COM = 'https://ns2.sedierp.com/API_COM/api';
 
@@ -305,7 +305,7 @@ class ChatApiService {
   // Obtener media desde WhatsApp
   async obtenerMediaWhatsApp(mediaData) {
     const endpoint = '/WhatsApp/ObtenerMediaFile';
-    const url = `${API_BASE_COM}${endpoint}`;
+    const url = `${API_BASE_COM}${endpoint}?MediaID=${encodeURIComponent(mediaData.MediaID)}&AccessToken=${encodeURIComponent(mediaData.AccessToken)}`;
     const headers = await this.getHeaders();
 
     try {
@@ -321,13 +321,7 @@ class ChatApiService {
         {
           headers: {
             ...headers,
-            'Content-Type': 'application/json',
           },
-          method: 'POST',
-          body: JSON.stringify({
-            MediaID: mediaData.MediaID,
-            AccessToken: mediaData.AccessToken,
-          }),
         }
       );
 
