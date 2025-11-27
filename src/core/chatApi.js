@@ -1,5 +1,6 @@
 import { useGlobal } from './global';
 import * as SecureStore from 'expo-secure-store';
+import * as FileSystem from 'expo-file-system';
 
 const API_BASE_COM = 'https://ns2.sedierp.com/API_COM/api';
 
@@ -304,13 +305,43 @@ class ChatApiService {
   // Obtener media desde WhatsApp
   async obtenerMediaWhatsApp(mediaData) {
     const endpoint = '/WhatsApp/ObtenerMediaFile';
-    return this.makeRequest(endpoint, {
-      method: 'POST',
-      body: JSON.stringify({
-        ...mediaData,
-        Token: this.global.user?.Token,
-      }),
-    }, true); // Usar API_CRM
+    const url = `${API_BASE_COM}${endpoint}`;
+    const headers = await this.getHeaders();
+
+    try {
+      // Crear nombre de archivo único
+      const fileExtension = mediaData.FileMime?.split('/')[1] || 'jpg';
+      const fileName = `${mediaData.MediaID}.${fileExtension}`;
+      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+
+      // Descargar el archivo usando FileSystem
+      const downloadResult = await FileSystem.downloadAsync(
+        url,
+        fileUri,
+        {
+          headers: {
+            ...headers,
+            'Content-Type': 'application/json',
+          },
+          method: 'POST',
+          body: JSON.stringify({
+            MediaID: mediaData.MediaID,
+            AccessToken: mediaData.AccessToken,
+          }),
+        }
+      );
+
+      if (downloadResult.status !== 200) {
+        console.error('obtenerMediaWhatsApp error:', downloadResult.status);
+        throw new Error(`HTTP error! status: ${downloadResult.status}`);
+      }
+
+      // Retornar la URI local del archivo
+      return downloadResult.uri;
+    } catch (error) {
+      console.error('Error obtaining media from WhatsApp:', error);
+      throw error;
+    }
   }
 
   // === NOTIFICACIONES PUSH ===

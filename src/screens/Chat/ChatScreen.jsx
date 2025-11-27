@@ -96,7 +96,7 @@ const ChatScreen = ({ route, navigation }) => {
       };
 
       const response = await ChatApiService.consultarMensajes(filtros);
-      const formattedMessages = formatMessagesForGiftedChat(
+      const formattedMessages = await formatMessagesForGiftedChat(
         response.data || []
       );
       setMessages(formattedMessages);
@@ -115,33 +115,89 @@ const ChatScreen = ({ route, navigation }) => {
     loadMessages();
   };
 
-  const formatMessagesForGiftedChat = (apiMessages) => {
-    return apiMessages.map((msg) => ({
-      _id: msg.CuentaMensajeriaMensajeID,
-      text: msg.Texto || "",
-      createdAt: new Date(msg.Fecha),
-      user: {
-        _id: msg.Recepcion ? 2 : 1, // 1 = usuario actual, 2 = contacto
-        name: msg.Recepcion ? contact.Nombre : user?.NombreCompleto || "Yo",
-        avatar: null, // Puedes agregar avatares si están disponibles
-      },
-      // Para archivos adjuntos
-      ...(msg.FileID && {
-        image: msg.HttpUrl,
-        file: {
-          name: msg.FileName,
-          type: msg.FileMime,
-          url: msg.HttpUrl,
+  const formatMessagesForGiftedChat = async (apiMessages) => {
+    const formattedMessages = [];
+
+    for (const msg of apiMessages) {
+      const formattedMsg = {
+        _id: msg.CuentaMensajeriaMensajeID,
+        text: msg.Texto || "",
+        createdAt: new Date(msg.Fecha),
+        user: {
+          _id: msg.Recepcion ? 2 : 1,
+          name: msg.Recepcion ? contact?.Nombre || "Contacto" : user?.NombreCompleto || "Yo",
+          avatar: null,
         },
-      }),
-      // Estado del mensaje - guardar el status original para mostrar iconos correctos
-      status: msg.Status, // "accepted", "pending", "sent", "delivered", "read"
-      pending: msg.Status === "accepted" || msg.Status === "pending",
-      sent: msg.Status === "sent",
-      delivered: msg.Status === "delivered",
-      read: msg.Status === "read",
-      isIncoming: msg.Recepcion,
-    }));
+        status: msg.Status,
+        pending: msg.Status === "accepted" || msg.Status === "pending",
+        sent: msg.Status === "sent",
+        delivered: msg.Status === "delivered",
+        read: msg.Status === "read",
+        isIncoming: msg.Recepcion,
+      };
+
+      // Cargar archivos multimedia
+      if (msg.FileID && !msg.HttpUrl && contact?.AccessToken) {
+        try {
+          const mediaUri = await ChatApiService.obtenerMediaWhatsApp({
+            MediaID: msg.FileID,
+            AccessToken: contact.AccessToken,
+            FileMime: msg.FileMime
+          });
+
+          // Asignar según el tipo de mensaje
+          switch (msg.TipoMensaje) {
+            case 'image':
+            case 'sticker':
+              formattedMsg.image = mediaUri;
+              break;
+            case 'audio':
+              formattedMsg.audio = mediaUri;
+              break;
+            case 'video':
+              formattedMsg.video = mediaUri;
+              break;
+            case 'document':
+              formattedMsg.file = {
+                name: msg.FileName || 'documento',
+                type: msg.FileMime,
+                url: mediaUri,
+              };
+              break;
+            default:
+              formattedMsg.image = mediaUri;
+              break;
+          }
+        } catch (error) {
+          console.error('Error loading media for message:', msg.CuentaMensajeriaMensajeID, error);
+        }
+      } else if (msg.HttpUrl) {
+        // Usar HttpUrl si está disponible
+        switch (msg.TipoMensaje) {
+          case 'image':
+          case 'sticker':
+            formattedMsg.image = msg.HttpUrl;
+            break;
+          case 'audio':
+            formattedMsg.audio = msg.HttpUrl;
+            break;
+          case 'video':
+            formattedMsg.video = msg.HttpUrl;
+            break;
+          case 'document':
+            formattedMsg.file = {
+              name: msg.FileName || 'documento',
+              type: msg.FileMime,
+              url: msg.HttpUrl,
+            };
+            break;
+        }
+      }
+
+      formattedMessages.push(formattedMsg);
+    }
+
+    return formattedMessages;
   };
 
   const onSend = useCallback(
