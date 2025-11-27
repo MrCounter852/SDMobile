@@ -276,12 +276,13 @@ const ChatScreen = ({ route, navigation }) => {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
           listViewProps={{
-            stickyHeaderHiddenOnScroll: false,
+            stickyHeaderIndices: [], // Desactiva el sticky header
           }}
           timeTextStyle={{
             left: { color: '#666' },
             right: { color: '#666' }
           }}
+          renderAvatar={null}
           renderDay={(props) => {
             return (
               <Day

@@ -148,23 +148,25 @@ export const useChatStore = create((set, get) => ({
           },
           sent: msg.Status === "sent" || msg.Status === "delivered" || msg.Status === "read",
           received: msg.Recepcion,
-          pending: false,
+          pending: msg.Status === "accepted" || msg.Status === "pending",
           // Adjuntos si los hubiera
           ...(msg.FileID && {
             image: msg.HttpUrl,
           }),
         }));
 
-        // Filtrar duplicados
-        const uniqueNewMessages = formattedNewMessages.filter(newMsg =>
-          !newMessages.some(existingMsg => existingMsg._id === newMsg._id)
-        );
+        // Actualizar mensajes existentes o agregar nuevos
+        formattedNewMessages.forEach(newMsg => {
+          const existingIndex = newMessages.findIndex(m => m._id === newMsg._id);
 
-        if (uniqueNewMessages.length > 0) {
-          // Agregar al principio (GiftedChat usa orden inverso por defecto, pero depende de cómo se carguen)
-          // Si newMessages viene de loadMessages (descendente), los nuevos deben ir al principio.
-          newMessages = [...uniqueNewMessages, ...newMessages];
-        }
+          if (existingIndex !== -1) {
+            // Actualizar mensaje existente (merge para reflejar cambios de status)
+            newMessages[existingIndex] = { ...newMessages[existingIndex], ...newMsg };
+          } else {
+            // Agregar mensaje nuevo al principio
+            newMessages = [newMsg, ...newMessages];
+          }
+        });
       }
     }
 
