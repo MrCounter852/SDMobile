@@ -283,6 +283,7 @@ const ChatScreen = ({ route, navigation }) => {
                 <ZoomableImage
                   source={{ uri: currentImage }}
                   style={styles.fullScreenImage}
+                  onClose={() => setImageViewerVisible(false)}
                 />
               ) : (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>

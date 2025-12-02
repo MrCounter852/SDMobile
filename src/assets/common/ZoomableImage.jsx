@@ -5,11 +5,12 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  runOnJS,
 } from 'react-native-reanimated';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-const ZoomableImage = ({ source, style }) => {
+const ZoomableImage = ({ source, style, onClose }) => {
   // Validar que source existe y tiene uri
   if (!source || !source.uri) {
     console.warn('ZoomableImage: source is null or missing uri property');
@@ -18,6 +19,10 @@ const ZoomableImage = ({ source, style }) => {
 
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const savedTranslateX = useSharedValue(0);
+  const savedTranslateY = useSharedValue(0);
 
   const pinchGesture = Gesture.Pinch()
     .onUpdate((e) => {
@@ -27,8 +32,38 @@ const ZoomableImage = ({ source, style }) => {
       if (scale.value < 1) {
         scale.value = withTiming(1);
         savedScale.value = 1;
+        translateX.value = withTiming(0);
+        translateY.value = withTiming(0);
+        savedTranslateX.value = 0;
+        savedTranslateY.value = 0;
       } else {
         savedScale.value = scale.value;
+      }
+    });
+
+  const panGesture = Gesture.Pan()
+    .onUpdate((e) => {
+      if (scale.value > 1) {
+        translateX.value = savedTranslateX.value + e.translationX;
+        translateY.value = savedTranslateY.value + e.translationY;
+      } else {
+        // Solo permitir swipe vertical para cerrar si no está con zoom
+        translateY.value = e.translationY;
+      }
+    })
+    .onEnd((e) => {
+      if (scale.value > 1) {
+        savedTranslateX.value = translateX.value;
+        savedTranslateY.value = translateY.value;
+      } else {
+        // Swipe hacia arriba para cerrar (umbral de -100)
+        if (e.translationY < -100) {
+          if (onClose) {
+            runOnJS(onClose)();
+          }
+        } else {
+          translateY.value = withTiming(0);
+        }
       }
     });
 
@@ -38,18 +73,29 @@ const ZoomableImage = ({ source, style }) => {
       if (scale.value > 1) {
         scale.value = withTiming(1);
         savedScale.value = 1;
+        translateX.value = withTiming(0);
+        translateY.value = withTiming(0);
+        savedTranslateX.value = 0;
+        savedTranslateY.value = 0;
       } else {
         scale.value = withTiming(2.5);
         savedScale.value = 2.5;
       }
     });
 
-  // Usamos Race para que el doble tap tenga prioridad si ocurre, pero el pinch funcione inmediatamente si se detecta
-  const composedGestures = Gesture.Race(doubleTapGesture, pinchGesture);
+  // Componer gestos: Doble tap tiene prioridad, Pinch y Pan funcionan simultáneamente
+  const composedGestures = Gesture.Race(
+    doubleTapGesture,
+    Gesture.Simultaneous(pinchGesture, panGesture)
+  );
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
-      transform: [{ scale: scale.value }],
+      transform: [
+        { translateX: translateX.value },
+        { translateY: translateY.value },
+        { scale: scale.value },
+      ],
     };
   });
 
