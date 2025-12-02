@@ -9,11 +9,13 @@ import {
   Alert,
   RefreshControl,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useChatStore } from '../../core/chatStore';
-import chatApi from '../../core/chatApi';
+import chatApi from '../../services/chat/chatService';
 import { useGlobal } from '../../core/global';
 
 const Notificaciones = ({ navigation }) => {
@@ -31,14 +33,14 @@ const Notificaciones = ({ navigation }) => {
 
   const { usuarioID } = useGlobal();
   const [refreshing, setRefreshing] = useState(false);
-  const [filterVisto, setFilterVisto] = useState(null); // null = todas, true = vistas, false = no vistas
+  const [filterVisto, setFilterVisto] = useState(null);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
-  const loadingRef = useRef(false); // Ref para evitar llamadas API simultáneas
-  const currentFilterRef = useRef(null); // Ref para evitar recargas innecesarias por cambios de filtro
+  const loadingRef = useRef(false);
+  const currentFilterRef = useRef(null);
 
   // Cargar notificaciones
   const loadNotifications = useCallback(async (page = 1, append = false) => {
-    if (loadingRef.current) return; // Evitar llamadas simultáneas
+    if (loadingRef.current) return;
 
     try {
       loadingRef.current = true;
@@ -55,11 +57,9 @@ const Notificaciones = ({ navigation }) => {
 
       if (response.result === 1) {
         if (append && page > 1) {
-          // Agregar a la lista existente - get current notifications to avoid dependency
           const currentNotifications = useChatStore.getState().notifications;
           setNotifications([...currentNotifications, ...response.rows]);
         } else {
-          // Reemplazar la lista
           setNotifications(response.rows || []);
         }
       }
@@ -73,36 +73,28 @@ const Notificaciones = ({ navigation }) => {
     }
   }, [usuarioID, filterVisto, setNotifications, setNotificationsLoading]);
 
-  // Resetear estado cuando cambia el usuario
   useEffect(() => {
     setInitialLoadDone(false);
   }, [usuarioID]);
 
-
-  // Cargar notificaciones iniciales (similar al ERP web)
   useEffect(() => {
     if (usuarioID && !initialLoadDone) {
-      console.log('Loading initial notifications (ERP style)');
       loadNotifications(1, false);
       setInitialLoadDone(true);
     }
   }, [usuarioID, initialLoadDone, loadNotifications]);
 
-  // Recargar cuando cambian filtros (con debounce como en ERP)
-  // Solo recarga después de 500ms de inactividad, NO cada 500ms
   useEffect(() => {
     if (usuarioID && initialLoadDone && !notificationsLoading && currentFilterRef.current !== filterVisto) {
       currentFilterRef.current = filterVisto;
       const timeoutId = setTimeout(() => {
-        console.log('Reloading notifications due to filter change:', filterVisto);
         loadNotifications(1, false);
-      }, 500); // Espera 500ms de inactividad antes de recargar
+      }, 500);
 
-      return () => clearTimeout(timeoutId); // Cancela si cambia antes
+      return () => clearTimeout(timeoutId);
     }
   }, [filterVisto, usuarioID, initialLoadDone, notificationsLoading, loadNotifications]);
 
-  // Marcar notificación como vista
   const markAsRead = async (notificacion) => {
     if (notificacion.Visto) return;
 
@@ -120,7 +112,6 @@ const Notificaciones = ({ navigation }) => {
     }
   };
 
-  // Marcar notificación como no vista
   const markAsUnread = async (notificacion) => {
     if (!notificacion.Visto) return;
 
@@ -138,7 +129,6 @@ const Notificaciones = ({ navigation }) => {
     }
   };
 
-  // Eliminar notificación
   const deleteNotification = (notificacion) => {
     Alert.alert(
       'Eliminar Notificación',
@@ -165,7 +155,6 @@ const Notificaciones = ({ navigation }) => {
     );
   };
 
-  // Eliminar todas las notificaciones
   const deleteAllNotifications = () => {
     Alert.alert(
       'Eliminar Todas las Notificaciones',
@@ -189,123 +178,306 @@ const Notificaciones = ({ navigation }) => {
     );
   };
 
-  // Abrir URL de la notificación
   const openNotificationUrl = (notificacion) => {
     if (notificacion.Url) {
-      // Marcar como vista si no lo está
       if (!notificacion.Visto) {
         markAsRead(notificacion);
       }
-      // Aquí puedes usar Linking para abrir URLs
       console.log('Abrir URL:', notificacion.Url);
-      // Linking.openURL(notificacion.Url);
     }
   };
 
-  // Renderizar item de notificación
-  const renderNotificationItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.notificationItem}
-      onPress={() => openNotificationUrl(item)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.notificationContent}>
-        <View style={styles.notificationHeader}>
-          <Text style={styles.notificationTitle} numberOfLines={2}>
-            {item.Titulo}
-          </Text>
-          <Text style={styles.notificationDate}>
-            {new Date(item.Fecha).toLocaleDateString('es-ES', {
-              day: '2-digit',
-              month: '2-digit',
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </Text>
-        </View>
-        <Text style={styles.notificationText} numberOfLines={3}>
-          {item.Texto}
-        </Text>
-      </View>
+  // Componente de notificación con animación
+  const NotificationCard = ({ item, index }) => {
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const slideAnim = useRef(new Animated.Value(50)).current;
 
-      <View style={styles.notificationActions}>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => item.Visto ? markAsUnread(item) : markAsRead(item)}
-        >
-          <Ionicons
-            name={item.Visto ? "eye-off" : "eye"}
-            size={20}
-            color="#666"
-          />
-        </TouchableOpacity>
+    useEffect(() => {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 400,
+          delay: index * 50,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 400,
+          delay: index * 50,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, []);
 
+    const isUnread = !item.Visto;
+
+    return (
+      <Animated.View
+        style={[
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+          },
+        ]}
+      >
         <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => deleteNotification(item)}
+          style={[
+            styles.notificationItem,
+            isUnread && styles.unreadNotification,
+          ]}
+          onPress={() => openNotificationUrl(item)}
+          activeOpacity={0.8}
         >
-          <Ionicons name="trash" size={20} color="#ff4444" />
+          {/* Indicador de no leída */}
+          {isUnread && (
+            <View style={styles.unreadIndicator}>
+              <LinearGradient
+                colors={['#667eea', '#764ba2']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.unreadGradient}
+              />
+            </View>
+          )}
+
+          {/* Icono de notificación */}
+          <View style={styles.iconContainer}>
+            <LinearGradient
+              colors={isUnread ? ['#667eea', '#764ba2'] : ['#e0e0e0', '#bdbdbd']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.iconGradient}
+            >
+              <Ionicons
+                name="notifications"
+                size={22}
+                color="#fff"
+              />
+            </LinearGradient>
+          </View>
+
+          {/* Contenido */}
+          <View style={styles.notificationContent}>
+            <View style={styles.notificationHeader}>
+              <Text
+                style={[
+                  styles.notificationTitle,
+                  isUnread && styles.unreadTitle,
+                ]}
+                numberOfLines={2}
+              >
+                {item.Titulo}
+              </Text>
+              {isUnread && (
+                <View style={styles.newBadge}>
+                  <Text style={styles.newBadgeText}>NUEVO</Text>
+                </View>
+              )}
+            </View>
+
+            <Text style={styles.notificationText} numberOfLines={3}>
+              {item.Texto}
+            </Text>
+
+            <View style={styles.notificationFooter}>
+              <View style={styles.dateContainer}>
+                <Ionicons name="time-outline" size={14} color="#9e9e9e" />
+                <Text style={styles.notificationDate}>
+                  {new Date(item.Fecha).toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Acciones */}
+          <View style={styles.notificationActions}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={(e) => {
+                e.stopPropagation();
+                item.Visto ? markAsUnread(item) : markAsRead(item);
+              }}
+            >
+              <View style={styles.actionIconContainer}>
+                <Ionicons
+                  name={item.Visto ? 'eye-off-outline' : 'eye-outline'}
+                  size={20}
+                  color={item.Visto ? '#9e9e9e' : '#667eea'}
+                />
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={(e) => {
+                e.stopPropagation();
+                deleteNotification(item);
+              }}
+            >
+              <View style={styles.actionIconContainer}>
+                <Ionicons name="trash-outline" size={20} color="#ef5350" />
+              </View>
+            </TouchableOpacity>
+          </View>
         </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
+      </Animated.View>
+    );
+  };
+
+  const renderNotificationItem = ({ item, index }) => (
+    <NotificationCard item={item} index={index} />
   );
 
-  // Filtros
+  // Contar notificaciones por filtro
+  const getFilterCounts = () => {
+    const total = notifications.length;
+    const unread = notifications.filter(n => !n.Visto).length;
+    const read = notifications.filter(n => n.Visto).length;
+    return { total, unread, read };
+  };
+
+  const counts = getFilterCounts();
+
   const renderFilters = () => (
     <View style={styles.filtersContainer}>
       <TouchableOpacity
         style={[styles.filterButton, filterVisto === null && styles.filterActive]}
         onPress={() => setFilterVisto(null)}
+        activeOpacity={0.7}
       >
-        <Text style={[styles.filterText, filterVisto === null && styles.filterTextActive]}>
-          Todas
-        </Text>
+        {filterVisto === null ? (
+          <LinearGradient
+            colors={['#667eea', '#764ba2']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.filterGradient}
+          >
+            <Text style={styles.filterTextActive}>Todas</Text>
+            {counts.total > 0 && (
+              <View style={styles.filterBadge}>
+                <Text style={styles.filterBadgeText}>{counts.total}</Text>
+              </View>
+            )}
+          </LinearGradient>
+        ) : (
+          <View style={styles.filterInactive}>
+            <Text style={styles.filterText}>Todas</Text>
+            {counts.total > 0 && (
+              <View style={styles.filterBadgeInactive}>
+                <Text style={styles.filterBadgeTextInactive}>{counts.total}</Text>
+              </View>
+            )}
+          </View>
+        )}
       </TouchableOpacity>
 
       <TouchableOpacity
         style={[styles.filterButton, filterVisto === false && styles.filterActive]}
         onPress={() => setFilterVisto(false)}
+        activeOpacity={0.7}
       >
-        <Text style={[styles.filterText, filterVisto === false && styles.filterTextActive]}>
-          No Vistas
-        </Text>
+        {filterVisto === false ? (
+          <LinearGradient
+            colors={['#667eea', '#764ba2']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.filterGradient}
+          >
+            <Text style={styles.filterTextActive}>No Vistas</Text>
+            {counts.unread > 0 && (
+              <View style={styles.filterBadge}>
+                <Text style={styles.filterBadgeText}>{counts.unread}</Text>
+              </View>
+            )}
+          </LinearGradient>
+        ) : (
+          <View style={styles.filterInactive}>
+            <Text style={styles.filterText}>No Vistas</Text>
+            {counts.unread > 0 && (
+              <View style={styles.filterBadgeInactive}>
+                <Text style={styles.filterBadgeTextInactive}>{counts.unread}</Text>
+              </View>
+            )}
+          </View>
+        )}
       </TouchableOpacity>
 
       <TouchableOpacity
         style={[styles.filterButton, filterVisto === true && styles.filterActive]}
         onPress={() => setFilterVisto(true)}
+        activeOpacity={0.7}
       >
-        <Text style={[styles.filterText, filterVisto === true && styles.filterTextActive]}>
-          Vistas
-        </Text>
+        {filterVisto === true ? (
+          <LinearGradient
+            colors={['#667eea', '#764ba2']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.filterGradient}
+          >
+            <Text style={styles.filterTextActive}>Vistas</Text>
+            {counts.read > 0 && (
+              <View style={styles.filterBadge}>
+                <Text style={styles.filterBadgeText}>{counts.read}</Text>
+              </View>
+            )}
+          </LinearGradient>
+        ) : (
+          <View style={styles.filterInactive}>
+            <Text style={styles.filterText}>Vistas</Text>
+            {counts.read > 0 && (
+              <View style={styles.filterBadgeInactive}>
+                <Text style={styles.filterBadgeTextInactive}>{counts.read}</Text>
+              </View>
+            )}
+          </View>
+        )}
       </TouchableOpacity>
     </View>
   );
 
-  // Pull to refresh
   const onRefresh = () => {
     setRefreshing(true);
     loadNotifications(1, false);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f8f9fa" />
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#667eea" />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.headerTitle}>Notificaciones</Text>
-        </View>
-        {notifications.length > 0 && (
-          <TouchableOpacity
-            style={styles.clearAllButton}
-            onPress={deleteAllNotifications}
-          >
-            <Ionicons name="trash" size={24} color="#ff4444" />
-          </TouchableOpacity>
-        )}
-      </View>
+      {/* Header con gradiente */}
+      <LinearGradient
+        colors={['#667eea', '#764ba2']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <SafeAreaView edges={['top']}>
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <Text style={styles.headerTitle}>Notificaciones</Text>
+              <Text style={styles.headerSubtitle}>
+                {notifications.length} {notifications.length === 1 ? 'notificación' : 'notificaciones'}
+              </Text>
+            </View>
+            {notifications.length > 0 && (
+              <TouchableOpacity
+                style={styles.clearAllButton}
+                onPress={deleteAllNotifications}
+                activeOpacity={0.7}
+              >
+                <View style={styles.clearAllButtonInner}>
+                  <Ionicons name="trash-outline" size={20} color="#fff" />
+                </View>
+              </TouchableOpacity>
+            )}
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
 
       {/* Filtros */}
       {renderFilters()}
@@ -317,7 +489,12 @@ const Notificaciones = ({ navigation }) => {
         renderItem={renderNotificationItem}
         contentContainerStyle={styles.listContainer}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#667eea"
+            colors={['#667eea', '#764ba2']}
+          />
         }
         onEndReached={() => {
           if (!notificationsLoading && notifications.length > 0) {
@@ -328,17 +505,27 @@ const Notificaciones = ({ navigation }) => {
         onEndReachedThreshold={0.5}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Ionicons name="notifications-off" size={64} color="#ccc" />
-            <Text style={styles.emptyText}>No hay notificaciones</Text>
+            <LinearGradient
+              colors={['#f5f7fa', '#c3cfe2']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.emptyGradient}
+            >
+              <Ionicons name="notifications-off-outline" size={80} color="#9e9e9e" />
+              <Text style={styles.emptyText}>No hay notificaciones</Text>
+              <Text style={styles.emptySubtext}>
+                Cuando recibas notificaciones aparecerán aquí
+              </Text>
+            </LinearGradient>
           </View>
         }
         ListFooterComponent={
           notificationsLoading && !refreshing ? (
-            <ActivityIndicator style={styles.loadingIndicator} color="#337ab7" />
+            <ActivityIndicator style={styles.loadingIndicator} size="large" color="#667eea" />
           ) : null
         }
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -347,133 +534,252 @@ export default Notificaciones;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f5f7fa',
+  },
+  headerGradient: {
+    paddingBottom: 20,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+    paddingTop: 15,
+    paddingBottom: 5,
   },
   headerLeft: {
     flex: 1,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#2c3e50',
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#fff',
+    letterSpacing: 0.5,
   },
-  connectionStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  headerSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
     marginTop: 4,
-  },
-  connectionText: {
-    fontSize: 12,
-    color: '#28a745',
-    marginLeft: 4,
     fontWeight: '500',
   },
-  connectionTextOffline: {
-    color: '#dc3545',
-  },
   clearAllButton: {
-    padding: 5,
+    padding: 8,
+  },
+  clearAllButtonInner: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 12,
+    padding: 8,
   },
   filtersContainer: {
     flexDirection: 'row',
     backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   filterButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    marginRight: 10,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#337ab7',
+    flex: 1,
+    borderRadius: 25,
+    overflow: 'hidden',
   },
-  filterActive: {
-    backgroundColor: '#337ab7',
+  filterGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    gap: 6,
+  },
+  filterInactive: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#f5f7fa',
+    borderRadius: 25,
+    gap: 6,
   },
   filterText: {
     fontSize: 14,
-    color: '#337ab7',
-    fontWeight: '500',
+    color: '#616161',
+    fontWeight: '600',
   },
   filterTextActive: {
+    fontSize: 14,
     color: '#fff',
+    fontWeight: '700',
+  },
+  filterBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    minWidth: 24,
+    alignItems: 'center',
+  },
+  filterBadgeText: {
+    fontSize: 12,
+    color: '#fff',
+    fontWeight: '700',
+  },
+  filterBadgeInactive: {
+    backgroundColor: '#667eea',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    minWidth: 24,
+    alignItems: 'center',
+  },
+  filterBadgeTextInactive: {
+    fontSize: 12,
+    color: '#fff',
+    fontWeight: '700',
   },
   listContainer: {
-    padding: 10,
+    padding: 16,
+    flexGrow: 1,
   },
   notificationItem: {
     backgroundColor: '#fff',
-    borderRadius: 10,
-    marginBottom: 10,
-    padding: 15,
+    borderRadius: 16,
+    marginBottom: 12,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    position: 'relative',
+    overflow: 'hidden',
   },
-  newNotification: {
-    borderLeftWidth: 4,
-    borderLeftColor: '#337ab7',
+  unreadNotification: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: 'rgba(102, 126, 234, 0.2)',
+  },
+  unreadIndicator: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+  },
+  unreadGradient: {
+    flex: 1,
+  },
+  iconContainer: {
+    marginRight: 12,
+    marginLeft: 4,
+  },
+  iconGradient: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   notificationContent: {
     flex: 1,
-    marginRight: 10,
+    marginRight: 8,
   },
   notificationHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 8,
+    gap: 8,
   },
   notificationTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2c3e50',
+    color: '#212121',
     flex: 1,
-    marginRight: 10,
+    lineHeight: 22,
   },
-  notificationDate: {
-    fontSize: 12,
-    color: '#6c757d',
+  unreadTitle: {
+    fontWeight: '700',
+    color: '#000',
+  },
+  newBadge: {
+    backgroundColor: '#667eea',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  newBadgeText: {
+    fontSize: 10,
+    color: '#fff',
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   notificationText: {
     fontSize: 14,
-    color: '#495057',
+    color: '#616161',
     lineHeight: 20,
+    marginBottom: 8,
+  },
+  notificationFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  notificationDate: {
+    fontSize: 12,
+    color: '#9e9e9e',
+    fontWeight: '500',
   },
   notificationActions: {
     flexDirection: 'column',
-    alignItems: 'center',
+    gap: 8,
   },
   actionButton: {
-    padding: 5,
-    marginBottom: 5,
+    padding: 4,
   },
-  emptyContainer: {
+  actionIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f5f7fa',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 50,
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 80,
+  },
+  emptyGradient: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 40,
+    borderRadius: 24,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#6c757d',
-    marginTop: 10,
+    fontSize: 20,
+    color: '#616161',
+    marginTop: 20,
+    fontWeight: '700',
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#9e9e9e',
+    marginTop: 8,
+    textAlign: 'center',
+    fontWeight: '500',
   },
   loadingIndicator: {
     marginVertical: 20,

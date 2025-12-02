@@ -1,4 +1,4 @@
-import { useGlobal } from './global';
+import { useGlobal } from '../../core/global';
 import * as SecureStore from 'expo-secure-store';
 import * as FileSystem from 'expo-file-system/legacy';
 

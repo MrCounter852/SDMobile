@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import ChatApiService from '../../core/chatApi';
+import ChatApiService from '../../services/chat/chatService';
 import { useGlobal } from '../../core/global';
 
 const NewChat = ({ navigation }) => {

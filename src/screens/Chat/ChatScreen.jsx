@@ -8,22 +8,22 @@ import {
   ActivityIndicator,
   Platform,
   Dimensions,
-  // Quitamos Image de react-native para usar la de expo
   Keyboard,
   RefreshControl,
-  Modal, // Importamos Modal
+  Modal,
   StatusBar,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { GiftedChat, InputToolbar, Day } from "react-native-gifted-chat";
 import { useChatStore } from "../../core/chatStore";
-import ChatApiService from "../../core/chatApi";
+import ChatApiService from "../../services/chat/chatService";
 import { useGlobal } from "../../core/global";
 import { LinearGradient } from "expo-linear-gradient";
 
 // 1. IMPORTANTE: Usamos Image de expo-image
 import { Image } from "expo-image";
+import ZoomableImage from '../../assets/common/ZoomableImage';
 
 const ChatScreen = ({ route, navigation }) => {
   const insets = useSafeAreaInsets();
@@ -81,10 +81,6 @@ const ChatScreen = ({ route, navigation }) => {
       setSelectedContact(null);
     };
   }, []);
-
-  // ... (Tus funciones de loadMessages, onRefresh, formatMessagesForGiftedChat, onSend siguen igual) ...
-  // Por brevedad asumo que estas funciones no cambiaron lógica visual, solo asegúrate 
-  // que formatMessagesForGiftedChat devuelva URIs válidas.
 
   const loadMessages = async () => {
     try {
@@ -226,9 +222,6 @@ const ChatScreen = ({ route, navigation }) => {
                         setImageViewerVisible(true);
                       }}
                     >
-                      {/* 2. REFACTOR: Usamos Image de Expo para las miniaturas */}
-                      {/* contentFit reemplaza a resizeMode en expo-image */}
-                      {/* transition agrega un efecto suave al cargar */}
                       <Image
                         source={{ uri: currentMessage.image }}
                         style={styles.messageImage}
@@ -286,12 +279,9 @@ const ChatScreen = ({ route, navigation }) => {
 
             {/* Imagen Full Screen */}
             <View style={styles.modalImageContainer}>
-                <Image
+                <ZoomableImage
                     source={currentImage ? { uri: currentImage } : null}
                     style={styles.fullScreenImage}
-                    contentFit="contain" // "contain" asegura que se vea toda la foto sin cortar
-                    transition={300}
-                    cachePolicy="memory-disk"
                 />
             </View>
           </SafeAreaView>
@@ -348,7 +338,7 @@ const styles = StyleSheet.create({
   // Nuevos estilos para el Modal
   modalBackground: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.9)", // Fondo casi negro
+    backgroundColor: "rgba(0,0,0,0.5)", // Fondo casi negro
   },
   closeButton: {
     position: 'absolute',

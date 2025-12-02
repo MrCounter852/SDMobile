@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useChatStore } from '../../core/chatStore';
-import ChatApiService from '../../core/chatApi';
+import ChatApiService from '../../services/chat/chatService';
 import { useGlobal } from '../../core/global';
 
 const ContactList = ({ navigation }) => {

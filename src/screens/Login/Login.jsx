@@ -19,13 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SecureStore from 'expo-secure-store';
 import useGlobal from '../../core/global';
 import ExpandableDropdown from '../../assets/common/SearchableDropdownModal';
-
-// Environment-aware base URLs
-const BASE_URL_SIS =  'https://admin.sedierp.com';
-const BASE_URL_NS = 'https://ns2.sedierp.com';
-
-//const BASE_URL_SIS = 'https://devadmin.sedisolutions.co:444//'
-//const BASE_URL_NS = 'https://devns2.sedisolutions.co:444//'
+import { loginUser, fetchEmpresas, getOauthToken, getSessionData } from '../../services/auth/authService';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,7 +30,6 @@ const Login = () => {
   const [selectedEmpresa, setSelectedEmpresa] = useState(null);
   const [selectedSucursal, setSelectedSucursal] = useState(null);
   const [loginData, setLoginData] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [empresasLoading, setEmpresasLoading] = useState(false);
   const login = useGlobal((state) => state.login);
 
@@ -48,71 +41,29 @@ const Login = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL_SIS}/API_SIS/api/Login/ERPLogin/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          Usuario: email,
-          Clave: password,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.AccessToken) {
-        const result = {
-          success: true,
-          token: data.AccessToken,
-          expires: data.Expires,
-          empresas: data.Empresas,
-          user: {
-            email: email
-          }
-        };
-        setLoginData(result);
-        await fetchEmpresas(result.token, '');
-        setStep('selection');
-      } else {
-        Alert.alert('Error', data.Message || 'Error de autenticación');
-      }
+      const result = await loginUser(email, password);
+      setLoginData(result);
+      setEmpresasLoading(true);
+      const empresas = await fetchEmpresas(result.token, '');
+      setEmpresas(empresas);
+      setEmpresasLoading(false);
+      setStep('selection');
     } catch (error) {
-      Alert.alert('Error', 'Error de conexión');
+      Alert.alert('Error', error.message);
     }
     setLoading(false);
   };
 
-  const fetchEmpresas = async (token, search = '') => {
-    setEmpresasLoading(true);
-    try {
-      const empresasResponse = await fetch(`${BASE_URL_SIS}/API_SIS/api/Login/ERPEmpresas/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          AccessToken: token,
-          FilterEmpresa: true,
-          fullsearch: search,
-        }),
-      });
-      const empresasData = await empresasResponse.json();
-      if (empresasData.Codigo === 200) {
-        setEmpresas(empresasData.Empresas);
-      } else {
-        Alert.alert('Error', empresasData.Descripcion || 'Error al obtener empresas');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Error de conexión al obtener empresas');
-      console.error('Fetch empresas error:', error);
-    }
-    setEmpresasLoading(false);
-  };
-
-  const handleEmpresaSearch = (text) => {
+  const handleEmpresaSearch = async (text) => {
     if (text.length >= 3 || text === '') {
-      fetchEmpresas(loginData.token, text);
+      setEmpresasLoading(true);
+      try {
+        const empresas = await fetchEmpresas(loginData.token, text);
+        setEmpresas(empresas);
+      } catch (error) {
+        Alert.alert('Error', error.message);
+      }
+      setEmpresasLoading(false);
     }
   };
 
@@ -178,7 +129,7 @@ const Login = () => {
           selectedItem={selectedEmpresa}
           onSelect={(empresa) => {
             setSelectedEmpresa(empresa);
-            setSelectedSucursal(null); // Reset sucursal when empresa changes
+            setSelectedSucursal(null);
           }}
           hasSearch={true}
           onSearch={handleEmpresaSearch}
@@ -211,63 +162,36 @@ const Login = () => {
                 <TouchableOpacity style={styles.startButton} onPress={async () => {
                   setLoading(true);
                   try {
-                    const response = await fetch(`${BASE_URL_SIS}/API_SIS/api/Login/OauthToken/`, {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({
-                        AccessToken: loginData.token,
-                        BaseDatosID: selectedEmpresa.BaseDatosID,
-                        EmpresaID: selectedEmpresa.EmpresaID,
-                        SucursalID: selectedSucursal.SucursalID,
-                      }),
-                    });
-                    const data = await response.json();
-                    if (response.ok && data.AccessToken) {
-                      await SecureStore.setItemAsync('accessToken', data.AccessToken);
-                      // Call LoginAcceso to get session data
-                      try {
-                        const sessionResponse = await fetch(`${BASE_URL_NS}/API_SIS/api/Login/LoginAcceso?TokenKey=${data.AccessToken}`, {
-                          method: 'GET',
-                        });
-                        const sessionData = await sessionResponse.json();
-                        console.log("url acceso:", `https://ns2.sedierp.com//API_SIS/api/Login/LoginAcceso?TokenKey=${data.AccessToken}`)
-                        console.log('LoginAcceso response - User Token:', sessionData.Session?.Usuario?.Token);
-                        console.log('LoginAcceso response - Full User:', JSON.stringify(sessionData.Session?.Usuario, null, 2));
-                        const usuarioID = sessionData.Session?.Usuario?.UsuarioID;
-                        const rolID = sessionData.Session?.Usuario?.RolID;
-                        const user = sessionData.Session?.Usuario || {};
-                        const accesos = sessionData.Session?.Accesos || [];
-
-                        // Guardar el token de OauthToken como erpToken (este es el que funciona para las APIs)
-                        await SecureStore.setItemAsync('erpToken', data.AccessToken);
-
-                        login({
-                          user: { email: loginData.user.email, ...user, Token: user.Token },
-                          usuarioID,
-                          rolID,
-                          empresa: selectedEmpresa,
-                          sucursal: selectedSucursal,
-                          accesos
-                        });
-                        // Save additional data in SecureStore
-                        await SecureStore.setItemAsync('usuarioID', usuarioID?.toString() || '');
-                        await SecureStore.setItemAsync('rolID', rolID?.toString() || '');
-                      } catch (error) {
-                        console.error('Error fetching session:', error);
-                        login({
-                          user: { email: loginData.user.email },
-                          empresa: selectedEmpresa,
-                          sucursal: selectedSucursal
-                        });
-                      }
-                      Alert.alert('Éxito', 'Login exitoso!');
-                    } else {
-                      Alert.alert('Error', data.Message || 'Error en OauthToken');
+                    const oauthData = await getOauthToken(loginData.token, selectedEmpresa.BaseDatosID, selectedEmpresa.EmpresaID, selectedSucursal.SucursalID);
+                    await SecureStore.setItemAsync('accessToken', oauthData.accessToken);
+                    await SecureStore.setItemAsync('erpToken', oauthData.accessToken);
+                    try {
+                      const sessionData = await getSessionData(oauthData.accessToken);
+                      const usuarioID = sessionData.Session?.Usuario?.UsuarioID;
+                      const rolID = sessionData.Session?.Usuario?.RolID;
+                      const user = sessionData.Session?.Usuario || {};
+                      const accesos = sessionData.Session?.Accesos || [];
+                      login({
+                        user: { email: loginData.user.email, ...user, Token: user.Token },
+                        usuarioID,
+                        rolID,
+                        empresa: selectedEmpresa,
+                        sucursal: selectedSucursal,
+                        accesos
+                      });
+                      await SecureStore.setItemAsync('usuarioID', usuarioID?.toString() || '');
+                      await SecureStore.setItemAsync('rolID', rolID?.toString() || '');
+                    } catch (error) {
+                      console.error('Error fetching session:', error);
+                      login({
+                        user: { email: loginData.user.email },
+                        empresa: selectedEmpresa,
+                        sucursal: selectedSucursal
+                      });
                     }
+                    Alert.alert('Éxito', 'Login exitoso!');
                   } catch (error) {
-                    Alert.alert('Error', 'Error de conexión en OauthToken');
+                    Alert.alert('Error', error.message);
                   }
                   setLoading(false);
                 }} disabled={loading}>
