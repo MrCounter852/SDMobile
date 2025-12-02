@@ -90,7 +90,6 @@ const ChatScreen = ({ route, navigation }) => {
         Page: 1, Rows: 50, UsuarioID: null, Token: user?.Token,
       };
       const response = await ChatApiService.consultarMensajes(filtros);
-      // Asumimos que formatMessagesForGiftedChat está definido arriba o importado
       const formattedMessages = await formatMessagesForGiftedChat(response.data || []);
       setMessages(formattedMessages);
     } catch (error) {
@@ -104,8 +103,6 @@ const ChatScreen = ({ route, navigation }) => {
 
   const onRefresh = () => { setRefreshing(true); loadMessages(); };
 
-  // He incluido la función aquí para que el código sea completo, 
-  // asegurando que 'formattedMsg.image' tenga la URL correcta.
   const formatMessagesForGiftedChat = async (apiMessages) => {
     const formattedMessages = [];
     for (const msg of apiMessages) {
@@ -114,17 +111,14 @@ const ChatScreen = ({ route, navigation }) => {
         text: msg.Texto || "",
         createdAt: new Date(msg.Fecha),
         user: { _id: msg.Recepcion ? 2 : 1, name: msg.Recepcion ? contact?.Nombre : user?.NombreCompleto },
-        // ... resto de status ...
         sent: msg.Status === "sent",
         delivered: msg.Status === "delivered",
         read: msg.Status === "read",
       };
 
-      // Lógica simplificada de medios para el ejemplo
       if (msg.HttpUrl && (msg.TipoMensaje === 'image' || msg.TipoMensaje === 'sticker')) {
         formattedMsg.image = msg.HttpUrl;
       }
-      // ... tu lógica de fetch media existente ...
 
       formattedMessages.push(formattedMsg);
     }
@@ -132,8 +126,6 @@ const ChatScreen = ({ route, navigation }) => {
   };
 
   const onSend = useCallback(async (messagesToSend = []) => {
-    // ... tu lógica de onSend ...
-    // Solo simulación para que compile
     setSendingMessage(true);
     setTimeout(() => { setSendingMessage(false); }, 1000);
   }, []);
@@ -193,7 +185,6 @@ const ChatScreen = ({ route, navigation }) => {
             renderInputToolbar={renderInputToolbar}
             renderMessageText={renderMessageText}
             isTyping={isTyping}
-            // Fix Android keyboard
             messagesContainerStyle={[styles.messagesContainer, { paddingBottom: Platform.OS === 'android' ? 0 : 0 }]}
             textInputStyle={styles.textInput}
             scrollToBottomStyle={styles.scrollToBottom}
@@ -258,40 +249,35 @@ const ChatScreen = ({ route, navigation }) => {
         )}
       </View>
 
-      {/* 3. REFACTOR: Modal Personalizado usando Expo Image */}
-      {/* Esto reemplaza a ImageViewing. Es más ligero y controlable. */}
       <Modal
         visible={imageViewerVisible}
         transparent={true}
         animationType="fade"
+        statusBarTranslucent={true}
         onRequestClose={() => setImageViewerVisible(false)}
       >
         <View style={styles.modalBackground}>
-          <SafeAreaView style={{ flex: 1 }}>
-            {/* Botón cerrar */}
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setImageViewerVisible(false)}
-              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-            >
-              <Ionicons name="close-circle" size={36} color="white" />
-            </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => setImageViewerVisible(false)}
+            hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+          >
+            <Ionicons name="close-circle" size={36} color="white" />
+          </TouchableOpacity>
 
-            {/* Imagen Full Screen */}
-            <View style={styles.modalImageContainer}>
-              {currentImage ? (
-                <ZoomableImage
-                  source={{ uri: currentImage }}
-                  style={styles.fullScreenImage}
-                  onClose={() => setImageViewerVisible(false)}
-                />
-              ) : (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                  <Text style={{ color: 'white', fontSize: 16 }}>No se pudo cargar la imagen</Text>
-                </View>
-              )}
-            </View>
-          </SafeAreaView>
+          <View style={styles.modalImageContainer}>
+            {currentImage ? (
+              <ZoomableImage
+                source={{ uri: currentImage }}
+                style={styles.fullScreenImage}
+                onClose={() => setImageViewerVisible(false)}
+              />
+            ) : (
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <Text style={{ color: 'white', fontSize: 16 }}>No se pudo cargar la imagen</Text>
+              </View>
+            )}
+          </View>
         </View>
       </Modal>
     </>
@@ -299,7 +285,6 @@ const ChatScreen = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  // ... Tus estilos anteriores se mantienen ...
   container: { flex: 1, backgroundColor: "#f8f9fa" },
   headerButton: { marginRight: 16, paddingHorizontal: 12, paddingVertical: 6 },
   headerButtonText: { color: "#337ab7", fontSize: 16, fontWeight: "500" },
@@ -328,28 +313,25 @@ const styles = StyleSheet.create({
   sentBubbleTime: { color: "#333" },
   receivedBubbleTime: { color: "#333" },
   statusContainer: { flexDirection: "row", alignItems: "center", marginLeft: 4 },
-
-  // Estilos Actualizados para Expo Image
   messageImage: {
     width: 200,
     height: 200,
     borderRadius: 8,
     marginTop: 4,
-    backgroundColor: '#e1e4e8', // Color de fondo mientras carga
+    backgroundColor: '#e1e4e8',
   },
-
   scrollToBottom: { backgroundColor: "#337ab7" },
   sendingIndicator: { flexDirection: "row", alignItems: "center", justifyContent: "center", padding: 8, backgroundColor: "#fff", borderTopWidth: 1, borderTopColor: "#e9ecef" },
   sendingText: { marginLeft: 8, fontSize: 14, color: "#666" },
-
-  // Nuevos estilos para el Modal
   modalBackground: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.9)", // Fondo casi negro
+    margin: 0,
+    backgroundColor: "black",
+    padding: 0,
   },
   closeButton: {
     position: 'absolute',
-    top: 50, // Ajustado para que no pegue con el notch
+    top: 50,
     right: 20,
     zIndex: 10,
     padding: 5
