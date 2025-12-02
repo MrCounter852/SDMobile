@@ -1,73 +1,92 @@
 import React from 'react';
-import { GestureHandlerRootView, Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle, useSharedValue, runOnJS } from 'react-native-reanimated';
-import { Image } from 'expo-image';
+import { StyleSheet, Dimensions } from 'react-native';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from 'react-native-reanimated';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const ZoomableImage = ({ source, style }) => {
+  // Validar que source existe y tiene uri
+  if (!source || !source.uri) {
+    console.warn('ZoomableImage: source is null or missing uri property');
+    return null;
+  }
+
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
-  const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
 
   const pinchGesture = Gesture.Pinch()
     .onUpdate((e) => {
       scale.value = savedScale.value * e.scale;
     })
     .onEnd(() => {
-      savedScale.value = scale.value;
-    });
-
-  const panGesture = Gesture.Pan()
-    .onUpdate((e) => {
-      translateX.value = e.translationX;
-      translateY.value = e.translationY;
-    })
-    .onEnd(() => {
-      translateX.value = 0;
-      translateY.value = 0;
+      if (scale.value < 1) {
+        scale.value = withTiming(1);
+        savedScale.value = 1;
+      } else {
+        savedScale.value = scale.value;
+      }
     });
 
   const doubleTapGesture = Gesture.Tap()
     .numberOfTaps(2)
-    .onStart(() => {
+    .onEnd(() => {
       if (scale.value > 1) {
-        scale.value = 1;
+        scale.value = withTiming(1);
         savedScale.value = 1;
-        translateX.value = 0;
-        translateY.value = 0;
       } else {
-        scale.value = 2;
-        savedScale.value = 2;
+        scale.value = withTiming(2.5);
+        savedScale.value = 2.5;
       }
     });
 
-  const composedGesture = Gesture.Simultaneous(pinchGesture, panGesture, doubleTapGesture);
+  // Usamos Race para que el doble tap tenga prioridad si ocurre, pero el pinch funcione inmediatamente si se detecta
+  const composedGestures = Gesture.Race(doubleTapGesture, pinchGesture);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: scale.value },
-      { translateX: translateX.value },
-      { translateY: translateY.value },
-    ],
-  }));
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: scale.value }],
+    };
+  });
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <GestureDetector gesture={composedGesture}>
-        <Animated.View style={{ flex: 1 }}>
-          <Animated.View style={[animatedStyle, { flex: 1 }]}>
-            <Image
-              source={source}
-              style={style}
-              contentFit="contain"
-              transition={300}
-              cachePolicy="memory-disk"
-            />
-          </Animated.View>
+    <GestureHandlerRootView style={styles.container}>
+      <GestureDetector gesture={composedGestures}>
+        <Animated.View style={styles.wrapper}>
+          <Animated.Image
+            source={source}
+            style={[styles.image, animatedStyle]}
+            resizeMode="contain"
+          />
         </Animated.View>
       </GestureDetector>
     </GestureHandlerRootView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  wrapper: {
+    flex: 1,
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  image: {
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+  },
+});
 
 export default ZoomableImage;

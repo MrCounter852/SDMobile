@@ -279,10 +279,16 @@ const ChatScreen = ({ route, navigation }) => {
 
             {/* Imagen Full Screen */}
             <View style={styles.modalImageContainer}>
-              <ZoomableImage
-                source={currentImage ? { uri: currentImage } : null}
-                style={styles.fullScreenImage}
-              />
+              {currentImage ? (
+                <ZoomableImage
+                  source={{ uri: currentImage }}
+                  style={styles.fullScreenImage}
+                />
+              ) : (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                  <Text style={{ color: 'white', fontSize: 16 }}>No se pudo cargar la imagen</Text>
+                </View>
+              )}
             </View>
           </SafeAreaView>
         </View>
@@ -338,7 +344,7 @@ const styles = StyleSheet.create({
   // Nuevos estilos para el Modal
   modalBackground: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)", // Fondo casi negro
+    backgroundColor: "rgba(0,0,0,0.9)", // Fondo casi negro
   },
   closeButton: {
     position: 'absolute',
@@ -351,6 +357,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 1,
   },
   fullScreenImage: {
     width: '100%',
