@@ -232,7 +232,7 @@ const Notificaciones = ({ navigation }) => {
           {isUnread && (
             <View style={styles.unreadIndicator}>
               <LinearGradient
-                colors={['#667eea', '#764ba2']}
+                colors={['#015CAB', '#88E782']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.unreadGradient}
@@ -243,7 +243,7 @@ const Notificaciones = ({ navigation }) => {
           {/* Icono de notificación */}
           <View style={styles.iconContainer}>
             <LinearGradient
-              colors={isUnread ? ['#667eea', '#764ba2'] : ['#e0e0e0', '#bdbdbd']}
+              colors={isUnread ? ['#015CAB', '#88E782'] : ['#e0e0e0', '#bdbdbd']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.iconGradient}
@@ -307,7 +307,7 @@ const Notificaciones = ({ navigation }) => {
                 <Ionicons
                   name={item.Visto ? 'eye-off-outline' : 'eye-outline'}
                   size={20}
-                  color={item.Visto ? '#9e9e9e' : '#667eea'}
+                  color={item.Visto ? '#9e9e9e' : '#015CAB'}
                 />
               </View>
             </TouchableOpacity>
@@ -320,7 +320,7 @@ const Notificaciones = ({ navigation }) => {
               }}
             >
               <View style={styles.actionIconContainer}>
-                <Ionicons name="trash-outline" size={20} color="#ef5350" />
+                <Ionicons name="trash-outline" size={20} color="#015CAB" />
               </View>
             </TouchableOpacity>
           </View>
@@ -352,7 +352,7 @@ const Notificaciones = ({ navigation }) => {
       >
         {filterVisto === null ? (
           <LinearGradient
-            colors={['#667eea', '#764ba2']}
+            colors={['#015CAB', '#88E782']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.filterGradient}
@@ -383,7 +383,7 @@ const Notificaciones = ({ navigation }) => {
       >
         {filterVisto === false ? (
           <LinearGradient
-            colors={['#667eea', '#764ba2']}
+            colors={['#015CAB', '#88E782']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.filterGradient}
@@ -414,7 +414,7 @@ const Notificaciones = ({ navigation }) => {
       >
         {filterVisto === true ? (
           <LinearGradient
-            colors={['#667eea', '#764ba2']}
+            colors={['#015CAB', '#88E782']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.filterGradient}
@@ -447,11 +447,11 @@ const Notificaciones = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#667eea" />
+      <StatusBar barStyle="light-content" backgroundColor="#015CAB" />
 
       {/* Header con gradiente */}
       <LinearGradient
-        colors={['#667eea', '#764ba2']}
+        colors={['#015CAB', '#88E782']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
@@ -492,8 +492,8 @@ const Notificaciones = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#667eea"
-            colors={['#667eea', '#764ba2']}
+            tintColor="#015CAB"
+            colors={['#015CAB', '#88E782']}
           />
         }
         onEndReached={() => {
@@ -521,7 +521,7 @@ const Notificaciones = ({ navigation }) => {
         }
         ListFooterComponent={
           notificationsLoading && !refreshing ? (
-            <ActivityIndicator style={styles.loadingIndicator} size="large" color="#667eea" />
+            <ActivityIndicator style={styles.loadingIndicator} size="large" color="#015CAB" />
           ) : null
         }
       />
@@ -629,7 +629,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   filterBadgeInactive: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#015CAB',
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -663,7 +663,7 @@ const styles = StyleSheet.create({
   unreadNotification: {
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: 'rgba(102, 126, 234, 0.2)',
+    borderColor: 'rgba(1, 92, 171, 0.2)',
   },
   unreadIndicator: {
     position: 'absolute',
@@ -708,7 +708,7 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   newBadge: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#015CAB',
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 3,

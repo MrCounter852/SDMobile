@@ -27,7 +27,7 @@ import ZoomableImage from '../../assets/common/ZoomableImage';
 
 const ChatScreen = ({ route, navigation }) => {
   const insets = useSafeAreaInsets();
-  
+
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [imageViewerVisible, setImageViewerVisible] = useState(false);
@@ -109,33 +109,33 @@ const ChatScreen = ({ route, navigation }) => {
   const formatMessagesForGiftedChat = async (apiMessages) => {
     const formattedMessages = [];
     for (const msg of apiMessages) {
-        const formattedMsg = {
-            _id: msg.CuentaMensajeriaMensajeID,
-            text: msg.Texto || "",
-            createdAt: new Date(msg.Fecha),
-            user: { _id: msg.Recepcion ? 2 : 1, name: msg.Recepcion ? contact?.Nombre : user?.NombreCompleto },
-            // ... resto de status ...
-            sent: msg.Status === "sent",
-            delivered: msg.Status === "delivered",
-            read: msg.Status === "read",
-        };
+      const formattedMsg = {
+        _id: msg.CuentaMensajeriaMensajeID,
+        text: msg.Texto || "",
+        createdAt: new Date(msg.Fecha),
+        user: { _id: msg.Recepcion ? 2 : 1, name: msg.Recepcion ? contact?.Nombre : user?.NombreCompleto },
+        // ... resto de status ...
+        sent: msg.Status === "sent",
+        delivered: msg.Status === "delivered",
+        read: msg.Status === "read",
+      };
 
-        // Lógica simplificada de medios para el ejemplo
-        if (msg.HttpUrl && (msg.TipoMensaje === 'image' || msg.TipoMensaje === 'sticker')) {
-            formattedMsg.image = msg.HttpUrl;
-        }
-        // ... tu lógica de fetch media existente ...
-        
-        formattedMessages.push(formattedMsg);
+      // Lógica simplificada de medios para el ejemplo
+      if (msg.HttpUrl && (msg.TipoMensaje === 'image' || msg.TipoMensaje === 'sticker')) {
+        formattedMsg.image = msg.HttpUrl;
+      }
+      // ... tu lógica de fetch media existente ...
+
+      formattedMessages.push(formattedMsg);
     }
     return formattedMessages;
   };
 
   const onSend = useCallback(async (messagesToSend = []) => {
-      // ... tu lógica de onSend ...
-      // Solo simulación para que compile
-      setSendingMessage(true);
-      setTimeout(() => { setSendingMessage(false); }, 1000);
+    // ... tu lógica de onSend ...
+    // Solo simulación para que compile
+    setSendingMessage(true);
+    setTimeout(() => { setSendingMessage(false); }, 1000);
   }, []);
 
 
@@ -203,7 +203,7 @@ const ChatScreen = ({ route, navigation }) => {
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
             renderAvatar={null}
             renderDay={(props) => (
-               <Day {...props} textStyle={{ color: '#fff', fontWeight: 'bold' }} wrapperStyle={{ backgroundColor: '#337ab7', borderRadius: 12, marginTop: 10, marginBottom: 10 }} />
+              <Day {...props} textStyle={{ color: '#fff', fontWeight: 'bold' }} wrapperStyle={{ backgroundColor: '#337ab7', borderRadius: 12, marginTop: 10, marginBottom: 10 }} />
             )}
             renderBubble={(props) => {
               const { currentMessage } = props;
@@ -228,7 +228,7 @@ const ChatScreen = ({ route, navigation }) => {
                         contentFit="cover"
                         transition={500}
                         placeholder={blurhash}
-                        cachePolicy="memory-disk" 
+                        cachePolicy="memory-disk"
                       />
                     </TouchableOpacity>
                   )}
@@ -269,20 +269,20 @@ const ChatScreen = ({ route, navigation }) => {
         <View style={styles.modalBackground}>
           <SafeAreaView style={{ flex: 1 }}>
             {/* Botón cerrar */}
-            <TouchableOpacity 
-                style={styles.closeButton} 
-                onPress={() => setImageViewerVisible(false)}
-                hitSlop={{top: 20, bottom: 20, left: 20, right: 20}}
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setImageViewerVisible(false)}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
             >
               <Ionicons name="close-circle" size={36} color="white" />
             </TouchableOpacity>
 
             {/* Imagen Full Screen */}
             <View style={styles.modalImageContainer}>
-                <ZoomableImage
-                    source={currentImage ? { uri: currentImage } : null}
-                    style={styles.fullScreenImage}
-                />
+              <ZoomableImage
+                source={currentImage ? { uri: currentImage } : null}
+                style={styles.fullScreenImage}
+              />
             </View>
           </SafeAreaView>
         </View>
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
   sentBubbleTime: { color: "#333" },
   receivedBubbleTime: { color: "#333" },
   statusContainer: { flexDirection: "row", alignItems: "center", marginLeft: 4 },
-  
+
   // Estilos Actualizados para Expo Image
   messageImage: {
     width: 200,
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     backgroundColor: '#e1e4e8', // Color de fondo mientras carga
   },
-  
+
   scrollToBottom: { backgroundColor: "#337ab7" },
   sendingIndicator: { flexDirection: "row", alignItems: "center", justifyContent: "center", padding: 8, backgroundColor: "#fff", borderTopWidth: 1, borderTopColor: "#e9ecef" },
   sendingText: { marginLeft: 8, fontSize: 14, color: "#666" },
