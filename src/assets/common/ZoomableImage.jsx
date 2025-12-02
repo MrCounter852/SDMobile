@@ -1,11 +1,12 @@
-import React from 'react';
-import { StyleSheet, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Dimensions, Image as RNImage } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   runOnJS,
+  cancelAnimation,
 } from 'react-native-reanimated';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -17,12 +18,34 @@ const ZoomableImage = ({ source, style, onClose }) => {
     return null;
   }
 
+  const [imageDimensions, setImageDimensions] = useState(null);
+
+  useEffect(() => {
+    if (source?.uri) {
+      RNImage.getSize(
+        source.uri,
+        (width, height) => {
+          setImageDimensions({ width, height });
+        },
+        (error) => {
+          console.error('Error getting image size:', error);
+        }
+      );
+    }
+  }, [source?.uri]);
+
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const savedTranslateX = useSharedValue(0);
   const savedTranslateY = useSharedValue(0);
+
+  // Función para calcular los límites de desplazamiento
+  const clamp = (value, limit) => {
+    'worklet';
+    return Math.min(Math.max(value, -limit), limit);
+  };
 
   const pinchGesture = Gesture.Pinch()
     .onUpdate((e) => {
@@ -44,8 +67,43 @@ const ZoomableImage = ({ source, style, onClose }) => {
   const panGesture = Gesture.Pan()
     .onUpdate((e) => {
       if (scale.value > 1) {
-        translateX.value = savedTranslateX.value + e.translationX;
-        translateY.value = savedTranslateY.value + e.translationY;
+        // Calcular dimensiones renderizadas
+        let maxTranslateX = 0;
+        let maxTranslateY = 0;
+
+        if (imageDimensions) {
+          const { width: imgW, height: imgH } = imageDimensions;
+          const screenRatio = SCREEN_WIDTH / SCREEN_HEIGHT;
+          const imageRatio = imgW / imgH;
+
+          let contentWidth, contentHeight;
+
+          if (imageRatio > screenRatio) {
+            contentWidth = SCREEN_WIDTH;
+            contentHeight = SCREEN_WIDTH / imageRatio;
+          } else {
+            contentHeight = SCREEN_HEIGHT;
+            contentWidth = SCREEN_HEIGHT * imageRatio;
+          }
+
+          const scaledWidth = contentWidth * scale.value;
+          const scaledHeight = contentHeight * scale.value;
+
+          if (scaledWidth > SCREEN_WIDTH) {
+            maxTranslateX = (scaledWidth - SCREEN_WIDTH) / 2;
+          }
+          if (scaledHeight > SCREEN_HEIGHT) {
+            maxTranslateY = (scaledHeight - SCREEN_HEIGHT) / 2;
+          }
+        }
+
+        // Aplicar clamp
+        const nextTranslateX = savedTranslateX.value + e.translationX;
+        const nextTranslateY = savedTranslateY.value + e.translationY;
+
+        translateX.value = clamp(nextTranslateX, maxTranslateX);
+        translateY.value = clamp(nextTranslateY, maxTranslateY);
+
       } else {
         // Solo permitir swipe vertical para cerrar si no está con zoom
         translateY.value = e.translationY;
@@ -83,7 +141,7 @@ const ZoomableImage = ({ source, style, onClose }) => {
       }
     });
 
-  // Componer gestos: Doble tap tiene prioridad, Pinch y Pan funcionan simultáneamente
+  // Componer gestos
   const composedGestures = Gesture.Race(
     doubleTapGesture,
     Gesture.Simultaneous(pinchGesture, panGesture)
