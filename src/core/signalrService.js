@@ -75,7 +75,6 @@ class SignalRService {
         if (!this.hubProxy) return;
 
         // Notificaciones push
-        // Server sends: Clients.Client(...).NotificacionPush(data, boolean)
         this.hubProxy.on('NotificacionPush', (data, isNew) => {
             console.log('[SignalR] NotificacionPush received:', { data, isNew });
             // Aquí se podría disparar una notificación local o actualizar un store de notificaciones

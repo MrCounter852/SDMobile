@@ -1,4 +1,3 @@
-// signalr-shim.js - Browser API shim for React Native
 // Este archivo debe importarse ANTES de usar signalr-no-jquery
 
 const locationShim = {
@@ -18,7 +17,6 @@ if (typeof global.window === 'undefined') {
 // Asegurar que window tenga addEventListener
 if (!global.window.addEventListener) {
   global.window.addEventListener = (event, handler) => {
-    // No-op in React Native
   };
 }
 
@@ -86,18 +84,12 @@ if (typeof global.navigator === 'undefined') {
   global.navigator.userAgent = 'react-native';
 }
 
-// 4. XMLHttpRequest SHIM
-// React Native's XHR implementation can be strict about argument types in the native bridge.
-// Specifically, "Expected argument 8 of method 'sendRequest' to be a boolean" usually refers to 'withCredentials'.
-// We wrap the native XHR to ensure compatibility.
-
 const NativeXMLHttpRequest = global.XMLHttpRequest;
 
 class XHRWrapper extends NativeXMLHttpRequest {
   constructor() {
     super();
     this._withCredentials = false;
-    // Force native property to be boolean immediately
     try {
       super.withCredentials = false;
     } catch (e) { }
@@ -109,13 +101,11 @@ class XHRWrapper extends NativeXMLHttpRequest {
   }
 
   set withCredentials(value) {
-    // Ensure it's always a boolean, never undefined or null
     const boolValue = !!value;
     this._withCredentials = boolValue;
     try {
       super.withCredentials = boolValue;
     } catch (e) {
-      // Ignore if setting it on super fails
     }
   }
 

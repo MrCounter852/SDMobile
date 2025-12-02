@@ -68,7 +68,7 @@ export default function App() {
               />
               <Stack.Screen
                 name="ContactInfo"
-                component={View} // Placeholder, implementar después
+                component={View}
                 options={{ headerShown: true, title: 'Información del Contacto' }}
               />
             </>
