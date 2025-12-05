@@ -70,8 +70,9 @@ const ChatScreen = ({ route, navigation }) => {
         Token: user?.Token,
       };
       const response = await ChatApiService.consultarMensajes(filtros);
-      const formattedMessages = await formatMessagesForChat(response.data || []);
+      const formattedMessages = formatMessagesForChat(response.data || []);
       setMessages(formattedMessages);
+      loadPendingMedia(formattedMessages);
     } catch (error) {
       console.error("Error loading messages:", error);
       Alert.alert("Error", "No se pudieron cargar los mensajes");
@@ -81,7 +82,7 @@ const ChatScreen = ({ route, navigation }) => {
     }
   };
 
-  const formatMessagesForChat = async (apiMessages) => {
+  const formatMessagesForChat = (apiMessages) => {
     const formattedMessages = [];
     for (const msg of apiMessages) {
       const formattedMsg = {
@@ -107,41 +108,25 @@ const ChatScreen = ({ route, navigation }) => {
             url: msg.HttpUrl
           });
         } else if (msg.FileID) {
-          try {
-            const localUri = await ChatApiService.obtenerMediaWhatsApp({
+          formattedMsg.pendingMedia = {
+            type: 'file',
+            params: {
               MediaID: msg.FileID,
               AccessToken: contact.AccessToken,
               FileMime: msg.FileMime
-            });
-            formattedMsg.file = { name: msg.FileName, url: localUri };
-            console.log("Document fetched:", {
-              id: msg.CuentaMensajeriaMensajeID,
-              isReceived: msg.Recepcion,
-              name: msg.FileName,
-              localUri
-            });
-          } catch (error) {
-            console.error("Document expired or unavailable:", error);
-            formattedMsg.mediaExpired = true;
-          }
+            },
+            name: msg.FileName
+          };
         }
       } else if (msg.FileID && (msg.TipoMensaje === "image" || msg.TipoMensaje === "sticker")) {
-        try {
-          formattedMsg.image = await ChatApiService.obtenerMediaWhatsApp({
+        formattedMsg.pendingMedia = {
+          type: 'image',
+          params: {
             MediaID: msg.FileID,
             AccessToken: contact.AccessToken,
             FileMime: msg.FileMime
-          });
-          console.log("Image fetched:", {
-            id: msg.CuentaMensajeriaMensajeID,
-            isReceived: msg.Recepcion,
-            type: msg.TipoMensaje,
-            localUri: formattedMsg.image
-          });
-        } catch (error) {
-          console.error("Media expired or unavailable:", error);
-          formattedMsg.mediaExpired = true;
-        }
+          }
+        };
       } else if (msg.HttpUrl && (msg.TipoMensaje === "image" || msg.TipoMensaje === "sticker")) {
         formattedMsg.image = msg.HttpUrl;
         console.log("Image found:", {
@@ -155,22 +140,14 @@ const ChatScreen = ({ route, navigation }) => {
       // Handle audio messages
       if (msg.TipoMensaje === "audio") {
         if (msg.FileID) {
-          try {
-            const localUri = await ChatApiService.obtenerMediaWhatsApp({
+          formattedMsg.pendingMedia = {
+            type: 'audio',
+            params: {
               MediaID: msg.FileID,
               AccessToken: contact.AccessToken,
               FileMime: msg.FileMime
-            });
-            formattedMsg.audio = localUri;
-            console.log("Audio fetched:", {
-              id: msg.CuentaMensajeriaMensajeID,
-              isReceived: msg.Recepcion,
-              localUri
-            });
-          } catch (error) {
-            console.error("Audio expired or unavailable:", error);
-            formattedMsg.mediaExpired = true;
-          }
+            }
+          };
         } else if (msg.HttpUrl) {
           formattedMsg.audio = msg.HttpUrl;
         }
@@ -179,6 +156,45 @@ const ChatScreen = ({ route, navigation }) => {
       formattedMessages.push(formattedMsg);
     }
     return formattedMessages;
+  };
+
+  const loadPendingMedia = async (messages) => {
+    const mediaPromises = messages
+      .filter(msg => msg.pendingMedia)
+      .map(async (msg) => {
+        try {
+          const uri = await ChatApiService.obtenerMediaWhatsApp(msg.pendingMedia.params);
+          return { id: msg._id, type: msg.pendingMedia.type, uri, name: msg.pendingMedia.name };
+        } catch (error) {
+          console.error("Media load error:", error);
+          return { id: msg._id, type: msg.pendingMedia.type, error: true };
+        }
+      });
+
+    const results = await Promise.all(mediaPromises);
+
+    const updatedMessages = messages.map(msg => {
+      const result = results.find(r => r.id === msg._id);
+      if (result) {
+        const updatedMsg = { ...msg };
+        delete updatedMsg.pendingMedia;
+        if (result.error) {
+          updatedMsg.mediaExpired = true;
+        } else {
+          if (result.type === 'image') {
+            updatedMsg.image = result.uri;
+          } else if (result.type === 'audio') {
+            updatedMsg.audio = result.uri;
+          } else if (result.type === 'file') {
+            updatedMsg.file = { name: result.name, url: result.uri };
+          }
+        }
+        return updatedMsg;
+      }
+      return msg;
+    });
+
+    setMessages(updatedMessages);
   };
 
   const onRefresh = () => {
@@ -209,7 +225,7 @@ const ChatScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <SafeAreaView style={styles.safeArea} edges={["left", "right"]}>
+      <SafeAreaView style={styles.safeArea} edges={["left", "right", "bottom"]}>
         <ChatMessageList
           messages={messages}
           currentUserId={1}

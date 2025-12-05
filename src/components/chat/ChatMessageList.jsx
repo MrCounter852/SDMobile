@@ -12,14 +12,14 @@ const ChatMessageList = ({
 }) => {
     const flatListRef = useRef(null);
 
-    // Scroll to bottom when messages first load
+    // Scroll to bottom when messages load
     useEffect(() => {
         if (messages.length > 0 && flatListRef.current) {
             setTimeout(() => {
                 flatListRef.current?.scrollToEnd({ animated: false });
             }, 100);
         }
-    }, [messages.length === 0 ? null : messages[0]?._id]);
+    }, [messages.length]);
 
     const shouldShowDaySeparator = (currentMsg, previousMsg) => {
         if (!previousMsg) return true;
