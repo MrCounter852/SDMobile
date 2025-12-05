@@ -7,17 +7,19 @@ const ChatMessageList = ({
     messages,
     currentUserId,
     onImagePress,
+    onVideoPress,
     onRefresh,
     refreshing = false,
 }) => {
     const flatListRef = useRef(null);
 
-    // Scroll to bottom when messages load
+    // Scroll to bottom ONLY on initial load
     useEffect(() => {
         if (messages.length > 0 && flatListRef.current) {
+            // Wait for content to render before scrolling
             setTimeout(() => {
                 flatListRef.current?.scrollToEnd({ animated: false });
-            }, 100);
+            }, 300);
         }
     }, [messages.length]);
 
@@ -45,6 +47,7 @@ const ChatMessageList = ({
                     message={item}
                     isSentByMe={isSentByMe}
                     onImagePress={onImagePress}
+                    onVideoPress={onVideoPress}
                 />
             </>
         );
@@ -64,11 +67,12 @@ const ChatMessageList = ({
                     onRefresh={onRefresh}
                 />
             }
-            removeClippedSubviews={true}
-            maxToRenderPerBatch={10}
-            windowSize={10}
+            removeClippedSubviews={false}
+            maxToRenderPerBatch={20}
+            windowSize={21}
             maintainVisibleContentPosition={{
                 minIndexForVisible: 0,
+                autoscrollToTopThreshold: 10,
             }}
         />
     );

@@ -1,11 +1,12 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Linking } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Linking, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import AudioPlayer from "./AudioPlayer";
-
-const ChatBubble = ({ message, isSentByMe, onImagePress }) => {
+import VideoPlayer from "./VideoPlayer";
+const ChatBubble = ({ message, isSentByMe, onImagePress, onVideoPress }) => {
     const blurhash = 'L6PZfSi_.AyE_3t7t7R**0o#DgR4';
+
 
     const getFileColor = (fileName) => {
         if (!fileName) return '#666';
@@ -60,18 +61,41 @@ const ChatBubble = ({ message, isSentByMe, onImagePress }) => {
                     />
                 </TouchableOpacity>
             )}
-
+            {message.pendingMedia && message.pendingMedia.type === 'image' && (
+                <View style={styles.messageImagePlaceholder}>
+                    <ActivityIndicator size="small" color="#999" />
+                </View>
+            )}
             {message.file && (
                 <TouchableOpacity onPress={() => Linking.openURL(message.file.url)} style={styles.fileContainer}>
                     <Ionicons name="document" size={30} color={getFileColor(message.file.name)} />
                     <Text style={styles.fileName}>{message.file.name}</Text>
                 </TouchableOpacity>
             )}
-
+            {message.pendingMedia && message.pendingMedia.type === 'file' && (
+                <View style={styles.filePlaceholder}>
+                    <ActivityIndicator size="small" color="#999" />
+                    <Text style={styles.fileName}>{message.pendingMedia.name || 'Cargando archivo...'}</Text>
+                </View>
+            )}
             {message.audio && !message.mediaExpired && (
                 <AudioPlayer uri={message.audio} />
             )}
-
+            {message.pendingMedia && message.pendingMedia.type === 'audio' && (
+                <View style={styles.audioPlaceholder}>
+                    <ActivityIndicator size="small" color="#999" />
+                    <Text style={styles.audioPlaceholderText}>Cargando audio...</Text>
+                </View>
+            )}
+            {message.video && !message.mediaExpired && (
+                <VideoPlayer uri={message.video} onFullScreen={onVideoPress} />
+            )}
+            {message.pendingMedia && message.pendingMedia.type === 'video' && (
+                <View style={styles.videoPlaceholder}>
+                    <ActivityIndicator size="small" color="#999" />
+                    <Text style={styles.videoPlaceholderText}>Cargando video...</Text>
+                </View>
+            )}
             {message.mediaExpired && (
                 <View style={styles.expiredMedia}>
                     <Ionicons name="image-outline" size={50} color="#999" />
@@ -164,6 +188,41 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginTop: 4,
     },
+    messageImagePlaceholder: {
+        width: 200,
+        height: 200,
+        borderRadius: 8,
+        marginTop: 4,
+        backgroundColor: '#e1e4e8',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    filePlaceholder: {
+        minWidth: 200,
+        minHeight: 46,
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 8,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 8,
+        marginTop: 4,
+    },
+    audioPlaceholder: {
+        minWidth: 250,
+        height: 56,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 20,
+        marginTop: 4,
+    },
+    audioPlaceholderText: {
+        fontSize: 12,
+        color: '#666',
+        marginLeft: 8,
+    },
     fileName: {
         fontSize: 14,
         color: '#333',
@@ -184,6 +243,21 @@ const styles = StyleSheet.create({
         color: '#999',
         marginTop: 8,
         textAlign: 'center',
+    },
+
+    videoPlaceholder: {
+        width: 200,
+        height: 200,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#000',
+        borderRadius: 8,
+        marginTop: 4,
+    },
+    videoPlaceholderText: {
+        fontSize: 12,
+        color: '#fff',
+        marginTop: 8,
     },
 });
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Modal,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Video, ResizeMode } from "expo-av";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useChatStore } from "../../core/chatStore";
 import ChatApiService from "../../services/chat/chatService";
@@ -35,6 +36,9 @@ const ChatScreen = ({ route, navigation }) => {
 
   const [refreshing, setRefreshing] = useState(false);
   const [imageViewerVisible, setImageViewerVisible] = useState(false);
+  const [videoViewerVisible, setVideoViewerVisible] = useState(false);
+  const [currentVideo, setCurrentVideo] = useState(null);
+  const videoRef = useRef(null);
   const [currentImage, setCurrentImage] = useState(null);
 
   useEffect(() => {
@@ -136,7 +140,21 @@ const ChatScreen = ({ route, navigation }) => {
           url: msg.HttpUrl
         });
       }
-
+      // Handle video messages
+      if (msg.TipoMensaje === "video") {
+        if (msg.FileID) {
+          formattedMsg.pendingMedia = {
+            type: 'video',
+            params: {
+              MediaID: msg.FileID,
+              AccessToken: contact.AccessToken,
+              FileMime: msg.FileMime
+            }
+          };
+        } else if (msg.HttpUrl) {
+          formattedMsg.video = msg.HttpUrl;
+        }
+      }
       // Handle audio messages
       if (msg.TipoMensaje === "audio") {
         if (msg.FileID) {
@@ -187,6 +205,8 @@ const ChatScreen = ({ route, navigation }) => {
             updatedMsg.audio = result.uri;
           } else if (result.type === 'file') {
             updatedMsg.file = { name: result.name, url: result.uri };
+          } else if (result.type === 'video') {
+            updatedMsg.video = result.uri;
           }
         }
         return updatedMsg;
@@ -223,6 +243,11 @@ const ChatScreen = ({ route, navigation }) => {
     );
   }
 
+  const handleVideoPress = (videoUri) => {
+    setCurrentVideo(videoUri);
+    setVideoViewerVisible(true);
+  };
+
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={["left", "right", "bottom"]}>
@@ -230,6 +255,7 @@ const ChatScreen = ({ route, navigation }) => {
           messages={messages}
           currentUserId={1}
           onImagePress={handleImagePress}
+          onVideoPress={handleVideoPress}
           onRefresh={onRefresh}
           refreshing={refreshing}
         />
@@ -270,6 +296,51 @@ const ChatScreen = ({ route, navigation }) => {
             ) : (
               <View style={styles.noImageContainer}>
                 <Text style={styles.noImageText}>No se pudo cargar la imagen</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        visible={videoViewerVisible}
+        transparent={true}
+        animationType="fade"
+        statusBarTranslucent={true}
+        onRequestClose={() => {
+          if (videoRef.current) {
+            videoRef.current.pauseAsync();
+          }
+          setVideoViewerVisible(false);
+        }}
+      >
+        <View style={styles.modalBackground}>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => {
+              if (videoRef.current) {
+                videoRef.current.pauseAsync();
+              }
+              setVideoViewerVisible(false);
+            }}
+            hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+          >
+            <Ionicons name="close-circle" size={36} color="white" />
+          </TouchableOpacity>
+
+          <View style={styles.modalVideoContainer}>
+            {currentVideo ? (
+              <Video
+                ref={videoRef}
+                source={{ uri: currentVideo }}
+                style={styles.fullScreenVideo}
+                useNativeControls
+                resizeMode={ResizeMode.CONTAIN}
+                shouldPlay
+                onError={(error) => console.error('Video error:', error)}
+              />
+            ) : (
+              <View style={styles.noVideoContainer}>
+                <Text style={styles.noVideoText}>No se pudo cargar el video</Text>
               </View>
             )}
           </View>
@@ -351,6 +422,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   noImageText: {
+    color: "white",
+    fontSize: 16,
+  },
+  modalVideoContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1,
+  },
+  fullScreenVideo: {
+    width: "100%",
+    height: "100%",
+  },
+  noVideoContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  noVideoText: {
     color: "white",
     fontSize: 16,
   },
