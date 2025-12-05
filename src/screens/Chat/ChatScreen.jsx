@@ -99,19 +99,23 @@ const ChatScreen = ({ route, navigation }) => {
 
       if (msg.FileID) {
         try {
-          formattedMsg.image = await ChatApiService.obtenerMediaWhatsApp({
+          const localUri = await ChatApiService.obtenerMediaWhatsApp({
             MediaID: msg.FileID,
             AccessToken: contact.AccessToken,
             FileMime: msg.FileMime
           });
-          console.log("Image fetched via POST:", {
+          if (msg.TipoMensaje === "image" || msg.TipoMensaje === "sticker") {
+            formattedMsg.image = localUri;
+          }
+          console.log("Media fetched:", {
             id: msg.CuentaMensajeriaMensajeID,
             isReceived: msg.Recepcion,
             type: msg.TipoMensaje,
-            localUri: formattedMsg.image
+            localUri
           });
         } catch (error) {
-          console.error("Error fetching image:", error);
+          console.error("Media expired or unavailable:", error);
+          formattedMsg.mediaExpired = true;
         }
       } else if (msg.HttpUrl && (msg.TipoMensaje === "image" || msg.TipoMensaje === "sticker")) {
         formattedMsg.image = msg.HttpUrl;
