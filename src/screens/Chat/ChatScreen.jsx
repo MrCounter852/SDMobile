@@ -152,6 +152,30 @@ const ChatScreen = ({ route, navigation }) => {
         });
       }
 
+      // Handle audio messages
+      if (msg.TipoMensaje === "audio") {
+        if (msg.FileID) {
+          try {
+            const localUri = await ChatApiService.obtenerMediaWhatsApp({
+              MediaID: msg.FileID,
+              AccessToken: contact.AccessToken,
+              FileMime: msg.FileMime
+            });
+            formattedMsg.audio = localUri;
+            console.log("Audio fetched:", {
+              id: msg.CuentaMensajeriaMensajeID,
+              isReceived: msg.Recepcion,
+              localUri
+            });
+          } catch (error) {
+            console.error("Audio expired or unavailable:", error);
+            formattedMsg.mediaExpired = true;
+          }
+        } else if (msg.HttpUrl) {
+          formattedMsg.audio = msg.HttpUrl;
+        }
+      }
+
       formattedMessages.push(formattedMsg);
     }
     return formattedMessages;

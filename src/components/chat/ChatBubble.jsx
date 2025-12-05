@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import AudioPlayer from "./AudioPlayer";
 
 const ChatBubble = ({ message, isSentByMe, onImagePress }) => {
     const blurhash = 'L6PZfSi_.AyE_3t7t7R**0o#DgR4';
@@ -65,6 +66,10 @@ const ChatBubble = ({ message, isSentByMe, onImagePress }) => {
                     <Ionicons name="document" size={30} color={getFileColor(message.file.name)} />
                     <Text style={styles.fileName}>{message.file.name}</Text>
                 </TouchableOpacity>
+            )}
+
+            {message.audio && !message.mediaExpired && (
+                <AudioPlayer uri={message.audio} />
             )}
 
             {message.mediaExpired && (
