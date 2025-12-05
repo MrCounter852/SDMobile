@@ -6,12 +6,10 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  Platform,
-  Keyboard,
   Modal,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useChatStore } from "../../core/chatStore";
 import ChatApiService from "../../services/chat/chatService";
 import { useGlobal } from "../../core/global";
@@ -20,7 +18,6 @@ import ChatMessageList from "../../components/chat/ChatMessageList";
 import ChatInputBar from "../../components/chat/ChatInputBar";
 
 const ChatScreen = ({ route, navigation }) => {
-  const insets = useSafeAreaInsets();
   const { contact } = route.params;
 
   const {
@@ -30,7 +27,6 @@ const ChatScreen = ({ route, navigation }) => {
     setMessagesLoading,
     sendingMessage,
     setSendingMessage,
-    attachments,
     clearAttachments,
     setSelectedContact,
   } = useChatStore();
@@ -103,6 +99,12 @@ const ChatScreen = ({ route, navigation }) => {
 
       if (msg.HttpUrl && (msg.TipoMensaje === "image" || msg.TipoMensaje === "sticker")) {
         formattedMsg.image = msg.HttpUrl;
+        console.log("Image found:", {
+          id: msg.CuentaMensajeriaMensajeID,
+          isReceived: msg.Recepcion,
+          type: msg.TipoMensaje,
+          url: msg.HttpUrl
+        });
       }
 
       formattedMessages.push(formattedMsg);

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { FlatList, StyleSheet, RefreshControl } from "react-native";
 import ChatBubble from "./ChatBubble";
 import ChatDaySeparator from "./ChatDaySeparator";
@@ -10,6 +10,17 @@ const ChatMessageList = ({
     onRefresh,
     refreshing = false,
 }) => {
+    const flatListRef = useRef(null);
+
+    // Scroll to bottom when messages first load
+    useEffect(() => {
+        if (messages.length > 0 && flatListRef.current) {
+            setTimeout(() => {
+                flatListRef.current?.scrollToEnd({ animated: false });
+            }, 100);
+        }
+    }, [messages.length === 0 ? null : messages[0]?._id]);
+
     const shouldShowDaySeparator = (currentMsg, previousMsg) => {
         if (!previousMsg) return true;
 
@@ -19,29 +30,32 @@ const ChatMessageList = ({
         return currentDate !== previousDate;
     };
 
+    // Reverse messages to show newest at bottom without inverted
+    const reversedMessages = [...messages].reverse();
+
     const renderItem = ({ item, index }) => {
         const isSentByMe = item.user._id === currentUserId;
-        const previousMessage = index < messages.length - 1 ? messages[index + 1] : null;
-        const showDaySeparator = shouldShowDaySeparator(item, previousMessage);
+        const nextMessage = index < reversedMessages.length - 1 ? reversedMessages[index + 1] : null;
+        const showDaySeparator = shouldShowDaySeparator(item, nextMessage);
 
         return (
             <>
+                {showDaySeparator && <ChatDaySeparator date={item.createdAt} />}
                 <ChatBubble
                     message={item}
                     isSentByMe={isSentByMe}
                     onImagePress={onImagePress}
                 />
-                {showDaySeparator && <ChatDaySeparator date={item.createdAt} />}
             </>
         );
     };
 
     return (
         <FlatList
-            data={messages}
+            ref={flatListRef}
+            data={reversedMessages}
             renderItem={renderItem}
             keyExtractor={(item) => item._id.toString()}
-            inverted
             style={styles.list}
             contentContainerStyle={styles.contentContainer}
             refreshControl={
@@ -53,6 +67,9 @@ const ChatMessageList = ({
             removeClippedSubviews={true}
             maxToRenderPerBatch={10}
             windowSize={10}
+            maintainVisibleContentPosition={{
+                minIndexForVisible: 0,
+            }}
         />
     );
 };
@@ -69,3 +86,4 @@ const styles = StyleSheet.create({
 });
 
 export default ChatMessageList;
+
