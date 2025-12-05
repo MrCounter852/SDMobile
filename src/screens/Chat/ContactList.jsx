@@ -10,6 +10,7 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useChatStore } from '../../core/chatStore';
 import ChatApiService from '../../services/chat/chatService';
@@ -86,6 +87,28 @@ const ContactList = ({ navigation }) => {
     }
   };
 
+  const getIconName = (tipo) => {
+    switch (tipo) {
+      case 'image': return 'image';
+      case 'audio': return 'musical-note';
+      case 'video': return 'videocam';
+      case 'document': return 'document';
+      case 'sticker': return 'happy';
+      default: return 'chatbubble';
+    }
+  };
+
+  const getTypeText = (tipo) => {
+    switch (tipo) {
+      case 'image': return 'Imagen';
+      case 'audio': return 'Audio';
+      case 'video': return 'Video';
+      case 'document': return 'Documento';
+      case 'sticker': return 'Sticker';
+      default: return tipo || 'Mensaje';
+    }
+  };
+
   const renderContact = ({ item }) => (
     <TouchableOpacity
       style={styles.contactItem}
@@ -108,7 +131,14 @@ const ContactList = ({ navigation }) => {
         </View>
 
         <Text style={styles.contactMessage} numberOfLines={1}>
-          {item.Texto || item.TipoMensaje || 'Sin mensajes'}
+          {item.Texto ? (
+            item.Texto
+          ) : (
+            <>
+              <Ionicons name={getIconName(item.TipoMensaje)} size={14} color="#666" />
+              {' ' + getTypeText(item.TipoMensaje)}
+            </>
+          )}
         </Text>
 
         <View style={styles.contactFooter}>
