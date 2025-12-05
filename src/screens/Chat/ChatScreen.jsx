@@ -17,6 +17,7 @@ import { Video, ResizeMode, VideoFullscreenUpdate } from "expo-av";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useChatStore } from "../../core/chatStore";
 import ChatApiService from "../../services/chat/chatService";
+import ChatStorageService from "../../services/chat/chatStorageService";
 import { useGlobal } from "../../core/global";
 import ZoomableImage from "../../assets/common/ZoomableImage";
 import ChatMessageList from "../../components/chat/ChatMessageList";
@@ -73,7 +74,22 @@ const ChatScreen = ({ route, navigation }) => {
 
   const loadMessages = async () => {
     try {
-      setMessagesLoading(true);
+      // 1. Cargar mensajes locales primero (Offline-first)
+      const localMessages = await ChatStorageService.getMessages(contact.CuentaMensajeriaContactoID);
+
+      if (localMessages && localMessages.length > 0) {
+        // Convertir strings de fecha a objetos Date
+        const parsedMessages = localMessages.map(msg => ({
+          ...msg,
+          createdAt: new Date(msg.createdAt)
+        }));
+        setMessages(parsedMessages);
+        // Si hay datos locales, no mostramos el loading spinner bloqueante
+      } else {
+        setMessagesLoading(true);
+      }
+
+      // 2. Consultar API en segundo plano
       const filtros = {
         CuentaMensajeriaContactoID: contact.CuentaMensajeriaContactoID,
         Page: 1,
@@ -83,11 +99,18 @@ const ChatScreen = ({ route, navigation }) => {
       };
       const response = await ChatApiService.consultarMensajes(filtros);
       const formattedMessages = formatMessagesForChat(response.data || []);
+
+      // 3. Actualizar UI y guardar en local
       setMessages(formattedMessages);
+      await ChatStorageService.saveMessages(contact.CuentaMensajeriaContactoID, formattedMessages);
+
       loadPendingMedia(formattedMessages);
     } catch (error) {
       console.error("Error loading messages:", error);
-      Alert.alert("Error", "No se pudieron cargar los mensajes");
+      // Solo mostrar alerta si no tenemos mensajes mostrados
+      if (messages.length === 0) {
+        Alert.alert("Error", "No se pudieron cargar los mensajes");
+      }
     } finally {
       setMessagesLoading(false);
       setRefreshing(false);
@@ -113,12 +136,6 @@ const ChatScreen = ({ route, navigation }) => {
       if (msg.TipoMensaje === "document") {
         if (msg.HttpUrl) {
           formattedMsg.file = { name: msg.FileName, url: msg.HttpUrl };
-          console.log("Document found:", {
-            id: msg.CuentaMensajeriaMensajeID,
-            isReceived: msg.Recepcion,
-            name: msg.FileName,
-            url: msg.HttpUrl
-          });
         } else if (msg.FileID) {
           formattedMsg.pendingMedia = {
             type: 'file',
@@ -141,12 +158,6 @@ const ChatScreen = ({ route, navigation }) => {
         };
       } else if (msg.HttpUrl && (msg.TipoMensaje === "image" || msg.TipoMensaje === "sticker")) {
         formattedMsg.image = msg.HttpUrl;
-        console.log("Image found:", {
-          id: msg.CuentaMensajeriaMensajeID,
-          isReceived: msg.Recepcion,
-          type: msg.TipoMensaje,
-          url: msg.HttpUrl
-        });
       }
       // Handle video messages
       if (msg.TipoMensaje === "video") {
@@ -223,6 +234,8 @@ const ChatScreen = ({ route, navigation }) => {
     });
 
     setMessages(updatedMessages);
+    // También guardamos los mensajes con media resuelta para que la próxima vez carguen con media
+    await ChatStorageService.saveMessages(contact.CuentaMensajeriaContactoID, updatedMessages);
   };
 
   const onRefresh = () => {
@@ -250,7 +263,12 @@ const ChatScreen = ({ route, navigation }) => {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  if (messagesLoading) {
+  const handleVideoPress = (videoUri) => {
+    setCurrentVideo(videoUri);
+    setVideoViewerVisible(true);
+  };
+
+  if (messagesLoading && messages.length === 0) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#337ab7" />
@@ -259,16 +277,9 @@ const ChatScreen = ({ route, navigation }) => {
     );
   }
 
-  const handleVideoPress = (videoUri) => {
-    setCurrentVideo(videoUri);
-    setVideoViewerVisible(true);
-  };
-
   return (
-
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={["left", "right"]}>
-
         <ChatMessageList
           messages={messages}
           currentUserId={1}
@@ -287,6 +298,7 @@ const ChatScreen = ({ route, navigation }) => {
           </View>
         )}
       </SafeAreaView>
+
       <Modal
         visible={imageViewerVisible}
         transparent={true}

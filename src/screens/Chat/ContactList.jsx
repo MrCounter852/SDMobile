@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useChatStore } from '../../core/chatStore';
 import ChatApiService from '../../services/chat/chatService';
+import ChatStorageService from '../../services/chat/chatStorageService';
 import { useGlobal } from '../../core/global';
 
 const ContactList = ({ navigation }) => {
@@ -45,7 +46,22 @@ const ContactList = ({ navigation }) => {
 
   const loadContacts = async () => {
     try {
-      setContactsLoading(true);
+      // 1. Cargar contactos locales primero (Offline-first)
+      // Solo cargamos del storage si no estamos filtrando por texto (para mantener la búsqueda rápida pero real)
+      // O podríamos filtrar localmente también, pero por simplicidad cargamos todo si no hay filtro
+      if (!searchText) {
+        const localContacts = await ChatStorageService.getContacts();
+        if (localContacts && localContacts.length > 0) {
+          setContacts(localContacts);
+          // Si hay datos locales, no mostramos loading spinner bloqueante
+        } else {
+          setContactsLoading(true);
+        }
+      } else {
+        setContactsLoading(true);
+      }
+
+      // 2. Consultar API en segundo plano
       const filtros = {
         ...searchFilters,
         EstadoID: selectedStatus,
@@ -55,10 +71,20 @@ const ContactList = ({ navigation }) => {
       };
 
       const response = await ChatApiService.consultarContactos(filtros);
+
+      // 3. Actualizar UI y guardar en local (si no es búsqueda)
       setContacts(response.data || []);
+
+      if (!searchText && (!selectedStatus || selectedStatus === 1)) {
+        // Guardamos "por defecto" la lista principal
+        await ChatStorageService.saveContacts(response.data || []);
+      }
+
     } catch (error) {
       console.error('Error loading contacts:', error);
-      Alert.alert('Error', 'No se pudieron cargar los contactos');
+      if (contacts.length === 0) {
+        Alert.alert('Error', 'No se pudieron cargar los contactos');
+      }
     } finally {
       setContactsLoading(false);
     }
@@ -219,7 +245,7 @@ const ContactList = ({ navigation }) => {
 
         {renderStatusFilter()}
 
-        {contactsLoading ? (
+        {contactsLoading && contacts.length === 0 ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#337ab7" />
             <Text style={styles.loadingText}>Cargando contactos...</Text>
