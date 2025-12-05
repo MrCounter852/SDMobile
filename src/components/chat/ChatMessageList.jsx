@@ -35,8 +35,8 @@ const ChatMessageList = ({
 
     const renderItem = ({ item, index }) => {
         const isSentByMe = item.user._id === currentUserId;
-        const nextMessage = index < reversedMessages.length - 1 ? reversedMessages[index + 1] : null;
-        const showDaySeparator = shouldShowDaySeparator(item, nextMessage);
+        const previousMessage = index > 0 ? reversedMessages[index - 1] : null;
+        const showDaySeparator = shouldShowDaySeparator(item, previousMessage);
 
         return (
             <>
