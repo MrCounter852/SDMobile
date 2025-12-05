@@ -305,37 +305,50 @@ class ChatApiService {
   // Obtener media desde WhatsApp
   async obtenerMediaWhatsApp(mediaData) {
     const endpoint = '/WhatsApp/ObtenerMediaFile';
-    const url = `${API_BASE_COM}${endpoint}?MediaID=${encodeURIComponent(mediaData.MediaID)}&AccessToken=${encodeURIComponent(mediaData.AccessToken)}`;
     const headers = await this.getHeaders();
 
     try {
+      const response = await fetch(`${API_BASE_COM}${endpoint}`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          MediaID: mediaData.MediaID,
+          AccessToken: mediaData.AccessToken
+        })
+      });
+
+      if (!response.ok) {
+        console.error('obtenerMediaWhatsApp error:', response.status);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const base64 = await this.blobToBase64(blob);
+
       // Crear nombre de archivo único
       const fileExtension = mediaData.FileMime?.split('/')[1] || 'jpg';
       const fileName = `${mediaData.MediaID}.${fileExtension}`;
       const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
 
-      // Descargar el archivo usando FileSystem
-      const downloadResult = await FileSystem.downloadAsync(
-        url,
-        fileUri,
-        {
-          headers: {
-            ...headers,
-          },
-        }
-      );
-
-      if (downloadResult.status !== 200) {
-        console.error('obtenerMediaWhatsApp error:', downloadResult.status);
-        throw new Error(`HTTP error! status: ${downloadResult.status}`);
-      }
+      // Guardar el archivo usando FileSystem
+      await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: FileSystem.EncodingType.Base64 });
 
       // Retornar la URI local del archivo
-      return downloadResult.uri;
+      return fileUri;
     } catch (error) {
       console.error('Error obtaining media from WhatsApp:', error);
       throw error;
     }
+  }
+
+  // Convertir blob a base64
+  blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
   }
 
   // === NOTIFICACIONES PUSH ===

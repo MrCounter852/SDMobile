@@ -97,7 +97,23 @@ const ChatScreen = ({ route, navigation }) => {
         read: msg.Status === "read",
       };
 
-      if (msg.HttpUrl && (msg.TipoMensaje === "image" || msg.TipoMensaje === "sticker")) {
+      if (msg.FileID) {
+        try {
+          formattedMsg.image = await ChatApiService.obtenerMediaWhatsApp({
+            MediaID: msg.FileID,
+            AccessToken: contact.AccessToken,
+            FileMime: msg.FileMime
+          });
+          console.log("Image fetched via POST:", {
+            id: msg.CuentaMensajeriaMensajeID,
+            isReceived: msg.Recepcion,
+            type: msg.TipoMensaje,
+            localUri: formattedMsg.image
+          });
+        } catch (error) {
+          console.error("Error fetching image:", error);
+        }
+      } else if (msg.HttpUrl && (msg.TipoMensaje === "image" || msg.TipoMensaje === "sticker")) {
         formattedMsg.image = msg.HttpUrl;
         console.log("Image found:", {
           id: msg.CuentaMensajeriaMensajeID,
