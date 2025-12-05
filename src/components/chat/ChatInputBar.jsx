@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { View, TextInput, StyleSheet, TouchableOpacity, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const ChatInputBar = ({ onSend, placeholder = "Escribe un mensaje..." }) => {
     const [text, setText] = useState("");
-
+    const insets = useSafeAreaInsets();
     const handleSend = () => {
         if (text.trim()) {
             onSend(text.trim());
@@ -14,7 +14,7 @@ const ChatInputBar = ({ onSend, placeholder = "Escribe un mensaje..." }) => {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={{...styles.container, paddingBottom: insets.bottom || 8}}>
             <View style={styles.inputContainer}>
                 <TextInput
                     style={styles.textInput}

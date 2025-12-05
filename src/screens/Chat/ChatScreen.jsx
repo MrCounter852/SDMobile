@@ -8,7 +8,10 @@ import {
   ActivityIndicator,
   Modal,
   TouchableWithoutFeedback,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from "@expo/vector-icons";
 import { Video, ResizeMode, VideoFullscreenUpdate } from "expo-av";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -21,6 +24,7 @@ import ChatInputBar from "../../components/chat/ChatInputBar";
 import Slider from '@react-native-community/slider';
 
 const ChatScreen = ({ route, navigation }) => {
+  const insets = useSafeAreaInsets();
   const { contact } = route.params;
 
   const {
@@ -261,8 +265,10 @@ const ChatScreen = ({ route, navigation }) => {
   };
 
   return (
+
     <View style={styles.container}>
-      <SafeAreaView style={styles.safeArea} edges={["left", "right", "bottom"]}>
+      <SafeAreaView style={styles.safeArea} edges={["left", "right"]}>
+
         <ChatMessageList
           messages={messages}
           currentUserId={1}
@@ -281,7 +287,6 @@ const ChatScreen = ({ route, navigation }) => {
           </View>
         )}
       </SafeAreaView>
-
       <Modal
         visible={imageViewerVisible}
         transparent={true}
