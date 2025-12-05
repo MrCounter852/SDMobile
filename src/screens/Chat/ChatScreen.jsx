@@ -7,9 +7,10 @@ import {
   Alert,
   ActivityIndicator,
   Modal,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Video, ResizeMode } from "expo-av";
+import { Video, ResizeMode, VideoFullscreenUpdate } from "expo-av";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useChatStore } from "../../core/chatStore";
 import ChatApiService from "../../services/chat/chatService";
@@ -17,6 +18,7 @@ import { useGlobal } from "../../core/global";
 import ZoomableImage from "../../assets/common/ZoomableImage";
 import ChatMessageList from "../../components/chat/ChatMessageList";
 import ChatInputBar from "../../components/chat/ChatInputBar";
+import Slider from '@react-native-community/slider';
 
 const ChatScreen = ({ route, navigation }) => {
   const { contact } = route.params;
@@ -39,6 +41,8 @@ const ChatScreen = ({ route, navigation }) => {
   const [videoViewerVisible, setVideoViewerVisible] = useState(false);
   const [currentVideo, setCurrentVideo] = useState(null);
   const videoRef = useRef(null);
+  const [videoStatus, setVideoStatus] = useState({});
+  const [showVideoControls, setShowVideoControls] = useState(true);
   const [currentImage, setCurrentImage] = useState(null);
 
   useEffect(() => {
@@ -234,6 +238,14 @@ const ChatScreen = ({ route, navigation }) => {
     setImageViewerVisible(true);
   };
 
+  const formatTime = (milliseconds) => {
+    if (!milliseconds) return "0:00";
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   if (messagesLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -314,30 +326,73 @@ const ChatScreen = ({ route, navigation }) => {
         }}
       >
         <View style={styles.modalBackground}>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => {
-              if (videoRef.current) {
-                videoRef.current.pauseAsync();
-              }
-              setVideoViewerVisible(false);
-            }}
-            hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-          >
-            <Ionicons name="close-circle" size={36} color="white" />
-          </TouchableOpacity>
-
           <View style={styles.modalVideoContainer}>
             {currentVideo ? (
-              <Video
-                ref={videoRef}
-                source={{ uri: currentVideo }}
-                style={styles.fullScreenVideo}
-                useNativeControls
-                resizeMode={ResizeMode.CONTAIN}
-                shouldPlay
-                onError={(error) => console.error('Video error:', error)}
-              />
+              <TouchableWithoutFeedback onPress={() => setShowVideoControls(!showVideoControls)}>
+                <View style={{ flex: 1, width: '100%', justifyContent: 'center' }}>
+                  <Video
+                    ref={videoRef}
+                    source={{ uri: currentVideo }}
+                    style={styles.fullScreenVideo}
+                    useNativeControls={false}
+                    resizeMode={ResizeMode.CONTAIN}
+                    shouldPlay
+                    onPlaybackStatusUpdate={status => setVideoStatus(status)}
+                    onError={(error) => console.error('Video error:', error)}
+                  />
+                  {showVideoControls && (
+                    <View style={styles.videoOverlay}>
+                      <TouchableOpacity
+                        style={styles.videoCloseButton}
+                        onPress={() => {
+                          if (videoRef.current) videoRef.current.pauseAsync();
+                          setVideoViewerVisible(false);
+                        }}
+                      >
+                        <Ionicons name="close" size={28} color="white" />
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.videoPlayButton}
+                        onPress={() => {
+                          if (videoStatus.isPlaying) {
+                            videoRef.current.pauseAsync();
+                          } else {
+                            videoRef.current.playAsync();
+                          }
+                        }}
+                      >
+                        <Ionicons
+                          name={videoStatus.isPlaying ? "pause" : "play"}
+                          size={50}
+                          color="white"
+                        />
+                      </TouchableOpacity>
+
+                      <View style={styles.videoBottomControls}>
+                        <Text style={styles.videoTimeText}>
+                          {formatTime(videoStatus.positionMillis)}
+                        </Text>
+                        <Slider
+                          style={{ flex: 1, marginHorizontal: 10 }}
+                          minimumValue={0}
+                          maximumValue={videoStatus.durationMillis || 1}
+                          value={videoStatus.positionMillis || 0}
+                          onSlidingComplete={async (value) => {
+                            await videoRef.current.setPositionAsync(value);
+                          }}
+                          minimumTrackTintColor="#25D366"
+                          maximumTrackTintColor="rgba(255,255,255,0.5)"
+                          thumbTintColor="#25D366"
+                        />
+                        <Text style={styles.videoTimeText}>
+                          {formatTime(videoStatus.durationMillis)}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              </TouchableWithoutFeedback>
             ) : (
               <View style={styles.noVideoContainer}>
                 <Text style={styles.noVideoText}>No se pudo cargar el video</Text>
@@ -443,6 +498,43 @@ const styles = StyleSheet.create({
   noVideoText: {
     color: "white",
     fontSize: 16,
+  },
+  videoOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  videoCloseButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    padding: 10,
+  },
+  videoPlayButton: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoBottomControls: {
+    position: 'absolute',
+    bottom: 40,
+    left: 20,
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    padding: 10,
+  },
+  videoTimeText: {
+    color: 'white',
+    fontSize: 12,
+    minWidth: 40,
+    textAlign: 'center',
   },
 });
 
