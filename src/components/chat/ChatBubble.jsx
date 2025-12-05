@@ -6,6 +6,19 @@ import { Image } from "expo-image";
 const ChatBubble = ({ message, isSentByMe, onImagePress }) => {
     const blurhash = 'L6PZfSi_.AyE_3t7t7R**0o#DgR4';
 
+    const getFileColor = (fileName) => {
+        if (!fileName) return '#666';
+        const ext = fileName.split('.').pop().toLowerCase();
+        switch (ext) {
+            case 'pdf': return '#e74c3c'; // red
+            case 'doc':
+            case 'docx': return '#3498db'; // blue
+            case 'xls':
+            case 'xlsx': return '#27ae60'; // green
+            default: return '#666';
+        }
+    };
+
     const renderTextWithLinks = (text) => {
         if (!text) return null;
         const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -44,6 +57,13 @@ const ChatBubble = ({ message, isSentByMe, onImagePress }) => {
                         placeholder={blurhash}
                         cachePolicy="memory-disk"
                     />
+                </TouchableOpacity>
+            )}
+
+            {message.file && (
+                <TouchableOpacity onPress={() => Linking.openURL(message.file.url)} style={styles.fileContainer}>
+                    <Ionicons name="document" size={30} color={getFileColor(message.file.name)} />
+                    <Text style={styles.fileName}>{message.file.name}</Text>
                 </TouchableOpacity>
             )}
 
@@ -129,6 +149,21 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginTop: 4,
         backgroundColor: '#e1e4e8',
+    },
+    fileContainer: {
+        minWidth: 200,
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 8,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 8,
+        marginTop: 4,
+    },
+    fileName: {
+        fontSize: 14,
+        color: '#333',
+        marginLeft: 8,
+        flex: 1,
     },
     expiredMedia: {
         width: 200,

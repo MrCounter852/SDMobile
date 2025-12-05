@@ -97,21 +97,46 @@ const ChatScreen = ({ route, navigation }) => {
         read: msg.Status === "read",
       };
 
-      if (msg.FileID) {
+      if (msg.TipoMensaje === "document") {
+        if (msg.HttpUrl) {
+          formattedMsg.file = { name: msg.FileName, url: msg.HttpUrl };
+          console.log("Document found:", {
+            id: msg.CuentaMensajeriaMensajeID,
+            isReceived: msg.Recepcion,
+            name: msg.FileName,
+            url: msg.HttpUrl
+          });
+        } else if (msg.FileID) {
+          try {
+            const localUri = await ChatApiService.obtenerMediaWhatsApp({
+              MediaID: msg.FileID,
+              AccessToken: contact.AccessToken,
+              FileMime: msg.FileMime
+            });
+            formattedMsg.file = { name: msg.FileName, url: localUri };
+            console.log("Document fetched:", {
+              id: msg.CuentaMensajeriaMensajeID,
+              isReceived: msg.Recepcion,
+              name: msg.FileName,
+              localUri
+            });
+          } catch (error) {
+            console.error("Document expired or unavailable:", error);
+            formattedMsg.mediaExpired = true;
+          }
+        }
+      } else if (msg.FileID && (msg.TipoMensaje === "image" || msg.TipoMensaje === "sticker")) {
         try {
-          const localUri = await ChatApiService.obtenerMediaWhatsApp({
+          formattedMsg.image = await ChatApiService.obtenerMediaWhatsApp({
             MediaID: msg.FileID,
             AccessToken: contact.AccessToken,
             FileMime: msg.FileMime
           });
-          if (msg.TipoMensaje === "image" || msg.TipoMensaje === "sticker") {
-            formattedMsg.image = localUri;
-          }
-          console.log("Media fetched:", {
+          console.log("Image fetched:", {
             id: msg.CuentaMensajeriaMensajeID,
             isReceived: msg.Recepcion,
             type: msg.TipoMensaje,
-            localUri
+            localUri: formattedMsg.image
           });
         } catch (error) {
           console.error("Media expired or unavailable:", error);
