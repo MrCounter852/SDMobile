@@ -102,7 +102,7 @@ const ChatBubble = ({ message, isSentByMe, onImagePress, onVideoPress, onMediaDo
                         <ActivityIndicator size="small" color="#999" />
                     ) : (
                         <TouchableOpacity style={styles.downloadRow} onPress={() => onMediaDownload(message)}>
-                            <Ionicons name="cloud-download-outline" size={24} color="#666" />
+                            <Ionicons name="cloud-download-outline" size={24} color="#666" paddingRight={8} />
                             <Text style={styles.downloadText}>Descargar Audio</Text>
                         </TouchableOpacity>
                     )}
