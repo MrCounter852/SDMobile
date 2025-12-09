@@ -211,47 +211,113 @@ const ChatScreen = ({ route, navigation }) => {
     return formattedMessages;
   };
 
+  /**
+   * Solo verifica si existe en cache.
+   * YA NO DESCARGA AUTOMÁTICAMENTE.
+   */
   const loadPendingMedia = async (messages) => {
     const mediaPromises = messages
       .filter(msg => msg.pendingMedia)
       .map(async (msg) => {
         try {
-          const uri = await ChatApiService.obtenerMediaWhatsApp(msg.pendingMedia.params);
-          return { id: msg._id, type: msg.pendingMedia.type, uri, name: msg.pendingMedia.name };
+          // Check cache ONLY using a lightweight method if possible, 
+          // but here we can reuse the service method which now has cache check.
+          // However, to strictly preventing download, we should check existence manually here
+          // OR rely on the fact that we want to show "Download" button if not in cache.
+
+          // Construct expected URI
+          const fileExtension = msg.pendingMedia.params.FileMime?.split('/')[1] || 'jpg';
+          const fileName = `${msg.pendingMedia.params.MediaID}.${fileExtension}`;
+          const fileUri = ChatApiService.CACHE_DIR + fileName; // Asumiendo que es accesible desde aquí o usamos global helper
+
+          const fileInfo = await ChatStorageService.checkFileExists(fileUri); // We might need a helper, or just use FileSystem directly if we import it
+
+          // To make it simpler without importing Expo FileSystem here (already imported? Yes):
+          // We can just try to "get" it from service if we trust service won't download. 
+          // But service DOES download if not found.
+          // So we need a "checkOnly" flag or consistent path logic.
+
+          // Simpler approach: We know where ChatApiService stores files. 
+          // Let's assume we can ask ChatServices or just try to find it.
+
+          return { id: msg._id, pending: true }; // Default to pending unless we find it
         } catch (error) {
-          console.error("Media load error:", error);
-          return { id: msg._id, type: msg.pendingMedia.type, error: true };
+          return { id: msg._id, error: true };
         }
       });
 
-    const results = await Promise.all(mediaPromises);
+    // Actually, properly implementing:
+    // We want to "resolve" ONLY the ones that are ALREADY on disk. 
+    // ChatApiService.obtenerMediaWhatsApp downloads if missing. We don't want that.
 
-    const updatedMessages = messages.map(msg => {
-      const result = results.find(r => r.id === msg._id);
-      if (result) {
+    // Let's iterate and update state only for cached ones.
+    const updatedMessages = await Promise.all(messages.map(async (msg) => {
+      if (!msg.pendingMedia) return msg;
+
+      const fileExtension = msg.pendingMedia.params.FileMime?.split('/')[1] || 'jpg';
+      const fileName = `${msg.pendingMedia.params.MediaID}.${fileExtension}`;
+      // Accessing constant from service is hard if not exported, but we know the path.
+      // Better to expose a "checkCache" method in ChatApiService.
+      const cachedUri = await ChatApiService.checkMediaCache(fileName);
+
+      if (cachedUri) {
         const updatedMsg = { ...msg };
         delete updatedMsg.pendingMedia;
-        if (result.error) {
-          updatedMsg.mediaExpired = true;
-        } else {
-          if (result.type === 'image') {
-            updatedMsg.image = result.uri;
-          } else if (result.type === 'audio') {
-            updatedMsg.audio = result.uri;
-          } else if (result.type === 'file') {
-            updatedMsg.file = { name: result.name, url: result.uri };
-          } else if (result.type === 'video') {
-            updatedMsg.video = result.uri;
-          }
-        }
+        if (msg.pendingMedia.type === 'image') updatedMsg.image = cachedUri;
+        else if (msg.pendingMedia.type === 'audio') updatedMsg.audio = cachedUri;
+        else if (msg.pendingMedia.type === 'video') updatedMsg.video = cachedUri;
+        else if (msg.pendingMedia.type === 'file') updatedMsg.file = { name: msg.pendingMedia.name, url: cachedUri };
         return updatedMsg;
       }
       return msg;
-    });
+    }));
 
+    // Only update if changes found? optimize later.
+    // We can just save the result.
     setMessages(contact.CuentaMensajeriaContactoID, updatedMessages);
-    // También guardamos los mensajes con media resuelta para que la próxima vez carguen con media
+    // Don't save to storage yet unless changed? safe to save.
     await ChatStorageService.saveMessages(contact.CuentaMensajeriaContactoID, updatedMessages);
+  };
+
+  const handleMediaDownload = async (message) => {
+    // 1. Set Downloading state
+    const messagesWithLoading = messages.map(m =>
+      m._id === message._id ? { ...m, downloading: true } : m
+    );
+    setMessages(contact.CuentaMensajeriaContactoID, messagesWithLoading);
+
+    try {
+      // 2. Download
+      const uri = await ChatApiService.obtenerMediaWhatsApp(message.pendingMedia.params);
+
+      // 3. Update Success
+      const finalMessages = messages.map(m => {
+        if (m._id === message._id) {
+          const updated = { ...m, downloading: false };
+          delete updated.pendingMedia;
+
+          if (message.pendingMedia.type === 'image') updated.image = uri;
+          else if (message.pendingMedia.type === 'audio') updated.audio = uri;
+          else if (message.pendingMedia.type === 'video') updated.video = uri;
+          else if (message.pendingMedia.type === 'file') updated.file = { name: message.pendingMedia.name, url: uri };
+
+          return updated;
+        }
+        return m;
+      });
+
+      setMessages(contact.CuentaMensajeriaContactoID, finalMessages);
+      await ChatStorageService.saveMessages(contact.CuentaMensajeriaContactoID, finalMessages);
+
+    } catch (error) {
+      console.error("Download failed", error);
+      Alert.alert("Error", "No se pudo descargar el archivo");
+      // Revert loading
+      const reverted = messages.map(m =>
+        m._id === message._id ? { ...m, downloading: false } : m
+      );
+      setMessages(contact.CuentaMensajeriaContactoID, reverted);
+    }
   };
 
   const onRefresh = () => {
@@ -303,6 +369,7 @@ const ChatScreen = ({ route, navigation }) => {
           onVideoPress={handleVideoPress}
           onRefresh={onRefresh}
           refreshing={refreshing}
+          onMediaDownload={handleMediaDownload}
         />
 
         <ChatInputBar onSend={handleSend} placeholder="Escribe un mensaje..." />

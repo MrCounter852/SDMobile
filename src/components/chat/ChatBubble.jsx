@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import AudioPlayer from "./AudioPlayer";
 import VideoPlayer from "./VideoPlayer";
-const ChatBubble = ({ message, isSentByMe, onImagePress, onVideoPress }) => {
+const ChatBubble = ({ message, isSentByMe, onImagePress, onVideoPress, onMediaDownload }) => {
     const blurhash = 'L6PZfSi_.AyE_3t7t7R**0o#DgR4';
 
 
@@ -63,9 +63,17 @@ const ChatBubble = ({ message, isSentByMe, onImagePress, onVideoPress }) => {
             )}
             {message.pendingMedia && message.pendingMedia.type === 'image' && (
                 <View style={styles.messageImagePlaceholder}>
-                    <ActivityIndicator size="small" color="#999" />
+                    {message.downloading ? (
+                        <ActivityIndicator size="small" color="#999" />
+                    ) : (
+                        <TouchableOpacity style={styles.downloadButton} onPress={() => onMediaDownload(message)}>
+                            <Ionicons name="cloud-download-outline" size={32} color="#666" />
+                            <Text style={styles.downloadText}>Descargar Imagen</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             )}
+
             {message.file && (
                 <TouchableOpacity onPress={() => Linking.openURL(message.file.url)} style={styles.fileContainer}>
                     <Ionicons name="document" size={30} color={getFileColor(message.file.name)} />
@@ -74,31 +82,52 @@ const ChatBubble = ({ message, isSentByMe, onImagePress, onVideoPress }) => {
             )}
             {message.pendingMedia && message.pendingMedia.type === 'file' && (
                 <View style={styles.filePlaceholder}>
-                    <ActivityIndicator size="small" color="#999" />
-                    <Text style={styles.fileName}>{message.pendingMedia.name || 'Cargando archivo...'}</Text>
+                    {message.downloading ? (
+                        <ActivityIndicator size="small" color="#999" />
+                    ) : (
+                        <TouchableOpacity style={styles.downloadRow} onPress={() => onMediaDownload(message)}>
+                            <Ionicons name="cloud-download-outline" size={24} color="#666" />
+                            <Text style={styles.fileName}>{message.pendingMedia.name || 'Descargar Archivo'}</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             )}
+
             {message.audio && !message.mediaExpired && (
                 <AudioPlayer uri={message.audio} />
             )}
             {message.pendingMedia && message.pendingMedia.type === 'audio' && (
                 <View style={styles.audioPlaceholder}>
-                    <ActivityIndicator size="small" color="#999" />
-                    <Text style={styles.audioPlaceholderText}>Cargando audio...</Text>
+                    {message.downloading ? (
+                        <ActivityIndicator size="small" color="#999" />
+                    ) : (
+                        <TouchableOpacity style={styles.downloadRow} onPress={() => onMediaDownload(message)}>
+                            <Ionicons name="cloud-download-outline" size={24} color="#666" />
+                            <Text style={styles.downloadText}>Descargar Audio</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             )}
+
             {message.video && !message.mediaExpired && (
                 <VideoPlayer uri={message.video} onFullScreen={onVideoPress} />
             )}
             {message.pendingMedia && message.pendingMedia.type === 'video' && (
                 <View style={styles.videoPlaceholder}>
-                    <ActivityIndicator size="small" color="#999" />
-                    <Text style={styles.videoPlaceholderText}>Cargando video...</Text>
+                    {message.downloading ? (
+                        <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                        <TouchableOpacity style={styles.downloadButton} onPress={() => onMediaDownload(message)}>
+                            <Ionicons name="cloud-download-outline" size={32} color="#fff" />
+                            <Text style={[styles.downloadText, { color: '#fff' }]}>Descargar Video</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             )}
+
             {message.mediaExpired && (
                 <View style={styles.expiredMedia}>
-                    <Ionicons name="image-outline" size={50} color="#999" />
+                    <Ionicons name="alert-circle-outline" size={50} color="#999" />
                     <Text style={styles.expiredText}>Archivo no disponible</Text>
                 </View>
             )}
@@ -254,10 +283,19 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginTop: 4,
     },
-    videoPlaceholderText: {
+    downloadButton: {
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    downloadRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    downloadText: {
         fontSize: 12,
-        color: '#fff',
-        marginTop: 8,
+        color: '#666',
+        marginTop: 4,
+        textAlign: 'center',
     },
 });
 

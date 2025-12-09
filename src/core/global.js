@@ -13,8 +13,13 @@ export const useGlobal = create((set, get) => ({
     signalrConnected: false,
 
     init: () => {
-        const useChatStore = require('./chatStore').default; // Import dinámico para evitar ciclos si los hubiera
+        const useChatStore = require('./chatStore').default;
+        const ChatApiService = require('../services/chat/chatService').default;
+
         useChatStore.getState().init();
+        // Fire-and-forget cache maintenance (non-blocking)
+        ChatApiService.manageCache();
+
         set({ initialized: true });
     },
     setInitialized: (status) => set({ initialized: status }),

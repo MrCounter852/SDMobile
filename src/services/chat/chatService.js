@@ -302,21 +302,112 @@ class ChatApiService {
     });
   }
 
-  // Obtener media desde WhatsApp
+  // Constants for Cache Manager
+  CACHE_DIR = FileSystem.documentDirectory + 'sedi_media/';
+  MAX_CACHE_SIZE = 500 * 1024 * 1024; // 500 MB
+  MAX_FILE_AGE = 30 * 24 * 60 * 60 * 1000; // 30 Days
+
+  /**
+   * Initialize and Clean Cache
+   * Should be called on App Startup
+   */
+  async manageCache() {
+    try {
+      // 1. Ensure directory exists
+      const dirInfo = await FileSystem.getInfoAsync(this.CACHE_DIR);
+      if (!dirInfo.exists) {
+        await FileSystem.makeDirectoryAsync(this.CACHE_DIR, { intermediates: true });
+        return; // New directory, nothing to clean
+      }
+
+      // 2. Read all files
+      const files = await FileSystem.readDirectoryAsync(this.CACHE_DIR);
+      if (files.length === 0) return;
+
+      const fileStats = [];
+      let totalSize = 0;
+      const now = Date.now();
+
+      // 3. Gather stats for all files
+      for (const file of files) {
+        const fileUri = this.CACHE_DIR + file;
+        const info = await FileSystem.getInfoAsync(fileUri);
+
+        if (info.exists) {
+          // Delete if expired (Age check)
+          if (now - info.modificationTime * 1000 > this.MAX_FILE_AGE) {
+            await FileSystem.deleteAsync(fileUri, { idempotent: true });
+            console.log(`[Cache Manager] Deleted expired file: ${file}`);
+          } else {
+            totalSize += info.size;
+            fileStats.push({
+              uri: fileUri,
+              size: info.size,
+              time: info.modificationTime
+            });
+          }
+        }
+      }
+
+      // 4. Delete if Total Size exceeded (Size check)
+      if (totalSize > this.MAX_CACHE_SIZE) {
+        // Sort by oldest first
+        fileStats.sort((a, b) => a.time - b.time);
+
+        for (const file of fileStats) {
+          if (totalSize <= this.MAX_CACHE_SIZE) break;
+
+          await FileSystem.deleteAsync(file.uri, { idempotent: true });
+          totalSize -= file.size;
+          console.log(`[Cache Manager] Deleted for space: ${file.uri}`);
+        }
+      }
+
+      console.log(`[Cache Manager] Maintenance complete. Current size: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
+
+    } catch (error) {
+      console.error('[Cache Manager] Error:', error);
+    }
+  }
+
+  /**
+   * Verifica si un archivo ya existe en el cache y retorna su URI
+   * @param {string} fileName 
+   * @returns {Promise<string|null>} URI si existe, null si no
+   */
+  async checkMediaCache(fileName) {
+    try {
+      const fileUri = `${this.CACHE_DIR}${fileName}`;
+      const info = await FileSystem.getInfoAsync(fileUri);
+      if (info.exists) return fileUri;
+      return null;
+    } catch (error) {
+      console.log("Error checking cache:", error);
+      return null;
+    }
+  }
+
+  // Obtener media desde WhatsApp (Managed Cache)
   async obtenerMediaWhatsApp(mediaData) {
     const endpoint = '/WhatsApp/ObtenerMediaFile';
     const headers = await this.getHeaders();
 
     try {
+      // Ensure cache dir exists
+      const dirInfo = await FileSystem.getInfoAsync(this.CACHE_DIR);
+      if (!dirInfo.exists) {
+        await FileSystem.makeDirectoryAsync(this.CACHE_DIR, { intermediates: true });
+      }
+
       // Crear nombre de archivo único
       const fileExtension = mediaData.FileMime?.split('/')[1] || 'jpg';
       const fileName = `${mediaData.MediaID}.${fileExtension}`;
-      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+      const fileUri = `${this.CACHE_DIR}${fileName}`;
 
-      // Verificar si el archivo ya existe en caché
+      // Verificar si el archivo ya existe en caché (Persistente)
       const fileInfo = await FileSystem.getInfoAsync(fileUri);
       if (fileInfo.exists) {
-        console.log('Media found in cache:', fileName);
+        console.log('Media found in persistent cache:', fileName);
         return fileUri;
       }
 
@@ -337,7 +428,7 @@ class ChatApiService {
       const blob = await response.blob();
       const base64 = await this.blobToBase64(blob);
 
-      // Guardar el archivo usando FileSystem
+      // Guardar el archivo usando FileSystem (Persistente)
       await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: FileSystem.EncodingType.Base64 });
 
       // Retornar la URI local del archivo

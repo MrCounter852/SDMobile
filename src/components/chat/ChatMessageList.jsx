@@ -10,6 +10,7 @@ const ChatMessageList = ({
     onVideoPress,
     onRefresh,
     refreshing = false,
+    onMediaDownload,
 }) => {
     const flatListRef = useRef(null);
 
@@ -37,6 +38,7 @@ const ChatMessageList = ({
                     isSentByMe={isSentByMe}
                     onImagePress={onImagePress}
                     onVideoPress={onVideoPress}
+                    onMediaDownload={onMediaDownload}
                 />
             </View>
         );
