@@ -29,7 +29,6 @@ const ChatScreen = ({ route, navigation }) => {
   const { contact } = route.params;
 
   const {
-    messages,
     messagesLoading,
     setMessages,
     setMessagesLoading,
@@ -38,6 +37,8 @@ const ChatScreen = ({ route, navigation }) => {
     clearAttachments,
     setSelectedContact,
   } = useChatStore();
+
+  const messages = useChatStore(state => state.chats[contact.CuentaMensajeriaContactoID] || []);
 
   const { user } = useGlobal();
 
@@ -74,22 +75,13 @@ const ChatScreen = ({ route, navigation }) => {
 
   const loadMessages = async () => {
     try {
-      // 1. Cargar mensajes locales primero (Offline-first)
-      const localMessages = await ChatStorageService.getMessages(contact.CuentaMensajeriaContactoID);
-
-      if (localMessages && localMessages.length > 0) {
-        // Convertir strings de fecha a objetos Date
-        const parsedMessages = localMessages.map(msg => ({
-          ...msg,
-          createdAt: new Date(msg.createdAt)
-        }));
-        setMessages(parsedMessages);
-        // Si hay datos locales, no mostramos el loading spinner bloqueante
-      } else {
+      // 1. Mensajes ya están en memoria (Offline-first instantáneo)
+      // Si no hay mensajes, mostramos loading
+      if (messages.length === 0) {
         setMessagesLoading(true);
       }
 
-      // 2. Consultar API en segundo plano
+      // 2. Consultar API en segundo plano para actualizar
       const filtros = {
         CuentaMensajeriaContactoID: contact.CuentaMensajeriaContactoID,
         Page: 1,
@@ -100,8 +92,8 @@ const ChatScreen = ({ route, navigation }) => {
       const response = await ChatApiService.consultarMensajes(filtros);
       const formattedMessages = formatMessagesForChat(response.data || []);
 
-      // 3. Actualizar UI y guardar en local
-      setMessages(formattedMessages);
+      // 3. Actualizar Store (UI) y Local Storage
+      setMessages(contact.CuentaMensajeriaContactoID, formattedMessages);
       await ChatStorageService.saveMessages(contact.CuentaMensajeriaContactoID, formattedMessages);
 
       loadPendingMedia(formattedMessages);
@@ -233,7 +225,7 @@ const ChatScreen = ({ route, navigation }) => {
       return msg;
     });
 
-    setMessages(updatedMessages);
+    setMessages(contact.CuentaMensajeriaContactoID, updatedMessages);
     // También guardamos los mensajes con media resuelta para que la próxima vez carguen con media
     await ChatStorageService.saveMessages(contact.CuentaMensajeriaContactoID, updatedMessages);
   };

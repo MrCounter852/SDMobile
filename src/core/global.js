@@ -12,7 +12,11 @@ export const useGlobal = create((set, get) => ({
     menuOptions: [],
     signalrConnected: false,
 
-    init: () => set({ initialized: true }),
+    init: () => {
+        const useChatStore = require('./chatStore').default; // Import dinámico para evitar ciclos si los hubiera
+        useChatStore.getState().init();
+        set({ initialized: true });
+    },
     setInitialized: (status) => set({ initialized: status }),
     setSignalRConnected: (status) => set({ signalrConnected: status }),
 

@@ -7,7 +7,7 @@ export const useChatStore = create((set, get) => ({
   contactsLoading: false,
 
   // Estado de mensajes
-  messages: [],
+  chats: {},
   messagesLoading: false,
 
   // Estado de filtros
@@ -45,7 +45,18 @@ export const useChatStore = create((set, get) => ({
   setContactsLoading: (loading) => set({ contactsLoading: loading }),
 
   // Acciones para mensajes
-  setMessages: (messages) => set({ messages }),
+  init: async () => {
+    const ChatStorageService = require('../services/chat/chatStorageService').default;
+    const chats = await ChatStorageService.getAllChats();
+    set({ chats });
+  },
+
+  getMessages: (contactId) => get().chats[contactId] || [],
+
+  setMessages: (contactId, messages) =>
+    set((state) => ({
+      chats: { ...state.chats, [contactId]: messages }
+    })),
   setMessagesLoading: (loading) => set({ messagesLoading: loading }),
 
   // Acciones para filtros
@@ -119,7 +130,7 @@ export const useChatStore = create((set, get) => ({
     const { Contactos, Mensajes } = data;
     const state = get();
     let newContacts = [...state.contacts];
-    let newMessages = [...state.messages];
+    let newChats = { ...state.chats };
     let updatedSelectedContact = state.selectedContact;
 
     // 1. Actualizar Contactos
@@ -155,28 +166,33 @@ export const useChatStore = create((set, get) => ({
       });
     }
 
-    // 2. Actualizar Mensajes (solo si hay un chat abierto y coinciden)
-    if (Mensajes && Mensajes.length > 0 && updatedSelectedContact) {
-      const relevantMessages = Mensajes.filter(
-        (m) =>
-          m.CuentaMensajeriaContactoID ===
-          updatedSelectedContact.CuentaMensajeriaContactoID
-      );
+    // 2. Actualizar Mensajes
+    if (Mensajes && Mensajes.length > 0) {
+      // Agrupar mensajes por contacto
+      const messagesByContact = Mensajes.reduce((acc, msg) => {
+        const contactId = msg.CuentaMensajeriaContactoID;
+        if (!acc[contactId]) acc[contactId] = [];
+        acc[contactId].push(msg);
+        return acc;
+      }, {});
 
-      if (relevantMessages.length > 0) {
-        // Importar dinámicamente para evitar ciclos
-        const ChatApiService = require('../services/chat/chatService').default;
+      // Importar dinámicamente para evitar ciclos
+      const ChatApiService = require('../services/chat/chatService').default;
+
+      // Procesar cada grupo de mensajes
+      for (const [contactId, contactMessages] of Object.entries(messagesByContact)) {
+        const currentMessages = newChats[contactId] || [];
 
         // Formatear mensajes para GiftedChat con descarga de media
         const formattedNewMessages = await Promise.all(
-          relevantMessages.map(async (msg) => {
+          contactMessages.map(async (msg) => {
             const formattedMsg = {
               _id: msg.CuentaMensajeriaMensajeID,
               text: msg.Texto || "",
               createdAt: new Date(msg.Fecha),
               user: {
-                _id: msg.Recepcion ? 2 : 1,
-                name: msg.Recepcion ? updatedSelectedContact.Nombre : "Yo",
+                _id: msg.Recepcion ? 2 : 1, // 2: Contacto, 1: Usuario
+                name: msg.Recepcion ? "Contacto" : "Yo", // Simplificado, el nombre real se muestra en UI
               },
               status: msg.Status,
               pending: msg.Status === "accepted" || msg.Status === "pending",
@@ -188,35 +204,37 @@ export const useChatStore = create((set, get) => ({
 
             // Descargar media si es un mensaje recibido con FileID
             if (msg.FileID && msg.Recepcion) {
-              try {
-                const localUri = await ChatApiService.obtenerMediaWhatsApp({
-                  MediaID: msg.FileID,
-                  AccessToken: updatedSelectedContact.AccessToken,
-                  FileMime: msg.FileMime
-                });
+              // Nota: Necesitamos el AccessToken del contacto. 
+              // Si el contacto no está seleccionado, podríamos buscarlo en contacts.
+              const contact = newContacts.find(c => c.CuentaMensajeriaContactoID == contactId);
+              const accessToken = contact?.AccessToken;
 
-                // Manejar diferentes tipos de archivos
-                if (msg.TipoMensaje === "image" || msg.TipoMensaje === "sticker") {
-                  formattedMsg.image = localUri;
-                } else if (msg.TipoMensaje === "document") {
-                  formattedMsg.document = {
-                    uri: localUri,
-                    fileName: msg.FileName || 'documento',
-                    mimeType: msg.FileMime
-                  };
-                } else if (msg.TipoMensaje === "video") {
-                  formattedMsg.video = localUri;
-                } else if (msg.TipoMensaje === "audio") {
-                  formattedMsg.audio = localUri;
+              if (accessToken) {
+                try {
+                  const localUri = await ChatApiService.obtenerMediaWhatsApp({
+                    MediaID: msg.FileID,
+                    AccessToken: accessToken,
+                    FileMime: msg.FileMime
+                  });
+
+                  // Manejar diferentes tipos de archivos
+                  if (msg.TipoMensaje === "image" || msg.TipoMensaje === "sticker") {
+                    formattedMsg.image = localUri;
+                  } else if (msg.TipoMensaje === "document") {
+                    formattedMsg.document = {
+                      uri: localUri,
+                      fileName: msg.FileName || 'documento',
+                      mimeType: msg.FileMime
+                    };
+                  } else if (msg.TipoMensaje === "video") {
+                    formattedMsg.video = localUri;
+                  } else if (msg.TipoMensaje === "audio") {
+                    formattedMsg.audio = localUri;
+                  }
+                } catch (error) {
+                  console.error('[SignalR] Media download failed:', error);
+                  formattedMsg.mediaExpired = true;
                 }
-
-                console.log('[SignalR] Media downloaded:', {
-                  id: msg.CuentaMensajeriaMensajeID,
-                  type: msg.TipoMensaje
-                });
-              } catch (error) {
-                console.error('[SignalR] Media download failed:', error);
-                formattedMsg.mediaExpired = true;
               }
             } else if (msg.HttpUrl && !msg.Recepcion) {
               // Mensajes enviados usan HttpUrl directamente
@@ -239,29 +257,33 @@ export const useChatStore = create((set, get) => ({
           })
         );
 
+        let updatedContactMessages = [...currentMessages];
+
         // Actualizar mensajes existentes o agregar nuevos
         formattedNewMessages.forEach((newMsg) => {
-          const existingIndex = newMessages.findIndex(
+          const existingIndex = updatedContactMessages.findIndex(
             (m) => m._id === newMsg._id
           );
 
           if (existingIndex !== -1) {
             // Actualizar mensaje existente
-            newMessages[existingIndex] = {
-              ...newMessages[existingIndex],
+            updatedContactMessages[existingIndex] = {
+              ...updatedContactMessages[existingIndex],
               ...newMsg,
             };
           } else {
-            // Agregar mensaje nuevo al principio
-            newMessages = [newMsg, ...newMessages];
+            // Agregar mensaje nuevo al principio (GiftedChat usa inverted list)
+            updatedContactMessages = [newMsg, ...updatedContactMessages];
           }
         });
+
+        newChats[contactId] = updatedContactMessages;
       }
     }
 
     set({
       contacts: newContacts,
-      messages: newMessages,
+      chats: newChats,
       selectedContact: updatedSelectedContact,
     });
   },
@@ -272,7 +294,7 @@ export const useChatStore = create((set, get) => ({
       contacts: [],
       selectedContact: null,
       contactsLoading: false,
-      messages: [],
+      chats: {},
       messagesLoading: false,
       searchFilters: {
         Page: 1,
