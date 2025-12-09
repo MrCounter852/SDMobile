@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from "react";
-import { FlatList, StyleSheet, RefreshControl, View } from "react-native";
+import { FlatList, StyleSheet, View } from "react-native";
 import ChatBubble from "./ChatBubble";
 import ChatDaySeparator from "./ChatDaySeparator";
 
@@ -53,12 +53,6 @@ const ChatMessageList = ({
             style={styles.list}
             contentContainerStyle={styles.contentContainer}
             inverted={true}
-            refreshControl={
-                <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={onRefresh}
-                />
-            }
             removeClippedSubviews={false}
             maxToRenderPerBatch={20}
             windowSize={21}
