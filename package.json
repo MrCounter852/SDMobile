@@ -21,6 +21,7 @@
     "expo-av": "^16.0.7",
     "expo-file-system": "^19.0.19",
     "expo-image": "~3.0.10",
+    "expo-intent-launcher": "~13.0.8",
     "expo-linear-gradient": "~15.0.7",
     "expo-secure-store": "~15.0.7",
     "expo-status-bar": "~3.0.8",

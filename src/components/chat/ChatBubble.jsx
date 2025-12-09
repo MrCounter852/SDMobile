@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Linking, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Linking, ActivityIndicator, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import * as IntentLauncher from 'expo-intent-launcher';
 import AudioPlayer from "./AudioPlayer";
 import VideoPlayer from "./VideoPlayer";
 const ChatBubble = ({ message, isSentByMe, onImagePress, onVideoPress, onMediaDownload }) => {
@@ -39,6 +40,44 @@ const ChatBubble = ({ message, isSentByMe, onImagePress, onVideoPress, onMediaDo
             }
             return <Text key={index}>{part}</Text>;
         });
+    };
+
+    const openDocument = async (fileUrl, fileName) => {
+        try {
+            if (Platform.OS === 'android') {
+                // On Android, use IntentLauncher to show "Open with" dialog
+                await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
+                    data: fileUrl,
+                    type: getMimeType(fileName),
+                    flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
+                });
+            } else {
+                // On iOS, Linking.openURL will show the share sheet with "Open in" options
+                await Linking.openURL(fileUrl);
+            }
+        } catch (error) {
+            console.error('Error opening document:', error);
+            // Fallback to regular Linking
+            Linking.openURL(fileUrl);
+        }
+    };
+
+    const getMimeType = (fileName) => {
+        if (!fileName) return 'application/octet-stream';
+        const ext = fileName.split('.').pop().toLowerCase();
+        const mimeTypes = {
+            'pdf': 'application/pdf',
+            'doc': 'application/msword',
+            'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'xls': 'application/vnd.ms-excel',
+            'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'ppt': 'application/vnd.ms-powerpoint',
+            'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'txt': 'text/plain',
+            'rtf': 'application/rtf',
+            'csv': 'text/csv',
+        };
+        return mimeTypes[ext] || 'application/octet-stream';
     };
 
     return (
