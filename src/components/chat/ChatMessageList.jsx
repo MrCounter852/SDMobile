@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from "react";
-import { FlatList, StyleSheet, View } from "react-native";
+import { FlatList, StyleSheet, RefreshControl, View } from "react-native";
 import ChatBubble from "./ChatBubble";
 import ChatDaySeparator from "./ChatDaySeparator";
 

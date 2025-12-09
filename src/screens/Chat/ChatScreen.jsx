@@ -362,17 +362,23 @@ const ChatScreen = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={["left", "right"]}>
-        <ChatMessageList
-          messages={messages}
-          currentUserId={1}
-          onImagePress={handleImagePress}
-          onVideoPress={handleVideoPress}
-          onRefresh={onRefresh}
-          refreshing={refreshing}
-          onMediaDownload={handleMediaDownload}
-        />
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "padding"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 100}
+        >
+          <ChatMessageList
+            messages={messages}
+            currentUserId={1}
+            onImagePress={handleImagePress}
+            onVideoPress={handleVideoPress}
+            onRefresh={onRefresh}
+            refreshing={refreshing}
+            onMediaDownload={handleMediaDownload}
+          />
 
-        <ChatInputBar onSend={handleSend} placeholder="Escribe un mensaje..." />
+          <ChatInputBar onSend={handleSend} placeholder="Escribe un mensaje..." />
+        </KeyboardAvoidingView>
 
         {sendingMessage && (
           <View style={styles.sendingIndicator}>
@@ -501,7 +507,7 @@ const ChatScreen = ({ route, navigation }) => {
           </View>
         </View>
       </Modal>
-    </View>
+    </View >
   );
 };
 

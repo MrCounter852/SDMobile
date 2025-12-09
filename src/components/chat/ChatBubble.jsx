@@ -1,8 +1,7 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Linking, ActivityIndicator, Platform } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Linking, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import * as IntentLauncher from 'expo-intent-launcher';
 import AudioPlayer from "./AudioPlayer";
 import VideoPlayer from "./VideoPlayer";
 const ChatBubble = ({ message, isSentByMe, onImagePress, onVideoPress, onMediaDownload }) => {
