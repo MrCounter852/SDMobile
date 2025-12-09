@@ -308,6 +308,18 @@ class ChatApiService {
     const headers = await this.getHeaders();
 
     try {
+      // Crear nombre de archivo único
+      const fileExtension = mediaData.FileMime?.split('/')[1] || 'jpg';
+      const fileName = `${mediaData.MediaID}.${fileExtension}`;
+      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+
+      // Verificar si el archivo ya existe en caché
+      const fileInfo = await FileSystem.getInfoAsync(fileUri);
+      if (fileInfo.exists) {
+        console.log('Media found in cache:', fileName);
+        return fileUri;
+      }
+
       const response = await fetch(`${API_BASE_COM}${endpoint}`, {
         method: 'POST',
         headers,
@@ -324,11 +336,6 @@ class ChatApiService {
 
       const blob = await response.blob();
       const base64 = await this.blobToBase64(blob);
-
-      // Crear nombre de archivo único
-      const fileExtension = mediaData.FileMime?.split('/')[1] || 'jpg';
-      const fileName = `${mediaData.MediaID}.${fileExtension}`;
-      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
 
       // Guardar el archivo usando FileSystem
       await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: FileSystem.EncodingType.Base64 });

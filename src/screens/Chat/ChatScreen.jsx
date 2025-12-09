@@ -92,11 +92,35 @@ const ChatScreen = ({ route, navigation }) => {
       const response = await ChatApiService.consultarMensajes(filtros);
       const formattedMessages = formatMessagesForChat(response.data || []);
 
-      // 3. Actualizar Store (UI) y Local Storage
-      setMessages(contact.CuentaMensajeriaContactoID, formattedMessages);
-      await ChatStorageService.saveMessages(contact.CuentaMensajeriaContactoID, formattedMessages);
+      // 3. Merged Logic: Preserve local state (media URIs) to avoid flicker
+      const mergedMessages = formattedMessages.map(newMsg => {
+        const existingMsg = messages.find(m => m._id === newMsg._id);
+        if (existingMsg && newMsg.pendingMedia) {
+          // If we already have the media resolved in memory, keep it
+          if (existingMsg.image) {
+            newMsg.image = existingMsg.image;
+            delete newMsg.pendingMedia;
+          } else if (existingMsg.video) {
+            newMsg.video = existingMsg.video;
+            delete newMsg.pendingMedia;
+          } else if (existingMsg.audio) {
+            newMsg.audio = existingMsg.audio;
+            delete newMsg.pendingMedia;
+          } else if (existingMsg.file?.url && !existingMsg.file.url.startsWith('http')) {
+            // Only keep local file URIs
+            newMsg.file = existingMsg.file;
+            delete newMsg.pendingMedia;
+          }
+        }
+        return newMsg;
+      });
 
-      loadPendingMedia(formattedMessages);
+      // 4. Actualizar Store (UI) y Local Storage
+      setMessages(contact.CuentaMensajeriaContactoID, mergedMessages);
+      await ChatStorageService.saveMessages(contact.CuentaMensajeriaContactoID, mergedMessages);
+
+      // Load only what is still pending
+      loadPendingMedia(mergedMessages);
     } catch (error) {
       console.error("Error loading messages:", error);
       // Solo mostrar alerta si no tenemos mensajes mostrados
