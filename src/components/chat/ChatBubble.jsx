@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Linking, ActivityIndicator, P
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as IntentLauncher from 'expo-intent-launcher';
+import * as FileSystem from 'expo-file-system/legacy';
 import AudioPlayer from "./AudioPlayer";
 import VideoPlayer from "./VideoPlayer";
 const ChatBubble = ({ message, isSentByMe, onImagePress, onVideoPress, onMediaDownload }) => {
@@ -45,9 +46,11 @@ const ChatBubble = ({ message, isSentByMe, onImagePress, onVideoPress, onMediaDo
     const openDocument = async (fileUrl, fileName) => {
         try {
             if (Platform.OS === 'android') {
-                // On Android, use IntentLauncher to show "Open with" dialog
+                // On Android, get content URI to avoid FileUriExposedException
+                const contentUri = await FileSystem.getContentUriAsync(fileUrl);
+                // Use IntentLauncher to show "Open with" dialog
                 await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
-                    data: fileUrl,
+                    data: contentUri,
                     type: getMimeType(fileName),
                     flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
                 });
@@ -58,7 +61,11 @@ const ChatBubble = ({ message, isSentByMe, onImagePress, onVideoPress, onMediaDo
         } catch (error) {
             console.error('Error opening document:', error);
             // Fallback to regular Linking
-            Linking.openURL(fileUrl);
+            try {
+                await Linking.openURL(fileUrl);
+            } catch (fallbackError) {
+                console.error('Fallback also failed:', fallbackError);
+            }
         }
     };
 
@@ -114,7 +121,7 @@ const ChatBubble = ({ message, isSentByMe, onImagePress, onVideoPress, onMediaDo
             )}
 
             {message.file && (
-                <TouchableOpacity onPress={() => Linking.openURL(message.file.url)} style={styles.fileContainer}>
+                <TouchableOpacity onPress={() => openDocument(message.file.url, message.file.name)} style={styles.fileContainer}>
                     <Ionicons name="document" size={30} color={getFileColor(message.file.name)} />
                     <Text style={styles.fileName}>{message.file.name}</Text>
                 </TouchableOpacity>
