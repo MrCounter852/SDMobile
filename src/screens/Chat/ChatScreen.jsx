@@ -348,9 +348,44 @@ const ChatScreen = ({ route, navigation }) => {
 
   const handleSend = async (text) => {
     setSendingMessage(true);
-    setTimeout(() => {
+
+    // Create optimistic message
+    const optimisticMessage = {
+      _id: `temp-${Date.now()}`,
+      text: text,
+      createdAt: new Date(),
+      user: {
+        _id: 1,
+        name: user?.NombreCompleto,
+      },
+      status: "pending",
+      pending: true,
+      sent: false,
+      delivered: false,
+      read: false,
+      isIncoming: false,
+    };
+
+    // Add optimistic message to the beginning (since inverted list)
+    const updatedMessages = [optimisticMessage, ...messages];
+    setMessages(contact.CuentaMensajeriaContactoID, updatedMessages);
+
+    // Send message via API
+    try {
+      await ChatApiService.enviarMensaje({
+        CuentaMensajeriaID: contact.CuentaMensajeriaID,
+        CuentaMensajeriaContactoID: contact.CuentaMensajeriaContactoID,
+        Mensaje: text,
+        Files: [],
+        TipoMensaje: 'text',
+        Token: user?.Token,
+      });
+    } catch (error) {
+      console.error("Error sending message:", error);
+      // For now, just log error; optimistic message remains until updated via SignalR
+    } finally {
       setSendingMessage(false);
-    }, 1000);
+    }
   };
 
   const handleImagePress = (imageUri) => {

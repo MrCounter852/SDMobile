@@ -185,6 +185,7 @@ const ChatBubble = ({ message, isSentByMe, onImagePress, onVideoPress, onMediaDo
 
                 {isSentByMe && (
                     <View style={styles.statusContainer}>
+                        {message.pending && <Ionicons name="time-outline" size={14} color="#999" />}
                         {message.sent && <Ionicons name="checkmark" size={14} color="#999" />}
                         {message.delivered && <Ionicons name="checkmark-done" size={14} color="#999" />}
                         {message.read && <Ionicons name="checkmark-done" size={14} color="#337ab7" />}

@@ -272,8 +272,22 @@ export const useChatStore = create((set, get) => ({
               ...newMsg,
             };
           } else {
-            // Agregar mensaje nuevo al principio (GiftedChat usa inverted list)
-            updatedContactMessages = [newMsg, ...updatedContactMessages];
+            // Para mensajes enviados (no incoming), reemplazar el mensaje pendiente si existe
+            if (!newMsg.isIncoming) {
+              const pendingIndex = updatedContactMessages.findIndex(
+                (m) => m.pending === true
+              );
+              if (pendingIndex !== -1) {
+                // Reemplazar el mensaje pendiente con el mensaje real
+                updatedContactMessages[pendingIndex] = newMsg;
+              } else {
+                // Agregar mensaje nuevo al principio
+                updatedContactMessages = [newMsg, ...updatedContactMessages];
+              }
+            } else {
+              // Agregar mensaje nuevo al principio
+              updatedContactMessages = [newMsg, ...updatedContactMessages];
+            }
           }
         });
 
