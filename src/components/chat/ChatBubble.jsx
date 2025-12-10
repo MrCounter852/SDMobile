@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Linking, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Linking, ActivityIndicator, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import * as IntentLauncher from 'expo-intent-launcher';
 import AudioPlayer from "./AudioPlayer";
 import VideoPlayer from "./VideoPlayer";
 const ChatBubble = ({ message, isSentByMe, onImagePress, onVideoPress, onMediaDownload }) => {
@@ -12,11 +13,11 @@ const ChatBubble = ({ message, isSentByMe, onImagePress, onVideoPress, onMediaDo
         if (!fileName) return '#666';
         const ext = fileName.split('.').pop().toLowerCase();
         switch (ext) {
-            case 'pdf': return '#e74c3c'; // red
+            case 'pdf': return '#e74c3c';
             case 'doc':
-            case 'docx': return '#3498db'; // blue
+            case 'docx': return '#3498db';
             case 'xls':
-            case 'xlsx': return '#27ae60'; // green
+            case 'xlsx': return '#27ae60';
             default: return '#666';
         }
     };

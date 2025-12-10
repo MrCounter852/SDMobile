@@ -93,7 +93,6 @@ class XHRWrapper extends NativeXMLHttpRequest {
     try {
       super.withCredentials = false;
     } catch (e) { }
-    console.log('[SignalR-Shim] XHR Created');
   }
 
   get withCredentials() {
@@ -110,14 +109,10 @@ class XHRWrapper extends NativeXMLHttpRequest {
   }
 
   open(method, url, async, user, password) {
-    console.log(`[SignalR-Shim] XHR Open: ${method} ${url}`);
-    // SignalR might pass undefined for async, user, password
     return super.open(method, url, async !== false, user, password);
   }
 
   send(data) {
-    console.log('[SignalR-Shim] XHR Send');
-    // Ensure withCredentials is set on native before sending
     try {
       if (super.withCredentials === undefined || super.withCredentials === null) {
         super.withCredentials = this._withCredentials;

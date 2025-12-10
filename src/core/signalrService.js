@@ -82,7 +82,6 @@ class SignalRService {
 
         // Sincronización de opción de menú
         this.hubProxy.on('SincronizarOpcionMenuEmpresa', (data) => {
-            console.log('[SignalR] SincronizarOpcionMenuEmpresa received:', data);
             // Actualizar store de chat
             const chatStore = require('./chatStore').default; // Lazy load para evitar ciclos si los hubiera
             chatStore.getState().handleSignalRUpdate(data);

@@ -37,14 +37,6 @@ class ChatApiService {
   async getHeaders() {
     // Para las APIs del chat, siempre usar el token JWT de OauthToken almacenado como erpToken
     const token = await this.getStoredToken();
-
-    console.log('ChatApi - Headers Debug:', {
-      token: token ? 'present' : 'empty',
-      tokenLength: token?.length,
-      tokenPreview: token ? `${token.substring(0, 20)}...` : 'no token',
-      authenticated: this.global.authenticated
-    });
-
     return {
       'Content-Type': 'application/json',
       'Authorization': token ? `Bearer ${token}` : '',
@@ -60,17 +52,9 @@ class ChatApiService {
       ...options,
     };
 
-    console.log('ChatApi - Request:', {
-      url,
-      method: config.method || 'GET',
-      useCRM,
-      hasAuth: !!config.headers.Authorization,
-      endpoint
-    });
 
     try {
       const response = await fetch(url, config);
-      console.log('ChatApi - Response status:', response.status);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -83,7 +67,6 @@ class ChatApiService {
       }
 
       const data = await response.json();
-      console.log('ChatApi - Success response:', data);
       return data;
     } catch (error) {
       console.error('API request failed:', error);
