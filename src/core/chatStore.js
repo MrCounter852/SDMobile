@@ -223,10 +223,9 @@ export const useChatStore = create((set, get) => ({
                   if (msg.TipoMensaje === "image" || msg.TipoMensaje === "sticker") {
                     formattedMsg.image = localUri;
                   } else if (msg.TipoMensaje === "document") {
-                    formattedMsg.document = {
-                      uri: localUri,
-                      fileName: msg.FileName || 'documento',
-                      mimeType: msg.FileMime
+                    formattedMsg.file = {
+                      name: msg.FileName || 'documento',
+                      url: localUri
                     };
                   } else if (msg.TipoMensaje === "video") {
                     formattedMsg.video = localUri;
@@ -243,10 +242,9 @@ export const useChatStore = create((set, get) => ({
               if (msg.TipoMensaje === "image" || msg.TipoMensaje === "sticker") {
                 formattedMsg.image = msg.HttpUrl;
               } else if (msg.TipoMensaje === "document") {
-                formattedMsg.document = {
-                  uri: msg.HttpUrl,
-                  fileName: msg.FileName || 'documento',
-                  mimeType: msg.FileMime
+                formattedMsg.file = {
+                  name: msg.FileName || 'documento',
+                  url: msg.HttpUrl
                 };
               } else if (msg.TipoMensaje === "video") {
                 formattedMsg.video = msg.HttpUrl;
