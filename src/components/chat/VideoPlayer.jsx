@@ -7,22 +7,15 @@ const VideoPlayer = ({ uri, onFullScreen }) => {
     const videoRef = useRef(null);
     const [status, setStatus] = useState({});
     const [isLoading, setIsLoading] = useState(true);
+    const [isPlaying, setIsPlaying] = useState(false);
 
-    const handlePlayPause = async () => {
-        if (videoRef.current) {
-            if (status.isPlaying) {
-                await videoRef.current.pauseAsync();
-            } else {
-                await videoRef.current.playAsync();
-            }
-        }
+    const handlePlayPause = () => {
+        setIsPlaying(!isPlaying);
     };
 
-    const handleFullScreen = async () => {
+    const handleFullScreen = () => {
         // Pausar el video del chat antes de abrir fullscreen
-        if (videoRef.current) {
-            await videoRef.current.pauseAsync();
-        }
+        setIsPlaying(false);
         if (onFullScreen) {
             onFullScreen(uri);
         }
@@ -62,7 +55,7 @@ const VideoPlayer = ({ uri, onFullScreen }) => {
                         onPress={handlePlayPause}
                     >
                         <Ionicons
-                            name={status.isPlaying ? 'pause' : 'play'}
+                            name={isPlaying ? 'pause' : 'play'}
                             size={32}
                             color="#fff"
                         />

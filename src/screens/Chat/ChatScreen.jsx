@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from "@expo/vector-icons";
-import { Video, ResizeMode, VideoFullscreenUpdate } from "expo-av";
+import { VideoView, ResizeMode } from "expo-video";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useChatStore } from "../../core/chatStore";
 import ChatApiService from "../../services/chat/chatService";
@@ -47,6 +47,7 @@ const ChatScreen = ({ route, navigation }) => {
   const [videoViewerVisible, setVideoViewerVisible] = useState(false);
   const [currentVideo, setCurrentVideo] = useState(null);
   const videoRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(true);
   const [videoStatus, setVideoStatus] = useState({});
   const [showVideoControls, setShowVideoControls] = useState(true);
   const [currentImage, setCurrentImage] = useState(null);
@@ -348,6 +349,7 @@ const ChatScreen = ({ route, navigation }) => {
   const handleVideoPress = (videoUri) => {
     setCurrentVideo(videoUri);
     setVideoViewerVisible(true);
+    setIsPlaying(true);
   };
 
   if (messagesLoading && messages.length === 0) {
@@ -425,9 +427,7 @@ const ChatScreen = ({ route, navigation }) => {
         animationType="fade"
         statusBarTranslucent={true}
         onRequestClose={() => {
-          if (videoRef.current) {
-            videoRef.current.pauseAsync();
-          }
+          setIsPlaying(false);
           setVideoViewerVisible(false);
         }}
       >
@@ -436,13 +436,12 @@ const ChatScreen = ({ route, navigation }) => {
             {currentVideo ? (
               <TouchableWithoutFeedback onPress={() => setShowVideoControls(!showVideoControls)}>
                 <View style={{ flex: 1, width: '100%', justifyContent: 'center' }}>
-                  <Video
+                  <VideoView
                     ref={videoRef}
                     source={{ uri: currentVideo }}
                     style={styles.fullScreenVideo}
-                    useNativeControls={false}
                     resizeMode={ResizeMode.CONTAIN}
-                    shouldPlay
+                    isPlaying={isPlaying}
                     onPlaybackStatusUpdate={status => setVideoStatus(status)}
                     onError={(error) => console.error('Video error:', error)}
                   />
@@ -451,7 +450,7 @@ const ChatScreen = ({ route, navigation }) => {
                       <TouchableOpacity
                         style={styles.videoCloseButton}
                         onPress={() => {
-                          if (videoRef.current) videoRef.current.pauseAsync();
+                          setIsPlaying(false);
                           setVideoViewerVisible(false);
                         }}
                       >
@@ -469,7 +468,7 @@ const ChatScreen = ({ route, navigation }) => {
                         }}
                       >
                         <Ionicons
-                          name={videoStatus.isPlaying ? "pause" : "play"}
+                          name={isPlaying ? "pause" : "play"}
                           size={50}
                           color="white"
                         />
@@ -485,7 +484,7 @@ const ChatScreen = ({ route, navigation }) => {
                           maximumValue={videoStatus.durationMillis || 1}
                           value={videoStatus.positionMillis || 0}
                           onSlidingComplete={async (value) => {
-                            await videoRef.current.setPositionAsync(value);
+                            await videoRef.current.seekTo(value);
                           }}
                           minimumTrackTintColor="#25D366"
                           maximumTrackTintColor="rgba(255,255,255,0.5)"
