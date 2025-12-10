@@ -1,11 +1,7 @@
-const BASE_URL_SIS = 'https://admin.sedierp.com';
-const BASE_URL_NS = 'https://ns2.sedierp.com';
-
-//const BASE_URL_SIS = 'https://devadmin.sedisolutions.co:444//'
-//const BASE_URL_NS = 'https://devns2.sedisolutions.co:444//'
+import getEnvironmentConfig from '../../config/environments';
 
 export const loginUser = async (email, password) => {
-  const response = await fetch(`${BASE_URL_SIS}/API_SIS/api/Login/ERPLogin/`, {
+  const response = await fetch(`${getEnvironmentConfig().BASE_URL_SIS}/API_SIS/api/Login/ERPLogin/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -32,7 +28,7 @@ export const loginUser = async (email, password) => {
 };
 
 export const fetchEmpresas = async (token, search = '') => {
-  const response = await fetch(`${BASE_URL_SIS}/API_SIS/api/Login/ERPEmpresas/`, {
+  const response = await fetch(`${getEnvironmentConfig().BASE_URL_SIS}/API_SIS/api/Login/ERPEmpresas/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -54,7 +50,7 @@ export const fetchEmpresas = async (token, search = '') => {
 };
 
 export const getOauthToken = async (accessToken, baseDatosID, empresaID, sucursalID) => {
-  const response = await fetch(`${BASE_URL_SIS}/API_SIS/api/Login/OauthToken/`, {
+  const response = await fetch(`${getEnvironmentConfig().BASE_URL_SIS}/API_SIS/api/Login/OauthToken/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -77,7 +73,7 @@ export const getOauthToken = async (accessToken, baseDatosID, empresaID, sucursa
 };
 
 export const getSessionData = async (token) => {
-  const response = await fetch(`${BASE_URL_NS}/API_SIS/api/Login/LoginAcceso?TokenKey=${token}`, {
+  const response = await fetch(`${getEnvironmentConfig().BASE_URL_NS}/API_SIS/api/Login/LoginAcceso?TokenKey=${token}`, {
     method: 'GET',
   });
 

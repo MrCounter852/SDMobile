@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useGlobal } from "../../core/global";
-
+import getEnvironmentConfig from "../../config/environments";
 const Perfil = ({ navigation }) => {
   const { user, logout } = useGlobal();
   const { width } = Dimensions.get("window");
@@ -32,7 +32,7 @@ const Perfil = ({ navigation }) => {
             {user.Foto ? (
               <Image
                 source={{
-                  uri: `https://ns2.sedierp.com/ArchivosCargados/FotografiasUsuarios/${user.Foto}`,
+                  uri: `${getEnvironmentConfig().BASE_URL_NS}/ArchivosCargados/FotografiasUsuarios/${user.Foto}`,
                 }}
                 style={styles.profileImage}
               />

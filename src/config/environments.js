@@ -2,7 +2,7 @@
 const environments = {
   development: {
     BASE_URL_SIS: 'https://devadmin.sedisolutions.co:444',
-    BASE_URL_NS: 'https://devns2.sedisolutions.co:444',
+    BASE_URL_NS: 'https://dev.sedisolutions.co:444',
     SIGNALR_URL: 'https://devadmin.sedisolutions.co:444/API_SIS/signalr',
     BASE_URL_COM: 'https://dev.sedisolutions.co:444',
   },
@@ -27,13 +27,14 @@ const getEnvironmentConfig = () => {
   // For example, check process.env.NODE_ENV, or use a custom variable
 
   // Default to development if __DEV__ is true (React Native dev mode)
+  /*
   if (__DEV__) {
     return environments.development;
   }
-
+*/
   // For production builds, you might want to check app.json or other indicators
   // For now, default to production
-  return environments.production;
+  return environments.development;
 };
 
 export default getEnvironmentConfig;
