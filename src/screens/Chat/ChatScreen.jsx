@@ -10,6 +10,7 @@ import {
   TouchableWithoutFeedback,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
 } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from "@expo/vector-icons";
@@ -55,6 +56,7 @@ const ChatScreen = ({ route, navigation }) => {
   const [videoStatus, setVideoStatus] = useState({});
   const [showVideoControls, setShowVideoControls] = useState(true);
   const [currentImage, setCurrentImage] = useState(null);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   useEffect(() => {
     navigation.setOptions({
@@ -72,11 +74,25 @@ const ChatScreen = ({ route, navigation }) => {
     setSelectedContact(contact);
     loadMessages();
 
+    // Keyboard listeners for Android navigation bar adjustment
+    const keyboardShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      if (Platform.OS === 'android') {
+        setKeyboardOffset(insets.bottom);
+      }
+    });
+    const keyboardHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      if (Platform.OS === 'android') {
+        setKeyboardOffset(0);
+      }
+    });
+
     return () => {
       clearAttachments();
       setSelectedContact(null);
+      keyboardShowListener.remove();
+      keyboardHideListener.remove();
     };
-  }, []);
+  }, [insets.bottom]);
 
   const loadMessages = async () => {
     try {
@@ -371,7 +387,7 @@ const ChatScreen = ({ route, navigation }) => {
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 90 : null}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 90 : keyboardOffset}
         >
           <ChatMessageList
             messages={messages}
