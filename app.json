@@ -20,7 +20,12 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "package": "com.sedimobile.erp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -29,6 +34,12 @@
       "expo-secure-store",
       "expo-audio",
       "expo-video"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "eb535945-f795-4ec3-b97e-49e7fc69f228"
+      }
+    },
+    "owner": "johan_ardila"
   }
 }

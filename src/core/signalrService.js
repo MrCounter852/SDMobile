@@ -1,7 +1,7 @@
 import './signalr-shim.js';
 import { hubConnection } from 'signalr-no-jquery';
 import useGlobal from './global';
-
+import getEnvironmentConfig from '../config/environments.js';
 class SignalRService {
     constructor() {
         this.connection = null;
@@ -29,7 +29,7 @@ class SignalRService {
 
         console.log('[SignalR] Connecting with params:', qs);
 
-        const baseUrl = 'https://admin.sedierp.com/API_SIS/signalr';
+        const baseUrl = `${getEnvironmentConfig().SIGNALR_URL}`;
 
         this.connection = hubConnection(baseUrl, {
             useDefaultPath: false,
@@ -89,6 +89,7 @@ class SignalRService {
 
         // Sincronización de opción de menú
         this.hubProxy.on('SincronizarOpcionMenuEmpresa', (data) => {
+            console.log('[SignalR] SincronizarOpcionMenuEmpresa received:', data);
             // Actualizar store de chat
             const chatStore = require('./chatStore').default; // Lazy load para evitar ciclos si los hubiera
             chatStore.getState().handleSignalRUpdate(data);

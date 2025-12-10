@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -40,10 +40,10 @@ const ChatScreen = ({ route, navigation }) => {
 
   const messages = useChatStore(
     useCallback(
-      (state) => state.chats[contact.CuentaMensajeriaContactoID] || [],
+      (state) => state.chats[contact.CuentaMensajeriaContactoID],
       [contact.CuentaMensajeriaContactoID]
     )
-  );
+  ) || [];
   const { user } = useGlobal();
 
   const [refreshing, setRefreshing] = useState(false);

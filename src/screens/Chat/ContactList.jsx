@@ -16,7 +16,7 @@ import { useChatStore } from '../../core/chatStore';
 import ChatApiService from '../../services/chat/chatService';
 import ChatStorageService from '../../services/chat/chatStorageService';
 import { useGlobal } from '../../core/global';
-
+import { useCallback } from 'react';
 const ContactList = ({ navigation }) => {
   const {
     contacts,
@@ -43,9 +43,9 @@ const ContactList = ({ navigation }) => {
   useEffect(() => {
     console.log('useEffect triggered: selectedStatus =', selectedStatus, 'searchText =', searchText);
     loadContacts();
-  }, [selectedStatus, searchText]);
+  }, [loadContacts]);
 
-  const loadContacts = async () => {
+  const loadContacts = useCallback(async () => {
     try {
       // 1. Cargar contactos locales primero (Offline-first)
       // Solo cargamos del storage si no estamos filtrando por texto (para mantener la búsqueda rápida pero real)
@@ -95,7 +95,7 @@ const ContactList = ({ navigation }) => {
     } finally {
       setContactsLoading(false);
     }
-  };
+  }, [searchText, selectedStatus, usuarioID, user?.Token, searchFilters, contacts.length]);
 
   const handleContactPress = (contact) => {
     setSelectedContact(contact);
@@ -264,7 +264,7 @@ const ContactList = ({ navigation }) => {
           <FlatList
             data={contacts}
             renderItem={renderContact}
-            keyExtractor={(item) => item?.CuentaMensajeriaContactoID?.toString() || Math.random().toString()}
+            keyExtractor={(item, index) => item?.CuentaMensajeriaContactoID?.toString() || index.toString()}
             style={styles.contactsList}
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
