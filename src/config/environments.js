@@ -34,7 +34,7 @@ const getEnvironmentConfig = () => {
 */
   // For production builds, you might want to check app.json or other indicators
   // For now, default to production
-  return environments.development;
+  return environments.production;
 };
 
 export default getEnvironmentConfig;

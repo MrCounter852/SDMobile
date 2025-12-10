@@ -41,6 +41,7 @@ const ContactList = ({ navigation }) => {
   ];
 
   useEffect(() => {
+    console.log('useEffect triggered: selectedStatus =', selectedStatus, 'searchText =', searchText);
     loadContacts();
   }, [selectedStatus, searchText]);
 
@@ -70,7 +71,13 @@ const ContactList = ({ navigation }) => {
         Token: user?.Token,
       };
 
+      console.log('Filtros being sent to API:', filtros);
+      console.log('Calling consultarContactos API');
+
       const response = await ChatApiService.consultarContactos(filtros);
+
+      console.log('API response received:', response);
+      console.log('Response data length:', response.data?.length || 0);
 
       // 3. Actualizar UI y guardar en local (si no es búsqueda)
       setContacts(response.data || []);
@@ -205,7 +212,10 @@ const ContactList = ({ navigation }) => {
               styles.statusButton,
               selectedStatus === status.id && styles.statusButtonActive
             ]}
-            onPress={() => setSelectedStatus(status.id)}
+            onPress={() => {
+              console.log('Status button pressed:', status.name, 'id:', status.id);
+              setSelectedStatus(status.id);
+            }}
           >
             <Text
               style={[

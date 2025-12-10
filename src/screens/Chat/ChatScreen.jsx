@@ -38,8 +38,12 @@ const ChatScreen = ({ route, navigation }) => {
     setSelectedContact,
   } = useChatStore();
 
-  const messages = useChatStore(state => state.chats[contact.CuentaMensajeriaContactoID] || []);
-
+  const messages = useChatStore(
+    useCallback(
+      (state) => state.chats[contact.CuentaMensajeriaContactoID] || [],
+      [contact.CuentaMensajeriaContactoID]
+    )
+  );
   const { user } = useGlobal();
 
   const [refreshing, setRefreshing] = useState(false);
