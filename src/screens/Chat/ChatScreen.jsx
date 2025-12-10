@@ -57,6 +57,7 @@ const ChatScreen = ({ route, navigation }) => {
   const [showVideoControls, setShowVideoControls] = useState(true);
   const [currentImage, setCurrentImage] = useState(null);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
+  const [sendTimeout, setSendTimeout] = useState(null);
 
   useEffect(() => {
     navigation.setOptions({
@@ -347,6 +348,10 @@ const ChatScreen = ({ route, navigation }) => {
   };
 
   const handleSend = async (text) => {
+    // Debounce: prevenir envíos demasiado rápidos
+    if (sendTimeout) return;
+
+    setSendTimeout(setTimeout(() => setSendTimeout(null), 500)); // 500ms debounce
     setSendingMessage(true);
 
     // Create optimistic message

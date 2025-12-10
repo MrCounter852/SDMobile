@@ -204,38 +204,23 @@ export const useChatStore = create((set, get) => ({
               isIncoming: msg.Recepcion,
             };
 
-            // Descargar media si es un mensaje recibido con FileID
+            // Marcar media como pendiente para descarga on-demand (evita bloqueo en SignalR)
             if (msg.FileID && msg.Recepcion) {
-              // Nota: Necesitamos el AccessToken del contacto. 
-              // Si el contacto no está seleccionado, podríamos buscarlo en contacts.
               const contact = newContacts.find(c => c.CuentaMensajeriaContactoID == contactId);
               const accessToken = contact?.AccessToken;
 
               if (accessToken) {
-                try {
-                  const localUri = await ChatApiService.obtenerMediaWhatsApp({
+                formattedMsg.pendingMedia = {
+                  type: msg.TipoMensaje === "image" || msg.TipoMensaje === "sticker" ? "image" :
+                        msg.TipoMensaje === "video" ? "video" :
+                        msg.TipoMensaje === "audio" ? "audio" : "file",
+                  params: {
                     MediaID: msg.FileID,
                     AccessToken: accessToken,
                     FileMime: msg.FileMime
-                  });
-
-                  // Manejar diferentes tipos de archivos
-                  if (msg.TipoMensaje === "image" || msg.TipoMensaje === "sticker") {
-                    formattedMsg.image = localUri;
-                  } else if (msg.TipoMensaje === "document") {
-                    formattedMsg.file = {
-                      name: msg.FileName || 'documento',
-                      url: localUri
-                    };
-                  } else if (msg.TipoMensaje === "video") {
-                    formattedMsg.video = localUri;
-                  } else if (msg.TipoMensaje === "audio") {
-                    formattedMsg.audio = localUri;
-                  }
-                } catch (error) {
-                  console.error('[SignalR] Media download failed:', error);
-                  formattedMsg.mediaExpired = true;
-                }
+                  },
+                  name: msg.FileName
+                };
               }
             } else if (msg.HttpUrl && !msg.Recepcion) {
               // Mensajes enviados usan HttpUrl directamente

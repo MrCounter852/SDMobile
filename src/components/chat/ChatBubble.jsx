@@ -6,7 +6,8 @@ import * as IntentLauncher from 'expo-intent-launcher';
 import * as FileSystem from 'expo-file-system/legacy';
 import AudioPlayer from "./AudioPlayer";
 import VideoPlayer from "./VideoPlayer";
-const ChatBubble = ({ message, isSentByMe, onImagePress, onVideoPress, onMediaDownload }) => {
+
+const ChatBubble = React.memo(({ message, isSentByMe, onImagePress, onVideoPress, onMediaDownload }) => {
     const blurhash = 'L6PZfSi_.AyE_3t7t7R**0o#DgR4';
 
 
@@ -194,7 +195,23 @@ const ChatBubble = ({ message, isSentByMe, onImagePress, onVideoPress, onMediaDo
             </View>
         </View>
     );
-};
+}, (prevProps, nextProps) => {
+    // Comparación personalizada para evitar re-renders innecesarios
+    return (
+        prevProps.message._id === nextProps.message._id &&
+        prevProps.message.text === nextProps.message.text &&
+        prevProps.message.image === nextProps.message.image &&
+        prevProps.message.video === nextProps.message.video &&
+        prevProps.message.audio === nextProps.message.audio &&
+        prevProps.message.file?.url === nextProps.message.file?.url &&
+        prevProps.message.pendingMedia?.downloading === nextProps.message.pendingMedia?.downloading &&
+        prevProps.message.sent === nextProps.message.sent &&
+        prevProps.message.delivered === nextProps.message.delivered &&
+        prevProps.message.read === nextProps.message.read &&
+        prevProps.message.pending === nextProps.message.pending &&
+        prevProps.isSentByMe === nextProps.isSentByMe
+    );
+});
 
 const styles = StyleSheet.create({
     bubble: {

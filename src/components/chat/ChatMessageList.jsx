@@ -53,9 +53,16 @@ const ChatMessageList = ({
             style={styles.list}
             contentContainerStyle={styles.contentContainer}
             inverted={true}
-            removeClippedSubviews={false}
-            maxToRenderPerBatch={20}
-            windowSize={21}
+            removeClippedSubviews={true}  // Activar virtualización
+            maxToRenderPerBatch={5}       // Reducir batch size
+            windowSize={10}               // Ventana más pequeña
+            initialNumToRender={10}       // Menos elementos iniciales
+            updateCellsBatchingPeriod={50} // Reducir frecuencia de updates
+            getItemLayout={(data, index) => ({
+                length: 100, // Altura promedio estimada
+                offset: 100 * index,
+                index
+            })}
         />
     );
 };
