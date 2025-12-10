@@ -35,6 +35,7 @@ const Notificaciones = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [filterVisto, setFilterVisto] = useState(null);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
+  const [hasMoreNotifications, setHasMoreNotifications] = useState(true);
   const loadingRef = useRef(false);
   const currentFilterRef = useRef(null);
 
@@ -62,6 +63,11 @@ const Notificaciones = ({ navigation }) => {
         } else {
           setNotifications(response.rows || []);
         }
+
+        // Check if there are more notifications to load
+        if (response.rows.length < filters.Rows) {
+          setHasMoreNotifications(false);
+        }
       }
     } catch (error) {
       console.error('Error loading notifications:', error);
@@ -83,6 +89,11 @@ const Notificaciones = ({ navigation }) => {
       setInitialLoadDone(true);
     }
   }, [usuarioID, initialLoadDone, loadNotifications]);
+
+  // Reset hasMoreNotifications when filter changes
+  useEffect(() => {
+    setHasMoreNotifications(true);
+  }, [filterVisto]);
 
   useEffect(() => {
     if (usuarioID && initialLoadDone && !notificationsLoading && currentFilterRef.current !== filterVisto) {
@@ -442,6 +453,7 @@ const Notificaciones = ({ navigation }) => {
 
   const onRefresh = () => {
     setRefreshing(true);
+    setHasMoreNotifications(true);
     loadNotifications(1, false);
   };
 
@@ -497,7 +509,7 @@ const Notificaciones = ({ navigation }) => {
           />
         }
         onEndReached={() => {
-          if (!notificationsLoading && notifications.length > 0) {
+          if (!notificationsLoading && notifications.length > 0 && hasMoreNotifications) {
             const nextPage = Math.ceil(notifications.length / notificationFilters.Rows) + 1;
             loadNotifications(nextPage, true);
           }

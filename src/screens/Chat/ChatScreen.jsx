@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from "@expo/vector-icons";
-import { VideoView, ResizeMode } from "expo-video";
+import { Video } from "expo-av";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useChatStore } from "../../core/chatStore";
 import ChatApiService from "../../services/chat/chatService";
@@ -440,14 +440,14 @@ const ChatScreen = ({ route, navigation }) => {
             {currentVideo ? (
               <TouchableWithoutFeedback onPress={() => setShowVideoControls(!showVideoControls)}>
                 <View style={{ flex: 1, width: '100%', justifyContent: 'center' }}>
-                  <VideoView
-                    ref={videoRef}
-                    source={{ uri: currentVideo }}
-                    style={styles.fullScreenVideo}
-                    resizeMode={ResizeMode.CONTAIN}
-                    isPlaying={isPlaying}
-                    onPlaybackStatusUpdate={status => setVideoStatus(status)}
-                    onError={(error) => console.error('Video error:', error)}
+                  <Video
+                      ref={videoRef}
+                      source={{ uri: currentVideo }}
+                      style={styles.fullScreenVideo}
+                      resizeMode="contain"
+                      shouldPlay={isPlaying}
+                      onPlaybackStatusUpdate={status => setVideoStatus(status)}
+                      onError={(error) => console.error('Video error:', error)}
                   />
                   {showVideoControls && (
                     <View style={styles.videoOverlay}>
@@ -472,7 +472,7 @@ const ChatScreen = ({ route, navigation }) => {
                         }}
                       >
                         <Ionicons
-                          name={isPlaying ? "pause" : "play"}
+                          name={videoStatus.isPlaying ? "pause" : "play"}
                           size={50}
                           color="white"
                         />
@@ -488,8 +488,8 @@ const ChatScreen = ({ route, navigation }) => {
                           maximumValue={videoStatus.durationMillis || 1}
                           value={videoStatus.positionMillis || 0}
                           onSlidingComplete={async (value) => {
-                            await videoRef.current.seekTo(value);
-                          }}
+                              await videoRef.current.setPositionAsync(value);
+                            }}
                           minimumTrackTintColor="#25D366"
                           maximumTrackTintColor="rgba(255,255,255,0.5)"
                           thumbTintColor="#25D366"

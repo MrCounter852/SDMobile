@@ -77,7 +77,14 @@ class SignalRService {
         // Notificaciones push
         this.hubProxy.on('NotificacionPush', (data, isNew) => {
             console.log('[SignalR] NotificacionPush received:', { data, isNew });
-            // Aquí se podría disparar una notificación local o actualizar un store de notificaciones
+            // Actualizar store de notificaciones en tiempo real
+            const chatStore = require('./chatStore').default;
+            if (data && Array.isArray(data)) {
+                const currentNotifications = chatStore.getState().notifications;
+                // Agregar nuevas notificaciones al inicio
+                const updatedNotifications = [...data, ...currentNotifications];
+                chatStore.getState().setNotifications(updatedNotifications);
+            }
         });
 
         // Sincronización de opción de menú

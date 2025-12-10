@@ -31,6 +31,7 @@ export const useChatStore = create((set, get) => ({
   // Estado de notificaciones
   notifications: [],
   notificationsLoading: false,
+  hasMoreNotifications: true,
   notificationFilters: {
     Page: 1,
     Rows: 20,
@@ -123,6 +124,7 @@ export const useChatStore = create((set, get) => ({
         Visto: null,
         FullSearch: null,
       },
+      hasMoreNotifications: true,
     }),
 
   // Manejo de actualizaciones en tiempo real (SignalR)

@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { View, StyleSheet, TouchableOpacity, ActivityIndicator, Dimensions } from 'react-native';
-import { VideoView, ResizeMode } from "expo-video";
+import { View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Video } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 
 const VideoPlayer = ({ uri, onFullScreen }) => {
@@ -9,12 +9,18 @@ const VideoPlayer = ({ uri, onFullScreen }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [isPlaying, setIsPlaying] = useState(false);
 
-    const handlePlayPause = () => {
+    const handlePlayPause = async () => {
+        if (isPlaying) {
+            await videoRef.current.pauseAsync();
+        } else {
+            await videoRef.current.playAsync();
+        }
         setIsPlaying(!isPlaying);
     };
 
-    const handleFullScreen = () => {
+    const handleFullScreen = async () => {
         // Pausar el video del chat antes de abrir fullscreen
+        await videoRef.current.pauseAsync();
         setIsPlaying(false);
         if (onFullScreen) {
             onFullScreen(uri);
@@ -23,12 +29,13 @@ const VideoPlayer = ({ uri, onFullScreen }) => {
 
     return (
         <View style={styles.container}>
-            <VideoView
+            <Video
                 ref={videoRef}
                 source={{ uri }}
                 style={styles.video}
                 useNativeControls={false}
-                resizeMode={ResizeMode.COVER}
+                resizeMode="cover"
+                shouldPlay={false}
                 onPlaybackStatusUpdate={(status) => {
                     setStatus(status);
                     if (status.isLoaded && isLoading) {
