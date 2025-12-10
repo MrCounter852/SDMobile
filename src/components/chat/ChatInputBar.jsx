@@ -6,29 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const ChatInputBar = ({ onSend, placeholder = "Escribe un mensaje..." }) => {
     const [text, setText] = useState("");
     const insets = useSafeAreaInsets();
-    const [paddingBottom, setPaddingBottom] = useState(insets.bottom || 8);
+    const [paddingBottom, setPaddingBottom] = useState(60);
 
-    useEffect(() => {
-        // Inicializar padding
-        setPaddingBottom(insets.bottom || 8);
-
-        const keyboardWillShow = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-        const keyboardWillHide = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-
-        const showSubscription = Keyboard.addListener(keyboardWillShow, () => {
-            // Al mostrar teclado, eliminar el padding extra del safe area
-            setPaddingBottom(8);
-        });
-        const hideSubscription = Keyboard.addListener(keyboardWillHide, () => {
-            // Al ocultar, restaurar el padding del safe area
-            setPaddingBottom(insets.bottom || 8);
-        });
-
-        return () => {
-            showSubscription.remove();
-            hideSubscription.remove();
-        };
-    }, [insets.bottom]);
 
     const handleSend = () => {
         if (text.trim()) {
@@ -75,7 +54,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 8,
         paddingVertical: 8,
-        backgroundColor: "#fff",
+        backgroundColor: "#ffffff",
         borderTopWidth: 1,
         borderTopColor: "#e9ecef",
     },

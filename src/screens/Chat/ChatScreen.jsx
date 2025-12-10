@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -365,7 +365,7 @@ const ChatScreen = ({ route, navigation }) => {
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 30}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 90 : null}
         >
           <ChatMessageList
             messages={messages}
