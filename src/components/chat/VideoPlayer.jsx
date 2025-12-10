@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, StyleSheet, TouchableOpacity, ActivityIndicator, Dimensions } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { VideoView, ResizeMode } from "expo-video";
 import { Ionicons } from '@expo/vector-icons';
 
 const VideoPlayer = ({ uri, onFullScreen }) => {
@@ -30,7 +30,7 @@ const VideoPlayer = ({ uri, onFullScreen }) => {
 
     return (
         <View style={styles.container}>
-            <Video
+            <VideoView
                 ref={videoRef}
                 source={{ uri }}
                 style={styles.video}
