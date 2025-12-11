@@ -1,151 +1,147 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  Animated,
   Alert,
-  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
-import { useFocusEffect } from '@react-navigation/native';
+import { useAudioRecorder, AudioModule } from 'expo-audio'; // Importación nueva
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from "expo-linear-gradient";
+import Reanimated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withTiming, 
+  Easing 
+} from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
+// Componente para una sola barra usando Reanimated (mucho más rápido para 60fps)
+const SpectrumBar = ({ level }) => {
+  const animatedHeight = useSharedValue(5);
+
+  useEffect(() => {
+    // Animamos suavemente hacia el nuevo nivel
+    animatedHeight.value = withTiming(level * 30 + 5, {
+      duration: 100,
+      easing: Easing.linear,
+    });
+  }, [level]);
+
+  const style = useAnimatedStyle(() => {
+    return {
+      height: animatedHeight.value,
+      opacity: Math.max(0.5, level), // Más opacidad si es más alto
+    };
+  });
+
+  return <Reanimated.View style={[styles.spectrumBar, style]} />;
+};
+
 const AudioRecorder = ({ onSend, onCancel }) => {
   const insets = useSafeAreaInsets();
-  const [recording, setRecording] = useState(null);
-  const [recordingStatus, setRecordingStatus] = useState('idle');
   const [duration, setDuration] = useState(0);
-  const [audioLevels, setAudioLevels] = useState(new Array(25).fill(0.1));
-  const durationInterval = useRef(null);
-  const levelsInterval = useRef(null);
-  const animatedValues = useRef(audioLevels.map(() => new Animated.Value(0.1))).current;
+  // Usamos el hook nativo de expo-audio
+  const recorder = useAudioRecorder({
+    sampleRate: 44100,
+    encoding: 'aac',
+    bitRate: 128000,
+  });
 
+  const [audioLevels, setAudioLevels] = useState(new Array(30).fill(0));
+  const timerRef = useRef(null);
+  const analysisInterval = useRef(null);
+
+  // Pedir permisos al montar
   useEffect(() => {
-    return () => {
-      cleanup().then(() => setRecording(null));
-    };
+    (async () => {
+      const status = await AudioModule.requestRecordingPermissionsAsync();
+      if (!status.granted) {
+        Alert.alert('Permiso denegado', 'Se requiere acceso al micrófono');
+        onCancel();
+      }
+    })();
+    
+    // Limpieza al desmontar
+    return () => stopRecordingCleanup();
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        cleanup().then(() => setRecording(null));
-      };
-    }, [])
-  );
-
-  // Animar barras cada vez que cambia audioLevels
-  useEffect(() => {
-    audioLevels.forEach((level, index) => {
-      Animated.timing(animatedValues[index], {
-        toValue: Math.max(level, 0.05),
-        duration: 120,
-        useNativeDriver: false,
-      }).start();
-    });
-  }, [audioLevels]);
-
-  const cleanup = async () => {
-    try {
-      if (durationInterval.current) {
-        clearInterval(durationInterval.current);
-        durationInterval.current = null;
-      }
-      if (levelsInterval.current) {
-        clearInterval(levelsInterval.current);
-        levelsInterval.current = null;
-      }
-      if (recording) {
-        await recording.stopAndUnloadAsync();
-      }
-    } catch (error) {
-      try {
-        if (recording) {
-          await recording.unloadAsync();
-        }
-      } catch (e) {
-        console.error('Fallback cleanup error', e);
-      }
+  const stopRecordingCleanup = async () => {
+    if (recorder.isRecording) {
+      await recorder.stop();
     }
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (analysisInterval.current) clearInterval(analysisInterval.current);
   };
 
   const startRecording = async () => {
     try {
-      await cleanup();
-      const { granted } = await Audio.requestPermissionsAsync();
-      if (!granted) {
-        Alert.alert(
-          'Permisos requeridos',
-          'Necesitas permitir el acceso al micrófono para grabar audio.',
-          [{ text: 'OK', onPress: onCancel }]
-        );
+      // 1. Primero verificamos explícitamente el estado del permiso
+      let permission = await AudioModule.getRecordingPermissionsAsync();
+
+      // 2. Si nunca se ha preguntado (undetermined), los pedimos ahora
+      if (permission.status === 'undetermined') {
+        permission = await AudioModule.requestRecordingPermissionsAsync();
+      }
+
+      // 3. Si después de pedirlo sigue denegado, salimos
+      if (!permission.granted) {
+        Alert.alert('Permiso requerido', 'Se requiere acceso al micrófono para grabar notas de voz.');
+        onCancel(); // Cerramos el componente para evitar estados inconsistentes
         return;
       }
 
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-        shouldDuckAndroid: true,
-        playThroughEarpieceAndroid: false,
-      });
+      // 4. Limpieza preventiva por si había algo corriendo
+      await stopRecordingCleanup();
 
-      const { recording: newRecording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY,
-        onRecordingStatusUpdate,
-        100
-      );
-
-      setRecording(newRecording);
-      setRecordingStatus('recording');
+      // 5. Iniciamos la grabación (Ahora es seguro)
+      recorder.record();
+      
       setDuration(0);
 
-      durationInterval.current = setInterval(() => {
-        setDuration(prev => prev + 1);
+      // Iniciamos los timers visuales
+      timerRef.current = setInterval(() => {
+        setDuration((prev) => prev + 1);
       }, 1000);
 
-      // Simular niveles (en producción sustituir por mediciones reales)
-      levelsInterval.current = setInterval(() => {
-        setAudioLevels(prevLevels =>
-          prevLevels.map(() => Math.random() * 0.9 + 0.05)
-        );
+      analysisInterval.current = setInterval(() => {
+        // Lógica de simulación de ondas o lectura de metering
+        const simulatedLevel = Math.random() * 0.8 + 0.1; 
+        setAudioLevels(prev => [...prev.slice(1), simulatedLevel]);
       }, 100);
+
     } catch (error) {
-      console.error('Error starting recording:', error);
-      Alert.alert('Error', 'No se pudo iniciar la grabación de audio.');
+      console.error('Error al iniciar grabación:', error);
+      Alert.alert('Error', 'No se pudo iniciar el micrófono.');
       onCancel();
     }
   };
 
-  const onRecordingStatusUpdate = (status) => {
-    if (status.isRecording) {
-      setRecordingStatus('recording');
-    } else if (status.canRecord) {
-      setRecordingStatus('paused');
-    }
-  };
+  // El useEffect de inicio ahora es más simple, solo llama a la función robusta
+  useEffect(() => {
+    startRecording();
+    
+    // Cleanup al desmontar
+    return () => {
+      stopRecordingCleanup();
+    };
+  }, []);
+
+  // Iniciar automáticamente al montar (opcional, o llamar desde botón)
+  useEffect(() => {
+    startRecording();
+  }, []);
 
   const handleSend = async () => {
-    if (!recording) return;
-    try {
-      await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
-      if (uri && duration > 0) {
-        onSend(uri, duration);
-      } else {
-        Alert.alert('Error', 'La grabación está vacía.');
-      }
-    } catch (error) {
-      console.error('Error sending recording:', error);
-      Alert.alert('Error', 'No se pudo procesar la grabación.');
+    await stopRecordingCleanup();
+    // recorder.uri es la ruta del archivo
+    if (recorder.uri && duration > 0) {
+      onSend(recorder.uri, duration);
     }
   };
 
   const handleCancel = async () => {
-    await cleanup();
-    setRecording(null);
+    await stopRecordingCleanup();
     onCancel();
   };
 
@@ -157,38 +153,27 @@ const AudioRecorder = ({ onSend, onCancel }) => {
 
   return (
     <View style={{ ...styles.wrapper, paddingBottom: insets.bottom + 10 }}>
-      {/* Burbuja izquierda: indicador + espectro (estilo WhatsApp) */}
+      {/* Burbuja izquierda */}
       <View style={styles.leftBubble}>
         <View style={styles.leftTopRow}>
           <View style={styles.recordingIndicator}>
-            <View style={[styles.recordingDot, recordingStatus === 'recording' && styles.recordingDotActive]} />
+            <View style={[styles.recordingDot, styles.recordingDotActive]} />
             <Text style={styles.recordingText}>Grabando...</Text>
           </View>
           <Text style={styles.durationText}>{formatDuration(duration)}</Text>
         </View>
 
+        {/* Visualizador de Espectro */}
         <View style={styles.spectrumRow}>
           <View style={styles.spectrumContainer}>
-            {animatedValues.map((animatedValue, index) => (
-              <Animated.View
-                key={index}
-                style={[
-                  styles.spectrumBar,
-                  {
-                    height: animatedValue.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [6, 36],
-                    }),
-                    backgroundColor: '#25D366',
-                  },
-                ]}
-              />
+            {audioLevels.map((level, index) => (
+              <SpectrumBar key={index} level={level} />
             ))}
           </View>
         </View>
       </View>
 
-      {/* Controles a la derecha: cancelar + enviar */}
+      {/* Controles */}
       <View style={styles.controlsContainer}>
         <TouchableOpacity
           style={[styles.smallCircleButton, styles.cancelButton]}
@@ -196,16 +181,18 @@ const AudioRecorder = ({ onSend, onCancel }) => {
         >
           <Ionicons name="close" size={20} color="white" />
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.bigCircleButton,
-            duration === 0 ? styles.bigButtonDisabled : styles.sendButton
-          ]}
-          onPress={handleSend}
-          disabled={duration === 0}
+        <LinearGradient
+                colors={["#337ab7", "#88E782"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+          style={[styles.bigCircleButton]}
         >
-          <Ionicons name="checkmark" size={28} color="white" />
+          <TouchableOpacity
+            onPress={handleSend}
+          >
+            <Ionicons name="send" size={24} color="white" />
         </TouchableOpacity>
+        </LinearGradient>
       </View>
     </View>
   );
@@ -220,123 +207,52 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#e9ecef',
-    minHeight: 86,
   },
-
-  // Burbuja izquierda (similar a mensaje grabando en whatsapp)
   leftBubble: {
     flex: 1,
-    backgroundColor: '#f0f3f1', // fondo tipo burbuja gris-claro
+    backgroundColor: '#f0f3f1',
     borderRadius: 22,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    padding: 12,
     marginRight: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 2,
-    elevation: 1,
   },
   leftTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    marginBottom: 8,
   },
-
-  recordingIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  recordingDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#8b8b8b',
-    marginRight: 8,
-  },
-  recordingDotActive: {
-    backgroundColor: '#ff3b30', // rojo vivo
-  },
-  recordingText: {
-    color: '#444',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-
-  durationText: {
-    color: '#444',
-    fontSize: 14,
-    fontWeight: '700',
-    fontVariant: ['tabular-nums'],
-  },
-
-  spectrumRow: {
-    //marginTop: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-
-  spectrumContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    height: 40,
-    flex: 0,
-    marginRight: 12,
+  recordingIndicator: { flexDirection: 'row', alignItems: 'center' },
+  recordingDot: { width: 8, height: 8, borderRadius: 4, marginRight: 8, backgroundColor: '#ccc' },
+  recordingDotActive: { backgroundColor: '#ff3b30' },
+  recordingText: { color: '#444', fontWeight: '600' },
+  durationText: { fontWeight: '700', color: '#444' },
+  
+  spectrumRow: { alignItems: 'center', justifyContent: 'center' },
+  spectrumContainer: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    height: 40, 
+    overflow: 'hidden' 
   },
   spectrumBar: {
-    width: 3,
+    width: 4,
     marginHorizontal: 1,
     borderRadius: 2,
-    backgroundColor: '#0b2113ff',
-  },
-
-  slideCancelText: {
-    color: '#6b6b6b',
-    fontSize: 12,
-    alignSelf: 'center',
-  },
-
-  // Controles estilo WhatsApp a la derecha
-  controlsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-
-  smallCircleButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 42 / 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  cancelButton: {
-    backgroundColor: '#ff4444',
-  },
-
-  bigCircleButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 56 / 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.18,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  sendButton: {
     backgroundColor: '#25D366',
   },
-  bigButtonDisabled: {
-    backgroundColor: '#bfeccf', // versión deshabilitada del verde
+
+  controlsContainer: { flexDirection: 'row', alignItems: 'center' },
+  smallCircleButton: {
+    width: 40, height: 40, borderRadius: 20,
+    justifyContent: 'center', alignItems: 'center', marginRight: 10,
+    shadowColor: '#000', elevation: 2,
   },
+  cancelButton: { backgroundColor: '#ff4444' },
+  bigCircleButton: {
+    width: 50, height: 50, borderRadius: 25,
+    justifyContent: 'center', alignItems: 'center',
+    shadowColor: '#000', elevation: 4,
+  },
+  sendButton: { backgroundColor: '#25D366' },
 });
 
 export default AudioRecorder;
