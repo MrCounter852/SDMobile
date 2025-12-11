@@ -46,7 +46,7 @@ const ChatScreen = ({ route, navigation }) => {
       [contact.CuentaMensajeriaContactoID]
     )
   ) || [];
-  const { user } = useGlobal();
+  const { user, cdnEndPoint, cdnLlavePublica, cdnLlavePrivada } = useGlobal();
 
   const [refreshing, setRefreshing] = useState(false);
   const [imageViewerVisible, setImageViewerVisible] = useState(false);
@@ -497,20 +497,38 @@ const ChatScreen = ({ route, navigation }) => {
       // Upload audio to CDN
       const uploadResult = await ChatApiService.subirArchivoAlCDN({
         uri: audioUri,
-        type: 'audio/m4a',
-        name: `audio_${Date.now()}.m4a`
+        type: 'audio/mpeg',
+        name: `audio_${Date.now()}.mp3`
       });
-      const commitResult = await ChatApiService.commitArchivoCDN(uploadResult.FileID, 'audio');
+      console.log('Upload result:', uploadResult);
+
+      // Format file object like web version
+      const file = {
+        TipoMensaje: 'audio',
+        FileURL: "cdn://" + uploadResult.CodigoUnico,
+        FileName: `audio_${Date.now()}.mp3`,
+        FileMime: 'audio/mpeg',
+        HttpUrl: `${cdnEndPoint}/api/Files/GetFile?PublicKey=${cdnLlavePublica}&UniqueID=${uploadResult.CodigoUnico}&Disposition=Inline`
+      };
+      console.log('File object:', file);
 
       // Send message via API
       await ChatApiService.enviarMensaje({
         CuentaMensajeriaID: contact.CuentaMensajeriaID,
         CuentaMensajeriaContactoID: contact.CuentaMensajeriaContactoID,
-        Mensaje: '',
-        Files: [commitResult],
+        Mensaje: null, // No enviar mensaje vacío como caption para audio
+        Files: [file],
         TipoMensaje: 'audio',
         Token: user?.Token,
       });
+
+      // Commit file after sending message
+      try {
+        await ChatApiService.commitArchivoCDN([{ CodigoUnico: uploadResult.CodigoUnico }]);
+        console.log('File committed successfully');
+      } catch (commitError) {
+        console.error('Error committing file:', commitError);
+      }
     } catch (error) {
       console.error("Error sending audio:", error);
       Alert.alert("Error", "No se pudo enviar el audio");

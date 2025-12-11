@@ -237,53 +237,91 @@ class ChatApiService {
   // Subir archivo al CDN
   async subirArchivoAlCDN(fileData) {
     const cdnUrl = `${this.global.user?.CDNEndPoint || ''}/api/Files/UploadFile/`;
-    const formData = new FormData();
 
-    // Configurar FormData según la estructura esperada
-    formData.append('file', {
-      uri: fileData.uri,
-      type: fileData.type,
-      name: fileData.name,
-    });
+    // Leer archivo como base64
+    const base64 = await FileSystem.readAsStringAsync(fileData.uri, { encoding: FileSystem.EncodingType.Base64 });
+
+    // Convertir base64 a byte array
+    const byteArray = this.base64ToByteArray(base64);
+
+    const payload = {
+      Files: [{
+        FileContent: Array.from(byteArray),
+        FileName: fileData.name
+      }],
+      PrivateKey: this.global.user?.CDNLlavePrivada || ''
+    };
 
     const response = await fetch(cdnUrl, {
       method: 'POST',
       headers: {
-        'PrivateKey': this.global.user?.CDNLlavePrivada || '',
-        'PublicKey': this.global.user?.CDNLlavePublica || '',
+        'Content-Type': 'application/json',
       },
-      body: formData,
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Upload failed:', response.status, errorText);
       throw new Error(`Upload failed: ${response.status}`);
     }
 
-    return response.json();
+    const result = await response.json();
+    console.log('CDN upload success:', result);
+    return result;
+  }
+
+  // Convertir base64 a byte array
+  base64ToByteArray(base64) {
+    const binaryString = atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes;
   }
 
   // Commit archivo en CDN
   async commitArchivoCDN(archivos) {
     const cdnUrl = `${this.global.user?.CDNEndPoint || ''}/api/Files/CommitFile/`;
-    return this.makeRequest(cdnUrl, {
+    const response = await fetch(cdnUrl, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         Files: archivos,
         PrivateKey: this.global.user?.CDNLlavePrivada,
       }),
     });
+
+    if (!response.ok) {
+      throw new Error(`Commit failed: ${response.status}`);
+    }
+
+    return response.json();
   }
 
   // Eliminar archivo del CDN
   async eliminarArchivoCDN(archivos) {
     const cdnUrl = `${this.global.user?.CDNEndPoint || ''}/api/Files/DeleteFile/`;
-    return this.makeRequest(cdnUrl, {
+    const response = await fetch(cdnUrl, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         Files: archivos,
         PrivateKey: this.global.user?.CDNLlavePrivada,
       }),
     });
+
+    if (!response.ok) {
+      throw new Error(`Delete failed: ${response.status}`);
+    }
+
+    return response.json();
   }
 
   // Constants for Cache Manager
