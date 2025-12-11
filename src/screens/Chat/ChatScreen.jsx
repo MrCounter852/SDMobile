@@ -479,7 +479,6 @@ const ChatScreen = ({ route, navigation }) => {
 
   const handleSendAudio = async (audioUri, duration) => {
     setShowAudioRecorder(false);
-    setSendingMessage(true);
 
     // Create optimistic message
     const optimisticMessage = {
@@ -538,8 +537,6 @@ const ChatScreen = ({ route, navigation }) => {
     } catch (error) {
       console.error("Error sending audio:", error);
       Alert.alert("Error", "No se pudo enviar el audio");
-    } finally {
-      setSendingMessage(false);
     }
   };
 
