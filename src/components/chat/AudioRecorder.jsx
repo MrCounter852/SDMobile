@@ -5,9 +5,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useAudioRecorder, AudioModule } from 'expo-audio'; // Importación nueva
+import { Audio } from 'expo-av'; // Volvemos a la librería estable
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Reanimated, { 
   useSharedValue, 
@@ -16,14 +17,15 @@ import Reanimated, {
   Easing 
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-// Componente para una sola barra usando Reanimated (mucho más rápido para 60fps)
+
+// Componente de barra individual optimizado
 const SpectrumBar = ({ level }) => {
   const animatedHeight = useSharedValue(5);
 
   useEffect(() => {
-    // Animamos suavemente hacia el nuevo nivel
-    animatedHeight.value = withTiming(level * 30 + 5, {
-      duration: 100,
+    // Animación suave basada en el nivel de volumen (0 a 1)
+    animatedHeight.value = withTiming(Math.max(5, level * 35), { 
+      duration: 100, // Debe coincidir con el intervalo de actualización
       easing: Easing.linear,
     });
   }, [level]);
@@ -31,7 +33,8 @@ const SpectrumBar = ({ level }) => {
   const style = useAnimatedStyle(() => {
     return {
       height: animatedHeight.value,
-      opacity: Math.max(0.5, level), // Más opacidad si es más alto
+      // Opacidad variable para efecto visual más bonito
+      opacity: 0.5 + (level * 0.5), 
     };
   });
 
@@ -40,75 +43,83 @@ const SpectrumBar = ({ level }) => {
 
 const AudioRecorder = ({ onSend, onCancel }) => {
   const insets = useSafeAreaInsets();
+  const [recording, setRecording] = useState(null);
   const [duration, setDuration] = useState(0);
-  // Usamos el hook nativo de expo-audio
-  const recorder = useAudioRecorder({
-    sampleRate: 44100,
-    encoding: 'aac',
-    bitRate: 128000,
-  });
-
+  
+  // Estado para las barras visuales (Array de 30 barras)
   const [audioLevels, setAudioLevels] = useState(new Array(30).fill(0));
+  
   const timerRef = useRef(null);
-  const analysisInterval = useRef(null);
 
-  // Pedir permisos al montar
   useEffect(() => {
-    (async () => {
-      const status = await AudioModule.requestRecordingPermissionsAsync();
-      if (!status.granted) {
-        Alert.alert('Permiso denegado', 'Se requiere acceso al micrófono');
-        onCancel();
-      }
-    })();
-    
     // Limpieza al desmontar
-    return () => stopRecordingCleanup();
+    return () => {
+      stopRecordingCleanup();
+    };
   }, []);
 
-  const stopRecordingCleanup = async () => {
-    if (recorder.isRecording) {
-      await recorder.stop();
-    }
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (analysisInterval.current) clearInterval(analysisInterval.current);
-  };
-
+  // Función principal de inicio
   const startRecording = async () => {
     try {
-      // 1. Primero verificamos explícitamente el estado del permiso
-      let permission = await AudioModule.getRecordingPermissionsAsync();
-
-      // 2. Si nunca se ha preguntado (undetermined), los pedimos ahora
-      if (permission.status === 'undetermined') {
-        permission = await AudioModule.requestRecordingPermissionsAsync();
-      }
-
-      // 3. Si después de pedirlo sigue denegado, salimos
+      // 1. Permisos
+      const permission = await Audio.requestPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert('Permiso requerido', 'Se requiere acceso al micrófono para grabar notas de voz.');
-        onCancel(); // Cerramos el componente para evitar estados inconsistentes
+        Alert.alert('Permiso requerido', 'Necesitamos acceso al micrófono.');
+        onCancel();
         return;
       }
 
-      // 4. Limpieza preventiva por si había algo corriendo
-      await stopRecordingCleanup();
+      // 2. Configuración de Audio para evitar conflictos en Android
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
+        staysActiveInBackground: false,
+      });
 
-      // 5. Iniciamos la grabación (Ahora es seguro)
-      recorder.record();
-      
+      // 3. Crear instancia de grabación con Metering activado
+      const { recording: newRecording } = await Audio.Recording.createAsync(
+        {
+          ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
+          isMeteringEnabled: true, // ¡IMPORTANTE! Esto activa la lectura de volumen real
+          android: {
+            ...Audio.RecordingOptionsPresets.HIGH_QUALITY.android,
+            extension: '.m4a',
+            outputFormat: Audio.AndroidOutputFormat.MPEG_4,
+            audioEncoder: Audio.AndroidAudioEncoder.AAC,
+          },
+          ios: {
+            ...Audio.RecordingOptionsPresets.HIGH_QUALITY.ios,
+            extension: '.m4a',
+          }
+        },
+        (status) => {
+          // Callback que se ejecuta cada vez que hay datos (aprox 50-100ms)
+          if (status.isRecording && status.metering !== undefined) {
+            // Normalizar dB (-160 a 0) a rango lineal (0 a 1)
+            // Filtramos ruido de fondo por debajo de -60dB
+            const minDb = -60;
+            const db = Math.max(status.metering, minDb);
+            const level = (db - minDb) / (0 - minDb); // Resultado entre 0 y 1
+
+            // Actualizamos el array de niveles (Efecto de desplazamiento)
+            setAudioLevels(prev => {
+              const newLevels = [...prev.slice(1), level];
+              return newLevels;
+            });
+          }
+        },
+        100 // Intervalo de actualización en ms
+      );
+
+      setRecording(newRecording);
       setDuration(0);
 
-      // Iniciamos los timers visuales
+      // Timer solo para el contador de segundos
       timerRef.current = setInterval(() => {
-        setDuration((prev) => prev + 1);
+        setDuration(prev => prev + 1);
       }, 1000);
-
-      analysisInterval.current = setInterval(() => {
-        // Lógica de simulación de ondas o lectura de metering
-        const simulatedLevel = Math.random() * 0.8 + 0.1; 
-        setAudioLevels(prev => [...prev.slice(1), simulatedLevel]);
-      }, 100);
 
     } catch (error) {
       console.error('Error al iniciar grabación:', error);
@@ -117,31 +128,54 @@ const AudioRecorder = ({ onSend, onCancel }) => {
     }
   };
 
-  // El useEffect de inicio ahora es más simple, solo llama a la función robusta
+  // Iniciar automáticamente al montar
   useEffect(() => {
     startRecording();
-    
-    // Cleanup al desmontar
-    return () => {
-      stopRecordingCleanup();
-    };
   }, []);
 
-  // Iniciar automáticamente al montar (opcional, o llamar desde botón)
-  useEffect(() => {
-    startRecording();
-  }, []);
+  const stopRecordingCleanup = async () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    try {
+      if (recording) {
+        // Importante: detener y descargar para liberar memoria
+        await recording.stopAndUnloadAsync(); 
+      }
+    } catch (e) {
+      // Ignorar errores si ya estaba descargado
+    }
+  };
 
   const handleSend = async () => {
-    await stopRecordingCleanup();
-    // recorder.uri es la ruta del archivo
-    if (recorder.uri && duration > 0) {
-      onSend(recorder.uri, duration);
+    try {
+      if (timerRef.current) clearInterval(timerRef.current);
+
+      if (!recording) return;
+
+      // Detener grabación
+      await recording.stopAndUnloadAsync();
+      
+      const uri = recording.getURI();
+      const finalDuration = Math.max(1, duration); // Mínimo 1 segundo
+
+      if (uri) {
+        console.log("Audio grabado exitosamente:", uri);
+        onSend(uri, finalDuration);
+      } else {
+        Alert.alert('Error', 'No se generó el archivo de audio.');
+      }
+      
+      // Limpiamos estado local
+      setRecording(null);
+
+    } catch (error) {
+      console.error('Error enviando audio:', error);
+      Alert.alert('Error', 'Hubo un problema al procesar el audio.');
     }
   };
 
   const handleCancel = async () => {
     await stopRecordingCleanup();
+    setRecording(null);
     onCancel();
   };
 
@@ -153,7 +187,7 @@ const AudioRecorder = ({ onSend, onCancel }) => {
 
   return (
     <View style={{ ...styles.wrapper, paddingBottom: insets.bottom + 10 }}>
-      {/* Burbuja izquierda */}
+      {/* Burbuja Izquierda */}
       <View style={styles.leftBubble}>
         <View style={styles.leftTopRow}>
           <View style={styles.recordingIndicator}>
@@ -163,7 +197,7 @@ const AudioRecorder = ({ onSend, onCancel }) => {
           <Text style={styles.durationText}>{formatDuration(duration)}</Text>
         </View>
 
-        {/* Visualizador de Espectro */}
+        {/* Visualizador de Espectro (Ahora sí responde a la voz real) */}
         <View style={styles.spectrumRow}>
           <View style={styles.spectrumContainer}>
             {audioLevels.map((level, index) => (
@@ -173,25 +207,27 @@ const AudioRecorder = ({ onSend, onCancel }) => {
         </View>
       </View>
 
-      {/* Controles */}
+      {/* Controles Derecha */}
       <View style={styles.controlsContainer}>
         <TouchableOpacity
           style={[styles.smallCircleButton, styles.cancelButton]}
           onPress={handleCancel}
         >
-          <Ionicons name="close" size={20} color="white" />
+          <Ionicons name="trash" size={20} color="white" />
         </TouchableOpacity>
+        
         <LinearGradient
-                colors={["#337ab7", "#88E782"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-          style={[styles.bigCircleButton]}
+            colors={["#337ab7", "#88E782"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.bigCircleButton]}
         >
           <TouchableOpacity
+            style={styles.fullButtonTouch}
             onPress={handleSend}
           >
             <Ionicons name="send" size={24} color="white" />
-        </TouchableOpacity>
+          </TouchableOpacity>
         </LinearGradient>
       </View>
     </View>
@@ -224,7 +260,7 @@ const styles = StyleSheet.create({
   recordingDot: { width: 8, height: 8, borderRadius: 4, marginRight: 8, backgroundColor: '#ccc' },
   recordingDotActive: { backgroundColor: '#ff3b30' },
   recordingText: { color: '#444', fontWeight: '600' },
-  durationText: { fontWeight: '700', color: '#444' },
+  durationText: { fontWeight: '700', color: '#444', fontVariant: ['tabular-nums'] },
   
   spectrumRow: { alignItems: 'center', justifyContent: 'center' },
   spectrumContainer: { 
@@ -249,10 +285,15 @@ const styles = StyleSheet.create({
   cancelButton: { backgroundColor: '#ff4444' },
   bigCircleButton: {
     width: 50, height: 50, borderRadius: 25,
-    justifyContent: 'center', alignItems: 'center',
     shadowColor: '#000', elevation: 4,
+    overflow: 'hidden', 
   },
-  sendButton: { backgroundColor: '#25D366' },
+  fullButtonTouch: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  }
 });
 
 export default AudioRecorder;

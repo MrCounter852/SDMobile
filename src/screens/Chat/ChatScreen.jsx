@@ -464,6 +464,61 @@ const ChatScreen = ({ route, navigation }) => {
     setShowAudioRecorder(false);
   };
 
+  const handleSendAudio = async (audioUri, duration) => {
+    setShowAudioRecorder(false);
+    setSendingMessage(true);
+
+    // Create optimistic message
+    const optimisticMessage = {
+      _id: `temp-audio-${Date.now()}`,
+      createdAt: new Date(),
+      user: {
+        _id: 1,
+        name: user?.NombreCompleto,
+      },
+      status: "pending",
+      pending: true,
+      sent: false,
+      delivered: false,
+      read: false,
+      isIncoming: false,
+      pendingMedia: {
+        type: 'audio',
+        localUri: audioUri,
+        duration: duration
+      }
+    };
+
+    // Add optimistic message to the beginning (since inverted list)
+    const updatedMessages = [optimisticMessage, ...messages];
+    setMessages(contact.CuentaMensajeriaContactoID, updatedMessages);
+
+    try {
+      // Upload audio to CDN
+      const uploadResult = await ChatApiService.subirArchivoAlCDN({
+        uri: audioUri,
+        type: 'audio/m4a',
+        name: `audio_${Date.now()}.m4a`
+      });
+      const commitResult = await ChatApiService.commitArchivoCDN(uploadResult.FileID, 'audio');
+
+      // Send message via API
+      await ChatApiService.enviarMensaje({
+        CuentaMensajeriaID: contact.CuentaMensajeriaID,
+        CuentaMensajeriaContactoID: contact.CuentaMensajeriaContactoID,
+        Mensaje: '',
+        Files: [commitResult],
+        TipoMensaje: 'audio',
+        Token: user?.Token,
+      });
+    } catch (error) {
+      console.error("Error sending audio:", error);
+      Alert.alert("Error", "No se pudo enviar el audio");
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
   if (messagesLoading && messages.length === 0) {
     return (
       <View style={styles.loadingContainer}>
@@ -493,7 +548,7 @@ const ChatScreen = ({ route, navigation }) => {
 
           {showAudioRecorder ? (
             <AudioRecorder
-              onSend={handleCancelRecording}
+              onSend={handleSendAudio}
               onCancel={handleCancelRecording}
             />
           ) : (
