@@ -3,7 +3,7 @@ import { View, TextInput, StyleSheet, TouchableOpacity, Platform, Keyboard } fro
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-const ChatInputBar = ({ onSend, onStartRecording, placeholder = "Escribe un mensaje..." }) => {
+const ChatInputBar = ({ onSend, onStartRecording, placeholder = "Escribe un mensaje...", onAttachFile }) => {
     const [text, setText] = useState("");
     const insets = useSafeAreaInsets();
     const [paddingBottom, setPaddingBottom] = useState(60);
@@ -35,6 +35,16 @@ const ChatInputBar = ({ onSend, onStartRecording, placeholder = "Escribe un mens
                     multiline
                     maxLength={1000}
                 />
+                <TouchableOpacity
+                    onPress={onAttachFile}
+                    style={styles.attachButton}
+                >
+                    <Ionicons
+                        name="attach-outline"
+                        size={25}
+                        color="#999"
+                    />
+                </TouchableOpacity>
             </View>
 
             <LinearGradient
@@ -72,6 +82,7 @@ const styles = StyleSheet.create({
     inputContainer: {
         flex: 1,
         marginRight: 8,
+        position: "relative",
     },
     textInput: {
         backgroundColor: "#f8f9fa",
@@ -80,6 +91,7 @@ const styles = StyleSheet.create({
         borderColor: "#ced4da",
         paddingHorizontal: 16,
         paddingVertical: 8,
+        paddingRight: 40,
         fontSize: 16,
         maxHeight: 100,
     },
@@ -90,6 +102,15 @@ const styles = StyleSheet.create({
     sendButtonTouchable: {
         justifyContent: "center",
         alignItems: "center",
+    },
+    attachButton: {
+        position: "absolute",
+        right: 10,
+        top: 0,
+        bottom: 0,
+        justifyContent: "center",
+        alignItems: "center",
+        padding: 5,
     },
 });
 
