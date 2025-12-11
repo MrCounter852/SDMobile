@@ -74,6 +74,8 @@ const ChatScreen = ({ route, navigation }) => {
 
     setSelectedContact(contact);
     loadMessages();
+    // Confirmar lectura de mensajes si hay mensajes sin leer
+    confirmarLecturaMensajes();
 
     // Keyboard listeners for Android navigation bar adjustment
     const keyboardShowListener = Keyboard.addListener('keyboardDidShow', () => {
@@ -143,6 +145,22 @@ const ChatScreen = ({ route, navigation }) => {
 
       // Load only what is still pending
       loadPendingMedia(mergedMessages);
+
+      // 5. Confirmar lectura de mensajes si hay mensajes sin leer
+      const mensajesSinLeer = mergedMessages.filter(msg =>
+        msg.user._id === 2 && !msg.read
+      );
+      if (mensajesSinLeer.length > 0) {
+        try {
+          await ChatApiService.confirmarLectura({
+            CuentaMensajeriaContactoID: contact.CuentaMensajeriaContactoID,
+            CuentaMensajeriaID: contact.CuentaMensajeriaID,
+            Token: user?.Token
+          });
+        } catch (error) {
+          console.error('Error confirmando lectura de mensajes:', error);
+        }
+      }
     } catch (error) {
       console.error("Error loading messages:", error);
       // Solo mostrar alerta si no tenemos mensajes mostrados
@@ -339,6 +357,30 @@ const ChatScreen = ({ route, navigation }) => {
         m._id === message._id ? { ...m, downloading: false } : m
       );
       setMessages(contact.CuentaMensajeriaContactoID, reverted);
+    }
+  };
+
+  const confirmarLecturaMensajes = async () => {
+    try {
+      // Contar mensajes sin leer (mensajes entrantes no leídos)
+      const mensajesSinLeer = messages.filter(msg =>
+        msg.user._id === 2 && !msg.read
+      );
+
+      if (mensajesSinLeer.length > 0) {
+        // Llamar al API para confirmar lectura
+        await ChatApiService.confirmarLectura({
+          CuentaMensajeriaContactoID: contact.CuentaMensajeriaContactoID,
+          CuentaMensajeriaID: contact.CuentaMensajeriaID,
+          Token: user?.Token
+        });
+
+        // Opcional: Actualizar el estado local para marcar mensajes como leídos
+        // Esto se puede hacer también vía SignalR cuando llegue la actualización
+        console.log(`Confirmada lectura de ${mensajesSinLeer.length} mensajes`);
+      }
+    } catch (error) {
+      console.error('Error confirmando lectura de mensajes:', error);
     }
   };
 

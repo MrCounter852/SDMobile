@@ -277,6 +277,28 @@ export const useChatStore = create((set, get) => ({
         });
 
         newChats[contactId] = updatedContactMessages;
+
+        // Confirmar lectura automáticamente si el usuario está viendo este chat
+        if (updatedSelectedContact &&
+            updatedSelectedContact.CuentaMensajeriaContactoID == contactId &&
+            formattedNewMessages.some(msg => msg.isIncoming && !msg.read)) {
+
+          // Importar dinámicamente para evitar problemas de dependencias circulares
+          const ChatApiService = require('../services/chat/chatService').default;
+
+          // Confirmar lectura en segundo plano
+          setTimeout(async () => {
+            try {
+              await ChatApiService.confirmarLectura({
+                CuentaMensajeriaContactoID: contactId,
+                CuentaMensajeriaID: updatedSelectedContact.CuentaMensajeriaID,
+                Token: state.user?.Token
+              });
+            } catch (error) {
+              console.error('Error confirmando lectura automática:', error);
+            }
+          }, 100); // Pequeño delay para asegurar que la UI se actualice primero
+        }
       }
     }
 
