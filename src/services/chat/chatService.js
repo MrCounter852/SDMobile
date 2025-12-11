@@ -297,7 +297,9 @@ class ChatApiService {
     });
 
     if (!response.ok) {
-      throw new Error(`Commit failed: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Commit failed with body:', errorText);
+      throw new Error(`Commit failed: ${response.status} - ${errorText}`);
     }
 
     return response.json();

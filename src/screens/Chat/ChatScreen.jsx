@@ -497,41 +497,31 @@ const ChatScreen = ({ route, navigation }) => {
       // Upload audio to CDN
       const uploadResult = await ChatApiService.subirArchivoAlCDN({
         uri: audioUri,
-        type: 'audio/mpeg',
-        name: `audio_${Date.now()}.mp3`
+        type: 'audio/mp4',
+        name: `audio_${Date.now()}.m4a`
       });
-      console.log('Upload result:', uploadResult);
 
       const codigoUnico = uploadResult.data[0].CodigoUnico;
-      console.log('CodigoUnico:', codigoUnico);
 
       // Format file object like web version
       const file = {
         TipoMensaje: 'audio',
         FileURL: "cdn://" + codigoUnico,
-        FileName: `audio_${Date.now()}.mp3`,
-        FileMime: 'audio/mpeg',
+        FileName: `audio_${Date.now()}.m4a`,
+        FileMime: 'audio/mp4',
         HttpUrl: `${cdnEndPoint}/api/Files/GetFile?PublicKey=${cdnLlavePublica}&UniqueID=${codigoUnico}&Disposition=Inline`
       };
-      console.log('File object:', file);
 
       // Send message via API
       await ChatApiService.enviarMensaje({
         CuentaMensajeriaID: contact.CuentaMensajeriaID,
         CuentaMensajeriaContactoID: contact.CuentaMensajeriaContactoID,
-        Mensaje: null, // No enviar mensaje vacío como caption para audio
+        Mensaje: null,
         Files: [file],
         TipoMensaje: 'audio',
         Token: user?.Token,
       });
 
-      // Commit file after sending message
-      try {
-        await ChatApiService.commitArchivoCDN([{ CodigoUnico: codigoUnico }]);
-        console.log('File committed successfully');
-      } catch (commitError) {
-        console.error('Error committing file:', commitError);
-      }
     } catch (error) {
       console.error("Error sending audio:", error);
       Alert.alert("Error", "No se pudo enviar el audio");
