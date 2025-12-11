@@ -15,6 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from "@expo/vector-icons";
 import { Video } from "expo-av";
+import * as DocumentPicker from 'expo-document-picker';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useChatStore } from "../../core/chatStore";
 import ChatApiService from "../../services/chat/chatService";
@@ -540,6 +541,98 @@ const ChatScreen = ({ route, navigation }) => {
     }
   };
 
+  const handleAttachFile = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: '*/*',
+        multiple: true,
+      });
+
+      if (result.canceled) return;
+
+      for (const file of result.assets) {
+        // Create optimistic message
+        const optimisticMessage = {
+          _id: `temp-file-${Date.now()}-${Math.random()}`,
+          createdAt: new Date(),
+          user: {
+            _id: 1,
+            name: user?.NombreCompleto,
+          },
+          status: "pending",
+          pending: true,
+          sent: false,
+          delivered: false,
+          read: false,
+          isIncoming: false,
+          pendingMedia: {
+            type: 'file',
+            localUri: file.uri,
+            name: file.name,
+            mimeType: file.mimeType,
+          }
+        };
+
+        // Add optimistic message
+        const updatedMessages = [optimisticMessage, ...messages];
+        setMessages(contact.CuentaMensajeriaContactoID, updatedMessages);
+
+        try {
+          // Upload file to CDN
+          const uploadResult = await ChatApiService.subirArchivoAlCDN({
+            uri: file.uri,
+            type: file.mimeType,
+            name: file.name
+          });
+
+          const codigoUnico = uploadResult.data[0].CodigoUnico;
+
+          // Determine TipoMensaje
+          const tipoMensaje = getTipoMensaje(file.mimeType);
+
+          // Format file object
+          const fileObj = {
+            TipoMensaje: tipoMensaje,
+            FileURL: "cdn://" + codigoUnico,
+            FileName: file.name,
+            FileMime: file.mimeType,
+            HttpUrl: `${cdnEndPoint}/api/Files/GetFile?PublicKey=${cdnLlavePublica}&UniqueID=${codigoUnico}&Disposition=Inline`
+          };
+
+          // Send message via API
+          await ChatApiService.enviarMensaje({
+            CuentaMensajeriaID: contact.CuentaMensajeriaID,
+            CuentaMensajeriaContactoID: contact.CuentaMensajeriaContactoID,
+            Mensaje: null,
+            Files: [fileObj],
+            TipoMensaje: tipoMensaje,
+            Token: user?.Token,
+          });
+
+        } catch (error) {
+          console.error("Error sending file:", error);
+          Alert.alert("Error", "No se pudo enviar el archivo");
+          // Remove optimistic message on error
+          const filteredMessages = messages.filter(m => m._id !== optimisticMessage._id);
+          setMessages(contact.CuentaMensajeriaContactoID, filteredMessages);
+        }
+      }
+    } catch (error) {
+      console.error("Error picking document:", error);
+      Alert.alert("Error", "No se pudo seleccionar el archivo");
+    }
+  };
+
+  const getTipoMensaje = (mimeType) => {
+    if (!mimeType) return null;
+    const ext = mimeType.split('/')[1]?.toLowerCase();
+    if (['pdf', 'docx', 'doc', 'xlsx', 'xls', 'xml', 'zip', '7z', 'rar'].includes(ext)) return "document";
+    if (['png', 'jpg', 'gif', 'jpeg', 'webp'].includes(ext)) return "image";
+    if (ext === 'mp4') return "video";
+    if (ext === 'mp3') return "audio";
+    return null;
+  };
+
   if (messagesLoading && messages.length === 0) {
     return (
       <View style={styles.loadingContainer}>
@@ -576,6 +669,7 @@ const ChatScreen = ({ route, navigation }) => {
             <ChatInputBar
               onSend={handleSend}
               onStartRecording={handleStartRecording}
+              onAttachFile={handleAttachFile}
               placeholder="Escribe un mensaje..."
             />
           )}
