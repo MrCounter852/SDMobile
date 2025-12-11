@@ -23,6 +23,7 @@ import { useGlobal } from "../../core/global";
 import ZoomableImage from "../../assets/common/ZoomableImage";
 import ChatMessageList from "../../components/chat/ChatMessageList";
 import ChatInputBar from "../../components/chat/ChatInputBar";
+import AudioRecorder from "../../components/chat/AudioRecorder";
 import Slider from '@react-native-community/slider';
 
 const ChatScreen = ({ route, navigation }) => {
@@ -58,6 +59,7 @@ const ChatScreen = ({ route, navigation }) => {
   const [currentImage, setCurrentImage] = useState(null);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
   const [sendTimeout, setSendTimeout] = useState(null);
+  const [showAudioRecorder, setShowAudioRecorder] = useState(false);
 
   useEffect(() => {
     navigation.setOptions({
@@ -454,6 +456,14 @@ const ChatScreen = ({ route, navigation }) => {
     setIsPlaying(true);
   };
 
+  const handleStartRecording = () => {
+    setShowAudioRecorder(true);
+  };
+
+  const handleCancelRecording = () => {
+    setShowAudioRecorder(false);
+  };
+
   if (messagesLoading && messages.length === 0) {
     return (
       <View style={styles.loadingContainer}>
@@ -481,7 +491,18 @@ const ChatScreen = ({ route, navigation }) => {
             onMediaDownload={handleMediaDownload}
           />
 
-          <ChatInputBar onSend={handleSend} placeholder="Escribe un mensaje..." />
+          {showAudioRecorder ? (
+            <AudioRecorder
+              onSend={handleCancelRecording}
+              onCancel={handleCancelRecording}
+            />
+          ) : (
+            <ChatInputBar
+              onSend={handleSend}
+              onStartRecording={handleStartRecording}
+              placeholder="Escribe un mensaje..."
+            />
+          )}
         </KeyboardAvoidingView>
 
         {sendingMessage && (

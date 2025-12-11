@@ -3,16 +3,23 @@ import { View, TextInput, StyleSheet, TouchableOpacity, Platform, Keyboard } fro
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-const ChatInputBar = ({ onSend, placeholder = "Escribe un mensaje..." }) => {
+const ChatInputBar = ({ onSend, onStartRecording, placeholder = "Escribe un mensaje..." }) => {
     const [text, setText] = useState("");
     const insets = useSafeAreaInsets();
     const [paddingBottom, setPaddingBottom] = useState(60);
-
 
     const handleSend = () => {
         if (text.trim()) {
             onSend(text.trim());
             setText("");
+        }
+    };
+
+    const handleButtonPress = () => {
+        if (text.trim()) {
+            handleSend();
+        } else if (onStartRecording) {
+            onStartRecording();
         }
     };
 
@@ -37,11 +44,15 @@ const ChatInputBar = ({ onSend, placeholder = "Escribe un mensaje..." }) => {
                 style={styles.sendButton}
             >
                 <TouchableOpacity
-                    onPress={handleSend}
-                    disabled={!text.trim()}
+                    onPress={handleButtonPress}
+                    disabled={!text.trim() && !onStartRecording}
                     style={styles.sendButtonTouchable}
                 >
-                    <Ionicons name="send" size={20} color="white" />
+                    <Ionicons
+                        name={text.trim() ? "send" : "mic"}
+                        size={20}
+                        color="white"
+                    />
                 </TouchableOpacity>
             </LinearGradient>
         </View>
