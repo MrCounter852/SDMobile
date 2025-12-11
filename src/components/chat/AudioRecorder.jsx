@@ -45,11 +45,12 @@ const AudioRecorder = ({ onSend, onCancel }) => {
   const insets = useSafeAreaInsets();
   const [recording, setRecording] = useState(null);
   const [duration, setDuration] = useState(0);
-  
+
   // Estado para las barras visuales (Array de 30 barras)
   const [audioLevels, setAudioLevels] = useState(new Array(30).fill(0));
-  
+
   const timerRef = useRef(null);
+  const recordingRef = useRef(null);
 
   useEffect(() => {
     // Limpieza al desmontar
@@ -114,6 +115,8 @@ const AudioRecorder = ({ onSend, onCancel }) => {
       );
 
       setRecording(newRecording);
+      recordingRef.current = newRecording;
+      global.currentRecording = newRecording;
       setDuration(0);
 
       // Timer solo para el contador de segundos
@@ -133,16 +136,17 @@ const AudioRecorder = ({ onSend, onCancel }) => {
     startRecording();
   }, []);
 
-  const stopRecordingCleanup = async () => {
+  const stopRecordingCleanup = () => {
     if (timerRef.current) clearInterval(timerRef.current);
-    try {
-      if (recording) {
-        // Importante: detener y descargar para liberar memoria
-        await recording.stopAndUnloadAsync(); 
-      }
-    } catch (e) {
-      // Ignorar errores si ya estaba descargado
+    if (recordingRef.current) {
+      // Importante: detener y descargar para liberar memoria
+      recordingRef.current.stopAndUnloadAsync().catch(e => {
+        // Ignorar errores si ya estaba descargado
+      });
+      recordingRef.current = null;
     }
+    setRecording(null);
+    global.currentRecording = null;
   };
 
   const handleSend = async () => {
@@ -153,7 +157,7 @@ const AudioRecorder = ({ onSend, onCancel }) => {
 
       // Detener grabación
       await recording.stopAndUnloadAsync();
-      
+
       const uri = recording.getURI();
       const finalDuration = Math.max(1, duration); // Mínimo 1 segundo
 
@@ -163,9 +167,11 @@ const AudioRecorder = ({ onSend, onCancel }) => {
       } else {
         Alert.alert('Error', 'No se generó el archivo de audio.');
       }
-      
+
       // Limpiamos estado local
       setRecording(null);
+      recordingRef.current = null;
+      global.currentRecording = null;
 
     } catch (error) {
       console.error('Error enviando audio:', error);

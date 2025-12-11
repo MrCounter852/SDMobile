@@ -75,6 +75,11 @@ const ChatScreen = ({ route, navigation }) => {
     });
 
     setSelectedContact(contact);
+    // Clean any lingering recordings
+    if (global.currentRecording) {
+      global.currentRecording.stopAndUnloadAsync().catch(e => {});
+      global.currentRecording = null;
+    }
     loadMessages();
     // Confirmar lectura de mensajes si hay mensajes sin leer
     confirmarLecturaMensajes();
@@ -91,11 +96,19 @@ const ChatScreen = ({ route, navigation }) => {
       }
     });
 
+    // Listener to handle back navigation while recording
+    const beforeRemoveListener = navigation.addListener('beforeRemove', (e) => {
+      if (showAudioRecorder) {
+        handleCancelRecording();
+      }
+    });
+
     return () => {
       clearAttachments();
       setSelectedContact(null);
       keyboardShowListener.remove();
       keyboardHideListener.remove();
+      beforeRemoveListener();
     };
   }, [insets.bottom]);
 
