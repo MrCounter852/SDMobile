@@ -11,6 +11,9 @@ export const useGlobal = create((set, get) => ({
     accesos: [],
     menuOptions: [],
     signalrConnected: false,
+    cdnEndPoint: null,
+    cdnLlavePublica: null,
+    cdnLlavePrivada: null,
 
     init: () => {
         const useChatStore = require('./chatStore').default;
@@ -33,7 +36,10 @@ export const useGlobal = create((set, get) => ({
         empresa: data.empresa,
         sucursal: data.sucursal,
         accesos: data.accesos || [],
-        menuOptions: data.menuOptions || []
+        menuOptions: data.menuOptions || [],
+        cdnEndPoint: data.user?.CDNEndPoint || null,
+        cdnLlavePublica: data.user?.CDNLlavePublica || null,
+        cdnLlavePrivada: data.user?.CDNLlavePrivada || null
     }),
     setMenuOptions: (menuOptions) => set({ menuOptions }),
     logout: () => set({
@@ -45,7 +51,10 @@ export const useGlobal = create((set, get) => ({
         sucursal: null,
         accesos: [],
         menuOptions: [],
-        signalrConnected: false
+        signalrConnected: false,
+        cdnEndPoint: null,
+        cdnLlavePublica: null,
+        cdnLlavePrivada: null
     }),
 
 }));

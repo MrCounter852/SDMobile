@@ -172,7 +172,14 @@ const Login = () => {
                       const user = sessionData.Session?.Usuario || {};
                       const accesos = sessionData.Session?.Accesos || [];
                       login({
-                        user: { email: loginData.user.email, ...user, Token: user.Token },
+                        user: {
+                          email: loginData.user.email,
+                          ...user,
+                          Token: user.Token,
+                          CDNEndPoint: user.CDNEndPoint,
+                          CDNLlavePublica: user.CDNLlavePublica,
+                          CDNLlavePrivada: user.CDNLlavePrivada
+                        },
                         usuarioID,
                         rolID,
                         empresa: selectedEmpresa,
