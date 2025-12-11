@@ -502,13 +502,16 @@ const ChatScreen = ({ route, navigation }) => {
       });
       console.log('Upload result:', uploadResult);
 
+      const codigoUnico = uploadResult.data[0].CodigoUnico;
+      console.log('CodigoUnico:', codigoUnico);
+
       // Format file object like web version
       const file = {
         TipoMensaje: 'audio',
-        FileURL: "cdn://" + uploadResult.CodigoUnico,
+        FileURL: "cdn://" + codigoUnico,
         FileName: `audio_${Date.now()}.mp3`,
         FileMime: 'audio/mpeg',
-        HttpUrl: `${cdnEndPoint}/api/Files/GetFile?PublicKey=${cdnLlavePublica}&UniqueID=${uploadResult.CodigoUnico}&Disposition=Inline`
+        HttpUrl: `${cdnEndPoint}/api/Files/GetFile?PublicKey=${cdnLlavePublica}&UniqueID=${codigoUnico}&Disposition=Inline`
       };
       console.log('File object:', file);
 
@@ -524,7 +527,7 @@ const ChatScreen = ({ route, navigation }) => {
 
       // Commit file after sending message
       try {
-        await ChatApiService.commitArchivoCDN([{ CodigoUnico: uploadResult.CodigoUnico }]);
+        await ChatApiService.commitArchivoCDN([{ CodigoUnico: codigoUnico }]);
         console.log('File committed successfully');
       } catch (commitError) {
         console.error('Error committing file:', commitError);
