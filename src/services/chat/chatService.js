@@ -332,6 +332,21 @@ class ChatApiService {
   MAX_FILE_AGE = 30 * 24 * 60 * 60 * 1000; // 30 Days
 
   /**
+   * Clear all cached media files
+   */
+  async clearCache() {
+    try {
+      const dirInfo = await FileSystem.getInfoAsync(this.CACHE_DIR);
+      if (dirInfo.exists) {
+        await FileSystem.deleteAsync(this.CACHE_DIR, { idempotent: true });
+        console.log('[Cache Manager] Cache cleared');
+      }
+    } catch (error) {
+      console.error('[Cache Manager] Error clearing cache:', error);
+    }
+  }
+
+  /**
    * Initialize and Clean Cache
    * Should be called on App Startup
    */

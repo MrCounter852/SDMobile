@@ -46,6 +46,9 @@ export const useGlobal = create((set, get) => ({
         // Clear chat storage
         const ChatStorageService = require('../services/chat/chatStorageService').default;
         ChatStorageService.clearAll();
+        // Clear media cache
+        const ChatApiService = require('../services/chat/chatService').default;
+        ChatApiService.clearCache();
         // Reset chat store
         const useChatStore = require('./chatStore').default;
         useChatStore.getState().reset();
