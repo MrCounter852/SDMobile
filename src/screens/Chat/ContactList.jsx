@@ -31,6 +31,7 @@ const ContactList = ({ navigation }) => {
   const { usuarioID, user } = useGlobal();
   const [searchText, setSearchText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState(1);
+  const [selectedContactItem, setSelectedContactItem] = useState(null);
 
   const statusOptions = [
     { id: null, name: 'Todos' },
@@ -138,8 +139,12 @@ const ContactList = ({ navigation }) => {
 
   const renderContact = ({ item }) => (
     <TouchableOpacity
-      style={styles.contactItem}
+      style={[
+        styles.contactItem,
+        selectedContactItem?.CuentaMensajeriaContactoID === item.CuentaMensajeriaContactoID && styles.selectedContactItem
+      ]}
       onPress={() => handleContactPress(item)}
+      onLongPress={() => setSelectedContactItem(item)}
     >
       <View style={styles.contactAvatar}>
         <Text style={styles.avatarText}>
@@ -228,15 +233,38 @@ const ContactList = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Centro de contacto</Text>
-          <TouchableOpacity
-            style={styles.newChatButton}
-            onPress={() => navigation.navigate('NewChat')}
-          >
-            <Text style={styles.newChatButtonText}>Nuevo Chat</Text>
-          </TouchableOpacity>
-        </View>
+        {selectedContactItem ? (
+          <View style={styles.selectedHeader}>
+            <TouchableOpacity style={styles.headerButton} onPress={() => setSelectedContactItem(null)}>
+              <Ionicons name="arrow-back" size={24} color="#337ab7" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerButton} onPress={() => {}}>
+              <Ionicons name="create-outline" size={24} color="#337ab7" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerButton} onPress={() => {}}>
+              <Ionicons name="person-add-outline" size={24} color="#337ab7" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerButton} onPress={() => {}}>
+              <Ionicons name="mail-unread-outline" size={24} color="#337ab7" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerButton} onPress={() => {}}>
+              <Ionicons name="time-outline" size={24} color="#337ab7" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerButton} onPress={() => {}}>
+              <Ionicons name="close-circle-outline" size={24} color="#337ab7" />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.header}>
+            <Text style={styles.title}>Centro de contacto</Text>
+            <TouchableOpacity
+              style={styles.newChatButton}
+              onPress={() => navigation.navigate('NewChat')}
+            >
+              <Text style={styles.newChatButtonText}>Nuevo Chat</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <View style={styles.searchContainer}>
           <TextInput
@@ -303,6 +331,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
+  selectedHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  headerButton: {
+    padding: 8,
+  },
   searchContainer: {
     padding: 16,
     backgroundColor: '#fff',
@@ -358,6 +398,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
+  },
+  selectedContactItem: {
+    backgroundColor: '#e0f7fa',
   },
   contactAvatar: {
     width: 50,
