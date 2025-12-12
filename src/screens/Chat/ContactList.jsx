@@ -47,12 +47,21 @@ const ContactList = ({ navigation }) => {
     { id: 4, name: 'Cerrado' },
   ];
 
+  const statusFilters = [
+    { ID: null, Nombre: "Todos", Filtros: [] },
+    { ID: 1, Filtros: [{ EstadoGestionContactoID: 1 }, { EstadoGestionContactoID: 2 }], Nombre: "Pendiente y Abierto" },
+    { ID: 2, Filtros: [{ EstadoGestionContactoID: 1 }], Nombre: "Abierto" },
+    { ID: 3, Filtros: [{ EstadoGestionContactoID: 2 }], Nombre: "Pendiente" },
+    { ID: 4, Filtros: [{ EstadoGestionContactoID: 3 }], Nombre: "Cerrado" }
+  ];
+
   useEffect(() => {
     console.log('useEffect triggered: selectedStatus =', selectedStatus, 'searchText =', searchText);
     loadContacts();
-  }, [loadContacts]);
+  }, [selectedStatus, searchText]);
 
   const loadContacts = useCallback(async () => {
+    console.log('loadContacts called with selectedStatus:', selectedStatus, 'searchText:', searchText);
     try {
       // 1. Cargar contactos locales primero (Offline-first)
       // Solo cargamos del storage si no estamos filtrando por texto (para mantener la búsqueda rápida pero real)
@@ -72,13 +81,17 @@ const ContactList = ({ navigation }) => {
       // 2. Consultar API en segundo plano
       const filtros = {
         ...searchFilters,
-        EstadoID: selectedStatus,
+        EstadosGestionContacto: statusFilters.find(x => x.ID == selectedStatus)?.Filtros || [],
         ContactosUsuarioID: usuarioID,
         FullSearch: searchText,
         Token: user?.Token,
       };
 
+      console.log('Sending filtros to API:', filtros);
+
       const response = await ChatApiService.consultarContactos(filtros);
+
+      console.log('API response data:', response.data);
 
       // 3. Actualizar UI y guardar en local (si no es búsqueda)
       setContacts(response.data || []);
@@ -96,7 +109,7 @@ const ContactList = ({ navigation }) => {
     } finally {
       setContactsLoading(false);
     }
-  }, [searchText, selectedStatus, usuarioID, user?.Token, searchFilters, contacts.length]);
+  }, [searchText, selectedStatus, usuarioID, user?.Token, searchFilters]);
 
   const handleContactPress = (contact) => {
     setSelectedContact(contact);

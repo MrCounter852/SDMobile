@@ -85,7 +85,7 @@ class ChatApiService {
       body: JSON.stringify({
         Page: filtros?.Page || 1,
         Rows: filtros?.Rows || 20,
-        EstadoGestionContactoID: filtros?.EstadoGestionContactoID || 1,
+        EstadosGestionContacto: filtros?.EstadosGestionContacto || [],
         ContactosUsuarioID: filtros?.ContactosUsuarioID || null,
         CuentaMensajeriaID: filtros?.CuentaMensajeriaID || null,
         TodasCuentas: filtros?.TodasCuentas !== false,
