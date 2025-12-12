@@ -10,6 +10,7 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useChatStore } from '../../core/chatStore';
@@ -34,6 +35,9 @@ const ContactList = ({ navigation }) => {
   const [selectedContactItem, setSelectedContactItem] = useState(null);
   const [showNameInput, setShowNameInput] = useState(false);
   const [newName, setNewName] = useState('');
+  const [showUserList, setShowUserList] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const statusOptions = [
     { id: null, name: 'Todos' },
@@ -265,6 +269,39 @@ const ContactList = ({ navigation }) => {
                 <Ionicons name="checkmark" size={24} color="#337ab7" />
               </TouchableOpacity>
             </View>
+          ) : showUserList ? (
+            <View style={styles.nameInputHeader}>
+              <TouchableOpacity style={styles.headerButton} onPress={() => setShowUserList(false)}>
+                <Ionicons name="close" size={24} color="#337ab7" />
+              </TouchableOpacity>
+              <Picker
+                selectedValue={selectedUser}
+                onValueChange={(itemValue) => setSelectedUser(itemValue)}
+                style={styles.picker}
+              >
+                <Picker.Item label="Seleccionar usuario" value={null} />
+                {users.map((user) => (
+                  <Picker.Item key={user.UsuarioID} label={user.NombreCompleto} value={user.UsuarioID} />
+                ))}
+              </Picker>
+              <TouchableOpacity style={styles.headerButton} onPress={async () => {
+                if (selectedUser) {
+                  try {
+                    const contacto = { ...selectedContactItem, NuevoUsuarioID: selectedUser };
+                    await ChatApiService.asignarUsuario(contacto);
+                    const userName = users.find(u => u.UsuarioID === selectedUser)?.NombreCompleto || 'Usuario';
+                    Alert.alert('Éxito', `Usuario asignado: ${userName}`);
+                    loadContacts();
+                    setSelectedContactItem(null);
+                    setShowUserList(false);
+                  } catch (error) {
+                    Alert.alert('Error', 'No se pudo asignar el usuario');
+                  }
+                }
+              }}>
+                <Ionicons name="checkmark" size={24} color="#337ab7" />
+              </TouchableOpacity>
+            </View>
           ) : (
           <View style={styles.selectedHeader}>
             <TouchableOpacity style={styles.headerButton} onPress={() => setSelectedContactItem(null)}>
@@ -276,7 +313,16 @@ const ContactList = ({ navigation }) => {
             }}>
               <Ionicons name="create-outline" size={24} color="#337ab7" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.headerButton} onPress={() => {}}>
+            <TouchableOpacity style={styles.headerButton} onPress={async () => {
+              setShowUserList(true);
+              setSelectedUser(null);
+              try {
+                const response = await ChatApiService.consultarUsuarios({});
+                setUsers(response.rows || []);
+              } catch (error) {
+                Alert.alert('Error', 'No se pudieron cargar los usuarios');
+              }
+            }}>
               <Ionicons name="person-add-outline" size={24} color="#337ab7" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', '¿Desea marcar como mensaje no leido?', [
@@ -454,6 +500,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: '#fff',
     marginHorizontal: 8,
+  },
+  userList: {
+    maxHeight: 125,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  userItem: {
+    padding: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  userText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  picker: {
+    flex: 1,
+    height: 50,
   },
   searchContainer: {
     padding: 16,

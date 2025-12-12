@@ -7,6 +7,8 @@ const API_BASE_COM = `${getEnvironmentConfig().BASE_URL_NS}/API_COM/api`;
 
 const API_BASE_CRM = `${getEnvironmentConfig().BASE_URL_NS}/API_CRM/api`;
 
+const API_BASE_SIS = `${getEnvironmentConfig().BASE_URL_NS}/API_SIS/api`;
+
 class ChatApiService {
   constructor() {
     this.global = useGlobal.getState();
@@ -44,8 +46,8 @@ class ChatApiService {
     };
   }
 
-  async makeRequest(endpoint, options = {}, useCRM = false) {
-    const baseUrl = API_BASE_COM;
+  async makeRequest(endpoint, options = {}, useCRM = false, useSIS = false) {
+    const baseUrl = useSIS ? API_BASE_SIS : (useCRM ? API_BASE_CRM : API_BASE_COM);
     const url = `${baseUrl}${endpoint}`;
     const headers = await this.getHeaders();
     const config = {
@@ -196,6 +198,22 @@ class ChatApiService {
         Token: this.global.user?.Token,
       }),
     });
+  }
+
+  // Consultar usuarios
+  async consultarUsuarios(filtros) {
+    const endpoint = '/Usuarios/UsuariosConsultar';
+    return this.makeRequest(endpoint, {
+      method: 'POST',
+      body: JSON.stringify({
+        Page: filtros?.Page || 1,
+        Rows: filtros?.Rows || 20,
+        UsuarioID: filtros?.UsuarioID || null,
+        SucursalID: filtros?.SucursalID || this.global.user?.SucursalID,
+        FullSearch: filtros?.FullSearch || null,
+        Token: this.global.user?.Token,
+      }),
+    }, false, true); // useSIS
   }
 
   // Actualizar estado de contacto
