@@ -286,6 +286,12 @@ const ContactList = ({ navigation }) => {
               </Picker>
               <TouchableOpacity style={styles.headerButton} onPress={async () => {
                 if (selectedUser) {
+                  if (selectedUser === selectedContactItem.UsuarioID) {
+                    Alert.alert('Info', 'El usuario ya tiene asignado este chat');
+                    setSelectedContactItem(null);
+                    setShowUserList(false);
+                    return;
+                  }
                   try {
                     const contacto = { ...selectedContactItem, NuevoUsuarioID: selectedUser };
                     await ChatApiService.asignarUsuario(contacto);
