@@ -32,6 +32,8 @@ const ContactList = ({ navigation }) => {
   const [searchText, setSearchText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState(1);
   const [selectedContactItem, setSelectedContactItem] = useState(null);
+  const [showNameInput, setShowNameInput] = useState(false);
+  const [newName, setNewName] = useState('');
 
   const statusOptions = [
     { id: null, name: 'Todos' },
@@ -234,11 +236,44 @@ const ContactList = ({ navigation }) => {
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.container}>
         {selectedContactItem ? (
+          showNameInput ? (
+            <View style={styles.nameInputHeader}>
+              <TouchableOpacity style={styles.headerButton} onPress={() => setShowNameInput(false)}>
+                <Ionicons name="close" size={24} color="#337ab7" />
+              </TouchableOpacity>
+              <TextInput
+                style={styles.nameInput}
+                value={newName}
+                onChangeText={setNewName}
+                placeholder="Nuevo nombre"
+                maxLength={25}
+              />
+              <TouchableOpacity style={styles.headerButton} onPress={async () => {
+                if (newName && newName.trim()) {
+                  try {
+                    const contacto = { ...selectedContactItem, Nombre: newName.trim() };
+                    await ChatApiService.actualizarEstadoContacto(contacto);
+                    Alert.alert('Éxito', 'Nombre actualizado');
+                    loadContacts();
+                    setSelectedContactItem(null);
+                    setShowNameInput(false);
+                  } catch (error) {
+                    Alert.alert('Error', 'No se pudo actualizar el nombre');
+                  }
+                }
+              }}>
+                <Ionicons name="checkmark" size={24} color="#337ab7" />
+              </TouchableOpacity>
+            </View>
+          ) : (
           <View style={styles.selectedHeader}>
             <TouchableOpacity style={styles.headerButton} onPress={() => setSelectedContactItem(null)}>
               <Ionicons name="arrow-back" size={24} color="#337ab7" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.headerButton} onPress={() => {}}>
+            <TouchableOpacity style={styles.headerButton} onPress={() => {
+              setNewName(selectedContactItem.Nombre);
+              setShowNameInput(true);
+            }}>
               <Ionicons name="create-outline" size={24} color="#337ab7" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.headerButton} onPress={() => {}}>
@@ -309,7 +344,8 @@ const ContactList = ({ navigation }) => {
               <Ionicons name="close-circle-outline" size={24} color="#337ab7" />
             </TouchableOpacity>
           </View>
-        ) : (
+         )
+       ) : (
           <View style={styles.header}>
             <Text style={styles.title}>Centro de contacto</Text>
             <TouchableOpacity
@@ -399,6 +435,25 @@ const styles = StyleSheet.create({
   },
   headerButton: {
     padding: 8,
+  },
+  nameInputHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  nameInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#ced4da',
+    borderRadius: 8,
+    padding: 8,
+    fontSize: 16,
+    backgroundColor: '#fff',
+    marginHorizontal: 8,
   },
   searchContainer: {
     padding: 16,
