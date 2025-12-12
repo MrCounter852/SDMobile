@@ -203,6 +203,10 @@ const ContactList = ({ navigation }) => {
           </View>
         </View>
 
+        <Text style={[styles.contactAssigned, item.Usuario ? styles.assigned : styles.notAssigned]}>
+          {item.Usuario || 'Sin usuario asignado'}
+        </Text>
+
         {item.CantidadMensajesSinLeer > 0 && (
           <View style={styles.unreadBadge}>
             <Text style={styles.unreadText}>
@@ -679,6 +683,17 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 12,
     color: '#6c757d',
+  },
+  contactAssigned: {
+    fontSize: 10,
+    textAlign: 'left',
+    marginTop: 2,
+  },
+  assigned: {
+    color: '#9a9b9bff',
+  },
+  notAssigned: {
+    color: '#9a9b9bff', // red
   },
   unreadBadge: {
     position: 'absolute',
