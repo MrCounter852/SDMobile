@@ -56,12 +56,10 @@ const ContactList = ({ navigation }) => {
   ];
 
   useEffect(() => {
-    console.log('useEffect triggered: selectedStatus =', selectedStatus, 'searchText =', searchText);
     loadContacts();
   }, [selectedStatus, searchText]);
 
   const loadContacts = useCallback(async () => {
-    console.log('loadContacts called with selectedStatus:', selectedStatus, 'searchText:', searchText);
     try {
       // 1. Cargar contactos locales primero (Offline-first)
       // Solo cargamos del storage si no estamos filtrando por texto (para mantener la búsqueda rápida pero real)
@@ -87,11 +85,7 @@ const ContactList = ({ navigation }) => {
         Token: user?.Token,
       };
 
-      console.log('Sending filtros to API:', filtros);
-
       const response = await ChatApiService.consultarContactos(filtros);
-
-      console.log('API response data:', response.data);
 
       // 3. Actualizar UI y guardar en local (si no es búsqueda)
       setContacts(response.data || []);
@@ -332,6 +326,24 @@ const ContactList = ({ navigation }) => {
             }}>
               <Ionicons name="create-outline" size={24} color="#337ab7" />
             </TouchableOpacity>
+            {selectedContactItem.UsuarioID != usuarioID && (
+              <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', `¿Desea asignarse el contacto ${selectedContactItem.Nombre}?`, [
+                {text: 'Cancelar'},
+                {text: 'Aceptar', onPress: async () => {
+                  try {
+                    const contacto = { ...selectedContactItem, NuevoUsuarioID: usuarioID };
+                    await ChatApiService.asignarUsuario(contacto);
+                    Alert.alert('Éxito', 'Chat asignado a usted');
+                    loadContacts();
+                    setSelectedContactItem(null);
+                  } catch (error) {
+                    Alert.alert('Error', 'No se pudo asignar el chat');
+                  }
+                }}
+              ])}>
+                <Ionicons name="person-outline" size={24} color="#337ab7" />
+              </TouchableOpacity>
+            )}
             <TouchableOpacity style={styles.headerButton} onPress={async () => {
               setShowUserList(true);
               setSelectedUser(null);
