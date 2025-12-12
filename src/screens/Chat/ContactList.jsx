@@ -369,6 +369,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#e9ecef',
+    height: 75,
   },
   title: {
     fontSize: 20,
@@ -394,6 +395,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#e9ecef',
+    height: 75,
   },
   headerButton: {
     padding: 8,
