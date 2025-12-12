@@ -244,13 +244,68 @@ const ContactList = ({ navigation }) => {
             <TouchableOpacity style={styles.headerButton} onPress={() => {}}>
               <Ionicons name="person-add-outline" size={24} color="#337ab7" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', '¿Desea marcar como mensaje no leido?', [{text: 'Cancelar'}, {text: 'Aceptar'}])}>
+            <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', '¿Desea marcar como mensaje no leido?', [
+              {text: 'Cancelar'},
+              {text: 'Aceptar', onPress: async () => {
+                try {
+                  const contacto = { ...selectedContactItem, MensajeLeido: false };
+                  await ChatApiService.marcacionMensajes(contacto);
+                  Alert.alert('Éxito', 'Mensaje marcado como no leido');
+                  loadContacts();
+                  setSelectedContactItem(null);
+                } catch (error) {
+                  Alert.alert('Error', 'No se pudo marcar el mensaje');
+                }
+              }}
+            ])}>
               <Ionicons name="mail-unread-outline" size={24} color="#337ab7" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', '¿Desea cambiar a pendiente?', [{text: 'Cancelar'}, {text: 'Aceptar'}])}>
+            <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', '¿Desea cambiar a pendiente?', [
+              {text: 'Cancelar'},
+              {text: 'Aceptar', onPress: async () => {
+                try {
+                  const contacto = { ...selectedContactItem, EstadoGestionContactoID: 2 };
+                  await ChatApiService.actualizarEstadoContacto(contacto);
+                  Alert.alert('Éxito', 'Estado cambiado a pendiente');
+                  loadContacts();
+                  setSelectedContactItem(null);
+                } catch (error) {
+                  Alert.alert('Error', 'No se pudo cambiar el estado');
+                }
+              }}
+            ])}>
               <Ionicons name="time-outline" size={24} color="#337ab7" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', '¿Desea cambiar a cerrado?', [{text: 'Cancelar'}, {text: 'Aceptar'}])}>
+            <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', '¿Desea cambiar a abierto?', [
+              {text: 'Cancelar'},
+              {text: 'Aceptar', onPress: async () => {
+                try {
+                  const contacto = { ...selectedContactItem, EstadoGestionContactoID: 1 };
+                  await ChatApiService.actualizarEstadoContacto(contacto);
+                  Alert.alert('Éxito', 'Estado cambiado a abierto');
+                  loadContacts();
+                  setSelectedContactItem(null);
+                } catch (error) {
+                  Alert.alert('Error', 'No se pudo cambiar el estado');
+                }
+              }}
+            ])}>
+              <Ionicons name="checkmark-circle-outline" size={24} color="#337ab7" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', '¿Desea cambiar a cerrado?', [
+              {text: 'Cancelar'},
+              {text: 'Aceptar', onPress: async () => {
+                try {
+                  const contacto = { ...selectedContactItem, EstadoGestionContactoID: 3 };
+                  await ChatApiService.actualizarEstadoContacto(contacto);
+                  Alert.alert('Éxito', 'Estado cambiado a cerrado');
+                  loadContacts();
+                  setSelectedContactItem(null);
+                } catch (error) {
+                  Alert.alert('Error', 'No se pudo cambiar el estado');
+                }
+              }}
+            ])}>
               <Ionicons name="close-circle-outline" size={24} color="#337ab7" />
             </TouchableOpacity>
           </View>
