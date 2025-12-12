@@ -244,13 +244,13 @@ const ContactList = ({ navigation }) => {
             <TouchableOpacity style={styles.headerButton} onPress={() => {}}>
               <Ionicons name="person-add-outline" size={24} color="#337ab7" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.headerButton} onPress={() => {}}>
+            <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', '¿Desea marcar como mensaje no leido?', [{text: 'Cancelar'}, {text: 'Aceptar'}])}>
               <Ionicons name="mail-unread-outline" size={24} color="#337ab7" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.headerButton} onPress={() => {}}>
+            <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', '¿Desea cambiar a pendiente?', [{text: 'Cancelar'}, {text: 'Aceptar'}])}>
               <Ionicons name="time-outline" size={24} color="#337ab7" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.headerButton} onPress={() => {}}>
+            <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', '¿Desea cambiar a cerrado?', [{text: 'Cancelar'}, {text: 'Aceptar'}])}>
               <Ionicons name="close-circle-outline" size={24} color="#337ab7" />
             </TouchableOpacity>
           </View>
