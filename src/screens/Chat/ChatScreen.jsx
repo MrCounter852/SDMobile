@@ -61,6 +61,9 @@ const ChatScreen = ({ route, navigation }) => {
   const [keyboardOffset, setKeyboardOffset] = useState(0);
   const [sendTimeout, setSendTimeout] = useState(null);
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     navigation.setOptions({
@@ -76,6 +79,10 @@ const ChatScreen = ({ route, navigation }) => {
     });
 
     setSelectedContact(contact);
+    // Reset pagination states for new contact
+    setCurrentPage(1);
+    setHasMore(true);
+    setLoadingMore(false);
     // Clean any lingering recordings
     if (global.currentRecording) {
       global.currentRecording.stopAndUnloadAsync().catch(e => {});
@@ -115,51 +122,41 @@ const ChatScreen = ({ route, navigation }) => {
 
   const loadMessages = async () => {
     try {
-      // 1. Mensajes ya están en memoria (Offline-first instantáneo)
-      // Si no hay mensajes, mostramos loading
-      if (messages.length === 0) {
-        setMessagesLoading(true);
+      // 1. Get current messages from store (includes any from SignalR)
+      let currentMessages = messages;
+      // If no messages in store, load from storage
+      if (currentMessages.length === 0) {
+        currentMessages = await ChatStorageService.getMessages(contact.CuentaMensajeriaContactoID);
+        if (currentMessages.length > 0) {
+          setMessages(contact.CuentaMensajeriaContactoID, currentMessages);
+          loadPendingMedia(currentMessages);
+          setMessagesLoading(false); // Show UI immediately
+        } else {
+          setMessagesLoading(true);
+        }
       }
 
-      // 2. Consultar API en segundo plano para actualizar
+      // 2. Fetch from API for sync (Page=1, Rows=20)
       const filtros = {
         CuentaMensajeriaContactoID: contact.CuentaMensajeriaContactoID,
         Page: 1,
-        Rows: 50,
+        Rows: 20,
         UsuarioID: null,
         Token: user?.Token,
       };
       const response = await ChatApiService.consultarMensajes(filtros);
-      const formattedMessages = formatMessagesForChat(response.data || []);
+      const apiMessages = response.data || [];
+      const formattedApiMessages = formatMessagesForChat(apiMessages);
 
-      // 3. Merged Logic: Preserve local state (media URIs) to avoid flicker
-      const mergedMessages = formattedMessages.map(newMsg => {
-        const existingMsg = messages.find(m => m._id === newMsg._id);
-        if (existingMsg && newMsg.pendingMedia) {
-          // If we already have the media resolved in memory, keep it
-          if (existingMsg.image) {
-            newMsg.image = existingMsg.image;
-            delete newMsg.pendingMedia;
-          } else if (existingMsg.video) {
-            newMsg.video = existingMsg.video;
-            delete newMsg.pendingMedia;
-          } else if (existingMsg.audio) {
-            newMsg.audio = existingMsg.audio;
-            delete newMsg.pendingMedia;
-          } else if (existingMsg.file?.url && !existingMsg.file.url.startsWith('http')) {
-            // Only keep local file URIs
-            newMsg.file = existingMsg.file;
-            delete newMsg.pendingMedia;
-          }
-        }
-        return newMsg;
-      });
+      // 3. Merge: Add new messages from API that aren't in currentMessages
+      const newMessages = formattedApiMessages.filter(apiMsg => !currentMessages.find(m => m._id === apiMsg._id));
+      let mergedMessages = [...newMessages, ...currentMessages];
+      // Sort by date descending (newest first for inverted list)
+      mergedMessages.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-      // 4. Actualizar Store (UI) y Local Storage
+      // 4. Update store and storage
       setMessages(contact.CuentaMensajeriaContactoID, mergedMessages);
       await ChatStorageService.saveMessages(contact.CuentaMensajeriaContactoID, mergedMessages);
-
-      // Load only what is still pending
       loadPendingMedia(mergedMessages);
 
       // 5. Confirmar lectura de mensajes si hay mensajes sin leer
@@ -186,6 +183,43 @@ const ChatScreen = ({ route, navigation }) => {
     } finally {
       setMessagesLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  const loadMoreMessages = async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const nextPage = currentPage + 1;
+      const filtros = {
+        CuentaMensajeriaContactoID: contact.CuentaMensajeriaContactoID,
+        Page: nextPage,
+        Rows: 20,
+        UsuarioID: null,
+        Token: user?.Token,
+      };
+      const response = await ChatApiService.consultarMensajes(filtros);
+      const apiMessages = response.data || [];
+      if (apiMessages.length === 0) {
+        setHasMore(false);
+        setLoadingMore(false);
+        return;
+      }
+      const formattedNewMessages = formatMessagesForChat(apiMessages);
+      // Filter out duplicates
+      const uniqueNewMessages = formattedNewMessages.filter(newMsg => !messages.find(m => m._id === newMsg._id));
+      // Append older messages to the end (since inverted list)
+      const updatedMessages = [...messages, ...uniqueNewMessages];
+      // Sort by date descending (newest first for inverted list)
+      updatedMessages.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setMessages(contact.CuentaMensajeriaContactoID, updatedMessages);
+      await ChatStorageService.saveMessages(contact.CuentaMensajeriaContactoID, updatedMessages);
+      loadPendingMedia(updatedMessages);
+      setCurrentPage(nextPage);
+    } catch (error) {
+      console.error('Error loading more messages:', error);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -658,6 +692,8 @@ const ChatScreen = ({ route, navigation }) => {
             onRefresh={onRefresh}
             refreshing={refreshing}
             onMediaDownload={handleMediaDownload}
+            onEndReached={loadMoreMessages}
+            loadingMore={loadingMore}
           />
 
           {showAudioRecorder ? (

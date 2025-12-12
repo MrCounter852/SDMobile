@@ -42,20 +42,29 @@ export const useGlobal = create((set, get) => ({
         cdnLlavePrivada: data.user?.CDNLlavePrivada || null
     }),
     setMenuOptions: (menuOptions) => set({ menuOptions }),
-    logout: () => set({
-        authenticated: false,
-        user: {},
-        usuarioID: null,
-        rolID: null,
-        empresa: null,
-        sucursal: null,
-        accesos: [],
-        menuOptions: [],
-        signalrConnected: false,
-        cdnEndPoint: null,
-        cdnLlavePublica: null,
-        cdnLlavePrivada: null
-    }),
+    logout: () => {
+        // Clear chat storage
+        const ChatStorageService = require('../services/chat/chatStorageService').default;
+        ChatStorageService.clearAll();
+        // Reset chat store
+        const useChatStore = require('./chatStore').default;
+        useChatStore.getState().reset();
+
+        set({
+            authenticated: false,
+            user: {},
+            usuarioID: null,
+            rolID: null,
+            empresa: null,
+            sucursal: null,
+            accesos: [],
+            menuOptions: [],
+            signalrConnected: false,
+            cdnEndPoint: null,
+            cdnLlavePublica: null,
+            cdnLlavePrivada: null
+        });
+    },
 
 }));
 
