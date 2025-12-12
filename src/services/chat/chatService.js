@@ -222,6 +222,18 @@ class ChatApiService {
     });
   }
 
+  // Marcar mensajes como leídos/no leídos
+  async marcacionMensajes(contacto) {
+    const endpoint = '/CuentasMensajeriaContactos/MarcacionMensajes';
+    return this.makeRequest(endpoint, {
+      method: 'POST',
+      body: JSON.stringify({
+        ...contacto,
+        Token: this.global.user?.Token,
+      }),
+    });
+  }
+
   // Consultar relaciones del contacto (procesos, contratos, etc.)
   async consultarRelacionesContacto(contacto) {
     const endpoint = '/CuentasMensajeriaContactos/ConsultaRelacionesDelContacto';
