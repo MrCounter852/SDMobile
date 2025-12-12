@@ -229,7 +229,7 @@ const ContactList = ({ navigation }) => {
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Centro de Contacto</Text>
+          <Text style={styles.title}>Centro de contacto</Text>
           <TouchableOpacity
             style={styles.newChatButton}
             onPress={() => navigation.navigate('NewChat')}
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#337ab7',
   },
   newChatButton: {
     backgroundColor: '#337ab7',
