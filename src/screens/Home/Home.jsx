@@ -21,10 +21,12 @@ import Favoritos from "../Favoritos/Favoritos";
 import useGlobal from "../../core/global";
 import MenuPanel from "../../components/MenuPanel";
 import { ContactList } from "../Chat";
+import { useChatStore } from "../../core/chatStore";
 const Tab = createBottomTabNavigator();
 
 const Home = () => {
   const { rolID, setMenuOptions } = useGlobal();
+  const notificationCount = useChatStore((state) => state.notifications.length);
   const { height } = useWindowDimensions();
   const scrollRef = useRef(null);
   const PANEL_HEIGHT = height * 0.6;
@@ -65,99 +67,109 @@ const Home = () => {
   }, [rolID, setMenuOptions]);
 
   // ---- Gesto manual (drag) ----
- const gesture = Gesture.Pan()
- .simultaneousWithExternalGesture(scrollRef)
-   .onStart(() => {
-     context.value = { y: translateY.value };
-   })
-   .onUpdate((event) => {
-     if (scrollY.value > 0) {
-       return;
-     }
-     translateY.value = Math.min(
-       Math.max(context.value.y + event.translationY, 0),
-       PANEL_HEIGHT
-     );
-   })
-   .onEnd(() => {
-     if (translateY.value > PANEL_HEIGHT / 2) {
-       translateY.value = withSpring(PANEL_HEIGHT, { damping: 90 });
-       opacity.value = withTiming(0);
-       panelVisible.value = false;
-     } else {
-       translateY.value = withSpring(0, { damping: 90 });
-       opacity.value = withTiming(1);
-       panelVisible.value = true;
-     }
-   });
+  const gesture = Gesture.Pan()
+    .simultaneousWithExternalGesture(scrollRef)
+    .onStart(() => {
+      context.value = { y: translateY.value };
+    })
+    .onUpdate((event) => {
+      if (scrollY.value > 0) {
+        return;
+      }
+      translateY.value = Math.min(
+        Math.max(context.value.y + event.translationY, 0),
+        PANEL_HEIGHT
+      );
+    })
+    .onEnd(() => {
+      if (translateY.value > PANEL_HEIGHT / 2) {
+        translateY.value = withSpring(PANEL_HEIGHT, { damping: 90 });
+        opacity.value = withTiming(0);
+        panelVisible.value = false;
+      } else {
+        translateY.value = withSpring(0, { damping: 90 });
+        opacity.value = withTiming(1);
+        panelVisible.value = true;
+      }
+    });
 
 
-const animatedStyle = useAnimatedStyle(() => {
-  const currentOpacity = 1 - (translateY.value / PANEL_HEIGHT);
+  const animatedStyle = useAnimatedStyle(() => {
+    const currentOpacity = 1 - (translateY.value / PANEL_HEIGHT);
 
-  return {
-    transform: [{ translateY: translateY.value }],
-    opacity: currentOpacity,
-  };
-});
+    return {
+      transform: [{ translateY: translateY.value }],
+      opacity: currentOpacity,
+    };
+  });
 
 
-  const AppTabs = () => (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ color, size }) => {
-          const icons = {
-            Chat: "chatbubble-ellipses",
-            Favoritos: "heart",
-            Menu: "menu",
-            Notificaciones: "notifications",
-            Perfil: "person",
-          };
-          const iconName = icons[route.name] || "circle";
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: "#337ab7",
-        headerShown: false,
-      })}
-    >
-      <Tab.Screen name="Chat" component={ContactList} />
-      <Tab.Screen name="Favoritos" component={Favoritos} />
-      <Tab.Screen
-        name="Menu"
-        component={Menu}
-        listeners={{
-          tabPress: (e) => {
-            e.preventDefault();
-            if (panelVisible.value) {
-              translateY.value = withSpring(PANEL_HEIGHT, { damping: 90 });
-              opacity.value = withTiming(0);
-              panelVisible.value = false;
-            } else {
-              translateY.value = withSpring(0, { damping: 90 });
-              opacity.value = withTiming(1);
-              panelVisible.value = true;
-            }
-          },
-        }}
-      />
-      <Tab.Screen name="Notificaciones" component={Notificaciones} />
-      <Tab.Screen name="Perfil" component={Perfil} />
-    </Tab.Navigator>
-  );
+
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      <AppTabs />
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          tabBarIcon: ({ color, size }) => {
+            const icons = {
+              Chat: "chatbubble-ellipses",
+              Favoritos: "heart",
+              Menu: "menu",
+              Notificaciones: "notifications",
+              Perfil: "person",
+            };
+            const iconName = icons[route.name] || "circle";
+            return <Ionicons name={iconName} size={size} color={color} />;
+          },
+          tabBarActiveTintColor: "#337ab7",
+          headerShown: false,
+        })}
+      >
+        <Tab.Screen name="Chat" component={ContactList} />
+        <Tab.Screen name="Favoritos" component={Favoritos} />
+        <Tab.Screen
+          name="Menu"
+          component={Menu}
+          listeners={{
+            tabPress: (e) => {
+              e.preventDefault();
+              if (panelVisible.value) {
+                translateY.value = withSpring(PANEL_HEIGHT, { damping: 90 });
+                opacity.value = withTiming(0);
+                panelVisible.value = false;
+              } else {
+                translateY.value = withSpring(0, { damping: 90 });
+                opacity.value = withTiming(1);
+                panelVisible.value = true;
+              }
+            },
+          }}
+        />
+        <Tab.Screen
+          name="Notificaciones"
+          component={Notificaciones}
+          options={{
+            tabBarBadge: notificationCount > 0 ? notificationCount : null,
+            tabBarBadgeStyle: {
+              backgroundColor: "#88E782",
+              color: "white",
+              fontSize: 12,
+              fontWeight: "bold",
+            },
+          }}
+        />
+        <Tab.Screen name="Perfil" component={Perfil} />
+      </Tab.Navigator>
 
       {/* Panel flotante */}
       <GestureDetector gesture={gesture}>
-      <Animated.View
-        style={[
-          styles.bottomSheetContainer,
-          animatedStyle,
-          { position: "absolute", bottom: 0, zIndex: 10, elevation: 10 },
-        ]}
-      >
+        <Animated.View
+          style={[
+            styles.bottomSheetContainer,
+            animatedStyle,
+            { position: "absolute", bottom: 0, zIndex: 10, elevation: 10 },
+          ]}
+        >
 
           {panelVisible ? (
             <View style={styles.dragHandleContainer}>
@@ -165,12 +177,12 @@ const animatedStyle = useAnimatedStyle(() => {
             </View>
           ) : null}
 
-        <View style={styles.panelContent}>
-          <View style={{ flex: 1, overflow: "hidden" }}>
-            <MenuPanel scrollRef={scrollRef} scrollY={scrollY} />
+          <View style={styles.panelContent}>
+            <View style={{ flex: 1, overflow: "hidden" }}>
+              <MenuPanel scrollRef={scrollRef} scrollY={scrollY} />
+            </View>
           </View>
-        </View>
-      </Animated.View>
+        </Animated.View>
       </GestureDetector>
     </GestureHandlerRootView>
   );
