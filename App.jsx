@@ -33,6 +33,13 @@ export default function App() {
       signalrService.connect();
       // Pedir permisos solo al estar autenticado
       registerForPushNotificationsAsync();
+
+      // Cargar notificaciones al iniciar sesión
+      const useChatStore = require('./src/core/chatStore').default;
+      const usuarioID = useGlobal.getState().usuarioID;
+      if (usuarioID) {
+        useChatStore.getState().fetchNotifications(usuarioID);
+      }
     } else {
       signalrService.stop();
     }

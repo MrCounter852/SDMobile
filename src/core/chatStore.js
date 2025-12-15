@@ -111,6 +111,54 @@ export const useChatStore = create((set, get) => ({
       ),
     })),
   clearNotifications: () => set({ notifications: [] }),
+  fetchNotifications: async (usuarioID, page = 1, append = false, vistoFilter = null) => {
+    const state = get();
+    if (state.notificationsLoading) return;
+
+    set({ notificationsLoading: true });
+
+    try {
+      const ChatApiService = require('../services/chat/chatService').default;
+      const filters = {
+        Page: page,
+        Rows: 20,
+        UsuarioID: usuarioID,
+        Visto: null,
+        FullSearch: null,
+      };
+
+      const response = await ChatApiService.consultarNotificacionesPush(filters);
+
+      if (response.result === 1) {
+        // Filter unique notifications by NotificacionUsuarioID to prevent duplicates
+        const uniqueRows = response.rows.filter((item, index, self) =>
+          index === self.findIndex(i => i.NotificacionUsuarioID === item.NotificacionUsuarioID)
+        );
+
+        if (append && page > 1) {
+          const currentNotifications = state.notifications;
+          // Filter out duplicates when appending
+          const newUnique = uniqueRows.filter(newItem =>
+            !currentNotifications.some(existing => existing.NotificacionUsuarioID === newItem.NotificacionUsuarioID)
+          );
+          set({ notifications: [...currentNotifications, ...newUnique] });
+        } else {
+          set({ notifications: uniqueRows });
+        }
+
+        // Check if there are more notifications to load
+        if (uniqueRows.length < filters.Rows) {
+          set({ hasMoreNotifications: false });
+        } else {
+          set({ hasMoreNotifications: true });
+        }
+      }
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+    } finally {
+      set({ notificationsLoading: false });
+    }
+  },
   updateNotificationFilters: (filters) =>
     set((state) => ({
       notificationFilters: { ...state.notificationFilters, ...filters },
@@ -212,8 +260,8 @@ export const useChatStore = create((set, get) => ({
               if (accessToken) {
                 formattedMsg.pendingMedia = {
                   type: msg.TipoMensaje === "image" || msg.TipoMensaje === "sticker" ? "image" :
-                        msg.TipoMensaje === "video" ? "video" :
-                        msg.TipoMensaje === "audio" ? "audio" : "file",
+                    msg.TipoMensaje === "video" ? "video" :
+                      msg.TipoMensaje === "audio" ? "audio" : "file",
                   params: {
                     MediaID: msg.FileID,
                     AccessToken: accessToken,
@@ -280,8 +328,8 @@ export const useChatStore = create((set, get) => ({
 
         // Confirmar lectura automáticamente si el usuario está viendo este chat
         if (updatedSelectedContact &&
-            updatedSelectedContact.CuentaMensajeriaContactoID == contactId &&
-            formattedNewMessages.some(msg => msg.isIncoming && !msg.read)) {
+          updatedSelectedContact.CuentaMensajeriaContactoID == contactId &&
+          formattedNewMessages.some(msg => msg.isIncoming && !msg.read)) {
 
           // Importar dinámicamente para evitar problemas de dependencias circulares
           const ChatApiService = require('../services/chat/chatService').default;
