@@ -45,6 +45,15 @@ export const useChatStore = create((set, get) => ({
   setSelectedContact: (contact) => set({ selectedContact: contact }),
   setContactsLoading: (loading) => set({ contactsLoading: loading }),
 
+  resetUnreadCount: (contactId) =>
+    set((state) => ({
+      contacts: state.contacts.map((c) =>
+        c.CuentaMensajeriaContactoID === contactId
+          ? { ...c, CantidadMensajesSinLeer: 0 }
+          : c
+      )
+    })),
+
   // Acciones para mensajes
   init: async () => {
     const ChatStorageService = require('../services/chat/chatStorageService').default;

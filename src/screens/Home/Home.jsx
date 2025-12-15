@@ -27,6 +27,10 @@ const Tab = createBottomTabNavigator();
 const Home = () => {
   const { rolID, setMenuOptions } = useGlobal();
   const notificationCount = useChatStore((state) => state.notifications.length);
+  const unreadMessagesCount = useChatStore((state) =>
+    state.contacts.reduce((acc, contact) => acc + (contact.CantidadMensajesSinLeer || 0), 0)
+  );
+
   const { height } = useWindowDimensions();
   const scrollRef = useRef(null);
   const PANEL_HEIGHT = height * 0.6;
@@ -125,7 +129,19 @@ const Home = () => {
           headerShown: false,
         })}
       >
-        <Tab.Screen name="Chat" component={ContactList} />
+        <Tab.Screen
+          name="Chat"
+          component={ContactList}
+          options={{
+            tabBarBadge: unreadMessagesCount > 0 ? unreadMessagesCount : null,
+            tabBarBadgeStyle: {
+              backgroundColor: "#88E782",
+              color: "white",
+              fontSize: 12,
+              fontWeight: "bold",
+            },
+          }}
+        />
         <Tab.Screen name="Favoritos" component={Favoritos} />
         <Tab.Screen
           name="Menu"

@@ -39,6 +39,7 @@ const ChatScreen = ({ route, navigation }) => {
     setSendingMessage,
     clearAttachments,
     setSelectedContact,
+    resetUnreadCount,
   } = useChatStore();
 
   const messages = useChatStore(
@@ -85,7 +86,7 @@ const ChatScreen = ({ route, navigation }) => {
     setLoadingMore(false);
     // Clean any lingering recordings
     if (global.currentRecording) {
-      global.currentRecording.stopAndUnloadAsync().catch(e => {});
+      global.currentRecording.stopAndUnloadAsync().catch(e => { });
       global.currentRecording = null;
     }
     loadMessages();
@@ -165,6 +166,9 @@ const ChatScreen = ({ route, navigation }) => {
       );
       if (mensajesSinLeer.length > 0) {
         try {
+          // Optimistic update
+          resetUnreadCount(contact.CuentaMensajeriaContactoID);
+
           await ChatApiService.confirmarLectura({
             CuentaMensajeriaContactoID: contact.CuentaMensajeriaContactoID,
             CuentaMensajeriaID: contact.CuentaMensajeriaID,
@@ -418,6 +422,9 @@ const ChatScreen = ({ route, navigation }) => {
       );
 
       if (mensajesSinLeer.length > 0) {
+        // Optimistic update
+        resetUnreadCount(contact.CuentaMensajeriaContactoID);
+
         // Llamar al API para confirmar lectura
         await ChatApiService.confirmarLectura({
           CuentaMensajeriaContactoID: contact.CuentaMensajeriaContactoID,
@@ -766,13 +773,13 @@ const ChatScreen = ({ route, navigation }) => {
               <TouchableWithoutFeedback onPress={() => setShowVideoControls(!showVideoControls)}>
                 <View style={{ flex: 1, width: '100%', justifyContent: 'center' }}>
                   <Video
-                      ref={videoRef}
-                      source={{ uri: currentVideo }}
-                      style={styles.fullScreenVideo}
-                      resizeMode="contain"
-                      shouldPlay={isPlaying}
-                      onPlaybackStatusUpdate={status => setVideoStatus(status)}
-                      onError={(error) => console.error('Video error:', error)}
+                    ref={videoRef}
+                    source={{ uri: currentVideo }}
+                    style={styles.fullScreenVideo}
+                    resizeMode="contain"
+                    shouldPlay={isPlaying}
+                    onPlaybackStatusUpdate={status => setVideoStatus(status)}
+                    onError={(error) => console.error('Video error:', error)}
                   />
                   {showVideoControls && (
                     <View style={styles.videoOverlay}>
@@ -813,8 +820,8 @@ const ChatScreen = ({ route, navigation }) => {
                           maximumValue={videoStatus.durationMillis || 1}
                           value={videoStatus.positionMillis || 0}
                           onSlidingComplete={async (value) => {
-                              await videoRef.current.setPositionAsync(value);
-                            }}
+                            await videoRef.current.setPositionAsync(value);
+                          }}
                           minimumTrackTintColor="#25D366"
                           maximumTrackTintColor="rgba(255,255,255,0.5)"
                           thumbTintColor="#25D366"
