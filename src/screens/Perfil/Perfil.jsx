@@ -104,6 +104,14 @@ const Perfil = ({ navigation }) => {
 
         <View style={styles.actionsContainer}>
           <TouchableOpacity
+            onPress={() => navigation.navigate('Settings')}
+            style={styles.settingsButton}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.settingsButtonText}>Configuración</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             onPress={() => logout()}
             style={styles.logoutButton}
             activeOpacity={0.8}
@@ -192,6 +200,20 @@ const styles = StyleSheet.create({
   },
   logoutButtonText: {
     color: "#c0392b",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  settingsButton: {
+    backgroundColor: "#fff",
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#007AFF",
+    marginBottom: 12,
+  },
+  settingsButtonText: {
+    color: "#007AFF",
     fontSize: 16,
     fontWeight: "600",
   },

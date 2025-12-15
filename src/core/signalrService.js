@@ -2,6 +2,8 @@ import './signalr-shim.js';
 import { hubConnection } from 'signalr-no-jquery';
 import useGlobal from './global';
 import getEnvironmentConfig from '../config/environments.js';
+import * as Notifications from 'expo-notifications';
+import { getCurrentRouteName } from './navigationRef';
 class SignalRService {
     constructor() {
         this.connection = null;
@@ -17,17 +19,26 @@ class SignalRService {
         this.isConnecting = true;
         const state = useGlobal.getState();
 
-        // Construir query string con datos de la sesión
-        // Nota: Se usan los IDs disponibles. Si el backend requiere UUIDs específicos que no están aquí,
-        // la conexión podría fallar o no recibir mensajes correctos.
+        // DEBUG: Imprimir estado actual para verificar que los datos existen
+        console.log('[SignalR] Debug State:', {
+            EmpresaID: state.empresa?.EmpresaID,
+            EmpresaUniqueID: state.empresa?.EmpresaUniqueID,
+            UsuarioID: state.user?.UsuarioUniqueID || state.usuarioID,
+            SucursalID: state.sucursal?.SucursalID,
+            SucursalUniqueID: state.sucursal?.SucursalUniqueID
+        });
+
+        // Construir query string con datos de la sesión (MATCHING WEB CLIENT FORMAT)
+        // La web usa PascalCase en las LLAVES, pero minúsculas en los VALORES.
+        // NOTA: 'UniqueID' viene del login como el UUID del usuario.
         const qs = {
-            EmpresaUniqueID: state.empresa?.EmpresaUniqueID || state.empresa?.EmpresaID,
-            UsuarioUniqueID: state.user?.UsuarioUniqueID || state.usuarioID,
-            SucursalUniqueID: state.sucursal?.SucursalUniqueID || state.sucursal?.SucursalID,
+            EmpresaUniqueID: (state.empresa?.EmpresaUniqueID || state.user?.EmpresaUniqueID || state.empresa?.EmpresaID || '').toLowerCase(),
+            UsuarioUniqueID: (state.user?.UsuarioUniqueID || state.user?.UniqueID || state.usuarioID || '').toLowerCase(),
+            SucursalUniqueID: (state.sucursal?.SucursalUniqueID || state.user?.SucursalUniqueID || state.sucursal?.SucursalID || '').toLowerCase(),
             OpcionMenu: 'CRM/CentroContacto/Principal'
         };
 
-        console.log('[SignalR] Connecting with params:', qs);
+        console.log('[SignalR] Connecting with final params:', qs);
 
         const baseUrl = `${getEnvironmentConfig().SIGNALR_URL}`;
 
@@ -75,15 +86,53 @@ class SignalRService {
         if (!this.hubProxy) return;
 
         // Notificaciones push
-        this.hubProxy.on('NotificacionPush', (data, isNew) => {
-            console.log('[SignalR] NotificacionPush received:', { data, isNew });
+        // Notificaciones push
+        // Firma exacta web: function (Notificaciones, IfPush)
+        this.hubProxy.on('NotificacionPush', (data, IfPush) => {
+            console.log('[SignalR] NotificacionPush received:', { dataLength: data?.length, IfPush });
+
             // Actualizar store de notificaciones en tiempo real
             const chatStore = require('./chatStore').default;
             if (data && Array.isArray(data)) {
+
+                // NOTA: La web hace un filtro complejo para unificar filas y actualizar "TotalRows".
+                // Por ahora mantenemos la lógica simple de agregar al store, pero la web hace:
+                // 1. Si IfPush es true -> Lanza la notificación visual (Banner).
+                // 2. Hace un merge de listas.
+
                 const currentNotifications = chatStore.getState().notifications;
-                // Agregar nuevas notificaciones al inicio
                 const updatedNotifications = [...data, ...currentNotifications];
                 chatStore.getState().setNotifications(updatedNotifications);
+
+                // --- Lógica de Notificación Local ---
+                // Condición 1: El servidor dice "IfPush" (que es cuando suena o vibra en la web).
+                // Condición 2: NO estamos en la pantalla de 'Notificaciones'.
+                const currentRoute = getCurrentRouteName();
+
+                // Si el servidor manda IfPush=true, es porque es una notificación "ruidosa" (nueva, importante).
+                // Si IfPush es undefined o false, es solo sincronización de datos.
+                if (IfPush === true && currentRoute !== 'Notificaciones') {
+                    console.log('[SignalR] Triggering Local Notification (IfPush is true)');
+
+                    // Determinar contenido (tomamos la primera)
+                    const notifData = data[0];
+                    if (notifData) {
+                        const title = notifData.Titulo || 'Nueva Notificación';
+                        // La web usa jQuery .text() para quitar HTML del body. Aquí hacemos algo simple:
+                        const bodyRaw = notifData.Texto || 'Tienes una nueva notificación en Sedi';
+                        const body = bodyRaw.replace(/<[^>]*>?/gm, ''); // Strip basic HTML tags
+
+                        Notifications.scheduleNotificationAsync({
+                            content: {
+                                title: title,
+                                body: body,
+                                sound: true,
+                                data: { data: notifData, url: notifData.Url },
+                            },
+                            trigger: null,
+                        });
+                    }
+                }
             }
         });
 
