@@ -372,22 +372,6 @@ const Notificaciones = ({ navigation }) => {
                 style={styles.actionButton}
                 onPress={(e) => {
                   e.stopPropagation();
-                  item.Visto ? markAsUnread(item) : markAsRead(item);
-                }}
-              >
-                <View style={styles.actionIconContainer}>
-                  <Ionicons
-                    name={item.Visto ? 'eye-off-outline' : 'eye-outline'}
-                    size={20}
-                    color={item.Visto ? '#9e9e9e' : '#015CAB'}
-                  />
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={(e) => {
-                  e.stopPropagation();
                   deleteNotification(item);
                 }}
               >
