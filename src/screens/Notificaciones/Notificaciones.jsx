@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  StatusBar,
   FlatList,
   Alert,
   RefreshControl,
@@ -18,6 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useChatStore } from '../../core/chatStore';
 import chatApi from '../../services/chat/chatService';
 import { useGlobal } from '../../core/global';
+import FocusAwareStatusBar from '../../components/FocusAwareStatusBar';
 
 const Notificaciones = ({ navigation }) => {
   const {
@@ -501,7 +501,7 @@ const Notificaciones = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#015CAB" />
+      <FocusAwareStatusBar barStyle="light-content" backgroundColor="#015CAB" />
 
       {/* Header con gradiente */}
       <LinearGradient

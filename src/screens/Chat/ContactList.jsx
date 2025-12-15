@@ -17,6 +17,7 @@ import { useChatStore } from '../../core/chatStore';
 import ChatApiService from '../../services/chat/chatService';
 import ChatStorageService from '../../services/chat/chatStorageService';
 import { useGlobal } from '../../core/global';
+import FocusAwareStatusBar from '../../components/FocusAwareStatusBar';
 import { useCallback } from 'react';
 const ContactList = ({ navigation }) => {
   const {
@@ -249,6 +250,7 @@ const ContactList = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <FocusAwareStatusBar barStyle="dark-content" backgroundColor="#f8f9fa" />
       <View style={styles.container}>
         {selectedContactItem ? (
           showNameInput ? (
@@ -320,119 +322,129 @@ const ContactList = ({ navigation }) => {
               </TouchableOpacity>
             </View>
           ) : (
-          <View style={styles.selectedHeader}>
-            <TouchableOpacity style={styles.headerButton} onPress={() => setSelectedContactItem(null)}>
-              <Ionicons name="arrow-back" size={24} color="#337ab7" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.headerButton} onPress={() => {
-              setNewName(selectedContactItem.Nombre);
-              setShowNameInput(true);
-            }}>
-              <Ionicons name="create-outline" size={24} color="#337ab7" />
-            </TouchableOpacity>
-            {selectedContactItem.UsuarioID != usuarioID && (
-              <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', `¿Desea asignarse el contacto ${selectedContactItem.Nombre}?`, [
-                {text: 'Cancelar'},
-                {text: 'Aceptar', onPress: async () => {
-                  try {
-                    const contacto = { ...selectedContactItem, NuevoUsuarioID: usuarioID };
-                    await ChatApiService.asignarUsuario(contacto);
-                    Alert.alert('Éxito', 'Chat asignado a usted');
-                    loadContacts();
-                    setSelectedContactItem(null);
-                  } catch (error) {
-                    Alert.alert('Error', 'No se pudo asignar el chat');
-                  }
-                }}
-              ])}>
-                <Ionicons name="person-outline" size={24} color="#337ab7" />
+            <View style={styles.selectedHeader}>
+              <TouchableOpacity style={styles.headerButton} onPress={() => setSelectedContactItem(null)}>
+                <Ionicons name="arrow-back" size={24} color="#337ab7" />
               </TouchableOpacity>
-            )}
-            <TouchableOpacity style={styles.headerButton} onPress={async () => {
-              setShowUserList(true);
-              setSelectedUser(null);
-              try {
-                const response = await ChatApiService.consultarUsuarios({});
-                setUsers(response.rows || []);
-              } catch (error) {
-                Alert.alert('Error', 'No se pudieron cargar los usuarios');
-              }
-            }}>
-              <Ionicons name="person-add-outline" size={24} color="#337ab7" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', '¿Desea marcar como mensaje no leido?', [
-              {text: 'Cancelar'},
-              {text: 'Aceptar', onPress: async () => {
+              <TouchableOpacity style={styles.headerButton} onPress={() => {
+                setNewName(selectedContactItem.Nombre);
+                setShowNameInput(true);
+              }}>
+                <Ionicons name="create-outline" size={24} color="#337ab7" />
+              </TouchableOpacity>
+              {selectedContactItem.UsuarioID != usuarioID && (
+                <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', `¿Desea asignarse el contacto ${selectedContactItem.Nombre}?`, [
+                  { text: 'Cancelar' },
+                  {
+                    text: 'Aceptar', onPress: async () => {
+                      try {
+                        const contacto = { ...selectedContactItem, NuevoUsuarioID: usuarioID };
+                        await ChatApiService.asignarUsuario(contacto);
+                        Alert.alert('Éxito', 'Chat asignado a usted');
+                        loadContacts();
+                        setSelectedContactItem(null);
+                      } catch (error) {
+                        Alert.alert('Error', 'No se pudo asignar el chat');
+                      }
+                    }
+                  }
+                ])}>
+                  <Ionicons name="person-outline" size={24} color="#337ab7" />
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity style={styles.headerButton} onPress={async () => {
+                setShowUserList(true);
+                setSelectedUser(null);
                 try {
-                  const contacto = { ...selectedContactItem, MensajeLeido: false };
-                  await ChatApiService.marcacionMensajes(contacto);
-                  Alert.alert('Éxito', 'Mensaje marcado como no leido');
-                  loadContacts();
-                  setSelectedContactItem(null);
+                  const response = await ChatApiService.consultarUsuarios({});
+                  setUsers(response.rows || []);
                 } catch (error) {
-                  Alert.alert('Error', 'No se pudo marcar el mensaje');
+                  Alert.alert('Error', 'No se pudieron cargar los usuarios');
                 }
-              }}
-            ])}>
-              <Ionicons name="mail-unread-outline" size={24} color="#337ab7" />
-            </TouchableOpacity>
-            {selectedContactItem.EstadoGestionContactoID != 2 && (
-              <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', '¿Desea cambiar a pendiente?', [
-                {text: 'Cancelar'},
-                {text: 'Aceptar', onPress: async () => {
-                  try {
-                    const contacto = { ...selectedContactItem, EstadoGestionContactoID: 2 };
-                    await ChatApiService.actualizarEstadoContacto(contacto);
-                    Alert.alert('Éxito', 'Estado cambiado a pendiente');
-                    loadContacts();
-                    setSelectedContactItem(null);
-                  } catch (error) {
-                    Alert.alert('Error', 'No se pudo cambiar el estado');
-                  }
-                }}
-              ])}>
-                <Ionicons name="time-outline" size={24} color="#337ab7" />
+              }}>
+                <Ionicons name="person-add-outline" size={24} color="#337ab7" />
               </TouchableOpacity>
-            )}
-            {selectedContactItem.EstadoGestionContactoID != 1 && (
-              <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', '¿Desea cambiar a abierto?', [
-                {text: 'Cancelar'},
-                {text: 'Aceptar', onPress: async () => {
-                  try {
-                    const contacto = { ...selectedContactItem, EstadoGestionContactoID: 1 };
-                    await ChatApiService.actualizarEstadoContacto(contacto);
-                    Alert.alert('Éxito', 'Estado cambiado a abierto');
-                    loadContacts();
-                    setSelectedContactItem(null);
-                  } catch (error) {
-                    Alert.alert('Error', 'No se pudo cambiar el estado');
+              <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', '¿Desea marcar como mensaje no leido?', [
+                { text: 'Cancelar' },
+                {
+                  text: 'Aceptar', onPress: async () => {
+                    try {
+                      const contacto = { ...selectedContactItem, MensajeLeido: false };
+                      await ChatApiService.marcacionMensajes(contacto);
+                      Alert.alert('Éxito', 'Mensaje marcado como no leido');
+                      loadContacts();
+                      setSelectedContactItem(null);
+                    } catch (error) {
+                      Alert.alert('Error', 'No se pudo marcar el mensaje');
+                    }
                   }
-                }}
+                }
               ])}>
-                <Ionicons name="checkmark-circle-outline" size={24} color="#337ab7" />
+                <Ionicons name="mail-unread-outline" size={24} color="#337ab7" />
               </TouchableOpacity>
-            )}
-            {selectedContactItem.EstadoGestionContactoID != 3 && (
-              <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', '¿Desea cambiar a cerrado?', [
-                {text: 'Cancelar'},
-                {text: 'Aceptar', onPress: async () => {
-                  try {
-                    const contacto = { ...selectedContactItem, EstadoGestionContactoID: 3 };
-                    await ChatApiService.actualizarEstadoContacto(contacto);
-                    Alert.alert('Éxito', 'Estado cambiado a cerrado');
-                    loadContacts();
-                    setSelectedContactItem(null);
-                  } catch (error) {
-                    Alert.alert('Error', 'No se pudo cambiar el estado');
+              {selectedContactItem.EstadoGestionContactoID != 2 && (
+                <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', '¿Desea cambiar a pendiente?', [
+                  { text: 'Cancelar' },
+                  {
+                    text: 'Aceptar', onPress: async () => {
+                      try {
+                        const contacto = { ...selectedContactItem, EstadoGestionContactoID: 2 };
+                        await ChatApiService.actualizarEstadoContacto(contacto);
+                        Alert.alert('Éxito', 'Estado cambiado a pendiente');
+                        loadContacts();
+                        setSelectedContactItem(null);
+                      } catch (error) {
+                        Alert.alert('Error', 'No se pudo cambiar el estado');
+                      }
+                    }
                   }
-                }}
-              ])}>
-                <Ionicons name="close-circle-outline" size={24} color="#337ab7" />
-              </TouchableOpacity>
-            )}
-          </View>
-         )
-       ) : (
+                ])}>
+                  <Ionicons name="time-outline" size={24} color="#337ab7" />
+                </TouchableOpacity>
+              )}
+              {selectedContactItem.EstadoGestionContactoID != 1 && (
+                <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', '¿Desea cambiar a abierto?', [
+                  { text: 'Cancelar' },
+                  {
+                    text: 'Aceptar', onPress: async () => {
+                      try {
+                        const contacto = { ...selectedContactItem, EstadoGestionContactoID: 1 };
+                        await ChatApiService.actualizarEstadoContacto(contacto);
+                        Alert.alert('Éxito', 'Estado cambiado a abierto');
+                        loadContacts();
+                        setSelectedContactItem(null);
+                      } catch (error) {
+                        Alert.alert('Error', 'No se pudo cambiar el estado');
+                      }
+                    }
+                  }
+                ])}>
+                  <Ionicons name="checkmark-circle-outline" size={24} color="#337ab7" />
+                </TouchableOpacity>
+              )}
+              {selectedContactItem.EstadoGestionContactoID != 3 && (
+                <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Confirmar', '¿Desea cambiar a cerrado?', [
+                  { text: 'Cancelar' },
+                  {
+                    text: 'Aceptar', onPress: async () => {
+                      try {
+                        const contacto = { ...selectedContactItem, EstadoGestionContactoID: 3 };
+                        await ChatApiService.actualizarEstadoContacto(contacto);
+                        Alert.alert('Éxito', 'Estado cambiado a cerrado');
+                        loadContacts();
+                        setSelectedContactItem(null);
+                      } catch (error) {
+                        Alert.alert('Error', 'No se pudo cambiar el estado');
+                      }
+                    }
+                  }
+                ])}>
+                  <Ionicons name="close-circle-outline" size={24} color="#337ab7" />
+                </TouchableOpacity>
+              )}
+            </View>
+          )
+        ) : (
           <View style={styles.header}>
             <Text style={styles.title}>Centro de contacto</Text>
             <TouchableOpacity
