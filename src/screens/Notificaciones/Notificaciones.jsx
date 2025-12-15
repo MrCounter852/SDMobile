@@ -23,13 +23,11 @@ const Notificaciones = ({ navigation }) => {
   const {
     notifications,
     notificationsLoading,
-    notificationFilters,
     setNotifications,
     fetchNotifications, // Import action
     updateNotification,
     removeNotification,
     clearNotifications,
-    updateNotificationFilters,
   } = useChatStore();
 
   const { usuarioID } = useGlobal();
@@ -38,10 +36,10 @@ const Notificaciones = ({ navigation }) => {
   // Removed local loading states that are now handled in store or not needed
   const currentFilterRef = useRef(null);
 
-  // Reload/Paginate notifications (Always fetches ALL)
-  const loadNotifications = useCallback(async (page = 1, append = false) => {
-    if (page === 1) setRefreshing(true);
-    await fetchNotifications(usuarioID, page, append);
+  // Reload notifications (Fetches ALL)
+  const loadNotifications = useCallback(async () => {
+    setRefreshing(true);
+    await fetchNotifications(usuarioID);
     setRefreshing(false);
   }, [usuarioID, fetchNotifications]);
 
@@ -120,12 +118,12 @@ const Notificaciones = ({ navigation }) => {
               if (response && response.result !== 1) {
                 // Rollback (requires fetching or adding back, simplified: Alert + reload)
                 Alert.alert('Error', 'No se pudo eliminar la notificación');
-                loadNotifications(1, false); // Reload to sync
+                loadNotifications(); // Reload to sync
               }
             } catch (error) {
               console.error('Error deleting notification:', error);
               Alert.alert('Error', 'No se pudo eliminar la notificación');
-              loadNotifications(1, false); // Reload to sync
+              loadNotifications(); // Reload to sync
             }
           },
         },
@@ -152,12 +150,12 @@ const Notificaciones = ({ navigation }) => {
               if (response && response.result !== 1) {
                 // Error handled by reload
                 Alert.alert('Error', 'No se pudieron eliminar las notificaciones');
-                loadNotifications(1, false);
+                loadNotifications();
               }
             } catch (error) {
               console.error('Error deleting all notifications:', error);
               Alert.alert('Error', 'No se pudieron eliminar las notificaciones');
-              loadNotifications(1, false);
+              loadNotifications();
             }
           },
         },
@@ -176,36 +174,19 @@ const Notificaciones = ({ navigation }) => {
 
   // Componente de notificación con animación
   const NotificationCard = ({ item, index }) => {
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    const slideAnim = useRef(new Animated.Value(50)).current;
-    const heightAnim = useRef(new Animated.Value(200)).current; // Estimated initial height? Or auto? 
-    // Using a value larg enough, then measuring or max-height could work, 
+    const fadeAnim = useRef(new Animated.Value(1)).current;
+    const slideAnim = useRef(new Animated.Value(0)).current;
+    const heightAnim = useRef(new Animated.Value(200)).current; // Estimated initial height? Or auto?
+    // Using a value larg enough, then measuring or max-height could work,
     // but animating ScaleY from 1 to 0 or MaxHeight is safer for lists.
-    // Let's us LayoutAnimation for simplicity on the list removal? 
-    // Re-reading plan: "Animate Exit (Row height 0)". 
-    // We can animate maxHeight or scaleY. 
+    // Let's us LayoutAnimation for simplicity on the list removal?
+    // Re-reading plan: "Animate Exit (Row height 0)".
+    // We can animate maxHeight or scaleY.
 
     // Better approach for smooth exit: Animate height.
     // Since we don't know exact height, we might need onLayout.
     // For now, let's assume valid large MaxHeight and animate to 0. Is risky.
     // Alternative: Animate ScaleY and Margin.
-
-    useEffect(() => {
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 400,
-          delay: index * 50,
-          useNativeDriver: false, // height/layout props need false
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 400,
-          delay: index * 50,
-          useNativeDriver: false,
-        }),
-      ]).start();
-    }, []);
 
     const isUnread = !item.Visto;
     const swipeableRef = useRef(null);
@@ -531,9 +512,7 @@ const Notificaciones = ({ navigation }) => {
   );
 
   const onRefresh = () => {
-    setRefreshing(true);
-    // hasMoreNotifications logic moved to store
-    loadNotifications(1, false);
+    loadNotifications();
   };
 
   return (
@@ -587,13 +566,6 @@ const Notificaciones = ({ navigation }) => {
             colors={['#015CAB', '#88E782']}
           />
         }
-        onEndReached={() => {
-          if (!notificationsLoading && notifications.length > 0) {
-            const nextPage = Math.ceil(notifications.length / notificationFilters.Rows) + 1;
-            loadNotifications(nextPage, true);
-          }
-        }}
-        onEndReachedThreshold={0.5}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <LinearGradient
