@@ -88,7 +88,7 @@ class SignalRService {
         // Notificaciones push
         // Notificaciones push
         // Firma exacta web: function (Notificaciones, IfPush)
-        this.hubProxy.on('NotificacionPush', (data, IfPush) => {
+        this.hubProxy.on('NotificacionPush', async (data, IfPush) => {
             console.log('[SignalR] NotificacionPush received:', { dataLength: data?.length, IfPush });
 
             // Actualizar store de notificaciones en tiempo real
@@ -101,27 +101,30 @@ class SignalRService {
                 // 2. Hace un merge de listas.
 
                 const currentNotifications = chatStore.getState().notifications;
-                const updatedNotifications = [...data, ...currentNotifications];
+                // Filtrar notificaciones nuevas para evitar duplicados
+                const newNotifications = data.filter(newNotif =>
+                    !currentNotifications.some(existing => existing.NotificacionUsuarioID === newNotif.NotificacionUsuarioID)
+                );
+                const updatedNotifications = [...newNotifications, ...currentNotifications];
                 chatStore.getState().setNotifications(updatedNotifications);
 
                 // --- Lógica de Notificación Local ---
-                // Condición 1: El servidor dice "IfPush" (que es cuando suena o vibra en la web).
-                // Condición 2: NO estamos en la pantalla de 'Notificaciones'.
                 const currentRoute = getCurrentRouteName();
+                const notifData = data[0]; // Tomamos la primera para análisis
 
-                // Si el servidor manda IfPush=true, es porque es una notificación "ruidosa" (nueva, importante).
-                // Si IfPush es undefined o false, es solo sincronización de datos.
-                if (IfPush === true && currentRoute !== 'Notificaciones') {
-                    console.log('[SignalR] Triggering Local Notification (IfPush is true)');
+                // Decisión de notificar:
+                // El servidor no siempre manda IfPush=true.
+                // La regla confiable es: Si el mensaje no ha sido visto (Visto === false), notificamos.
+                const shouldNotify = (notifData?.Visto === false) && currentRoute !== 'Notificaciones';
 
-                    // Determinar contenido (tomamos la primera)
-                    const notifData = data[0];
+                if (shouldNotify) {
                     if (notifData) {
                         const title = notifData.Titulo || 'Nueva Notificación';
                         // La web usa jQuery .text() para quitar HTML del body. Aquí hacemos algo simple:
                         const bodyRaw = notifData.Texto || 'Tienes una nueva notificación en Sedi';
                         const body = bodyRaw.replace(/<[^>]*>?/gm, ''); // Strip basic HTML tags
 
+                        // No esperamos el ID para no bloquear ejecución
                         Notifications.scheduleNotificationAsync({
                             content: {
                                 title: title,

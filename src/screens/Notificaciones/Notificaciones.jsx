@@ -57,15 +57,24 @@ const Notificaciones = ({ navigation }) => {
       const response = await chatApi.consultarNotificacionesPush(filters);
 
       if (response.result === 1) {
+        // Filter unique notifications by NotificacionUsuarioID to prevent duplicates
+        const uniqueRows = response.rows.filter((item, index, self) =>
+          index === self.findIndex(i => i.NotificacionUsuarioID === item.NotificacionUsuarioID)
+        );
+
         if (append && page > 1) {
           const currentNotifications = useChatStore.getState().notifications;
-          setNotifications([...currentNotifications, ...response.rows]);
+          // Filter out duplicates when appending
+          const newUnique = uniqueRows.filter(newItem =>
+            !currentNotifications.some(existing => existing.NotificacionUsuarioID === newItem.NotificacionUsuarioID)
+          );
+          setNotifications([...currentNotifications, ...newUnique]);
         } else {
-          setNotifications(response.rows || []);
+          setNotifications(uniqueRows);
         }
 
         // Check if there are more notifications to load
-        if (response.rows.length < filters.Rows) {
+        if (uniqueRows.length < filters.Rows) {
           setHasMoreNotifications(false);
         }
       }
@@ -357,37 +366,6 @@ const Notificaciones = ({ navigation }) => {
   const renderFilters = () => (
     <View style={styles.filtersContainer}>
       <TouchableOpacity
-        style={[styles.filterButton, filterVisto === null && styles.filterActive]}
-        onPress={() => setFilterVisto(null)}
-        activeOpacity={0.7}
-      >
-        {filterVisto === null ? (
-          <LinearGradient
-            colors={['#015CAB', '#88E782']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.filterGradient}
-          >
-            <Text style={styles.filterTextActive}>Todas</Text>
-            {counts.total > 0 && (
-              <View style={styles.filterBadge}>
-                <Text style={styles.filterBadgeText}>{counts.total}</Text>
-              </View>
-            )}
-          </LinearGradient>
-        ) : (
-          <View style={styles.filterInactive}>
-            <Text style={styles.filterText}>Todas</Text>
-            {counts.total > 0 && (
-              <View style={styles.filterBadgeInactive}>
-                <Text style={styles.filterBadgeTextInactive}>{counts.total}</Text>
-              </View>
-            )}
-          </View>
-        )}
-      </TouchableOpacity>
-
-      <TouchableOpacity
         style={[styles.filterButton, filterVisto === false && styles.filterActive]}
         onPress={() => setFilterVisto(false)}
         activeOpacity={0.7}
@@ -412,6 +390,36 @@ const Notificaciones = ({ navigation }) => {
             {counts.unread > 0 && (
               <View style={styles.filterBadgeInactive}>
                 <Text style={styles.filterBadgeTextInactive}>{counts.unread}</Text>
+              </View>
+            )}
+          </View>
+        )}
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.filterButton, filterVisto === null && styles.filterActive]}
+        onPress={() => setFilterVisto(null)}
+        activeOpacity={0.7}
+      >
+        {filterVisto === null ? (
+          <LinearGradient
+            colors={['#015CAB', '#88E782']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.filterGradient}
+          >
+            <Text style={styles.filterTextActive}>Todas</Text>
+            {counts.total > 0 && (
+              <View style={styles.filterBadge}>
+                <Text style={styles.filterBadgeText}>{counts.total}</Text>
+              </View>
+            )}
+          </LinearGradient>
+        ) : (
+          <View style={styles.filterInactive}>
+            <Text style={styles.filterText}>Todas</Text>
+            {counts.total > 0 && (
+              <View style={styles.filterBadgeInactive}>
+                <Text style={styles.filterBadgeTextInactive}>{counts.total}</Text>
               </View>
             )}
           </View>

@@ -37,24 +37,27 @@ export async function registerForPushNotificationsAsync() {
         const { status: existingStatus } = await Notifications.getPermissionsAsync();
         let finalStatus = existingStatus;
 
+        console.log('[NotificationConfig] Permission status:', existingStatus);
+
         if (existingStatus !== 'granted') {
+            console.log('[NotificationConfig] Requesting permissions...');
             const { status } = await Notifications.requestPermissionsAsync();
             finalStatus = status;
+            console.log('[NotificationConfig] New status:', finalStatus);
         }
 
         if (finalStatus !== 'granted') {
-            console.log('Failed to get push token for push notification!');
+            console.log('[NotificationConfig] Failed to get push token for push notification! Status:', finalStatus);
+            alert('No se otorgaron permisos para notificaciones. Por favor actívalos en la configuración de la app.');
             return;
         }
 
-        // Obtener el token (Falla sin FCM configurado en Android, pero no bloquea notificaciones locales)
+        // Obtener el token (Puede fallar sin Firebase, pero no bloquea lo anterior)
         try {
-            // Nota: Esto fallará en Android si no tienes google-services.json configurado en EAS.
-            // Para notificaciones locales (SignalR en foreground), NO necesitamos este token estrictamente.
             token = (await Notifications.getExpoPushTokenAsync()).data;
             console.log('Expo Push Token:', token);
         } catch (e) {
-            console.log('Warning: Could not get Push Token (Remote notifications won\'t work, but Local ones will).', e.message);
+            console.log('Warning: Could not get Push Token (Remote blocked, Local OK).', e.message);
         }
     } else {
         console.log('Must use physical device for Push Notifications');
