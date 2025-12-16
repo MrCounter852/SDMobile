@@ -172,8 +172,22 @@ class LeadService {
       }),
       api: 'CRM',
     });
-    console.log('InmueblesDisponiblesConsultar response:', response);
-    return this.normalizeList(response);
+    const mapDescripcion = (item) => {
+      const parts = [];
+      if (item.Consecutivo != null) parts.push(`Inmueble Nro. ${item.Consecutivo}`);
+      if (item.TipoInmuebleNombre) parts.push(item.TipoInmuebleNombre);
+      if (item.Direccion) parts.push(item.Direccion.trim());
+      if (item.EstadoInmuebleNombre) parts.push(item.EstadoInmuebleNombre);
+      const valorCanon = Number(item.ValorCanon || 0);
+      const valorVenta = Number(item.ValorVenta || 0);
+      if (valorCanon) parts.push(`Canon $${valorCanon.toLocaleString('es-CO')}`);
+      if (!valorCanon && valorVenta) parts.push(`Venta $${valorVenta.toLocaleString('es-CO')}`);
+      return {
+        ...item,
+        Descripcion: parts.join(' • ') || `Inmueble Nro. ${item.Consecutivo ?? item.InmuebleID}`,
+      };
+    };
+    return this.normalizeList(response).map(mapDescripcion);
   }
 
   async consultarTiposOfertas(term = '') {
