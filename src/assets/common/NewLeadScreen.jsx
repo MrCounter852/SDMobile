@@ -1030,11 +1030,11 @@ const NewLeadScreen = () => {
               end={{ x: 1, y: 0 }}
               style={styles.saveButton}
             >
-              <Text style={styles.saveButtonText}>{saving ? 'Guardando...' : 'Guardar Contacto'}</Text>
+              <Text style={styles.saveButtonText}>{saving ? 'Guardando...' : 'Guardar'}</Text>
             </LinearGradient>
           </TouchableOpacity>
 
-          <View style={{ height: 60 }} />
+          <View style={{ height: 90 }} />
 
         </ScrollView>
       </KeyboardAvoidingView>
@@ -1261,6 +1261,10 @@ const styles = StyleSheet.create({
     elevation: 8,
     borderRadius: 30,
     marginHorizontal: 20,
+    width: '40%',
+    height: 60,
+    alignSelf: 'center',
+
   },
   saveButton: {
     paddingVertical: 16,
@@ -1272,9 +1276,8 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '700',
-    letterSpacing: 0.5,
   },
 });
 

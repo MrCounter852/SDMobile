@@ -40,6 +40,7 @@ const PropertySelectionModal = ({
     <Modal
       visible={visible}
       animationType="fade"
+      transparent
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
