@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  Vibration
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
@@ -158,7 +159,10 @@ const ContactList = ({ navigation }) => {
         selectedContactItem?.CuentaMensajeriaContactoID === item.CuentaMensajeriaContactoID && styles.selectedContactItem
       ]}
       onPress={() => handleContactPress(item)}
-      onLongPress={() => setSelectedContactItem(item)}
+      onLongPress={() => {
+        setSelectedContactItem(item);
+        Vibration.vibrate(50);
+      }}
     >
       <View style={styles.contactAvatar}>
         <Text style={styles.avatarText}>

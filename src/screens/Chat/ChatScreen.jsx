@@ -11,7 +11,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Keyboard,
-  statusBar
+  statusBar,
+  Vibration
 } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from "@expo/vector-icons";
@@ -514,6 +515,7 @@ const ChatScreen = ({ route, navigation }) => {
 
   const handleStartRecording = () => {
     setShowAudioRecorder(true);
+    Vibration.vibrate(50);
   };
 
   const handleCancelRecording = () => {

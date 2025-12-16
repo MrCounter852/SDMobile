@@ -112,24 +112,20 @@ class SignalRService {
                 const currentRoute = getCurrentRouteName();
                 const notifData = data[0]; // Tomamos la primera para análisis
 
-                // Decisión de notificar:
-                // El servidor no siempre manda IfPush=true.
-                // La regla confiable es: Si el mensaje no ha sido visto (Visto === false), notificamos.
                 const shouldNotify = (notifData?.Visto === false) && currentRoute !== 'Notificaciones';
 
                 if (shouldNotify) {
                     if (notifData) {
                         const title = notifData.Titulo || 'Nueva Notificación';
-                        // La web usa jQuery .text() para quitar HTML del body. Aquí hacemos algo simple:
                         const bodyRaw = notifData.Texto || 'Tienes una nueva notificación en Sedi';
-                        const body = bodyRaw.replace(/<[^>]*>?/gm, ''); // Strip basic HTML tags
-
-                        // No esperamos el ID para no bloquear ejecución
+                        const body = bodyRaw.replace(/<[^>]*>?/gm, '');
                         Notifications.scheduleNotificationAsync({
                             content: {
                                 title: title,
                                 body: body,
                                 sound: true,
+                                channelId: 'default',
+                                priority: Notifications.AndroidNotificationPriority.HIGH,
                                 data: { data: notifData, url: notifData.Url },
                             },
                             trigger: null,
