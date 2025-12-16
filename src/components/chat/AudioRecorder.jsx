@@ -5,7 +5,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
-  Platform
+  Platform,
+  Vibration
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av'; // Volvemos a la librería estable
@@ -172,6 +173,7 @@ const AudioRecorder = ({ onSend, onCancel }) => {
       setRecording(null);
       recordingRef.current = null;
       global.currentRecording = null;
+      Vibration.vibrate(50);
 
     } catch (error) {
       console.error('Error enviando audio:', error);
@@ -183,6 +185,7 @@ const AudioRecorder = ({ onSend, onCancel }) => {
     await stopRecordingCleanup();
     setRecording(null);
     onCancel();
+    Vibration.vibrate(50);
   };
 
   const formatDuration = (seconds) => {
@@ -223,7 +226,7 @@ const AudioRecorder = ({ onSend, onCancel }) => {
         </TouchableOpacity>
         
         <LinearGradient
-            colors={["#337ab7", "#88E782"]}
+            colors={duration < 5 ? ["#cccccc", "#cccccc"] : ["#337ab7", "#88E782"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={[styles.bigCircleButton]}
@@ -231,6 +234,7 @@ const AudioRecorder = ({ onSend, onCancel }) => {
           <TouchableOpacity
             style={styles.fullButtonTouch}
             onPress={handleSend}
+            disabled={duration < 5}
           >
             <Ionicons name="send" size={24} color="white" />
           </TouchableOpacity>

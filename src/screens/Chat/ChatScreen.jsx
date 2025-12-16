@@ -12,7 +12,8 @@ import {
   Platform,
   Keyboard,
   statusBar,
-  Vibration
+  Vibration,
+  Linking
 } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from "@expo/vector-icons";
@@ -70,13 +71,31 @@ const ChatScreen = ({ route, navigation }) => {
 
   useEffect(() => {
     navigation.setOptions({
-      title: contact.Nombre,
+      headerTitle: () => (
+        <TouchableOpacity onPress={() => navigation.navigate("ContactInfo", { contact })}>
+          <Text style={{ color: '#337ab7', fontSize: 18, fontWeight: 'bold' }}>{contact.Nombre}</Text>
+        </TouchableOpacity>
+      ),
+      headerLeft: () => (
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={24} color="#337ab7" />
+        </TouchableOpacity>
+      ),
       headerRight: () => (
         <TouchableOpacity
           style={styles.headerButton}
-          onPress={() => navigation.navigate("ContactInfo", { contact })}
+          onPress={() => {
+            if (contact.Telefono) {
+              Linking.openURL(`tel:${contact.Telefono}`);
+            } else {
+              Alert.alert('Error', 'No hay número de celular disponible');
+            }
+          }}
         >
-          <Text style={styles.headerButtonText}>Info</Text>
+          <Ionicons name="call" size={24} color="#337ab7" />
         </TouchableOpacity>
       ),
     });
