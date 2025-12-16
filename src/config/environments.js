@@ -4,7 +4,6 @@ const environments = {
     BASE_URL_SIS: 'https://devadmin.sedisolutions.co:444',
     BASE_URL_NS: 'https://dev.sedisolutions.co:444',
     SIGNALR_URL: 'https://devadmin.sedisolutions.co:444/API_SIS/signalr',
-    BASE_URL_COM: 'https://dev.sedisolutions.co:444',
   },
   staging: {
     BASE_URL_SIS: 'https://staging-admin.sedierp.com',

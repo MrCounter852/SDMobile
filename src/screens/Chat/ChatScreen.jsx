@@ -85,18 +85,26 @@ const ChatScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       ),
       headerRight: () => (
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => {
-            if (contact.Telefono) {
-              Linking.openURL(`tel:${contact.Telefono}`);
-            } else {
-              Alert.alert('Error', 'No hay número de celular disponible');
-            }
-          }}
-        >
-          <Ionicons name="call" size={24} color="#337ab7" />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row' }}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => navigation.navigate('NewLead', { contact })}
+          >
+            <Ionicons name="add" size={24} color="#337ab7" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => {
+              if (contact.Telefono) {
+                Linking.openURL(`tel:${contact.Telefono}`);
+              } else {
+                Alert.alert('Error', 'No hay número de celular disponible');
+              }
+            }}
+          >
+            <Ionicons name="call" size={24} color="#337ab7" />
+          </TouchableOpacity>
+        </View>
       ),
     });
 

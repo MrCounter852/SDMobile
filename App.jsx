@@ -10,6 +10,7 @@ import Home from './src/screens/Home/Home';
 import useGlobal from './src/core/global';
 import { ChatScreen, NewChat } from './src/screens/Chat';
 import SettingsScreen from './src/screens/Settings/SettingsScreen';
+import NewLeadScreen from './src/assets/common/NewLeadScreen';
 
 import { navigationRef, navigate } from './src/core/navigationRef';
 import { registerForPushNotificationsAsync } from './src/core/notificationConfig';
@@ -107,6 +108,11 @@ export default function App() {
                 name="ContactInfo"
                 component={View}
                 options={{ headerShown: true, title: 'Información del Contacto' }}
+              />
+              <Stack.Screen
+                name="NewLead"
+                component={NewLeadScreen}
+                options={{ headerShown: true, title: 'Nuevo Lead' }}
               />
             </>
           )}
