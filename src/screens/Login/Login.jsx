@@ -196,7 +196,6 @@ const Login = () => {
                         sucursal: selectedSucursal
                       });
                     }
-                    Alert.alert('Éxito', 'Login exitoso!');
                   } catch (error) {
                     Alert.alert('Error', error.message);
                   }
