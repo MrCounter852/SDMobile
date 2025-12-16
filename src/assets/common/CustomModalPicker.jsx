@@ -11,6 +11,29 @@ const COLORS = {
   inputBg: '#F9FAFB',
 };
 
+const resolveItemValue = (item) =>
+  item?.id ??
+  item?.ID ??
+  item?.value ??
+  item?.key ??
+  item?.InmuebleID ??
+  item?.OrigenPreContactoID ??
+  item?.AsesorID ??
+  item?.TipoOfertaID ??
+  item?.CondicionInmuebleID ??
+  item?.TipoInmuebleID ??
+  item?.AntiguedadInmuebleID ??
+  item?.TipoAvaluoID ??
+  item?.LocalidadID ??
+  item?.FormaContactoID ??
+  item?.FormaComoNosConocioID ??
+  item?.FormaComoNosConocioDetalleID ??
+  item?.TipoDocumentoID ??
+  item?.TipoPersonaID ??
+  item?.ResponsabilidadTributariaID ??
+  item?.TipoProductoID ??
+  item;
+
 const CustomModalPicker = ({
   label,
   required,
@@ -32,9 +55,23 @@ const CustomModalPicker = ({
   const hasRemoteSearch = typeof onSearch === 'function';
   const hasLoadData = typeof onLoadData === 'function';
 
-  const selectedItem = (hasLoadData ? remoteItems : items).find(item => item.id === selectedValue || item.ID === selectedValue || item.value === selectedValue);
-
   const activeItems = hasRemoteSearch || hasLoadData ? remoteItems : items;
+
+  const selectedItem = useMemo(() => {
+    const pools = [];
+    if (hasRemoteSearch || hasLoadData) {
+      pools.push(remoteItems);
+    }
+    pools.push(items);
+    for (const pool of pools) {
+      if (!Array.isArray(pool)) continue;
+      const found = pool.find(item => resolveItemValue(item) === selectedValue);
+      if (found) {
+        return found;
+      }
+    }
+    return undefined;
+  }, [selectedValue, remoteItems, items, hasRemoteSearch, hasLoadData]);
 
   const displayItems = useMemo(() => {
     if (!hasSearch || !searchTerm.trim() || hasRemoteSearch) {
@@ -91,7 +128,7 @@ const CustomModalPicker = ({
   }, [hasRemoteSearch, hasLoadData, items]);
 
   const handleSelect = (item) => {
-    const value = item.id || item.ID || item.value || item;
+    const value = resolveItemValue(item);
     onValueChange(value);
     setShowModal(false);
     setSearchTerm('');
@@ -115,7 +152,8 @@ const CustomModalPicker = ({
   }, [showModal, hasRemoteSearch, hasLoadData, fetchRemoteItems, loadData]);
 
   const defaultRenderItem = (item, selectedId) => {
-    const isSelected = selectedId === (item.id || item.ID || item.value);
+    const itemValue = resolveItemValue(item);
+    const isSelected = selectedId === itemValue;
     return (
       <TouchableOpacity
         style={[styles.item, isSelected && styles.selectedItem]}

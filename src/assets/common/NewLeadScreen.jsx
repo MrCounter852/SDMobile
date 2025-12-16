@@ -282,10 +282,6 @@ const NewLeadScreen = () => {
   useEffect(() => {
     if (showInmuebleModal) {
       setSearchTerm('');
-    } else {
-      // Clear inmuebles when modal closes
-      setInmueblesDisponibles([]);
-      setLastLoadedOrigenId(null);
     }
   }, [showInmuebleModal]);
 

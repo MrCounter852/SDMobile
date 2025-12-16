@@ -78,6 +78,7 @@ const SearchableModal = ({
             <FlatList
               data={data}
               keyExtractor={(item, index) => String(item.id || item.ID || index)}
+              extraData={selectedItemId}
               contentContainerStyle={{ paddingBottom: 16 }}
               renderItem={({ item }) => renderItem(item, selectedItemId)}
             />
