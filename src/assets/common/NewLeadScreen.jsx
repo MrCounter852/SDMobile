@@ -23,6 +23,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from 'expo-linear-gradient';
 import leadService from '../../services/leads/leadService';
 import PropertySelectionModal from '../../components/PropertySelectionModal';
+import CustomModalPicker from './CustomModalPicker';
 
 const COLORS = {
   primary: '#337ab7', // User requested blue
@@ -112,19 +113,30 @@ const NewLeadScreen = () => {
 
   const [origenes, setOrigenes] = useState([]);
   const [asesores, setAsesores] = useState([]);
+  const [asesoresLoaded, setAsesoresLoaded] = useState(false);
   const [formasContacto, setFormasContacto] = useState([]);
+  const [formasContactoLoaded, setFormasContactoLoaded] = useState(false);
   const [formasConocio, setFormasConocio] = useState([]);
+  const [formasConocioLoaded, setFormasConocioLoaded] = useState(false);
   const [formasConocioDetalle, setFormasConocioDetalle] = useState([]);
   const [inmueblesDisponibles, setInmueblesDisponibles] = useState([]);
   const [tiposOferta, setTiposOferta] = useState([]);
+  const [tiposOfertaLoaded, setTiposOfertaLoaded] = useState(false);
   const [condicionesInmueble, setCondicionesInmueble] = useState([]);
+  const [condicionesLoaded, setCondicionesLoaded] = useState(false);
   const [tiposInmueble, setTiposInmueble] = useState([]);
+  const [tiposInmuebleLoaded, setTiposInmuebleLoaded] = useState(false);
   const [antiguedades, setAntiguedades] = useState([]);
+  const [antiguedadesLoaded, setAntiguedadesLoaded] = useState(false);
   const [localidades, setLocalidades] = useState([]);
   const [tiposAvaluo, setTiposAvaluo] = useState([]);
+  const [tiposAvaluoLoaded, setTiposAvaluoLoaded] = useState(false);
   const [tiposDocumento, setTiposDocumento] = useState([]);
+  const [tiposDocumentoLoaded, setTiposDocumentoLoaded] = useState(false);
   const [tiposPersona, setTiposPersona] = useState([]);
+  const [tiposPersonaLoaded, setTiposPersonaLoaded] = useState(false);
   const [responsabilidades, setResponsabilidades] = useState([]);
+  const [responsabilidadesLoaded, setResponsabilidadesLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -193,8 +205,8 @@ const NewLeadScreen = () => {
   const [selectedLocalidades, setSelectedLocalidades] = useState({});
   const [showInmuebleModal, setShowInmuebleModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [loadingInmuebles, setLoadingInmuebles] = useState(false);
+  const [lastLoadedOrigenId, setLastLoadedOrigenId] = useState(null);
 
   const detailLabel = useMemo(() => {
     const current = DETAIL_LABELS[form.OrigenPreContactoID];
@@ -262,15 +274,25 @@ const NewLeadScreen = () => {
   }, [preContacto]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearchTerm(searchTerm), 300);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
+    if (showInmuebleModal && form.OrigenPreContactoID) {
+      loadInmuebles(form.OrigenPreContactoID, searchTerm);
+    }
+  }, [showInmuebleModal, form.OrigenPreContactoID, searchTerm, loadInmuebles]);
 
   useEffect(() => {
     if (showInmuebleModal) {
       setSearchTerm('');
+    } else {
+      // Clear inmuebles when modal closes
+      setInmueblesDisponibles([]);
+      setLastLoadedOrigenId(null);
     }
   }, [showInmuebleModal]);
+
+  const loadOrigenes = useCallback(async () => {
+    // Origenes are already loaded at startup, just return them
+    return origenes;
+  }, [origenes]);
 
   const loadInitialData = useCallback(async () => {
     setLoading(true);
@@ -278,47 +300,14 @@ const NewLeadScreen = () => {
     try {
       const [
         origenesResp,
-        asesoresResp,
-        formasContactoResp,
-        formasConocioResp,
-        tiposOfertaResp,
-        condicionesResp,
-        tiposInmuebleResp,
-        antiguedadesResp,
         localidadesResp,
-        tiposDocumentoResp,
-        tiposPersonaResp,
-        responsabilidadesResp,
-        tiposAvaluoResp,
       ] = await Promise.all([
         leadService.consultarOrigenesPreContactos(),
-        leadService.consultarAsesores(),
-        leadService.consultarFormasContacto(),
-        leadService.consultarFormasComoNosConocio(),
-        leadService.consultarTiposOfertas(),
-        leadService.consultarCondicionesInmueble(),
-        leadService.consultarTiposInmueble(),
-        leadService.consultarAntiguedadesInmueble(),
         leadService.consultarLocalidades(),
-        leadService.consultarTiposDocumentos(),
-        leadService.consultarTiposPersonas(),
-        leadService.consultarResponsabilidadesTributarias(),
-        leadService.consultarTiposAvaluos(),
       ]);
 
       setOrigenes(origenesResp || []);
-      setAsesores(asesoresResp || []);
-      setFormasContacto(formasContactoResp || []);
-      setFormasConocio(formasConocioResp || []);
-      setTiposOferta(tiposOfertaResp || []);
-      setCondicionesInmueble(condicionesResp || []);
-      setTiposInmueble(tiposInmuebleResp || []);
-      setAntiguedades(antiguedadesResp || []);
       setLocalidades(localidadesResp || []);
-      setTiposDocumento(tiposDocumentoResp || []);
-      setTiposPersona(tiposPersonaResp || []);
-      setResponsabilidades(responsabilidadesResp || []);
-      setTiposAvaluo(tiposAvaluoResp || []);
 
       if (!preContacto?.OrigenPreContactoID) {
         const defaultOrigen = (origenesResp || [])[0]?.OrigenPreContactoID;
@@ -337,6 +326,150 @@ const NewLeadScreen = () => {
     }
   }, [preContacto]);
 
+  const loadAsesores = useCallback(async () => {
+    if (asesoresLoaded) return asesores;
+    try {
+      const response = await leadService.consultarAsesores();
+      setAsesores(response || []);
+      setAsesoresLoaded(true);
+      return response || [];
+    } catch (error) {
+      console.error('NewLeadScreen:loadAsesores', error);
+      return [];
+    }
+  }, [asesoresLoaded]);
+
+  const loadFormasContacto = useCallback(async () => {
+    if (formasContactoLoaded) return formasContacto;
+    try {
+      const response = await leadService.consultarFormasContacto();
+      setFormasContacto(response || []);
+      setFormasContactoLoaded(true);
+      return response || [];
+    } catch (error) {
+      console.error('NewLeadScreen:loadFormasContacto', error);
+      return [];
+    }
+  }, [formasContactoLoaded]);
+
+  const loadFormasConocio = useCallback(async () => {
+    if (formasConocioLoaded) return formasConocio;
+    try {
+      const response = await leadService.consultarFormasComoNosConocio();
+      setFormasConocio(response || []);
+      setFormasConocioLoaded(true);
+      return response || [];
+    } catch (error) {
+      console.error('NewLeadScreen:loadFormasConocio', error);
+      return [];
+    }
+  }, [formasConocioLoaded]);
+
+  const loadTiposOferta = useCallback(async () => {
+    if (tiposOfertaLoaded) return tiposOferta;
+    try {
+      const response = await leadService.consultarTiposOfertas();
+      setTiposOferta(response || []);
+      setTiposOfertaLoaded(true);
+      return response || [];
+    } catch (error) {
+      console.error('NewLeadScreen:loadTiposOferta', error);
+      return [];
+    }
+  }, [tiposOfertaLoaded]);
+
+  const loadCondicionesInmueble = useCallback(async () => {
+    if (condicionesLoaded) return condicionesInmueble;
+    try {
+      const response = await leadService.consultarCondicionesInmueble();
+      setCondicionesInmueble(response || []);
+      setCondicionesLoaded(true);
+      return response || [];
+    } catch (error) {
+      console.error('NewLeadScreen:loadCondicionesInmueble', error);
+      return [];
+    }
+  }, [condicionesLoaded]);
+
+  const loadTiposInmueble = useCallback(async () => {
+    if (tiposInmuebleLoaded) return tiposInmueble;
+    try {
+      const response = await leadService.consultarTiposInmueble();
+      setTiposInmueble(response || []);
+      setTiposInmuebleLoaded(true);
+      return response || [];
+    } catch (error) {
+      console.error('NewLeadScreen:loadTiposInmueble', error);
+      return [];
+    }
+  }, [tiposInmuebleLoaded]);
+
+  const loadAntiguedades = useCallback(async () => {
+    if (antiguedadesLoaded) return antiguedades;
+    try {
+      const response = await leadService.consultarAntiguedadesInmueble();
+      setAntiguedades(response || []);
+      setAntiguedadesLoaded(true);
+      return response || [];
+    } catch (error) {
+      console.error('NewLeadScreen:loadAntiguedades', error);
+      return [];
+    }
+  }, [antiguedadesLoaded]);
+
+
+  const loadTiposAvaluo = useCallback(async () => {
+    if (tiposAvaluoLoaded) return tiposAvaluo;
+    try {
+      const response = await leadService.consultarTiposAvaluos();
+      setTiposAvaluo(response || []);
+      setTiposAvaluoLoaded(true);
+      return response || [];
+    } catch (error) {
+      console.error('NewLeadScreen:loadTiposAvaluo', error);
+      return [];
+    }
+  }, [tiposAvaluoLoaded]);
+
+  const loadTiposDocumento = useCallback(async () => {
+    if (tiposDocumentoLoaded) return tiposDocumento;
+    try {
+      const response = await leadService.consultarTiposDocumentos();
+      setTiposDocumento(response || []);
+      setTiposDocumentoLoaded(true);
+      return response || [];
+    } catch (error) {
+      console.error('NewLeadScreen:loadTiposDocumento', error);
+      return [];
+    }
+  }, [tiposDocumentoLoaded]);
+
+  const loadTiposPersona = useCallback(async () => {
+    if (tiposPersonaLoaded) return tiposPersona;
+    try {
+      const response = await leadService.consultarTiposPersonas();
+      setTiposPersona(response || []);
+      setTiposPersonaLoaded(true);
+      return response || [];
+    } catch (error) {
+      console.error('NewLeadScreen:loadTiposPersona', error);
+      return [];
+    }
+  }, [tiposPersonaLoaded]);
+
+  const loadResponsabilidades = useCallback(async () => {
+    if (responsabilidadesLoaded) return responsabilidades;
+    try {
+      const response = await leadService.consultarResponsabilidadesTributarias();
+      setResponsabilidades(response || []);
+      setResponsabilidadesLoaded(true);
+      return response || [];
+    } catch (error) {
+      console.error('NewLeadScreen:loadResponsabilidades', error);
+      return [];
+    }
+  }, [responsabilidadesLoaded]);
+
   useEffect(() => {
     loadInitialData();
   }, [loadInitialData]);
@@ -344,13 +477,16 @@ const NewLeadScreen = () => {
   const loadFormasDetalle = useCallback(async (formaId) => {
     if (!formaId) {
       setFormasConocioDetalle([]);
-      return;
+      return [];
     }
     try {
       const detalles = await leadService.consultarFormasComoNosConocioDetalles(formaId);
-      setFormasConocioDetalle(detalles || []);
+      const data = detalles || [];
+      setFormasConocioDetalle(data);
+      return data;
     } catch (error) {
       console.error('NewLeadScreen:loadFormasDetalle', error);
+      return [];
     }
   }, []);
 
@@ -377,11 +513,7 @@ const NewLeadScreen = () => {
     }
   }, []);
 
-  useEffect(() => {
-    if (form.OrigenPreContactoID) {
-      loadInmuebles(form.OrigenPreContactoID, debouncedSearchTerm);
-    }
-  }, [form.OrigenPreContactoID, debouncedSearchTerm, loadInmuebles]);
+  // Removed: inmuebles now load only when modal opens
 
   const toggleEstrato = (key) => {
     setForm(prev => ({ ...prev, [key]: !prev[key] }));
@@ -495,13 +627,14 @@ const NewLeadScreen = () => {
           {/* --- INFORMACIÓN GENERAL --- */}
           <View style={styles.card}>
             <SectionHeader title="Información General" icon="information-circle-outline" />
-            <CustomPicker
+            <CustomModalPicker
               label="Tipo de contacto"
               required
               selectedValue={form.OrigenPreContactoID}
               onValueChange={value => setForm({ ...form, OrigenPreContactoID: value ? Number(value) : '' })}
-              items={origenes}
+              onLoadData={loadOrigenes}
               placeholder="Selecciona el origen"
+              hasSearch={false}
             />
 
             <View style={styles.row}>
@@ -554,31 +687,41 @@ const NewLeadScreen = () => {
               <>
                 <View style={styles.row}>
                   <View style={styles.flexHalf}>
-                    <CustomPicker
+                    <CustomModalPicker
                       label="¿Como se contactaron?"
                       required
                       selectedValue={form.FormaContactoID}
                       onValueChange={v => setForm({ ...form, FormaContactoID: v })}
-                      items={formasContacto}
+                      onLoadData={loadFormasContacto}
+                      placeholder="Seleccione"
+                      hasSearch={true}
+                      searchPlaceholder="Buscar formas de contacto..."
                     />
                   </View>
                   <View style={styles.flexHalf}>
-                    <CustomPicker
+                    <CustomModalPicker
                       label="¿Como nos conocieron?"
                       required
                       selectedValue={form.FormaComoNosConocioID}
                       onValueChange={v => setForm({ ...form, FormaComoNosConocioID: v })}
-                      items={formasConocio}
+                      onLoadData={loadFormasConocio}
+                      placeholder="Seleccione"
+                      hasSearch={true}
+                      searchPlaceholder="Buscar formas..."
                     />
                   </View>
                 </View>
                 <View style={styles.row}>
                   <View style={styles.flexHalf}>
-                    <CustomPicker
+                    <CustomModalPicker
                       label="Especificación"
                       selectedValue={form.FormaComoNosConocioDetalleID}
                       onValueChange={v => setForm({ ...form, FormaComoNosConocioDetalleID: v })}
-                      items={formasConocioDetalle}
+                      onLoadData={() => loadFormasDetalle(form.FormaComoNosConocioID)}
+                      placeholder="Seleccione"
+                      hasSearch={true}
+                      searchPlaceholder="Buscar especificaciones..."
+                      key={form.FormaComoNosConocioID} // Force re-render when parent changes
                     />
                   </View>
                   <View style={styles.flexHalf}>
@@ -601,13 +744,15 @@ const NewLeadScreen = () => {
 
             <View style={styles.row}>
               <View style={[styles.flexHalf, { flex: 2 }]}>
-                <CustomPicker
+                <CustomModalPicker
                   label="Asesor Comercial"
                   required
                   selectedValue={form.AsesorID}
                   onValueChange={v => setForm({ ...form, AsesorID: v })}
-                  items={asesores}
+                  onLoadData={loadAsesores}
                   placeholder="Asignar a..."
+                  hasSearch={true}
+                  searchPlaceholder="Buscar asesores..."
                 />
               </View>
               <View style={[styles.flexHalf, { flex: 1 }]}>
@@ -630,20 +775,20 @@ const NewLeadScreen = () => {
                 <TouchableOpacity
                   style={styles.selectBox}
                   onPress={() => setShowInmuebleModal(true)}
-                  disabled={inmueblesDisponibles.length === 0}
                 >
                   <Text
                     style={[
                       styles.selectBoxText,
                       !form.InmuebleID && styles.selectBoxPlaceholder,
-                      inmueblesDisponibles.length === 0 && styles.selectBoxDisabledText
                     ]}
                   >
                     {form.InmuebleID
                       ? (inmueblesDisponibles.find(i => i.InmuebleID === form.InmuebleID)?.Descripcion || 'Inmueble seleccionado')
-                      : inmueblesDisponibles.length === 0
-                        ? 'No hay inmuebles disponibles'
-                        : 'Selecciona un inmueble'}
+                      : loadingInmuebles
+                        ? 'Cargando inmuebles...'
+                        : inmueblesDisponibles.length === 0
+                          ? 'Toca para cargar inmuebles'
+                          : 'Selecciona un inmueble'}
                   </Text>
                   <Ionicons
                     name="chevron-down"
@@ -657,23 +802,28 @@ const NewLeadScreen = () => {
             <View style={styles.row}>
               {(form.OrigenPreContactoID == 2 || form.OrigenPreContactoID == 4) && (
                 <View style={styles.flexHalf}>
-                  <CustomPicker
+                  <CustomModalPicker
                     label="Tipo de Oferta"
                     required
                     selectedValue={form.TipoOfertaID}
                     onValueChange={v => setForm({ ...form, TipoOfertaID: v })}
-                    items={tiposOferta}
+                    onLoadData={loadTiposOferta}
+                    placeholder="Seleccione"
+                    hasSearch={true}
+                    searchPlaceholder="Buscar tipos de oferta..."
                   />
                 </View>
               )}
 
               {(form.OrigenPreContactoID == 2 || form.OrigenPreContactoID == 4 || form.OrigenPreContactoID == 5) && (
                 <View style={styles.flexHalf}>
-                  <CustomPicker
+                  <CustomModalPicker
                     label="Condición"
                     selectedValue={form.CondicionInmuebleID}
                     onValueChange={v => setForm({ ...form, CondicionInmuebleID: v })}
-                    items={condicionesInmueble}
+                    onLoadData={loadCondicionesInmueble}
+                    placeholder="Seleccione"
+                    hasSearch={false}
                   />
                 </View>
               )}
@@ -682,36 +832,44 @@ const NewLeadScreen = () => {
             <View style={styles.row}>
               {(form.OrigenPreContactoID == 2 || form.OrigenPreContactoID == 4 || form.OrigenPreContactoID == 5 || form.OrigenPreContactoID == 7) && (
                 <View style={styles.flexHalf}>
-                  <CustomPicker
+                  <CustomModalPicker
                     label="Tipo de Inmueble"
                     required
                     selectedValue={form.TipoInmuebleID}
                     onValueChange={v => setForm({ ...form, TipoInmuebleID: v })}
-                    items={tiposInmueble}
+                    onLoadData={loadTiposInmueble}
+                    placeholder="Seleccione"
+                    hasSearch={true}
+                    searchPlaceholder="Buscar tipos..."
                   />
                 </View>
               )}
 
               {(form.OrigenPreContactoID == 2 || form.OrigenPreContactoID == 4 || form.OrigenPreContactoID == 5) && (
                 <View style={styles.flexHalf}>
-                  <CustomPicker
+                  <CustomModalPicker
                     label="Antigüedad"
                     selectedValue={form.AntiguedadInmuebleID}
                     onValueChange={v => setForm({ ...form, AntiguedadInmuebleID: v })}
-                    items={antiguedades}
+                    onLoadData={loadAntiguedades}
+                    placeholder="Seleccione"
+                    hasSearch={true}
+                    searchPlaceholder="Buscar antigüedades..."
                   />
                 </View>
               )}
             </View>
 
             {form.OrigenPreContactoID == 7 && (
-              <CustomPicker
+              <CustomModalPicker
                 label="Tipo de Avalúo"
                 required
                 selectedValue={form.TipoAvaluoID}
                 onValueChange={v => setForm({ ...form, TipoAvaluoID: v })}
-                items={tiposAvaluo}
+                onLoadData={loadTiposAvaluo}
                 placeholder="Seleccione"
+                hasSearch={true}
+                searchPlaceholder="Buscar tipos de avalúo..."
               />
             )}
 
@@ -890,12 +1048,14 @@ const NewLeadScreen = () => {
 
               <View style={styles.row}>
                 <View style={styles.flexHalf}>
-                  <CustomPicker
+                  <CustomModalPicker
                     label="Tipo de documento"
                     selectedValue={form.ClienteTipoDocumentoID}
                     onValueChange={v => setForm({ ...form, ClienteTipoDocumentoID: v })}
-                    items={tiposDocumento}
+                    onLoadData={loadTiposDocumento}
                     placeholder="Seleccione"
+                    hasSearch={true}
+                    searchPlaceholder="Buscar tipos de documento..."
                   />
                 </View>
                 <View style={styles.flexHalf}>
@@ -911,21 +1071,25 @@ const NewLeadScreen = () => {
 
               <View style={styles.row}>
                 <View style={styles.flexHalf}>
-                  <CustomPicker
+                  <CustomModalPicker
                     label="Tipo de persona"
                     selectedValue={form.ClienteTipoPersonaID}
                     onValueChange={handleTipoPersonaChange}
-                    items={tiposPersona}
+                    onLoadData={loadTiposPersona}
                     placeholder="Seleccione"
+                    hasSearch={true}
+                    searchPlaceholder="Buscar tipos de persona..."
                   />
                 </View>
                 <View style={styles.flexHalf}>
-                  <CustomPicker
+                  <CustomModalPicker
                     label="Responsabilidad tributaria"
                     selectedValue={form.ClienteResponsabilidadTributariaID}
                     onValueChange={v => setForm({ ...form, ClienteResponsabilidadTributariaID: v })}
-                    items={responsabilidades}
+                    onLoadData={loadResponsabilidades}
                     placeholder="Seleccione"
+                    hasSearch={true}
+                    searchPlaceholder="Buscar responsabilidades..."
                   />
                 </View>
               </View>
