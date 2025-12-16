@@ -191,6 +191,9 @@ const NewLeadScreen = () => {
 
   const [selectedLocalidades, setSelectedLocalidades] = useState({});
   const [showInmuebleModal, setShowInmuebleModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [loadingInmuebles, setLoadingInmuebles] = useState(false);
 
   const detailLabel = useMemo(() => {
     const current = DETAIL_LABELS[form.OrigenPreContactoID];
@@ -256,6 +259,17 @@ const NewLeadScreen = () => {
       setSelectedLocalidades(mapped);
     }
   }, [preContacto]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearchTerm(searchTerm), 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    if (showInmuebleModal) {
+      setSearchTerm('');
+    }
+  }, [showInmuebleModal]);
 
   const loadInitialData = useCallback(async () => {
     setLoading(true);
@@ -343,26 +357,30 @@ const NewLeadScreen = () => {
     loadFormasDetalle(form.FormaComoNosConocioID);
   }, [form.FormaComoNosConocioID, loadFormasDetalle]);
 
-  const loadInmuebles = useCallback(async (origenId) => {
+  const loadInmuebles = useCallback(async (origenId, search = '') => {
     const id = Number(origenId);
     if (id === 4 || id === 5) {
+      setLoadingInmuebles(true);
       try {
         const tipoOferta = id === 5 ? 2 : 1;
-        const data = await leadService.consultarInmueblesDisponibles({ TipoOfertaID: tipoOferta });
+        const data = await leadService.consultarInmueblesDisponibles({ TipoOfertaID: tipoOferta, FullSearch: search });
         setInmueblesDisponibles(data || []);
       } catch (error) {
         console.error('NewLeadScreen:loadInmuebles', error);
+      } finally {
+        setLoadingInmuebles(false);
       }
     } else {
       setInmueblesDisponibles([]);
+      setLoadingInmuebles(false);
     }
   }, []);
 
   useEffect(() => {
     if (form.OrigenPreContactoID) {
-      loadInmuebles(form.OrigenPreContactoID);
+      loadInmuebles(form.OrigenPreContactoID, debouncedSearchTerm);
     }
-  }, [form.OrigenPreContactoID, loadInmuebles]);
+  }, [form.OrigenPreContactoID, debouncedSearchTerm, loadInmuebles]);
 
   const toggleEstrato = (key) => {
     setForm(prev => ({ ...prev, [key]: !prev[key] }));
@@ -457,7 +475,20 @@ const NewLeadScreen = () => {
                 <Ionicons name="close" size={24} color={COLORS.text} />
               </TouchableOpacity>
             </View>
-            {inmueblesDisponibles.length === 0 ? (
+            <View style={styles.searchContainer}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Buscar inmuebles..."
+                value={searchTerm}
+                onChangeText={setSearchTerm}
+                placeholderTextColor={COLORS.textSecondary}
+              />
+            </View>
+            {loadingInmuebles ? (
+              <View style={styles.loadingWrapper}>
+                <ActivityIndicator size="large" color={COLORS.primary} />
+              </View>
+            ) : inmueblesDisponibles.length === 0 ? (
               <View style={styles.emptyWrapper}>
                 <Text style={styles.emptyText}>No hay inmuebles disponibles para mostrar.</Text>
               </View>
@@ -1341,12 +1372,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+  searchContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+  },
+  searchInput: {
+    backgroundColor: COLORS.inputBg,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingHorizontal: 12,
+    height: 40,
+    fontSize: 15,
+    color: COLORS.text,
+  },
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: COLORS.text,
   },
   emptyWrapper: {
+    paddingVertical: 30,
+    alignItems: 'center',
+  },
+  loadingWrapper: {
     paddingVertical: 30,
     alignItems: 'center',
   },
