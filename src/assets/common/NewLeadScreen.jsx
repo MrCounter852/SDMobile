@@ -269,6 +269,10 @@ const NewLeadScreen = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loadingInmuebles, setLoadingInmuebles] = useState(false);
   const [lastLoadedOrigenId, setLastLoadedOrigenId] = useState(null);
+  const [servicio, setServicio] = useState({ TipoProductoID: '', Nombre: '' });
+  const [procesosServiciosIniciales, setProcesosServiciosIniciales] = useState(preContacto?.ProcesosServiciosIniciales || []);
+  const [tiposProductos, setTiposProductos] = useState([]);
+  const [tiposProductosLoaded, setTiposProductosLoaded] = useState(false);
 
   const detailLabel = useMemo(() => {
     const current = DETAIL_LABELS[form.OrigenPreContactoID];
@@ -507,6 +511,19 @@ const NewLeadScreen = () => {
     return localidades;
   }, [localidades]);
 
+  const loadTiposProductos = useCallback(async () => {
+    if (tiposProductosLoaded) return tiposProductos;
+    try {
+      const response = await leadService.consultarTiposProductos();
+      setTiposProductos(response || []);
+      setTiposProductosLoaded(true);
+      return response || [];
+    } catch (error) {
+      console.error("NewLeadScreen:loadTiposProductos", error);
+      return [];
+    }
+  }, [tiposProductosLoaded]);
+
   const loadTiposDocumento = useCallback(async () => {
     if (tiposDocumentoLoaded) return tiposDocumento;
     try {
@@ -633,7 +650,7 @@ const NewLeadScreen = () => {
       OrigenPreContactoID:
         Number(form.OrigenPreContactoID) || form.OrigenPreContactoID,
       ProcesosInmobiliariaLocalidades: buildLocalidadesPayload(),
-      ProcesosServiciosIniciales: [],
+      ProcesosServiciosIniciales: procesosServiciosIniciales,
       CuentaMensajeriaContactoID: contact?.CuentaMensajeriaContactoID || null,
       UsuarioID: user?.UsuarioID,
       Usuario: user?.UsuarioID,
@@ -666,6 +683,31 @@ const NewLeadScreen = () => {
     }));
     setShowInmuebleModal(false);
   }, []);
+
+  const addServicios = () => {
+    if (!servicio.TipoProductoID) {
+      Alert.alert("Error", "Seleccione un servicio");
+      return;
+    }
+    const selected = tiposProductos.find(t => t.TipoProductoID === servicio.TipoProductoID || t.id === servicio.TipoProductoID);
+    if (!selected) return;
+    const exists = procesosServiciosIniciales.find(s => s.TipoProductoID === servicio.TipoProductoID && !s.Eliminar);
+    if (exists) {
+      Alert.alert("Error", "El servicio ya está agregado");
+      return;
+    }
+    const newServicio = {
+      TipoProductoID: servicio.TipoProductoID,
+      Nombre: selected.Nombre,
+      Eliminar: false,
+    };
+    setProcesosServiciosIniciales(prev => [...prev, newServicio]);
+    setServicio({ TipoProductoID: '', Nombre: '' });
+  };
+
+  const removeServicios = (index) => {
+    setProcesosServiciosIniciales(prev => prev.filter((_, i) => i !== index));
+  };
 
   if (loading) {
     return (
@@ -1262,6 +1304,46 @@ const NewLeadScreen = () => {
               multiline
             />
 
+            {(form.OrigenPreContactoID == 1 || form.OrigenPreContactoID == 6) && (
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Servicios solicitados</Text>
+                <View style={styles.row}>
+                  <View style={[styles.flexHalf, { flex: 3 }]}>
+                    <CustomModalPicker
+                      selectedValue={servicio.TipoProductoID}
+                      onValueChange={(v) => {
+                        const selected = tiposProductos.find(t => t.TipoProductoID === v || t.id === v);
+                        setServicio({ TipoProductoID: v, Nombre: selected?.Nombre || '' });
+                      }}
+                      onLoadData={loadTiposProductos}
+                      placeholder="Seleccione un servicio"
+                      hasSearch={true}
+                      searchPlaceholder="Buscar servicios..."
+                    />
+                  </View>
+                  <View style={[styles.flexHalf, { flex: 1, justifyContent: 'center' }]}>
+                    <TouchableOpacity onPress={addServicios} style={styles.addButton}>
+                      <Ionicons name="add-circle" size={30} color={COLORS.primary} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                {procesosServiciosIniciales.length > 0 && (
+                  <View style={styles.servicesList}>
+                    {procesosServiciosIniciales.map((item, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.serviceItem}
+                        onPress={() => removeServicios(index)}
+                      >
+                        <Text style={styles.serviceText}>{item.Nombre}</Text>
+                        <Ionicons name="trash" size={20} color={COLORS.danger} />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+            )}
+
             <TouchableOpacity
               style={[styles.switchRow, { marginTop: 10 }]}
               onPress={() =>
@@ -1705,6 +1787,28 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 15,
     fontWeight: "700",
+  },
+  addButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 5,
+  },
+  servicesList: {
+    marginTop: 10,
+  },
+  serviceItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: COLORS.inputBg,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 5,
+  },
+  serviceText: {
+    flex: 1,
+    fontSize: 14,
+    color: COLORS.text,
   },
 });
 
