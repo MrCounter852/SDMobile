@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -293,26 +292,24 @@ const NewLeadScreen = () => {
     return tipo?.Empresa || tipo?.esEmpresa || false;
   }, [form.ClienteTipoPersonaID, tiposPersona]);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      navigation.setOptions({
-        headerTitle: () => (
-          <Text style={{ color: "#337ab7", fontSize: 18, fontWeight: "bold" }}>
-            Nuevo Contacto
-          </Text>
-        ),
-        headerLeft: () => (
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="arrow-back" size={24} color="#337ab7" />
-          </TouchableOpacity>
-        ),
-        headerRight: () => null,
-      });
-    }, [navigation])
-  );
+  useEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => (
+        <Text style={{ color: "#337ab7", fontSize: 18, fontWeight: "bold" }}>
+          Nuevo Contacto
+        </Text>
+      ),
+      headerLeft: () => (
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={24} color="#337ab7" />
+        </TouchableOpacity>
+      ),
+      headerRight: () => null,
+    });
+  }, [navigation]);
 
   const handleTipoPersonaChange = (value) => {
     setForm((prev) => {

@@ -11,7 +11,7 @@ import useGlobal from './src/core/global';
 import { ChatScreen, NewChat } from './src/screens/Chat';
 import SettingsScreen from './src/screens/Settings/SettingsScreen';
 import NewLeadScreen from './src/assets/common/NewLeadScreen';
-
+import ContactInfoScreen from './src/screens/ContactInfo/ContactInfoScreen';
 import { navigationRef, navigate } from './src/core/navigationRef';
 import { registerForPushNotificationsAsync } from './src/core/notificationConfig';
 import * as Notifications from 'expo-notifications';
@@ -106,8 +106,8 @@ export default function App() {
               />
               <Stack.Screen
                 name="ContactInfo"
-                component={View}
-                options={{ headerShown: true, title: 'Información del Contacto' }}
+                component={ContactInfoScreen}
+                options={{ headerShown: true, title: 'Información del contacto' }}
               />
               <Stack.Screen
                 name="NewLead"

@@ -346,6 +346,14 @@ class LeadService {
     });
     return response;
   }
+
+  async consultarRelacionesContacto(contacto) {
+    const response = await this.makeRequest('/CuentasMensajeriaContactos/ConsultaRelacionesDelContacto', {
+      body: this.withToken(contacto),
+      api: 'COM',
+    });
+    return response?.data || response;
+  }
 }
 
 export default new LeadService();
