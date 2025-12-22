@@ -729,13 +729,12 @@ const styles = StyleSheet.create({
   },
   manualButtonTextAdd: {
     fontWeight: '600',
-    color: '#fff', // For light button // manual override for dark button below
+    color: '#fff',
   },
   manualButtonTextCancel: {
     fontWeight: '600',
-    color: '#333', // For light button // manual override for dark button below
+    color: '#333',
   },
-  // Overwrite for dark button
   addManual: {
     backgroundColor: '#337ab7'
   },
@@ -801,7 +800,6 @@ const styles = StyleSheet.create({
     padding: 16,
   },
 
-  // Selection Cards
   selectionCard: {
     backgroundColor: '#fff',
     borderRadius: 12,

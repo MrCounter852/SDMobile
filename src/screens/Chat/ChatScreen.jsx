@@ -88,7 +88,7 @@ const ChatScreen = ({ route, navigation }) => {
         <View style={{ flexDirection: 'row' }}>
           <TouchableOpacity
             style={styles.headerButton}
-            onPress={() => navigation.navigate('NewLead', { contact })}
+            onPress={() => navigation.navigate('NewLeadScreen', { contact })}
           >
             <Ionicons name="add" size={24} color="#337ab7" />
           </TouchableOpacity>

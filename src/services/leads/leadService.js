@@ -347,6 +347,14 @@ class LeadService {
     return response;
   }
 
+  async actualizarPreContacto(precontacto) {
+    const response = await this.makeRequest('/PreContactos/PreContactosActualizar', {
+      body: this.withToken(precontacto),
+      api: 'CRM',
+    });
+    return response;
+  }
+
   async consultarRelacionesContacto(contacto) {
     const response = await this.makeRequest('/CuentasMensajeriaContactos/ConsultaRelacionesDelContacto', {
       body: this.withToken(contacto),

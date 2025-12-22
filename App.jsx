@@ -12,6 +12,9 @@ import { ChatScreen, NewChat } from './src/screens/Chat';
 import SettingsScreen from './src/screens/Settings/SettingsScreen';
 import NewLeadScreen from './src/assets/common/NewLeadScreen';
 import ContactInfoScreen from './src/screens/ContactInfo/ContactInfoScreen';
+import GestionComercial from './src/screens/GestionComercial/GestionComercial';
+import ContactDetail from './src/screens/GestionComercial/ContactDetail';
+import ActivityFollowupScreen from './src/screens/GestionComercial/ActivityFollowupScreen';
 import { navigationRef, navigate } from './src/core/navigationRef';
 import { registerForPushNotificationsAsync } from './src/core/notificationConfig';
 import * as Notifications from 'expo-notifications';
@@ -110,9 +113,24 @@ export default function App() {
                 options={{ headerShown: true, title: 'Información del contacto' }}
               />
               <Stack.Screen
-                name="NewLead"
+                name="NewLeadScreen"
                 component={NewLeadScreen}
                 options={{ headerShown: true, title: 'Nuevo Lead' }}
+              />
+              <Stack.Screen
+                name="ContactDetail"
+                component={ContactDetail}
+                options={{ headerShown: true, title: 'Detalle del contacto' }}
+              />
+              <Stack.Screen
+                name="ActivityFollowupScreen"
+                component={ActivityFollowupScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="GestionComercial"
+                component={GestionComercial}
+                options={{ headerShown: false }}
               />
             </>
           )}

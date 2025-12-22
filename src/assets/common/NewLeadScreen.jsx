@@ -20,7 +20,8 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { useGlobal } from "../../core/global";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import leadService from "../../services/leads/leadService";
+// Usamos require().default para asegurar la compatibilidad con el sistema de exportación
+const GestionComercialService = require("../../services/leads/leadService").default;
 import PropertySelectionModal from "../../components/PropertySelectionModal";
 import CustomModalPicker from "./CustomModalPicker";
 
@@ -292,11 +293,13 @@ const NewLeadScreen = () => {
     return tipo?.Empresa || tipo?.esEmpresa || false;
   }, [form.ClienteTipoPersonaID, tiposPersona]);
 
+  const isEditing = preContacto?.ProcesoID != null;
+
   useEffect(() => {
     navigation.setOptions({
       headerTitle: () => (
         <Text style={{ color: "#337ab7", fontSize: 18, fontWeight: "bold" }}>
-          Nuevo Contacto
+          {isEditing ? "Editar Contacto" : "Nuevo Contacto"}
         </Text>
       ),
       headerLeft: () => (
@@ -309,7 +312,7 @@ const NewLeadScreen = () => {
       ),
       headerRight: () => null,
     });
-  }, [navigation]);
+  }, [navigation, isEditing]);
 
   const handleTipoPersonaChange = (value) => {
     setForm((prev) => {
@@ -360,8 +363,8 @@ const NewLeadScreen = () => {
     setErrorMessage("");
     try {
       const [origenesResp, localidadesResp] = await Promise.all([
-        leadService.consultarOrigenesPreContactos(),
-        leadService.consultarLocalidades(),
+        GestionComercialService.consultarOrigenesPreContactos(),
+        GestionComercialService.consultarLocalidades(),
       ]);
 
       setOrigenes(origenesResp || []);
@@ -389,7 +392,7 @@ const NewLeadScreen = () => {
   const loadAsesores = useCallback(async () => {
     if (asesoresLoaded) return asesores;
     try {
-      const response = await leadService.consultarAsesores();
+      const response = await GestionComercialService.consultarAsesores();
       setAsesores(response || []);
       setAsesoresLoaded(true);
       return response || [];
@@ -402,7 +405,7 @@ const NewLeadScreen = () => {
   const loadFormasContacto = useCallback(async () => {
     if (formasContactoLoaded) return formasContacto;
     try {
-      const response = await leadService.consultarFormasContacto();
+      const response = await GestionComercialService.consultarFormasContacto();
       setFormasContacto(response || []);
       setFormasContactoLoaded(true);
       return response || [];
@@ -415,7 +418,7 @@ const NewLeadScreen = () => {
   const loadFormasConocio = useCallback(async () => {
     if (formasConocioLoaded) return formasConocio;
     try {
-      const response = await leadService.consultarFormasComoNosConocio();
+      const response = await GestionComercialService.consultarFormasComoNosConocio();
       setFormasConocio(response || []);
       setFormasConocioLoaded(true);
       return response || [];
@@ -428,7 +431,7 @@ const NewLeadScreen = () => {
   const loadTiposOferta = useCallback(async () => {
     if (tiposOfertaLoaded) return tiposOferta;
     try {
-      const response = await leadService.consultarTiposOfertas();
+      const response = await GestionComercialService.consultarTiposOfertas();
       setTiposOferta(response || []);
       setTiposOfertaLoaded(true);
       return response || [];
@@ -441,7 +444,7 @@ const NewLeadScreen = () => {
   const loadCondicionesInmueble = useCallback(async () => {
     if (condicionesLoaded) return condicionesInmueble;
     try {
-      const response = await leadService.consultarCondicionesInmueble();
+      const response = await GestionComercialService.consultarCondicionesInmueble();
       setCondicionesInmueble(response || []);
       setCondicionesLoaded(true);
       return response || [];
@@ -454,7 +457,7 @@ const NewLeadScreen = () => {
   const loadTiposInmueble = useCallback(async () => {
     if (tiposInmuebleLoaded) return tiposInmueble;
     try {
-      const response = await leadService.consultarTiposInmueble();
+      const response = await GestionComercialService.consultarTiposInmueble();
       setTiposInmueble(response || []);
       setTiposInmuebleLoaded(true);
       return response || [];
@@ -467,7 +470,7 @@ const NewLeadScreen = () => {
   const loadAntiguedades = useCallback(async () => {
     if (antiguedadesLoaded) return antiguedades;
     try {
-      const response = await leadService.consultarAntiguedadesInmueble();
+      const response = await GestionComercialService.consultarAntiguedadesInmueble();
       setAntiguedades(response || []);
       setAntiguedadesLoaded(true);
       return response || [];
@@ -480,7 +483,7 @@ const NewLeadScreen = () => {
   const loadTiposAvaluo = useCallback(async () => {
     if (tiposAvaluoLoaded) return tiposAvaluo;
     try {
-      const response = await leadService.consultarTiposAvaluos();
+      const response = await GestionComercialService.consultarTiposAvaluos();
       setTiposAvaluo(response || []);
       setTiposAvaluoLoaded(true);
       return response || [];
@@ -493,7 +496,7 @@ const NewLeadScreen = () => {
   const loadCiudades = useCallback(async () => {
     if (ciudadesLoaded) return ciudades;
     try {
-      const response = await leadService.consultarCiudades();
+      const response = await GestionComercialService.consultarCiudades();
       setCiudades(response || []);
       setCiudadesLoaded(true);
       return response || [];
@@ -511,7 +514,7 @@ const NewLeadScreen = () => {
   const loadTiposProductos = useCallback(async () => {
     if (tiposProductosLoaded) return tiposProductos;
     try {
-      const response = await leadService.consultarTiposProductos();
+      const response = await GestionComercialService.consultarTiposProductos();
       setTiposProductos(response || []);
       setTiposProductosLoaded(true);
       return response || [];
@@ -524,7 +527,7 @@ const NewLeadScreen = () => {
   const loadTiposDocumento = useCallback(async () => {
     if (tiposDocumentoLoaded) return tiposDocumento;
     try {
-      const response = await leadService.consultarTiposDocumentos();
+      const response = await GestionComercialService.consultarTiposDocumentos();
       setTiposDocumento(response || []);
       setTiposDocumentoLoaded(true);
       return response || [];
@@ -537,7 +540,7 @@ const NewLeadScreen = () => {
   const loadTiposPersona = useCallback(async () => {
     if (tiposPersonaLoaded) return tiposPersona;
     try {
-      const response = await leadService.consultarTiposPersonas();
+      const response = await GestionComercialService.consultarTiposPersonas();
       setTiposPersona(response || []);
       setTiposPersonaLoaded(true);
       return response || [];
@@ -551,7 +554,7 @@ const NewLeadScreen = () => {
     if (responsabilidadesLoaded) return responsabilidades;
     try {
       const response =
-        await leadService.consultarResponsabilidadesTributarias();
+        await GestionComercialService.consultarResponsabilidadesTributarias();
       setResponsabilidades(response || []);
       setResponsabilidadesLoaded(true);
       return response || [];
@@ -571,7 +574,7 @@ const NewLeadScreen = () => {
       return [];
     }
     try {
-      const detalles = await leadService.consultarFormasComoNosConocioDetalles(
+      const detalles = await GestionComercialService.consultarFormasComoNosConocioDetalles(
         formaId
       );
       const data = detalles || [];
@@ -593,7 +596,7 @@ const NewLeadScreen = () => {
       setLoadingInmuebles(true);
       try {
         const tipoOferta = id === 5 ? 2 : 1;
-        const data = await leadService.consultarInmueblesDisponibles({
+        const data = await GestionComercialService.consultarInmueblesDisponibles({
           TipoOfertaID: tipoOferta,
           FullSearch: search,
         });
@@ -657,9 +660,12 @@ const NewLeadScreen = () => {
 
     setSaving(true);
     try {
-      const response = await leadService.crearPreContacto(payload);
+      const response = isEditing
+        ? await GestionComercialService.actualizarPreContacto(payload)
+        : await GestionComercialService.crearPreContacto(payload);
       const message =
-        response?.rows?.[0]?.Descripcion || "Contacto guardado correctamente";
+        response?.rows?.[0]?.Descripcion ||
+        (isEditing ? "Contacto actualizado correctamente" : "Contacto guardado correctamente");
       Alert.alert("Éxito", message, [
         { text: "OK", onPress: () => navigation.goBack() },
       ]);
@@ -667,7 +673,7 @@ const NewLeadScreen = () => {
       console.error("NewLeadScreen:handleSave", error);
       Alert.alert(
         "Error",
-        "No pudimos guardar el contacto. Intenta nuevamente."
+        `No pudimos ${isEditing ? 'actualizar' : 'guardar'} el contacto. Intenta nuevamente.`
       );
     } finally {
       setSaving(false);
@@ -832,65 +838,65 @@ const NewLeadScreen = () => {
                 />
               </View>
             </View>
-              <View style={styles.row}>
-                <View style={styles.flexHalf}>
-                  <CustomModalPicker
-                    label="¿Como se contactaron?"
-                    required
-                    selectedValue={form.FormaContactoID}
-                    onValueChange={(v) =>
-                      setForm({ ...form, FormaContactoID: v })
-                    }
-                    onLoadData={loadFormasContacto}
-                    placeholder="Seleccione"
-                    hasSearch={true}
-                    searchPlaceholder="Buscar formas de contacto..."
-                  />
-                </View>
-                <View style={styles.flexHalf}>
-                  <CustomModalPicker
-                    label="¿Como nos conocieron?"
-                    required
-                    selectedValue={form.FormaComoNosConocioID}
-                    onValueChange={(v) =>
-                      setForm({ ...form, FormaComoNosConocioID: v })
-                    }
-                    onLoadData={loadFormasConocio}
-                    placeholder="Seleccione"
-                    hasSearch={true}
-                    searchPlaceholder="Buscar formas..."
-                  />
-                </View>
+            <View style={styles.row}>
+              <View style={styles.flexHalf}>
+                <CustomModalPicker
+                  label="¿Como se contactaron?"
+                  required
+                  selectedValue={form.FormaContactoID}
+                  onValueChange={(v) =>
+                    setForm({ ...form, FormaContactoID: v })
+                  }
+                  onLoadData={loadFormasContacto}
+                  placeholder="Seleccione"
+                  hasSearch={true}
+                  searchPlaceholder="Buscar formas de contacto..."
+                />
               </View>
-              <View style={styles.row}>
-                <View style={styles.flexHalf}>
-                  <CustomModalPicker
-                    label="Especificación"
-                    selectedValue={form.FormaComoNosConocioDetalleID}
-                    onValueChange={(v) =>
-                      setForm({ ...form, FormaComoNosConocioDetalleID: v })
-                    }
-                    onLoadData={() =>
-                      loadFormasDetalle(form.FormaComoNosConocioID)
-                    }
-                    placeholder="Seleccione"
-                    hasSearch={true}
-                    searchPlaceholder="Buscar especificaciones..."
-                    key={form.FormaComoNosConocioID} // Force re-render when parent changes
-                  />
-                </View>
-                <View style={styles.flexHalf}>
-                  <CustomInput
-                    label="Palabras de busqueda"
-                    value={form.PalabraBusqueda}
-                    onChangeText={(t) =>
-                      setForm({ ...form, PalabraBusqueda: t })
-                    }
-                    placeholder="Ej. Google"
-                    icon="search-outline"
-                  />
-                </View>
+              <View style={styles.flexHalf}>
+                <CustomModalPicker
+                  label="¿Como nos conocieron?"
+                  required
+                  selectedValue={form.FormaComoNosConocioID}
+                  onValueChange={(v) =>
+                    setForm({ ...form, FormaComoNosConocioID: v })
+                  }
+                  onLoadData={loadFormasConocio}
+                  placeholder="Seleccione"
+                  hasSearch={true}
+                  searchPlaceholder="Buscar formas..."
+                />
               </View>
+            </View>
+            <View style={styles.row}>
+              <View style={styles.flexHalf}>
+                <CustomModalPicker
+                  label="Especificación"
+                  selectedValue={form.FormaComoNosConocioDetalleID}
+                  onValueChange={(v) =>
+                    setForm({ ...form, FormaComoNosConocioDetalleID: v })
+                  }
+                  onLoadData={() =>
+                    loadFormasDetalle(form.FormaComoNosConocioID)
+                  }
+                  placeholder="Seleccione"
+                  hasSearch={true}
+                  searchPlaceholder="Buscar especificaciones..."
+                  key={form.FormaComoNosConocioID} // Force re-render when parent changes
+                />
+              </View>
+              <View style={styles.flexHalf}>
+                <CustomInput
+                  label="Palabras de busqueda"
+                  value={form.PalabraBusqueda}
+                  onChangeText={(t) =>
+                    setForm({ ...form, PalabraBusqueda: t })
+                  }
+                  placeholder="Ej. Google"
+                  icon="search-outline"
+                />
+              </View>
+            </View>
           </View>
 
           {/* --- DATOS DE BUSQUEDA --- */}
@@ -923,77 +929,77 @@ const NewLeadScreen = () => {
 
             {(form.OrigenPreContactoID == 4 ||
               form.OrigenPreContactoID == 5) && (
-              <View style={styles.inputContainer}>
-                <View style={styles.labelContainer}>
-                  <Text style={styles.label}>Inmueble de interés</Text>
-                  <Text style={styles.smallNote}> (datos del ERP)</Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.selectBox}
-                  onPress={() => setShowInmuebleModal(true)}
-                >
-                  <Text
-                    style={[
-                      styles.selectBoxText,
-                      !form.InmuebleID && styles.selectBoxPlaceholder,
-                    ]}
+                <View style={styles.inputContainer}>
+                  <View style={styles.labelContainer}>
+                    <Text style={styles.label}>Inmueble de interés</Text>
+                    <Text style={styles.smallNote}> (datos del ERP)</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.selectBox}
+                    onPress={() => setShowInmuebleModal(true)}
                   >
-                    {form.InmuebleID
-                      ? inmueblesDisponibles.find(
+                    <Text
+                      style={[
+                        styles.selectBoxText,
+                        !form.InmuebleID && styles.selectBoxPlaceholder,
+                      ]}
+                    >
+                      {form.InmuebleID
+                        ? inmueblesDisponibles.find(
                           (i) => i.InmuebleID === form.InmuebleID
                         )?.Descripcion || "Inmueble seleccionado"
-                      : loadingInmuebles
-                      ? "Cargando inmuebles..."
-                      : inmueblesDisponibles.length === 0
-                      ? "Toca para cargar inmuebles"
-                      : "Selecciona un inmueble"}
-                  </Text>
-                  <Ionicons
-                    name="chevron-down"
-                    size={18}
-                    color={
-                      inmueblesDisponibles.length === 0
-                        ? COLORS.textSecondary
-                        : COLORS.text
-                    }
-                  />
-                </TouchableOpacity>
-              </View>
-            )}
+                        : loadingInmuebles
+                          ? "Cargando inmuebles..."
+                          : inmueblesDisponibles.length === 0
+                            ? "Toca para cargar inmuebles"
+                            : "Selecciona un inmueble"}
+                    </Text>
+                    <Ionicons
+                      name="chevron-down"
+                      size={18}
+                      color={
+                        inmueblesDisponibles.length === 0
+                          ? COLORS.textSecondary
+                          : COLORS.text
+                      }
+                    />
+                  </TouchableOpacity>
+                </View>
+              )}
 
             <View style={styles.row}>
               {(form.OrigenPreContactoID == 2 ||
                 form.OrigenPreContactoID == 4) && (
-                <View style={styles.flexHalf}>
-                  <CustomModalPicker
-                    label="Tipo de Oferta"
-                    required
-                    selectedValue={form.TipoOfertaID}
-                    onValueChange={(v) => setForm({ ...form, TipoOfertaID: v })}
-                    onLoadData={loadTiposOferta}
-                    placeholder="Seleccione"
-                    hasSearch={true}
-                    searchPlaceholder="Buscar tipos de oferta..."
-                  />
-                </View>
-              )}
+                  <View style={styles.flexHalf}>
+                    <CustomModalPicker
+                      label="Tipo de Oferta"
+                      required
+                      selectedValue={form.TipoOfertaID}
+                      onValueChange={(v) => setForm({ ...form, TipoOfertaID: v })}
+                      onLoadData={loadTiposOferta}
+                      placeholder="Seleccione"
+                      hasSearch={true}
+                      searchPlaceholder="Buscar tipos de oferta..."
+                    />
+                  </View>
+                )}
 
               {(form.OrigenPreContactoID == 2 ||
                 form.OrigenPreContactoID == 4 ||
                 form.OrigenPreContactoID == 5) && (
-                <View style={styles.flexHalf}>
-                  <CustomModalPicker
-                    label="Condición"
-                    selectedValue={form.CondicionInmuebleID}
-                    onValueChange={(v) =>
-                      setForm({ ...form, CondicionInmuebleID: v })
-                    }
-                    onLoadData={loadCondicionesInmueble}
-                    placeholder="Seleccione"
-                    hasSearch={false}
-                  />
-                </View>
-              )}
+                  <View style={styles.flexHalf}>
+                    <CustomModalPicker
+                      label="Condición"
+                      selectedValue={form.CondicionInmuebleID}
+                      onValueChange={(v) =>
+                        setForm({ ...form, CondicionInmuebleID: v })
+                      }
+                      onLoadData={loadCondicionesInmueble}
+                      placeholder="Seleccione"
+                      hasSearch={false}
+                    />
+                  </View>
+                )}
             </View>
 
             {form.OrigenPreContactoID == 2 && (
@@ -1031,39 +1037,39 @@ const NewLeadScreen = () => {
                 form.OrigenPreContactoID == 4 ||
                 form.OrigenPreContactoID == 5 ||
                 form.OrigenPreContactoID == 7) && (
-                <View style={styles.flexHalf}>
-                  <CustomModalPicker
-                    label="Tipo de Inmueble"
-                    required
-                    selectedValue={form.TipoInmuebleID}
-                    onValueChange={(v) =>
-                      setForm({ ...form, TipoInmuebleID: v })
-                    }
-                    onLoadData={loadTiposInmueble}
-                    placeholder="Seleccione"
-                    hasSearch={true}
-                    searchPlaceholder="Buscar tipos..."
-                  />
-                </View>
-              )}
+                  <View style={styles.flexHalf}>
+                    <CustomModalPicker
+                      label="Tipo de Inmueble"
+                      required
+                      selectedValue={form.TipoInmuebleID}
+                      onValueChange={(v) =>
+                        setForm({ ...form, TipoInmuebleID: v })
+                      }
+                      onLoadData={loadTiposInmueble}
+                      placeholder="Seleccione"
+                      hasSearch={true}
+                      searchPlaceholder="Buscar tipos..."
+                    />
+                  </View>
+                )}
 
               {(form.OrigenPreContactoID == 2 ||
                 form.OrigenPreContactoID == 4 ||
                 form.OrigenPreContactoID == 5) && (
-                <View style={styles.flexHalf}>
-                  <CustomModalPicker
-                    label="Antigüedad"
-                    selectedValue={form.AntiguedadInmuebleID}
-                    onValueChange={(v) =>
-                      setForm({ ...form, AntiguedadInmuebleID: v })
-                    }
-                    onLoadData={loadAntiguedades}
-                    placeholder="Seleccione"
-                    hasSearch={true}
-                    searchPlaceholder="Buscar antigüedades..."
-                  />
-                </View>
-              )}
+                  <View style={styles.flexHalf}>
+                    <CustomModalPicker
+                      label="Antigüedad"
+                      selectedValue={form.AntiguedadInmuebleID}
+                      onValueChange={(v) =>
+                        setForm({ ...form, AntiguedadInmuebleID: v })
+                      }
+                      onLoadData={loadAntiguedades}
+                      placeholder="Seleccione"
+                      hasSearch={true}
+                      searchPlaceholder="Buscar antigüedades..."
+                    />
+                  </View>
+                )}
             </View>
 
             {form.OrigenPreContactoID == 7 && (
@@ -1244,54 +1250,54 @@ const NewLeadScreen = () => {
             {/* Localidades - Only for Bogota (ID 4 or 5) */}
             {(form.OrigenPreContactoID == 4 ||
               form.OrigenPreContactoID == 5) && (
-              <View style={styles.inputContainer}>
-                <View style={styles.labelContainer}>
-                  <Text style={styles.label}>
-                    {form.OrigenPreContactoID == 4
-                      ? "Localidades *"
-                      : "Localidades"}
-                  </Text>
-                  <Text style={styles.smallNote}> (Solo Bogotá)</Text>
-                </View>
-                <View style={styles.tagsContainer}>
-                  {localidades.map((loc) => (
-                    <TouchableOpacity
-                      key={loc.LocalidadID}
-                      style={[
-                        styles.tag,
-                        selectedLocalidades[loc.LocalidadID] &&
-                          styles.tagSelected,
-                      ]}
-                      onPress={() => toggleLocalidad(loc.LocalidadID)}
-                    >
-                      <Text
+                <View style={styles.inputContainer}>
+                  <View style={styles.labelContainer}>
+                    <Text style={styles.label}>
+                      {form.OrigenPreContactoID == 4
+                        ? "Localidades *"
+                        : "Localidades"}
+                    </Text>
+                    <Text style={styles.smallNote}> (Solo Bogotá)</Text>
+                  </View>
+                  <View style={styles.tagsContainer}>
+                    {localidades.map((loc) => (
+                      <TouchableOpacity
+                        key={loc.LocalidadID}
                         style={[
-                          styles.tagText,
+                          styles.tag,
                           selectedLocalidades[loc.LocalidadID] &&
-                            styles.tagTextSelected,
+                          styles.tagSelected,
                         ]}
+                        onPress={() => toggleLocalidad(loc.LocalidadID)}
                       >
-                        {loc.Nombre}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                        <Text
+                          style={[
+                            styles.tagText,
+                            selectedLocalidades[loc.LocalidadID] &&
+                            styles.tagTextSelected,
+                          ]}
+                        >
+                          {loc.Nombre}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
                 </View>
-              </View>
-            )}
+              )}
 
             {(form.OrigenPreContactoID == 2 ||
               form.OrigenPreContactoID == 4 ||
               form.OrigenPreContactoID == 5) && (
-              <CustomInput
-                label="Descripción Adicional Inmueble"
-                value={form.DescripcionAdicional}
-                onChangeText={(t) =>
-                  setForm({ ...form, DescripcionAdicional: t })
-                }
-                placeholder="Cerca a colegios, parques..."
-                multiline
-              />
-            )}
+                <CustomInput
+                  label="Descripción Adicional Inmueble"
+                  value={form.DescripcionAdicional}
+                  onChangeText={(t) =>
+                    setForm({ ...form, DescripcionAdicional: t })
+                  }
+                  placeholder="Cerca a colegios, parques..."
+                  multiline
+                />
+              )}
 
             <CustomInput
               label="Observaciones"
@@ -1537,7 +1543,7 @@ const NewLeadScreen = () => {
               style={styles.saveButton}
             >
               <Text style={styles.saveButtonText}>
-                {saving ? "Guardando..." : "Guardar"}
+                {saving ? "Guardando..." : (isEditing ? "Actualizar" : "Guardar")}
               </Text>
             </LinearGradient>
           </TouchableOpacity>
