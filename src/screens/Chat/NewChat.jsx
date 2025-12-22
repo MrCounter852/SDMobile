@@ -577,7 +577,7 @@ const NewChat = ({ navigation }) => {
             disabled={loading || !formData.MensajeEnvio}
             activeOpacity={0.8}
             style={[
-              styles.fabButtonShadow, // New style for shadow/container
+              styles.fabButtonShadow,
               (loading || !formData.MensajeEnvio) && styles.fabDisabled
             ]}
           >
@@ -590,7 +590,7 @@ const NewChat = ({ navigation }) => {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Ionicons name="send" size={24} color="#fff" style={{ marginLeft: 4 }} />
+                <Ionicons name="send" size={20} color="#fff" style={{ marginLeft: 4 }} />
               )}
             </LinearGradient>
           </TouchableOpacity>
@@ -949,18 +949,15 @@ const styles = StyleSheet.create({
     right: 24,
   },
   fabButtonShadow: {
-    width: 60,
-    height: 60,
+    width: 50,
+    height: 50,
     borderRadius: 30,
     elevation: 8,
     shadowColor: '#000',
     shadowOpacity: 0.3,
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 4,
-    backgroundColor: 'transparent', // Shadow needs bg, but we want gradient? 
-    // Actually on Android elevation needs a solid background on the View itself usually.
-    // If we put bg transparent, elevation might not show. 
-    // Trick: put bg white (or similar) on shadow container, but cover it with gradient.
+    backgroundColor: 'transparent',
     backgroundColor: '#fff',
   },
   fabGradient: {
@@ -972,7 +969,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   fabDisabled: {
-    opacity: 0.7, // Just reduce opacity for disabled state, gradient handles grey color logic inline
+    opacity: 0.7,
   },
 
   // Modal
