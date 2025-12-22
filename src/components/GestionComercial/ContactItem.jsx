@@ -1,13 +1,25 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 
 const ContactItem = ({ item, onPress }) => {
-  const navigation = useNavigation();
+  // Normalize data to handle inconsistent field names from different API endpoints
+  const d = {
+    nombre: item.NombreCompleto || item.nombreCompleto || item.Nombre || item.nombre ||
+      (item.Nombres || item.nombres ? `${item.Nombres || item.nombres} ${item.Apellidos || item.apellidos || ''}`.trim() : 'Contacto sin nombre'),
+    estado: item.EstadoProcesoNombre || 'N/A',
+    celular: item.Celular || item.celular || item.Telefono || item.telefono || 'Sin celular',
+    asesor: item.AsesorNombreCompleto || item.asesorNombreCompleto || '',
+    fecha: item.Fecha || item.fecha || item.FechaRegistro || item.fechaRegistro || '',
+    valor: item.ValorNegocio || item.valorNegocio || 0,
+    seguimientos: item.CountSeguimientos || item.countSeguimientos || 0,
+    actividades: item.CountActividades || item.countActividades || 0,
+    estadoGeneral: item.EstadoGeneral || item.estadoGeneral || '',
+    color: item.Color || item.color || null,
+  };
 
   const getEstadoColor = (estado) => {
-    const est = estado?.toLowerCase() || '';
+    const est = String(estado).toLowerCase();
     if (est.includes('nuevo')) return '#337ab7';
     if (est.includes('gesti')) return '#00ACC4';
     if (est.includes('cerra')) return '#88E782';
@@ -15,16 +27,23 @@ const ContactItem = ({ item, onPress }) => {
     return '#8E8E93';
   };
 
+  const statusColor = d.color || getEstadoColor(d.estado);
+
   const formatDate = (dateString) => {
     if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-CO', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString;
+      return date.toLocaleDateString('es-CO', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return dateString;
+    }
   };
 
   const formatCurrency = (value) => {
@@ -46,29 +65,29 @@ const ContactItem = ({ item, onPress }) => {
         <View style={styles.header}>
           <View style={styles.nameContainer}>
             <Text style={styles.name} numberOfLines={1}>
-              {item.NombreCompleto || item.nombreCompleto || item.Nombre || item.nombre || (item.Nombres || item.nombres ? `${item.Nombres || item.nombres} ${item.Apellidos || item.apellidos || ''}` : 'Contacto sin nombre')}
+              {d.nombre}
             </Text>
-            <View style={[styles.statusBadge, { backgroundColor: getEstadoColor(item.EstadoNombre || item.estadoNombre || item.Estado || item.estado) }]}>
+            <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
               <Text style={styles.statusText}>
-                {item.EstadoNombre || item.estadoNombre || item.Estado || item.estado || 'N/A'}
+                {d.estado}
               </Text>
             </View>
           </View>
           <View style={styles.actions}>
-            {(item.CountSeguimientos > 0 || item.countSeguimientos > 0) && (
+            {d.seguimientos > 0 && (
               <View style={styles.badge}>
                 <Ionicons name="chatbubble-ellipses-outline" size={14} color="#337ab7" />
-                <Text style={styles.badgeText}>{item.CountSeguimientos || item.countSeguimientos}</Text>
+                <Text style={styles.badgeText}>{d.seguimientos}</Text>
               </View>
             )}
-            {(item.CountActividades > 0 || item.countActividades > 0) && (
+            {d.actividades > 0 && (
               <View style={styles.badge}>
                 <Ionicons
                   name="calendar-outline"
                   size={14}
-                  color={(item.EstadoGeneral || item.estadoGeneral) === 'V' ? '#88E782' : (item.EstadoGeneral || item.estadoGeneral) === 'A' ? '#00ACC4' : '#337ab7'}
+                  color={d.estadoGeneral === 'V' ? '#88E782' : d.estadoGeneral === 'A' ? '#00ACC4' : '#337ab7'}
                 />
-                <Text style={styles.badgeText}>{item.CountActividades || item.countActividades}</Text>
+                <Text style={styles.badgeText}>{d.actividades}</Text>
               </View>
             )}
           </View>
@@ -79,17 +98,17 @@ const ContactItem = ({ item, onPress }) => {
             <View style={styles.iconCircle}>
               <Ionicons name="call-outline" size={12} color="#8E8E93" />
             </View>
-            <Text style={styles.detailText}>{item.Celular || item.celular || item.Telefono || item.telefono || 'Sin celular'}</Text>
+            <Text style={styles.detailText}>{d.celular}</Text>
           </View>
 
-          {(item.AsesorNombreCompleto || item.asesorNombreCompleto) ? (
+          {!!d.asesor && (
             <View style={styles.detailRow}>
               <View style={styles.iconCircle}>
                 <Ionicons name="person-outline" size={12} color="#8E8E93" />
               </View>
-              <Text style={styles.detailText} numberOfLines={1}>{item.AsesorNombreCompleto || item.asesorNombreCompleto}</Text>
+              <Text style={styles.detailText} numberOfLines={1}>{d.asesor}</Text>
             </View>
-          ) : null}
+          )}
         </View>
 
         <View style={styles.divider} />
@@ -97,17 +116,18 @@ const ContactItem = ({ item, onPress }) => {
         <View style={styles.footer}>
           <View style={styles.footerLeft}>
             <Ionicons name="time-outline" size={12} color="#AEAEB2" />
-            <Text style={styles.dateText}>{formatDate(item.Fecha || item.fecha || item.FechaRegistro || item.fechaRegistro)}</Text>
+            <Text style={styles.dateText}>{formatDate(d.fecha)}</Text>
           </View>
-          {(item.ValorNegocio || item.valorNegocio) ? (
-            <Text style={styles.valueText}>{formatCurrency(item.ValorNegocio || item.valorNegocio)}</Text>
-          ) : null}
+          {d.valor > 0 && (
+            <Text style={styles.valueText}>{formatCurrency(d.valor)}</Text>
+          )}
         </View>
       </View>
 
+      {/* Re-implemented color indicator with proper clipping and border radius support */}
       <View style={[
         styles.colorIndicator,
-        { backgroundColor: item.Color || item.color || getEstadoColor(item.EstadoNombre || item.estadoNombre || item.Estado || item.estado) }
+        { backgroundColor: statusColor }
       ]} />
     </TouchableOpacity>
   );
@@ -119,20 +139,19 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginVertical: 8,
     borderRadius: 16,
-    // Fix square shadow on Android
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
     minHeight: 110,
-    // Add overflow hidden to ensure color indicator is clipped
-    overflow: 'hidden',
+    overflow: 'hidden', // Essential for shadow rounding and indicator clipping
   },
   content: {
     padding: 16,
+    paddingLeft: 22, // Space for the 6px indicator
   },
   header: {
     flexDirection: 'row',
@@ -158,12 +177,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 6,
   },
   statusText: {
     fontSize: 10,
@@ -243,8 +256,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 6,
-    borderTopLeftRadius: 16,
-    borderBottomLeftRadius: 16,
+    // The overflow: 'hidden' on the container will clip this to the container's radius
   },
 });
 

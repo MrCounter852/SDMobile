@@ -422,7 +422,7 @@ const GestionComercial = ({ navigation }) => {
     <SafeAreaView style={styles.mainContainer} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerSubtitle}>Procesos de</Text>
+          <Text style={styles.headerSubtitle}>Centro de</Text>
           <Text style={styles.title}>Gestión Comercial</Text>
         </View>
         <View style={styles.headerButtons}>
@@ -538,8 +538,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     backgroundColor: '#fff',
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -555,7 +553,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#1C1C1E',
+    color: '#337ab7',
     letterSpacing: -0.5,
   },
   headerButtons: {
