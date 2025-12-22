@@ -572,24 +572,28 @@ const NewChat = ({ navigation }) => {
 
         {/* 5. Floating Send Button */}
         <View style={styles.fabContainer}>
-          <LinearGradient
-            colors={["#337ab7", "#88E782"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.fabButton}
+          <TouchableOpacity
+            onPress={handleSubmit}
+            disabled={loading || !formData.MensajeEnvio}
+            activeOpacity={0.8}
+            style={[
+              styles.fabButtonShadow, // New style for shadow/container
+              (loading || !formData.MensajeEnvio) && styles.fabDisabled
+            ]}
           >
-            <TouchableOpacity
-              style={[styles.fabButton, (loading || !formData.MensajeEnvio) && styles.fabDisabled]}
-              onPress={handleSubmit}
-              disabled={loading || !formData.MensajeEnvio}
+            <LinearGradient
+              colors={(loading || !formData.MensajeEnvio) ? ['#999', '#999'] : ["#337ab7", "#88E782"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.fabGradient}
             >
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Ionicons name="send" size={24} color="#fff" style={{ marginLeft: 4 }} />
               )}
-            </TouchableOpacity>
-          </LinearGradient>
+            </LinearGradient>
+          </TouchableOpacity>
         </View>
 
       </KeyboardAvoidingView>
@@ -940,21 +944,31 @@ const styles = StyleSheet.create({
     bottom: 24,
     right: 24,
   },
-  fabButton: {
-    backgroundColor: '#337ab7',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 6,
+  fabButtonShadow: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    elevation: 8,
     shadowColor: '#000',
     shadowOpacity: 0.3,
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 4,
+    backgroundColor: 'transparent', // Shadow needs bg, but we want gradient? 
+    // Actually on Android elevation needs a solid background on the View itself usually.
+    // If we put bg transparent, elevation might not show. 
+    // Trick: put bg white (or similar) on shadow container, but cover it with gradient.
+    backgroundColor: '#fff',
+  },
+  fabGradient: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 30, // Match container
+    justifyContent: 'center',
+    alignItems: 'center',
     flexDirection: 'row',
   },
   fabDisabled: {
-    backgroundColor: '#999',
+    opacity: 0.7, // Just reduce opacity for disabled state, gradient handles grey color logic inline
   },
 
   // Modal
