@@ -152,7 +152,7 @@ const ContactDetail = ({ navigation, route }) => {
             style={styles.headerButton}
             onPress={handleEdit}
           >
-            <Ionicons name="pencil-outline" size={20} color="#007AFF" />
+            <Ionicons name="pencil-outline" size={20} color="#337ab7" />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.headerButton}
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     fontSize: 13,
-    color: '#007AFF',
+    color: '#337ab7',
     marginLeft: 6,
     fontWeight: '700',
   },
@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
   valueHighlight: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#34C759',
+    color: '#337ab7',
   },
   observations: {
     marginTop: 20,
@@ -515,7 +515,7 @@ const styles = StyleSheet.create({
   },
   viewMoreText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: '#337ab7',
     fontWeight: '700',
   },
   loadingOverlay: {

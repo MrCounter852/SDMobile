@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ContactItem from './ContactItem';
 
-const TimelineColumn = ({ linea, onContactPress, onMoveContact }) => {
+const TimelineColumn = ({ linea, onContactPress, onMoveContact, refreshing, onRefresh }) => {
   const formatCurrency = (value) => {
     if (!value) return '0';
     return new Intl.NumberFormat('es-CO', {
@@ -33,6 +33,13 @@ const TimelineColumn = ({ linea, onContactPress, onMoveContact }) => {
         style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contactsContainer}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing || false}
+            onRefresh={onRefresh}
+            colors={['#337ab7']}
+          />
+        }
       >
         {!!linea.Procesos && linea.Procesos.map((contacto, index) => (
           <View key={contacto.ProcesoID || index} style={styles.contactWrapper}>
@@ -46,13 +53,13 @@ const TimelineColumn = ({ linea, onContactPress, onMoveContact }) => {
                 style={[styles.moveButton, styles.moveLeft]}
                 onPress={() => onMoveContact && onMoveContact(contacto, 'left')}
               >
-                <Ionicons name="chevron-back" size={14} color="#007AFF" />
+                <Ionicons name="chevron-back" size={14} color="#337ab7" />
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.moveButton, styles.moveRight]}
                 onPress={() => onMoveContact && onMoveContact(contacto, 'right')}
               >
-                <Ionicons name="chevron-forward" size={14} color="#007AFF" />
+                <Ionicons name="chevron-forward" size={14} color="#337ab7" />
               </TouchableOpacity>
             </View>
           </View>

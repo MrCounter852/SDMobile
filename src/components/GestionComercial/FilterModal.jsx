@@ -246,7 +246,7 @@ const FilterModal = ({ visible, onClose, onApplyFilters, initialFilters = {} }) 
               onPress={handleApplyFilters}
             >
               <LinearGradient
-                colors={['#007AFF', '#00C6FF']}
+                colors={['#337ab7', '#00ACC4']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={[styles.button, styles.applyButton]}
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
   },
   applyButton: {
     elevation: 4,
-    shadowColor: '#007AFF',
+    shadowColor: '#337ab7',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,

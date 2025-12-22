@@ -255,13 +255,6 @@ const TimelineView = ({ navigation, searchFilters, onRefresh }) => {
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={handleRefresh}
-          colors={['#337ab7']}
-        />
-      }
       contentContainerStyle={styles.timelineContainer}
     >
       {timelineData.map((linea) => (
@@ -270,6 +263,8 @@ const TimelineView = ({ navigation, searchFilters, onRefresh }) => {
           linea={linea}
           onContactPress={handleContactPress}
           onMoveContact={handleMoveContact}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
         />
       ))}
 
@@ -438,14 +433,14 @@ const GestionComercial = ({ navigation }) => {
             <Ionicons
               name={hasFilters ? "filter" : "filter-outline"}
               size={22}
-              color={hasFilters ? "#007AFF" : "#3A3A3C"}
+              color={hasFilters ? "#337ab7" : "#3A3A3C"}
             />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => navigation.navigate('NewLeadScreen')}
           >
             <LinearGradient
-              colors={['#007AFF', '#00C6FF']}
+              colors={['#337ab7', '#00ACC4']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.addButton}
@@ -458,10 +453,10 @@ const GestionComercial = ({ navigation }) => {
 
       <Tab.Navigator
         screenOptions={{
-          tabBarActiveTintColor: '#007AFF',
+          tabBarActiveTintColor: '#337ab7',
           tabBarInactiveTintColor: '#8E8E93',
           tabBarIndicatorStyle: {
-            backgroundColor: '#007AFF',
+            backgroundColor: '#337ab7',
             height: 3,
             borderRadius: 3,
           },
@@ -586,7 +581,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 4,
-    shadowColor: '#007AFF',
+    shadowColor: '#337ab7',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

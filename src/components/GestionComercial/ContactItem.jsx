@@ -8,10 +8,10 @@ const ContactItem = ({ item, onPress }) => {
 
   const getEstadoColor = (estado) => {
     const est = estado?.toLowerCase() || '';
-    if (est.includes('nuevo')) return '#007AFF'; // iOS Blue
-    if (est.includes('gesti')) return '#34C759'; // iOS Green
-    if (est.includes('cerra')) return '#FF9500'; // iOS Orange
-    if (est.includes('invia')) return '#FF3B30'; // iOS Red
+    if (est.includes('nuevo')) return '#337ab7';
+    if (est.includes('gesti')) return '#00ACC4';
+    if (est.includes('cerra')) return '#88E782';
+    if (est.includes('invia')) return '#0086C8';
     return '#8E8E93';
   };
 
@@ -57,7 +57,7 @@ const ContactItem = ({ item, onPress }) => {
           <View style={styles.actions}>
             {(item.CountSeguimientos > 0 || item.countSeguimientos > 0) && (
               <View style={styles.badge}>
-                <Ionicons name="chatbubble-ellipses-outline" size={14} color="#007AFF" />
+                <Ionicons name="chatbubble-ellipses-outline" size={14} color="#337ab7" />
                 <Text style={styles.badgeText}>{item.CountSeguimientos || item.countSeguimientos}</Text>
               </View>
             )}
@@ -66,7 +66,7 @@ const ContactItem = ({ item, onPress }) => {
                 <Ionicons
                   name="calendar-outline"
                   size={14}
-                  color={(item.EstadoGeneral || item.estadoGeneral) === 'V' ? '#34C759' : (item.EstadoGeneral || item.estadoGeneral) === 'A' ? '#FF9500' : '#FF3B30'}
+                  color={(item.EstadoGeneral || item.estadoGeneral) === 'V' ? '#88E782' : (item.EstadoGeneral || item.estadoGeneral) === 'A' ? '#00ACC4' : '#337ab7'}
                 />
                 <Text style={styles.badgeText}>{item.CountActividades || item.countActividades}</Text>
               </View>
@@ -119,14 +119,17 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginVertical: 8,
     borderRadius: 16,
+    // Fix square shadow on Android
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
     minHeight: 110,
+    // Add overflow hidden to ensure color indicator is clipped
+    overflow: 'hidden',
   },
   content: {
     padding: 16,
@@ -231,7 +234,7 @@ const styles = StyleSheet.create({
   },
   valueText: {
     fontSize: 15,
-    color: '#34C759',
+    color: '#337ab7',
     fontWeight: '700',
   },
   colorIndicator: {
@@ -239,7 +242,9 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     bottom: 0,
-    width: 4,
+    width: 6,
+    borderTopLeftRadius: 16,
+    borderBottomLeftRadius: 16,
   },
 });
 
