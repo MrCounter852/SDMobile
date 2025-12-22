@@ -97,7 +97,7 @@ export default function App() {
               <Stack.Screen
                 name="NewChat"
                 component={NewChat}
-                options={{ headerShown: true, title: 'Nuevo Chat' }}
+                options={{ headerShown: false, title: 'Nuevo Chat' }}
               />
               <Stack.Screen
                 name="Settings"

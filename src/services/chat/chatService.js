@@ -173,7 +173,7 @@ class ChatApiService {
         Activo: true,
         Token: this.global.user?.Token,
       }),
-    }, true); // Usar API_CRM
+    }, false);
   }
 
   // Consultar detalle de plantilla
@@ -185,7 +185,7 @@ class ChatApiService {
         ...plantilla,
         Token: this.global.user?.Token,
       }),
-    }, true); // Usar API_CRM
+    }, false);
   }
 
   // Asignar usuario a contacto
