@@ -133,6 +133,19 @@ const NewChat = ({ navigation }) => {
     loadPlantillas(cuentaID);
   };
 
+  const extractVariablesFromTemplate = (texto) => {
+    const regex = /(@\[[^\]]+\])/g;
+    const coincidencias = new Set();
+    let match;
+    while ((match = regex.exec(texto)) !== null) {
+      coincidencias.add(match[1]);
+    }
+    return Array.from(coincidencias).map(item => ({
+      Nombre: item,
+      Valor: ''
+    }));
+  };
+
   const handlePlantillaChange = async (plantillaID) => {
     if (!plantillaID) {
       setPlantillaSeleccionada(null);
@@ -153,12 +166,14 @@ const NewChat = ({ navigation }) => {
           Token: user?.Token,
         });
 
-        setPlantillaSeleccionada(detalle.data);
+        const template = detalle.data?.Template || '';
+        const variables = extractVariablesFromTemplate(template);
+        setPlantillaSeleccionada({ ...detalle.data, Template: template });
         setFormData(prev => ({
           ...prev,
           PlantillaComunicacionID: plantillaID,
-          MensajeEnvio: detalle.data?.Mensaje || '',
-          Variables: detalle.data?.Variables || [],
+          MensajeEnvio: template,
+          Variables: variables,
         }));
       }
     } catch (error) {
@@ -180,12 +195,13 @@ const NewChat = ({ navigation }) => {
   };
 
   const updateMensajeConVariables = (variables) => {
-    if (!plantillaSeleccionada?.Mensaje) return;
+    let mensaje = plantillaSeleccionada?.Template || '';
 
-    let mensaje = plantillaSeleccionada.Mensaje;
-    variables.forEach((variable, index) => {
-      const placeholder = `{${index + 1}}`;
-      mensaje = mensaje.replace(new RegExp(placeholder, 'g'), variable.Valor || placeholder);
+    variables.forEach((variable) => {
+      if (variable.Valor && variable.Valor !== '') {
+        const regex = new RegExp(variable.Nombre.replace(/[\[\]]/g, '\\$&'), 'g');
+        mensaje = mensaje.replace(regex, variable.Valor);
+      }
     });
 
     setFormData(prev => ({
@@ -432,10 +448,10 @@ const NewChat = ({ navigation }) => {
           {/* Variables de la plantilla */}
           {formData.Variables.map((variable, index) => (
             <View key={index} style={styles.field}>
-              <Text style={styles.label}>{variable.Nombre} *</Text>
+              <Text style={styles.label}>{variable.Nombre.replace('@[', '').replace(']', '')} *</Text>
               <TextInput
                 style={styles.input}
-                placeholder={`Ingrese ${variable.Nombre.toLowerCase()}`}
+                placeholder={`Ingrese ${variable.Nombre.replace('@[', '').replace(']', '').toLowerCase()}`}
                 value={variable.Valor || ''}
                 onChangeText={(text) => handleVariableChange(index, text)}
                 maxLength={100}
