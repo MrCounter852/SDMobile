@@ -396,13 +396,13 @@ const NewChat = ({ navigation }) => {
                   setManualPhone('');
                 }}
               >
-                <Text style={styles.manualButtonText}>Cancelar</Text>
+                <Text style={styles.manualButtonTextCancel}>Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.manualButton, styles.addManual]}
                 onPress={handleManualPhoneSubmit}
               >
-                <Text style={styles.manualButtonText}>Agregar</Text>
+                <Text style={styles.manualButtonTextAdd}>Agregar</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -727,7 +727,11 @@ const styles = StyleSheet.create({
   addManual: {
     backgroundColor: '#337ab7',
   },
-  manualButtonText: {
+  manualButtonTextAdd: {
+    fontWeight: '600',
+    color: '#fff', // For light button // manual override for dark button below
+  },
+  manualButtonTextCancel: {
     fontWeight: '600',
     color: '#333', // For light button // manual override for dark button below
   },
