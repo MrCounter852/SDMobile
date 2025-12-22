@@ -16,6 +16,7 @@ import Animated, {
 } from "react-native-reanimated";
 import Menu from "../Menu/Menu";
 import Perfil from "../Perfil/Perfil";
+import GestionComercial from "../GestionComercial/GestionComercial";
 import Notificaciones from "../Notificaciones/Notificaciones";
 import Favoritos from "../Favoritos/Favoritos";
 import useGlobal from "../../core/global";
@@ -117,7 +118,7 @@ const Home = () => {
           tabBarIcon: ({ color, size }) => {
             const icons = {
               Chat: "chatbubble-ellipses",
-              Favoritos: "heart",
+              "Gestion comercial": "briefcase",
               Menu: "menu",
               Notificaciones: "notifications",
               Perfil: "person",
@@ -142,7 +143,7 @@ const Home = () => {
             },
           }}
         />
-        <Tab.Screen name="Favoritos" component={Favoritos} />
+        <Tab.Screen name="Gestion comercial" component={GestionComercial} />
         <Tab.Screen
           name="Menu"
           component={Menu}
