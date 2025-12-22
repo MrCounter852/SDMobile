@@ -41,6 +41,7 @@ const NewChat = ({ navigation }) => {
 
   // UI State for Template View 
   const [templateModalVisible, setTemplateModalVisible] = useState(false);
+  const [loadingTemplate, setLoadingTemplate] = useState(false); // New state
 
   const [formData, setFormData] = useState({
     CuentaMensajeriaID: null,
@@ -161,7 +162,12 @@ const NewChat = ({ navigation }) => {
   };
 
   const handlePlantillaSelect = async (plantilla) => {
+    // Keep modal open while loading or close it and show loading on main screen?
+    // User requested feedback. Closing modal immediately might be confusing if main screen doesn't update fast enough.
+    // Better to close modal AND show loading state on the template selector button.
     setTemplateModalVisible(false);
+    setLoadingTemplate(true); // Start loading
+
     const plantillaID = plantilla.PlantillaComunicacionID;
 
     try {
@@ -183,6 +189,8 @@ const NewChat = ({ navigation }) => {
     } catch (error) {
       console.error('Error loading plantilla detalle:', error);
       Alert.alert('Error', 'No se pudo cargar el detalle de la plantilla');
+    } finally {
+      setLoadingTemplate(false); // Stop loading regardless of success/error
     }
   };
 
@@ -505,18 +513,27 @@ const NewChat = ({ navigation }) => {
               <TouchableOpacity
                 style={[
                   styles.templateSelectorButton,
-                  !formData.CuentaMensajeriaID && styles.disabledButton
+                  !formData.CuentaMensajeriaID && styles.disabledButton // Removed local styles dependency for now, trusting existing ones
                 ]}
-                onPress={() => formData.CuentaMensajeriaID && setTemplateModalVisible(true)}
-                disabled={!formData.CuentaMensajeriaID}
+                onPress={() => formData.CuentaMensajeriaID && !loadingTemplate && setTemplateModalVisible(true)}
+                disabled={!formData.CuentaMensajeriaID || loadingTemplate}
               >
-                <Text style={[
-                  styles.templateSelectorText,
-                  !plantillaSeleccionada && styles.placeholderText
-                ]}>
-                  {plantillaSeleccionada ? plantillaSeleccionada.Nombre : 'Seleccionar plantilla...'}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color="#666" />
+                {loadingTemplate ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <ActivityIndicator size="small" color="#337ab7" style={{ marginRight: 8 }} />
+                    <Text style={styles.templateSelectorText}>Cargando plantilla...</Text>
+                  </View>
+                ) : (
+                  <>
+                    <Text style={[
+                      styles.templateSelectorText,
+                      !plantillaSeleccionada && styles.placeholderText
+                    ]}>
+                      {plantillaSeleccionada ? plantillaSeleccionada.Nombre : 'Seleccionar plantilla...'}
+                    </Text>
+                    <Ionicons name="chevron-down" size={20} color="#666" />
+                  </>
+                )}
               </TouchableOpacity>
             </View>
 
