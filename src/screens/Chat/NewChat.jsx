@@ -858,11 +858,11 @@ const styles = StyleSheet.create({
     marginVertical: 12,
   },
   messageBubble: {
-    backgroundColor: '#88E782', // WhatsApp outgoing green
+    backgroundColor: '#88E782',
     borderRadius: 12,
     borderTopRightRadius: 2,
     padding: 12,
-    paddingBottom: 24, // Space for time
+    paddingBottom: 24,
     maxWidth: '85%',
     elevation: 1,
     shadowColor: '#000',
