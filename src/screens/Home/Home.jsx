@@ -118,12 +118,12 @@ const Home = () => {
           tabBarIcon: ({ color, size }) => {
             const icons = {
               Chat: "chatbubble-ellipses",
-              "Gestion comercial": "briefcase",
+              "Gestión comercial": "briefcase",
               Menu: "menu",
               Notificaciones: "notifications",
               Perfil: "person",
             };
-            const iconName = icons[route.name] || "circle";
+            const iconName = icons[route.name];
             return <Ionicons name={iconName} size={size} color={color} />;
           },
           tabBarActiveTintColor: "#337ab7",
@@ -143,7 +143,7 @@ const Home = () => {
             },
           }}
         />
-        <Tab.Screen name="Gestion comercial" component={GestionComercial} />
+        <Tab.Screen name="Gestión comercial" component={GestionComercial} />
         <Tab.Screen
           name="Menu"
           component={Menu}
