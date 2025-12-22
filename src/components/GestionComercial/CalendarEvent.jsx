@@ -62,7 +62,7 @@ const CalendarEvent = ({ event, onPress }) => {
         </Text>
       </View>
 
-      {event.Descripcion && (
+      {!!event.Descripcion && (
         <Text style={styles.description} numberOfLines={2}>
           {event.Descripcion}
         </Text>

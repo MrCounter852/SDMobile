@@ -73,13 +73,13 @@ const ContactItem = ({ item, onPress }) => {
           <Ionicons name="call" size={14} color="#666" />
           <Text style={styles.detailText}>{item.Celular || 'Sin celular'}</Text>
         </View>
-        {item.Email && (
+        {!!item.Email && (
           <View style={styles.detailRow}>
             <Ionicons name="mail" size={14} color="#666" />
             <Text style={styles.detailText} numberOfLines={1}>{item.Email}</Text>
           </View>
         )}
-        {item.AsesorNombreCompleto && (
+        {!!item.AsesorNombreCompleto && (
           <View style={styles.detailRow}>
             <Ionicons name="person" size={14} color="#666" />
             <Text style={styles.detailText} numberOfLines={1}>{item.AsesorNombreCompleto}</Text>
@@ -92,7 +92,7 @@ const ContactItem = ({ item, onPress }) => {
           <Ionicons name="time" size={14} color="#666" />
           <Text style={styles.dateText}>{formatDate(item.Fecha)}</Text>
         </View>
-        {item.ValorNegocio && (
+        {!!item.ValorNegocio && (
           <View style={styles.footerRight}>
             <Ionicons name="cash" size={14} color="#4CAF50" />
             <Text style={styles.valueText}>{formatCurrency(item.ValorNegocio)}</Text>
@@ -100,7 +100,7 @@ const ContactItem = ({ item, onPress }) => {
         )}
       </View>
 
-      {item.Color && (
+      {!!item.Color && (
         <View style={[styles.colorIndicator, { backgroundColor: item.Color }]} />
       )}
     </TouchableOpacity>

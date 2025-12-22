@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGlobal } from '../../core/global';
-import GestionComercialService from '../../services/GestionComercial/gestionComercialService';
+const GestionComercialService = require('../../services/GestionComercial/gestionComercialService').default;
 import ContactItem from '../../components/GestionComercial/ContactItem';
 import FilterModal from '../../components/GestionComercial/FilterModal';
 import TimelineColumn from '../../components/GestionComercial/TimelineColumn';
@@ -150,6 +150,10 @@ const TimelineView = ({ navigation, searchFilters, onRefresh }) => {
   const [refreshing, setRefreshing] = useState(false);
 
   const loadTimeline = async (isRefresh = false) => {
+    if (!searchFilters.OrigenPreContactoID) {
+      setTimelineData([]);
+      return;
+    }
     try {
       if (isRefresh) {
         setRefreshing(true);
@@ -365,6 +369,7 @@ const CalendarView = ({ navigation, searchFilters, onRefresh }) => {
 
 // Main Component
 const GestionComercial = ({ navigation }) => {
+  const { user } = useGlobal();
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [searchFilters, setSearchFilters] = useState({
     OrigenPreContactoID: null,
@@ -376,6 +381,28 @@ const GestionComercial = ({ navigation }) => {
     EstadoGeneral: null,
   });
   const [hasFilters, setHasFilters] = useState(false);
+
+  useEffect(() => {
+    const loadDefaultOrigin = async () => {
+      try {
+        const response = await GestionComercialService.consultarOrigenesPreContactosSucursales({
+          SucursalID: user?.SucursalID,
+        });
+        if (response.rows && response.rows.length > 0) {
+          setSearchFilters(prev => ({
+            ...prev,
+            OrigenPreContactoID: response.rows[0].OrigenPreContactoID
+          }));
+        }
+      } catch (error) {
+        console.error('Error loading default origin:', error);
+      }
+    };
+
+    if (searchFilters.OrigenPreContactoID === null && user?.SucursalID) {
+      loadDefaultOrigin();
+    }
+  }, [user?.SucursalID]);
 
   const handleApplyFilters = (filters) => {
     setSearchFilters(filters);

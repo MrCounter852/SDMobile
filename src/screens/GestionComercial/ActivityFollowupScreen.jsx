@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import { useGlobal } from '../../core/global';
-import GestionComercialService from '../../services/GestionComercial/gestionComercialService';
+const GestionComercialService = require('../../services/GestionComercial/gestionComercialService').default;
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -161,6 +161,7 @@ const DateTimePicker = ({
 
 // Activity Form Component
 const ActivityForm = ({ contact }) => {
+  const navigation = useNavigation();
   const { user } = useGlobal();
   const [loading, setLoading] = useState(false);
   const [activityTypes, setActivityTypes] = useState([]);
@@ -192,7 +193,7 @@ const ActivityForm = ({ contact }) => {
   const loadInitialData = async () => {
     try {
       const [typesResp, usersResp, closureResp] = await Promise.all([
-        GestionComercialService.consultarTiposCalendariosActividades(),
+        GestionComercialService.consultarTiposCalendarioActividades(),
         GestionComercialService.consultarAsesores(),
         GestionComercialService.consultarCalendariosActividadesCierresDetalles(),
       ]);
@@ -363,6 +364,7 @@ const ActivityForm = ({ contact }) => {
 
 // Followup Form Component
 const FollowupForm = ({ contact }) => {
+  const navigation = useNavigation();
   const { user } = useGlobal();
   const [loading, setLoading] = useState(false);
 

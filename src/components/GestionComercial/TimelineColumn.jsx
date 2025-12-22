@@ -29,7 +29,7 @@ const TimelineColumn = ({ linea, onContactPress, onMoveContact }) => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contactsContainer}
       >
-        {linea.Procesos && linea.Procesos.map((contacto, index) => (
+        {!!linea.Procesos && linea.Procesos.map((contacto, index) => (
           <View key={contacto.ProcesoID || index} style={styles.contactWrapper}>
             <ContactItem
               item={contacto}

@@ -125,7 +125,7 @@ export default function App() {
               <Stack.Screen
                 name="ActivityFollowupScreen"
                 component={ActivityFollowupScreen}
-                options={{ headerShown: false }}
+                options={{ headerShown: true }}
               />
               <Stack.Screen
                 name="GestionComercial"

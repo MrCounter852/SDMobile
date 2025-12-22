@@ -11,7 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGlobal } from '../../core/global';
-import GestionComercialService from '../../services/GestionComercial/gestionComercialService';
+const GestionComercialService = require('../../services/GestionComercial/gestionComercialService').default;
 import ContactItem from '../../components/GestionComercial/ContactItem';
 
 const ContactDetail = ({ navigation, route }) => {

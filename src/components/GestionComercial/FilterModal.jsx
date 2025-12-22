@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import GestionComercialService from '../../services/GestionComercial/gestionComercialService';
+const GestionComercialService = require('../../services/GestionComercial/gestionComercialService').default;
 import { useGlobal } from '../../core/global';
 
 const FilterModal = ({ visible, onClose, onApplyFilters, initialFilters = {} }) => {
