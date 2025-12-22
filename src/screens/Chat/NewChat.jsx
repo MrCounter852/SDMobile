@@ -14,6 +14,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { LinearGradient } from "expo-linear-gradient";
 import { Picker } from '@react-native-picker/picker'; // Keep for now if needed, but we might replace usage
 import { Ionicons } from '@expo/vector-icons';
 import ChatApiService from '../../services/chat/chatService';
@@ -162,9 +163,6 @@ const NewChat = ({ navigation }) => {
   };
 
   const handlePlantillaSelect = async (plantilla) => {
-    // Keep modal open while loading or close it and show loading on main screen?
-    // User requested feedback. Closing modal immediately might be confusing if main screen doesn't update fast enough.
-    // Better to close modal AND show loading state on the template selector button.
     setTemplateModalVisible(false);
     setLoadingTemplate(true); // Start loading
 
@@ -358,14 +356,14 @@ const NewChat = ({ navigation }) => {
             style={styles.headerButton}
             onPress={() => navigation.goBack()}
           >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Ionicons name="arrow-back" size={24} color="#337ab7" />
           </TouchableOpacity>
           <Text style={styles.title}>Nuevo chat</Text>
           <TouchableOpacity
             style={styles.headerButton}
             onPress={() => setShowManualInput(true)}
           >
-            <Ionicons name="person-add" size={24} color="#fff" />
+            <Ionicons name="person-add" size={24} color="#337ab7" />
           </TouchableOpacity>
         </View>
 
@@ -436,7 +434,7 @@ const NewChat = ({ navigation }) => {
 
   // --- TEMPLATE VIEW (Modernized) ---
   return (
-    <SafeAreaView style={[styles.chatContainer, { marginBottom: insets.bottom }]}>
+    <SafeAreaView style={[styles.chatContainer]}>
       <View style={styles.chatHeader}>
         <View style={styles.chatHeaderLeft}>
           <TouchableOpacity
@@ -454,20 +452,13 @@ const NewChat = ({ navigation }) => {
               setPlantillaSeleccionada(null);
             }}
           >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-            {selectedContact && (
-              <View style={styles.headerAvatar}>
-                <Text style={styles.headerAvatarText}>
-                  {selectedContact.Nombre?.charAt(0)?.toUpperCase()}
-                </Text>
-              </View>
-            )}
+            <Ionicons name="arrow-back" size={24} color="#337ab7" style={[{ marginLeft: 16 }]} />
           </TouchableOpacity>
           <View>
             <Text style={styles.chatHeaderTitle} numberOfLines={1}>
               {selectedContact?.Nombre || 'Nuevo contacto'}
             </Text>
-            <Text style={styles.chatHeaderSubtitle}>
+            <Text style={styles.chatHeaderSubtitle} numberOfLines={1}>
               {selectedContact?.Telefono}
             </Text>
           </View>
@@ -479,10 +470,8 @@ const NewChat = ({ navigation }) => {
         style={{ flex: 1 }}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
-        <ImageBackground
-          source={{ uri: 'https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png' }} // WhatsApp-like background pattern
+        <View
           style={styles.chatBackground}
-          resizeMode="cover"
         >
           <ScrollView contentContainerStyle={styles.chatContent}>
 
@@ -545,7 +534,7 @@ const NewChat = ({ navigation }) => {
                   <Text style={styles.messageText}>{formData.MensajeEnvio}</Text>
                   <View style={styles.messageMetadata}>
                     <Text style={styles.messageTime}>Ahora</Text>
-                    <Ionicons name="checkmark-done" size={16} color="#34B7F1" />
+                    <Ionicons name="checkmark-done" size={16} color="#337ab7" />
                   </View>
                 </View>
               </View>
@@ -579,21 +568,28 @@ const NewChat = ({ navigation }) => {
             <View style={{ height: 80 }} />
 
           </ScrollView>
-        </ImageBackground>
+        </View>
 
         {/* 5. Floating Send Button */}
         <View style={styles.fabContainer}>
-          <TouchableOpacity
-            style={[styles.fabButton, (loading || !formData.MensajeEnvio) && styles.fabDisabled]}
-            onPress={handleSubmit}
-            disabled={loading || !formData.MensajeEnvio}
+          <LinearGradient
+            colors={["#337ab7", "#88E782"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.fabButton}
           >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Ionicons name="send" size={24} color="#fff" style={{ marginLeft: 4 }} />
-            )}
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.fabButton, (loading || !formData.MensajeEnvio) && styles.fabDisabled]}
+              onPress={handleSubmit}
+              disabled={loading || !formData.MensajeEnvio}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Ionicons name="send" size={24} color="#fff" style={{ marginLeft: 4 }} />
+              )}
+            </TouchableOpacity>
+          </LinearGradient>
         </View>
 
       </KeyboardAvoidingView>
@@ -617,7 +613,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#337ab7', // App Primary Blue
+    backgroundColor: '#fff', // App Primary Blue
     elevation: 4,
     shadowColor: '#000',
     shadowOpacity: 0.2,
@@ -626,7 +622,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#337ab7',
   },
   headerButton: {
     padding: 8,
@@ -667,7 +663,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#e1e1e1',
+    backgroundColor: '#337ab7',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -675,7 +671,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#666',
+    color: '#fff',
   },
   contactInfo: {
     flex: 1,
@@ -747,10 +743,11 @@ const styles = StyleSheet.create({
   chatHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#337ab7',
     paddingVertical: 10,
     paddingHorizontal: 4,
     elevation: 4,
+    height: 60,
+    backgroundColor: '#fff',
   },
   chatHeaderLeft: {
     flexDirection: 'row',
@@ -778,17 +775,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   chatHeaderTitle: {
-    color: '#fff',
+    marginLeft: 16,
+    color: '#337ab7',
     fontSize: 18,
     fontWeight: '700',
   },
   chatHeaderSubtitle: {
-    color: 'rgba(255,255,255,0.8)',
+    marginLeft: 16,
+    color: '#666',
     fontSize: 13,
   },
   chatBackground: {
     flex: 1,
-    backgroundColor: '#E5DDD5',
+    backgroundColor: '#f8f9fa',
   },
   chatContent: {
     padding: 16,
@@ -853,7 +852,7 @@ const styles = StyleSheet.create({
     marginVertical: 12,
   },
   messageBubble: {
-    backgroundColor: '#DCF8C6', // WhatsApp outgoing green
+    backgroundColor: '#88E782', // WhatsApp outgoing green
     borderRadius: 12,
     borderTopRightRadius: 2,
     padding: 12,
@@ -942,7 +941,7 @@ const styles = StyleSheet.create({
     right: 24,
   },
   fabButton: {
-    backgroundColor: '#337ab7', // Or WhatsApp Green #25D366
+    backgroundColor: '#337ab7',
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -963,6 +962,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
+
   },
   modalContent: {
     backgroundColor: '#fff',
