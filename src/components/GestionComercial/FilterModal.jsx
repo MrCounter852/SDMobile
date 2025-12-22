@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
+import { LinearGradient } from 'expo-linear-gradient';
 const GestionComercialService = require('../../services/GestionComercial/gestionComercialService').default;
 import { useGlobal } from '../../core/global';
 
@@ -99,11 +100,21 @@ const FilterModal = ({ visible, onClose, onApplyFilters, initialFilters = {} }) 
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
+        <TouchableOpacity
+          style={styles.dismissArea}
+          activeOpacity={1}
+          onPress={onClose}
+        />
         <View style={styles.container}>
+          <View style={styles.dragHandle} />
+
           <View style={styles.header}>
             <Text style={styles.title}>Filtros</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#666" />
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={onClose}
+            >
+              <Ionicons name="close" size={20} color="#1C1C1E" />
             </TouchableOpacity>
           </View>
 
@@ -232,10 +243,16 @@ const FilterModal = ({ visible, onClose, onApplyFilters, initialFilters = {} }) 
               <Text style={styles.resetButtonText}>Limpiar</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.button, styles.applyButton]}
               onPress={handleApplyFilters}
             >
-              <Text style={styles.applyButtonText}>Aplicar</Text>
+              <LinearGradient
+                colors={['#007AFF', '#00C6FF']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[styles.button, styles.applyButton]}
+              >
+                <Text style={styles.applyButtonText}>Aplicar Filtros</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </View>
@@ -247,89 +264,123 @@ const FilterModal = ({ visible, onClose, onApplyFilters, initialFilters = {} }) 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'flex-end',
+  },
+  dismissArea: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   container: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '80%',
-    minHeight: '50%',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    maxHeight: '90%',
+    paddingBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 20,
+  },
+  dragHandle: {
+    width: 40,
+    height: 5,
+    backgroundColor: '#E5E5EA',
+    borderRadius: 3,
+    alignSelf: 'center',
+    marginTop: 12,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    paddingHorizontal: 24,
+    paddingTop: 8,
+    paddingBottom: 16,
   },
   title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#1C1C1E',
+    letterSpacing: -0.5,
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F2F2F7',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   content: {
-    flex: 1,
-    padding: 16,
+    flexGrow: 0,
+    paddingHorizontal: 24,
   },
   filterSection: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#3A3A3C',
+    marginBottom: 10,
+    marginLeft: 4,
   },
   pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    backgroundColor: '#fafafa',
+    backgroundColor: '#F2F2F7',
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   picker: {
     height: 50,
+    color: '#1C1C1E',
   },
   textInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#fafafa',
+    backgroundColor: '#F2F2F7',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 15,
+    color: '#1C1C1E',
+    fontWeight: '500',
   },
   footer: {
     flexDirection: 'row',
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
+    paddingHorizontal: 24,
+    paddingTop: 16,
     gap: 12,
   },
   button: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
+    height: 54,
+    borderRadius: 16,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   resetButton: {
-    backgroundColor: '#f5f5f5',
-    borderWidth: 1,
-    borderColor: '#ddd',
+    backgroundColor: '#fff',
+    borderWidth: 1.5,
+    borderColor: '#E5E5EA',
   },
   applyButton: {
-    backgroundColor: '#337ab7',
+    elevation: 4,
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
   resetButtonText: {
     fontSize: 16,
-    color: '#666',
-    fontWeight: '500',
+    color: '#8E8E93',
+    fontWeight: '700',
   },
   applyButtonText: {
     fontSize: 16,
     color: '#fff',
-    fontWeight: '500',
+    fontWeight: '700',
   },
 });
 

@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useGlobal } from '../../core/global';
 const GestionComercialService = require('../../services/GestionComercial/gestionComercialService').default;
 import ContactItem from '../../components/GestionComercial/ContactItem';
@@ -135,88 +136,86 @@ const ContactDetail = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color="#337ab7" />
+          <Ionicons name="arrow-back" size={24} color="#1C1C1E" />
         </TouchableOpacity>
         <Text style={styles.title} numberOfLines={1}>
-          Detalle de Contacto
+          Detalle
         </Text>
         <View style={styles.headerActions}>
           <TouchableOpacity
             style={styles.headerButton}
             onPress={handleEdit}
           >
-            <Ionicons name="pencil" size={20} color="#337ab7" />
+            <Ionicons name="pencil-outline" size={20} color="#007AFF" />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.headerButton}
             onPress={handleDelete}
           >
-            <Ionicons name="trash" size={20} color="#f44336" />
+            <Ionicons name="trash-outline" size={20} color="#FF3B30" />
           </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Contact Summary */}
-        <View style={styles.section}>
+        {/* Contact Summary Card */}
+        <View style={styles.heroSection}>
           <ContactItem item={contactDetail} />
         </View>
 
         {/* Additional Details */}
+        {/* Info Grid Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Información adicional</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Información</Text>
+            <Ionicons name="information-circle-outline" size={20} color="#AEAEB2" />
+          </View>
 
           <View style={styles.detailGrid}>
-            <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Tipo:</Text>
-              <Text style={styles.detailValue}>{contactDetail.OrigenNombre || 'N/A'}</Text>
+            <View style={styles.gridRow}>
+              <View style={styles.gridItem}>
+                <Text style={styles.detailLabel}>Tipo</Text>
+                <Text style={styles.detailValue}>{contactDetail.OrigenNombre || 'N/A'}</Text>
+              </View>
+              <View style={styles.gridItem}>
+                <Text style={styles.detailLabel}>Asesor</Text>
+                <Text style={styles.detailValue}>{contactDetail.AsesorNombreCompleto || 'No asignado'}</Text>
+              </View>
             </View>
 
-            <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Asesor:</Text>
-              <Text style={styles.detailValue}>{contactDetail.AsesorNombreCompleto || 'No asignado'}</Text>
-            </View>
-
-            <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Forma contacto:</Text>
-              <Text style={styles.detailValue}>{contactDetail.FormaContactoNombre || 'N/A'}</Text>
-            </View>
-
-            <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Como nos conoció:</Text>
-              <Text style={styles.detailValue}>{contactDetail.FormaComoNosConocioNombre || 'N/A'}</Text>
+            <View style={styles.gridRow}>
+              <View style={styles.gridItem}>
+                <Text style={styles.detailLabel}>Contacto</Text>
+                <Text style={styles.detailValue}>{contactDetail.FormaContactoNombre || 'N/A'}</Text>
+              </View>
+              <View style={styles.gridItem}>
+                <Text style={styles.detailLabel}>Origen</Text>
+                <Text style={styles.detailValue}>{contactDetail.FormaComoNosConocioNombre || 'N/A'}</Text>
+              </View>
             </View>
 
             {contactDetail.ValorNegocio && (
-              <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Valor negocio:</Text>
-                <Text style={styles.detailValue}>{formatCurrency(contactDetail.ValorNegocio)}</Text>
-              </View>
-            )}
-
-            <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Fecha registro:</Text>
-              <Text style={styles.detailValue}>{formatDate(contactDetail.Fecha)}</Text>
-            </View>
-
-            {contactDetail.FechaCierre && (
-              <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Fecha cierre:</Text>
-                <Text style={styles.detailValue}>{formatDate(contactDetail.FechaCierre)}</Text>
+              <View style={styles.gridRow}>
+                <View style={[styles.gridItem, { flex: 1 }]}>
+                  <Text style={styles.detailLabel}>Valor Negocio</Text>
+                  <Text style={[styles.detailValue, styles.valueHighlight]}>{formatCurrency(contactDetail.ValorNegocio)}</Text>
+                </View>
               </View>
             )}
           </View>
 
           {contactDetail.Observaciones && (
             <View style={styles.observations}>
-              <Text style={styles.detailLabel}>Observaciones:</Text>
-              <Text style={styles.observationsText}>{contactDetail.Observaciones}</Text>
+              <Text style={styles.detailLabel}>Observaciones</Text>
+              <View style={styles.observationCard}>
+                <Text style={styles.observationsText}>{contactDetail.Observaciones}</Text>
+              </View>
             </View>
           )}
         </View>
@@ -320,175 +319,211 @@ const ContactDetail = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#fff',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     backgroundColor: '#fff',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
   },
   backButton: {
-    padding: 4,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F2F2F7',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 12,
   },
   title: {
     flex: 1,
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#1C1C1E',
+    letterSpacing: -0.5,
   },
   headerActions: {
     flexDirection: 'row',
     gap: 8,
   },
   headerButton: {
-    padding: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F2F2F7',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   content: {
     flex: 1,
+    backgroundColor: '#F2F2F7',
+  },
+  heroSection: {
+    paddingVertical: 8,
+    backgroundColor: '#fff',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 4,
+    marginBottom: 12,
   },
   section: {
     backgroundColor: '#fff',
-    margin: 8,
-    borderRadius: 8,
-    padding: 16,
-    elevation: 2,
+    marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 20,
+    padding: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1C1C1E',
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: '#e3f2fd',
-    borderRadius: 16,
+    backgroundColor: '#E5F1FF',
+    borderRadius: 12,
   },
   addButtonText: {
-    fontSize: 12,
-    color: '#337ab7',
-    marginLeft: 4,
-    fontWeight: '500',
+    fontSize: 13,
+    color: '#007AFF',
+    marginLeft: 6,
+    fontWeight: '700',
   },
   detailGrid: {
-    marginBottom: 16,
+    gap: 16,
   },
-  detailItem: {
+  gridRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    gap: 16,
+  },
+  gridItem: {
+    flex: 1,
   },
   detailLabel: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
+    fontSize: 12,
+    color: '#8E8E93',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    marginBottom: 4,
+    letterSpacing: 0.5,
   },
   detailValue: {
-    fontSize: 14,
-    color: '#333',
-    flex: 1,
-    textAlign: 'right',
+    fontSize: 15,
+    color: '#1C1C1E',
+    fontWeight: '500',
+  },
+  valueHighlight: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#34C759',
   },
   observations: {
-    marginTop: 16,
+    marginTop: 20,
+  },
+  observationCard: {
+    backgroundColor: '#F2F2F7',
+    padding: 12,
+    borderRadius: 12,
+    marginTop: 8,
   },
   observationsText: {
     fontSize: 14,
-    color: '#666',
+    color: '#3A3A3C',
     lineHeight: 20,
-    marginTop: 4,
   },
   activityItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#F2F2F7',
   },
   activityIcon: {
-    width: 32,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F8F8FA',
+    justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 12,
   },
   activityContent: {
     flex: 1,
-    marginLeft: 12,
   },
   activityTitle: {
-    fontSize: 14,
-    color: '#333',
-    fontWeight: '500',
+    fontSize: 15,
+    color: '#1C1C1E',
+    fontWeight: '600',
   },
   activityDate: {
     fontSize: 12,
-    color: '#666',
+    color: '#8E8E93',
     marginTop: 2,
   },
   followupItem: {
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    paddingVertical: 14,
+    borderLeftWidth: 2,
+    borderLeftColor: '#E5E5EA',
+    paddingLeft: 16,
+    marginLeft: 8,
+    marginBottom: 8,
   },
   followupContent: {
     flex: 1,
   },
   followupText: {
     fontSize: 14,
-    color: '#333',
+    color: '#3A3A3C',
     lineHeight: 20,
+    fontWeight: '500',
   },
   followupDate: {
     fontSize: 12,
-    color: '#666',
-    marginTop: 4,
+    color: '#AEAEB2',
+    marginTop: 6,
   },
   emptyText: {
     fontSize: 14,
-    color: '#999',
+    color: '#AEAEB2',
     textAlign: 'center',
-    padding: 16,
+    padding: 20,
     fontStyle: 'italic',
   },
   viewMoreButton: {
     alignItems: 'center',
-    padding: 12,
+    paddingTop: 16,
   },
   viewMoreText: {
     fontSize: 14,
-    color: '#337ab7',
-    fontWeight: '500',
+    color: '#007AFF',
+    fontWeight: '700',
   },
   loadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(255,255,255,0.8)',
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,255,255,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 999,
   },
 });
 

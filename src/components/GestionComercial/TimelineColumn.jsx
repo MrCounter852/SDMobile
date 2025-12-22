@@ -16,11 +16,16 @@ const TimelineColumn = ({ linea, onContactPress, onMoveContact }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title} numberOfLines={1}>
-          {linea.Nombre}
-        </Text>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.title} numberOfLines={1}>
+            {linea.Nombre}
+          </Text>
+          <View style={styles.countBadge}>
+            <Text style={styles.countText}>{linea.TotalProcesos || 0}</Text>
+          </View>
+        </View>
         <TouchableOpacity style={styles.filterButton}>
-          <Ionicons name="filter" size={16} color="#666" />
+          <Ionicons name="ellipsis-horizontal" size={18} color="#8E8E93" />
         </TouchableOpacity>
       </View>
 
@@ -35,19 +40,19 @@ const TimelineColumn = ({ linea, onContactPress, onMoveContact }) => {
               item={contacto}
               onPress={() => onContactPress && onContactPress(contacto)}
             />
-            {/* Move buttons for mobile - simplified version */}
+            {/* Minimalist Move buttons */}
             <View style={styles.moveButtons}>
               <TouchableOpacity
                 style={[styles.moveButton, styles.moveLeft]}
                 onPress={() => onMoveContact && onMoveContact(contacto, 'left')}
               >
-                <Ionicons name="chevron-back" size={16} color="#fff" />
+                <Ionicons name="chevron-back" size={14} color="#007AFF" />
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.moveButton, styles.moveRight]}
                 onPress={() => onMoveContact && onMoveContact(contacto, 'right')}
               >
-                <Ionicons name="chevron-forward" size={16} color="#fff" />
+                <Ionicons name="chevron-forward" size={14} color="#007AFF" />
               </TouchableOpacity>
             </View>
           </View>
@@ -55,19 +60,17 @@ const TimelineColumn = ({ linea, onContactPress, onMoveContact }) => {
 
         {(!linea.Procesos || linea.Procesos.length === 0) && (
           <View style={styles.emptyContainer}>
-            <Ionicons name="document-text-outline" size={48} color="#ccc" />
-            <Text style={styles.emptyText}>No hay contactos en esta etapa</Text>
+            <View style={styles.emptyIconCircle}>
+              <Ionicons name="document-text-outline" size={32} color="#AEAEB2" />
+            </View>
+            <Text style={styles.emptyText}>Lista vacía</Text>
           </View>
         )}
       </ScrollView>
 
       <View style={styles.footer}>
         <View style={styles.footerItem}>
-          <Text style={styles.footerLabel}>Total:</Text>
-          <Text style={styles.footerValue}>{linea.TotalProcesos || 0}</Text>
-        </View>
-        <View style={styles.footerItem}>
-          <Text style={styles.footerLabel}>Valor:</Text>
+          <Text style={styles.footerLabel}>Total Negocio</Text>
           <Text style={styles.footerValue}>{formatCurrency(linea.TotalValorNegocio)}</Text>
         </View>
       </View>
@@ -77,107 +80,132 @@ const TimelineColumn = ({ linea, onContactPress, onMoveContact }) => {
 
 const styles = StyleSheet.create({
   container: {
-    width: 280,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
-    marginHorizontal: 8,
+    width: 300,
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    marginHorizontal: 12,
+    marginVertical: 4,
+    overflow: 'hidden',
     elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    padding: 16,
+    backgroundColor: '#F2F2F7',
   },
-  title: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
   },
+  title: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1C1C1E',
+    marginRight: 8,
+    flexShrink: 1,
+  },
+  countBadge: {
+    backgroundColor: '#E5E5EA',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  countText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#8E8E93',
+  },
   filterButton: {
-    padding: 4,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginLeft: 8,
   },
   scrollContainer: {
     flex: 1,
-    maxHeight: 400,
   },
   contactsContainer: {
-    padding: 8,
+    padding: 10,
+    paddingTop: 0,
   },
   contactWrapper: {
-    marginBottom: 8,
-    position: 'relative',
+    marginBottom: 12,
   },
   moveButtons: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
     flexDirection: 'row',
-    gap: 4,
+    gap: 8,
+    marginTop: 8,
+    justifyContent: 'flex-end',
+    paddingRight: 16,
+    paddingBottom: 8,
   },
   moveButton: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 3,
+    elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-  },
-  moveLeft: {
-    backgroundColor: '#2196F3',
-  },
-  moveRight: {
-    backgroundColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: '#F2F2F7',
   },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 32,
+    padding: 40,
+    marginTop: 20,
+  },
+  emptyIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#E5E5EA',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   emptyText: {
     fontSize: 14,
-    color: '#999',
-    textAlign: 'center',
-    marginTop: 8,
+    color: '#AEAEB2',
+    fontWeight: '500',
   },
   footer: {
-    backgroundColor: '#fff',
+    padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
-    padding: 12,
-    borderBottomLeftRadius: 8,
-    borderBottomRightRadius: 8,
+    borderTopColor: '#E5E5EA',
+    backgroundColor: '#F2F2F7',
   },
   footerItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
   },
   footerLabel: {
-    fontSize: 12,
-    color: '#666',
-    fontWeight: '500',
+    fontSize: 13,
+    color: '#8E8E93',
+    fontWeight: '600',
   },
   footerValue: {
-    fontSize: 12,
-    color: '#333',
-    fontWeight: '600',
+    fontSize: 14,
+    color: '#1C1C1E',
+    fontWeight: '700',
   },
 });
 

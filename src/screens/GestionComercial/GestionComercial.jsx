@@ -10,6 +10,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -20,7 +21,6 @@ import ContactItem from '../../components/GestionComercial/ContactItem';
 import FilterModal from '../../components/GestionComercial/FilterModal';
 import TimelineColumn from '../../components/GestionComercial/TimelineColumn';
 import CalendarEvent from '../../components/GestionComercial/CalendarEvent';
-import NewLeadScreen from '../../assets/common/NewLeadScreen';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -49,6 +49,11 @@ const TableView = ({ navigation, searchFilters, onRefresh }) => {
         Rows: 30,
         SucursalID: user?.SucursalID,
       };
+
+      // Remove OrigenPreContactoID if it's null to allow loading all contacts
+      if (filters.OrigenPreContactoID === null) {
+        delete filters.OrigenPreContactoID;
+      }
 
       const response = await GestionComercialService.consultarPreContactos(filters);
       const newContacts = response.rows || [];
@@ -150,6 +155,7 @@ const TimelineView = ({ navigation, searchFilters, onRefresh }) => {
   const [refreshing, setRefreshing] = useState(false);
 
   const loadTimeline = async (isRefresh = false) => {
+    // Timeline requires a specific origin to be selected
     if (!searchFilters.OrigenPreContactoID) {
       setTimelineData([]);
       return;
@@ -394,12 +400,14 @@ const GestionComercial = ({ navigation }) => {
             OrigenPreContactoID: response.rows[0].OrigenPreContactoID
           }));
         }
+        // Keep OrigenPreContactoID as null to allow loading all contacts if no origins found
       } catch (error) {
         console.error('Error loading default origin:', error);
+        // Keep OrigenPreContactoID as null to allow loading all contacts
       }
     };
 
-    if (searchFilters.OrigenPreContactoID === null && user?.SucursalID) {
+    if (user?.SucursalID) {
       loadDefaultOrigin();
     }
   }, [user?.SucursalID]);
@@ -418,34 +426,58 @@ const GestionComercial = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.mainContainer} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Gestión Comercial</Text>
+        <View>
+          <Text style={styles.headerSubtitle}>Procesos de</Text>
+          <Text style={styles.title}>Gestión Comercial</Text>
+        </View>
         <View style={styles.headerButtons}>
           <TouchableOpacity
-            style={styles.headerButton}
+            style={[styles.headerButton, hasFilters && styles.headerButtonActive]}
             onPress={() => setFilterModalVisible(true)}
           >
             <Ionicons
-              name="filter"
-              size={24}
-              color={hasFilters ? "#337ab7" : "#666"}
+              name={hasFilters ? "filter" : "filter-outline"}
+              size={22}
+              color={hasFilters ? "#007AFF" : "#3A3A3C"}
             />
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.headerButton}
             onPress={() => navigation.navigate('NewLeadScreen')}
           >
-            <Ionicons name="add" size={24} color="#337ab7" />
+            <LinearGradient
+              colors={['#007AFF', '#00C6FF']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.addButton}
+            >
+              <Ionicons name="add" size={24} color="#fff" />
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </View>
 
       <Tab.Navigator
         screenOptions={{
-          tabBarActiveTintColor: '#337ab7',
-          tabBarInactiveTintColor: '#666',
-          tabBarIndicatorStyle: { backgroundColor: '#337ab7' },
-          tabBarLabelStyle: { fontSize: 12, fontWeight: '500' },
-          tabBarStyle: { backgroundColor: '#fff' },
+          tabBarActiveTintColor: '#007AFF',
+          tabBarInactiveTintColor: '#8E8E93',
+          tabBarIndicatorStyle: {
+            backgroundColor: '#007AFF',
+            height: 3,
+            borderRadius: 3,
+          },
+          tabBarLabelStyle: {
+            fontSize: 13,
+            fontWeight: '600',
+            textTransform: 'none',
+          },
+          tabBarStyle: {
+            backgroundColor: '#fff',
+            elevation: 0,
+            shadowOpacity: 0,
+            borderBottomWidth: 1,
+            borderBottomColor: '#F2F2F7',
+          },
+          swipeEnabled: false, // Fix navigation conflict with horizontal timeline
         }}
       >
         <Tab.Screen
@@ -502,69 +534,102 @@ const GestionComercial = ({ navigation }) => {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F2F2F7',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     backgroundColor: '#fff',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
     elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+  },
+  headerSubtitle: {
+    fontSize: 13,
+    color: '#8E8E93',
+    fontWeight: '500',
+    marginBottom: 2,
   },
   title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#1C1C1E',
+    letterSpacing: -0.5,
   },
   headerButtons: {
     flexDirection: 'row',
-    gap: 16,
+    alignItems: 'center',
+    gap: 12,
   },
   headerButton: {
-    padding: 4,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F2F2F7',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerButtonActive: {
+    backgroundColor: '#E5F1FF',
+  },
+  addButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F2F2F7',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#fff',
   },
   loadingFooter: {
-    padding: 16,
+    padding: 24,
     alignItems: 'center',
   },
   loadingText: {
     marginTop: 8,
-    color: '#666',
+    color: '#8E8E93',
     fontSize: 14,
+    fontWeight: '500',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 32,
+    padding: 40,
   },
   emptyList: {
     flexGrow: 1,
   },
   emptyText: {
     fontSize: 16,
-    color: '#999',
+    color: '#AEAEB2',
     textAlign: 'center',
     marginTop: 16,
+    fontWeight: '500',
   },
   timelineContainer: {
     padding: 16,
+    backgroundColor: '#F2F2F7',
   },
   emptyTimeline: {
     flex: 1,

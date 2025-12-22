@@ -7,13 +7,12 @@ const ContactItem = ({ item, onPress }) => {
   const navigation = useNavigation();
 
   const getEstadoColor = (estado) => {
-    switch (estado) {
-      case 'Nuevo': return '#0091ae';
-      case 'En gestión': return '#009688';
-      case 'Cerrado': return '#FF9800';
-      case 'Inviable': return '#f44336';
-      default: return '#666';
-    }
+    const est = estado?.toLowerCase() || '';
+    if (est.includes('nuevo')) return '#007AFF'; // iOS Blue
+    if (est.includes('gesti')) return '#34C759'; // iOS Green
+    if (est.includes('cerra')) return '#FF9500'; // iOS Orange
+    if (est.includes('invia')) return '#FF3B30'; // iOS Red
+    return '#8E8E93';
   };
 
   const formatDate = (dateString) => {
@@ -38,71 +37,78 @@ const ContactItem = ({ item, onPress }) => {
   };
 
   return (
-    <TouchableOpacity style={styles.container} onPress={() => onPress && onPress(item)}>
-      <View style={styles.header}>
-        <View style={styles.nameContainer}>
-          <Text style={styles.name} numberOfLines={1}>
-            {item.NombreCompleto || `${item.Nombres} ${item.Apellidos}`}
-          </Text>
-          <View style={[styles.statusBadge, { backgroundColor: getEstadoColor(item.EstadoNombre) }]}>
-            <Text style={styles.statusText}>{item.EstadoNombre}</Text>
-          </View>
-        </View>
-        <View style={styles.actions}>
-          {item.CountSeguimientos > 0 && (
-            <View style={styles.badge}>
-              <Ionicons name="chatbubble-ellipses" size={16} color="#337ab7" />
-              <Text style={styles.badgeText}>
-                {item.CountSeguimientos > 9 ? '9+' : item.CountSeguimientos}
+    <TouchableOpacity
+      activeOpacity={0.7}
+      style={styles.container}
+      onPress={() => onPress && onPress(item)}
+    >
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <View style={styles.nameContainer}>
+            <Text style={styles.name} numberOfLines={1}>
+              {item.NombreCompleto || item.nombreCompleto || item.Nombre || item.nombre || (item.Nombres || item.nombres ? `${item.Nombres || item.nombres} ${item.Apellidos || item.apellidos || ''}` : 'Contacto sin nombre')}
+            </Text>
+            <View style={[styles.statusBadge, { backgroundColor: getEstadoColor(item.EstadoNombre || item.estadoNombre || item.Estado || item.estado) }]}>
+              <Text style={styles.statusText}>
+                {item.EstadoNombre || item.estadoNombre || item.Estado || item.estado || 'N/A'}
               </Text>
             </View>
-          )}
-          {item.CountActividades > 0 && (
-            <View style={styles.badge}>
-              <Ionicons name="calendar" size={16} color={item.EstadoGeneral === 'V' ? '#4CAF50' : item.EstadoGeneral === 'A' ? '#FF9800' : '#f44336'} />
-              <Text style={styles.badgeText}>
-                {item.CountActividades > 9 ? '9+' : item.CountActividades}
-              </Text>
+          </View>
+          <View style={styles.actions}>
+            {(item.CountSeguimientos > 0 || item.countSeguimientos > 0) && (
+              <View style={styles.badge}>
+                <Ionicons name="chatbubble-ellipses-outline" size={14} color="#007AFF" />
+                <Text style={styles.badgeText}>{item.CountSeguimientos || item.countSeguimientos}</Text>
+              </View>
+            )}
+            {(item.CountActividades > 0 || item.countActividades > 0) && (
+              <View style={styles.badge}>
+                <Ionicons
+                  name="calendar-outline"
+                  size={14}
+                  color={(item.EstadoGeneral || item.estadoGeneral) === 'V' ? '#34C759' : (item.EstadoGeneral || item.estadoGeneral) === 'A' ? '#FF9500' : '#FF3B30'}
+                />
+                <Text style={styles.badgeText}>{item.CountActividades || item.countActividades}</Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        <View style={styles.details}>
+          <View style={styles.detailRow}>
+            <View style={styles.iconCircle}>
+              <Ionicons name="call-outline" size={12} color="#8E8E93" />
             </View>
-          )}
+            <Text style={styles.detailText}>{item.Celular || item.celular || item.Telefono || item.telefono || 'Sin celular'}</Text>
+          </View>
+
+          {(item.AsesorNombreCompleto || item.asesorNombreCompleto) ? (
+            <View style={styles.detailRow}>
+              <View style={styles.iconCircle}>
+                <Ionicons name="person-outline" size={12} color="#8E8E93" />
+              </View>
+              <Text style={styles.detailText} numberOfLines={1}>{item.AsesorNombreCompleto || item.asesorNombreCompleto}</Text>
+            </View>
+          ) : null}
+        </View>
+
+        <View style={styles.divider} />
+
+        <View style={styles.footer}>
+          <View style={styles.footerLeft}>
+            <Ionicons name="time-outline" size={12} color="#AEAEB2" />
+            <Text style={styles.dateText}>{formatDate(item.Fecha || item.fecha || item.FechaRegistro || item.fechaRegistro)}</Text>
+          </View>
+          {(item.ValorNegocio || item.valorNegocio) ? (
+            <Text style={styles.valueText}>{formatCurrency(item.ValorNegocio || item.valorNegocio)}</Text>
+          ) : null}
         </View>
       </View>
 
-      <View style={styles.details}>
-        <View style={styles.detailRow}>
-          <Ionicons name="call" size={14} color="#666" />
-          <Text style={styles.detailText}>{item.Celular || 'Sin celular'}</Text>
-        </View>
-        {!!item.Email && (
-          <View style={styles.detailRow}>
-            <Ionicons name="mail" size={14} color="#666" />
-            <Text style={styles.detailText} numberOfLines={1}>{item.Email}</Text>
-          </View>
-        )}
-        {!!item.AsesorNombreCompleto && (
-          <View style={styles.detailRow}>
-            <Ionicons name="person" size={14} color="#666" />
-            <Text style={styles.detailText} numberOfLines={1}>{item.AsesorNombreCompleto}</Text>
-          </View>
-        )}
-      </View>
-
-      <View style={styles.footer}>
-        <View style={styles.footerLeft}>
-          <Ionicons name="time" size={14} color="#666" />
-          <Text style={styles.dateText}>{formatDate(item.Fecha)}</Text>
-        </View>
-        {!!item.ValorNegocio && (
-          <View style={styles.footerRight}>
-            <Ionicons name="cash" size={14} color="#4CAF50" />
-            <Text style={styles.valueText}>{formatCurrency(item.ValorNegocio)}</Text>
-          </View>
-        )}
-      </View>
-
-      {!!item.Color && (
-        <View style={[styles.colorIndicator, { backgroundColor: item.Color }]} />
-      )}
+      <View style={[
+        styles.colorIndicator,
+        { backgroundColor: item.Color || item.color || getEstadoColor(item.EstadoNombre || item.estadoNombre || item.Estado || item.estado) }
+      ]} />
     </TouchableOpacity>
   );
 };
@@ -111,43 +117,57 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#fff',
     marginHorizontal: 16,
-    marginVertical: 4,
-    borderRadius: 8,
-    padding: 12,
-    elevation: 2,
+    marginVertical: 8,
+    borderRadius: 16,
+    elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
-    borderLeftWidth: 4,
-    borderLeftColor: '#337ab7',
+    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    minHeight: 110,
+  },
+  content: {
+    padding: 16,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   nameContainer: {
     flex: 1,
     marginRight: 8,
   },
   name: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#1C1C1E',
+    marginBottom: 6,
+    letterSpacing: -0.3,
   },
   statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     alignSelf: 'flex-start',
     paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
   },
   statusText: {
-    fontSize: 12,
+    fontSize: 10,
+    fontWeight: '800',
     color: '#fff',
-    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   actions: {
     flexDirection: 'row',
@@ -156,30 +176,43 @@ const styles = StyleSheet.create({
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 10,
+    backgroundColor: '#F2F2F7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
   badgeText: {
     fontSize: 12,
-    color: '#333',
-    marginLeft: 2,
-    fontWeight: '500',
+    color: '#3A3A3C',
+    marginLeft: 4,
+    fontWeight: '600',
   },
   details: {
-    marginBottom: 8,
+    marginBottom: 12,
+    gap: 6,
   },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 2,
+  },
+  iconCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#F8F8FA',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
   },
   detailText: {
     fontSize: 14,
-    color: '#666',
-    marginLeft: 6,
-    flex: 1,
+    color: '#3A3A3C',
+    fontWeight: '400',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#F2F2F7',
+    marginBottom: 12,
   },
   footer: {
     flexDirection: 'row',
@@ -190,29 +223,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  footerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   dateText: {
     fontSize: 12,
-    color: '#666',
-    marginLeft: 4,
+    color: '#AEAEB2',
+    marginLeft: 6,
+    fontWeight: '500',
   },
   valueText: {
-    fontSize: 14,
-    color: '#4CAF50',
-    fontWeight: '600',
-    marginLeft: 4,
+    fontSize: 15,
+    color: '#34C759',
+    fontWeight: '700',
   },
   colorIndicator: {
     position: 'absolute',
+    left: 0,
     top: 0,
-    right: 0,
+    bottom: 0,
     width: 4,
-    height: '100%',
-    borderTopRightRadius: 8,
-    borderBottomRightRadius: 8,
   },
 });
 
