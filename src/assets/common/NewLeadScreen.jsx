@@ -1750,6 +1750,7 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontSize: 13,
+    fontWeight: "500",
     color: COLORS.textSecondary,
   },
   tagTextSelected: {
@@ -1786,6 +1787,7 @@ const styles = StyleSheet.create({
   },
   switchLabel: {
     fontSize: 15,
+    fontWeight: "500",
     color: COLORS.text,
   },
   selectBox: {
@@ -1802,6 +1804,7 @@ const styles = StyleSheet.create({
   selectBoxText: {
     flex: 1,
     fontSize: 14,
+    fontWeight: "500",
     color: COLORS.text,
   },
   selectBoxPlaceholder: {
@@ -1855,6 +1858,7 @@ const styles = StyleSheet.create({
   serviceText: {
     flex: 1,
     fontSize: 14,
+    fontWeight: "500",
     color: COLORS.text,
   },
 });

@@ -39,9 +39,9 @@ const ContactDetail = ({ navigation, route }) => {
           <Ionicons name="arrow-back" size={24} color="#337ab7" />
         </TouchableOpacity>
       ),
-      headerTitle: () => (
-        <Text style={{ color: '#337ab7', fontSize: 18, fontWeight: 'bold' }}>Detalle</Text>
-      ),
+      headerTitle: 'Detalle',
+      headerTitleStyle: { fontSize: 18, fontWeight: 'bold' },
+      headerTintColor: '#337ab7',
       headerRight: () => (
         <View style={{ flexDirection: 'row' }}>
           <TouchableOpacity
@@ -168,7 +168,7 @@ const ContactDetail = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Contact Summary Card */}
         <View style={styles.heroSection}>

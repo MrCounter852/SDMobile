@@ -75,45 +75,67 @@ class GestionComercialService {
 
   // Consultar pre-contactos por origen
   async consultarPreContactos(filtros) {
-    const endpoint = '/PreContactos/PreContactosPorOrigenConsultar';
+    let endpoint = '/PreContactos/PreContactosPorOrigenConsultar';
+    if (filtros.OrigenPreContactoID == 2 || filtros.OrigenPreContactoID == 4 || filtros.OrigenPreContactoID == 5) {
+      endpoint = '/Inmuebles/InformeProcesosConsultar';
+    } else if (filtros.OrigenPreContactoID == 7) {
+      endpoint = '/PreContactos/PreContactosAvaluosConsultar/';
+    }
+    const estadoProcesoID = filtros?.EstadoProcesoID || "1,4";
+    const estadoProcesoNombre = estadoProcesoID === "1,4" ? "Nuevo y En gestión" : estadoProcesoID;
+    const body = {
+      Page: filtros?.Page || 1,
+      Rows: filtros?.Rows || 30,
+      OrigenPreContactoID: filtros?.OrigenPreContactoID || null,
+      EstadoGeneral: filtros?.EstadoGeneral || null,
+      TipoAvaluoID: filtros?.TipoAvaluoID || null,
+      AsesorID: filtros?.AsesorID || this.global.asesorID || null,
+      Asesor: filtros?.Asesor || this.global.user?.NombreCompleto || null,
+      EstadoProcesoID: estadoProcesoID,
+      EstadoProcesoNombre: estadoProcesoNombre,
+      SucursalID: filtros?.SucursalID || this.global.user?.SucursalID || null,
+      SucursalNombre: filtros?.SucursalNombre || this.global.user?.NombreSucursal || null,
+      Color: filtros?.Color || "null",
+      FechaInicial: filtros?.FechaInicial || null,
+      FechaFinal: filtros?.FechaFinal || null,
+      FullSearch: filtros?.FullSearch || null,
+      SortColumn: filtros?.SortColumn || null,
+      SortDirection: filtros?.SortDirection || null,
+      Token: this.global.user?.Token,
+    };
+    console.log('Payload for consultarPreContactos:', body);
     return this.makeRequest(endpoint, {
       method: 'POST',
-      body: JSON.stringify({
-        Page: filtros?.Page || 1,
-        Rows: filtros?.Rows || 30,
-        OrigenPreContactoID: filtros?.OrigenPreContactoID || null,
-        EstadoProcesoID: filtros?.EstadoProcesoID || "1,4",
-        AsesorID: filtros?.AsesorID || null,
-        SucursalID: filtros?.SucursalID || null,
-        FechaInicial: filtros?.FechaInicial || null,
-        FechaFinal: filtros?.FechaFinal || null,
-        FullSearch: filtros?.FullSearch || null,
-        EstadoGeneral: filtros?.EstadoGeneral || null,
-        SortColumn: filtros?.SortColumn || null,
-        SortDirection: filtros?.SortDirection || null,
-        Token: this.global.user?.Token,
-      }),
+      body: JSON.stringify(body),
+    }).then(response => {
+      console.log('Response for consultarPreContactos:', response);
+      return response;
     });
   }
 
   // Consultar líneas de tiempo
   async consultarLineasTiempo(filtros) {
     const endpoint = '/PreContactos/LineasTiemposConsultar';
+    const body = {
+      Page: filtros?.Page || 1,
+      Rows: filtros?.Rows || 15,
+      OrigenPreContactoID: filtros?.OrigenPreContactoID || null,
+      EstadoProcesoID: filtros?.EstadoProcesoID || "1,4",
+      AsesorID: filtros?.AsesorID || this.global.asesorID || null,
+      SucursalID: filtros?.SucursalID || null,
+      FechaInicial: filtros?.FechaInicial || null,
+      FechaFinal: filtros?.FechaFinal || null,
+      FullSearch: filtros?.FullSearch || null,
+      ProcesoLineaTiempoID: filtros?.ProcesoLineaTiempoID || null,
+      Token: this.global.user?.Token,
+    };
+    console.log('Payload for consultarLineasTiempo:', body);
     return this.makeRequest(endpoint, {
       method: 'POST',
-      body: JSON.stringify({
-        Page: filtros?.Page || 1,
-        Rows: filtros?.Rows || 15,
-        OrigenPreContactoID: filtros?.OrigenPreContactoID || null,
-        EstadoProcesoID: filtros?.EstadoProcesoID || null,
-        AsesorID: filtros?.AsesorID || null,
-        SucursalID: filtros?.SucursalID || null,
-        FechaInicial: filtros?.FechaInicial || null,
-        FechaFinal: filtros?.FechaFinal || null,
-        FullSearch: filtros?.FullSearch || null,
-        ProcesoLineaTiempoID: filtros?.ProcesoLineaTiempoID || null,
-        Token: this.global.user?.Token,
-      }),
+      body: JSON.stringify(body),
+    }).then(response => {
+      console.log('Response for consultarLineasTiempo:', response);
+      return response;
     });
   }
 

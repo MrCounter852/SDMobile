@@ -21,13 +21,19 @@ const CalendarEvent = ({ event, onPress }) => {
     return completada ? '#4CAF50' : '#FF9800';
   };
 
-  const formatTime = (dateString) => {
+  const formatDateTime = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleTimeString('es-CO', {
+    const dateStr = date.toLocaleDateString('es-CO', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+    const timeStr = date.toLocaleTimeString('es-CO', {
       hour: '2-digit',
       minute: '2-digit'
     });
+    return `${dateStr} ${timeStr}`;
   };
 
   return (
@@ -49,7 +55,7 @@ const CalendarEvent = ({ event, onPress }) => {
           </View>
         </View>
         <Text style={styles.time}>
-          {formatTime(event.FechaInicio)}
+          {formatDateTime(event.FechaInicio)}
         </Text>
       </View>
 

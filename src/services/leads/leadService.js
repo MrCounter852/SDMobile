@@ -370,6 +370,7 @@ class LeadService {
       }),
       api: 'CRM',
     });
+    console.log('consultarCombosOrigenes response', response);
     return this.normalizeList(response);
   }
 }

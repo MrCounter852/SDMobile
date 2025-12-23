@@ -76,7 +76,7 @@ export const getSessionData = async (token) => {
   const response = await fetch(`${getEnvironmentConfig().BASE_URL_NS}/API_SIS/api/Login/LoginAcceso?TokenKey=${token}`, {
     method: 'GET',
   });
-
   const data = await response.json();
+  console.log('Session Data:', data);
   return data;
 };

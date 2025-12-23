@@ -155,7 +155,6 @@ const TimelineView = ({ navigation, searchFilters, onRefresh }) => {
   const [refreshing, setRefreshing] = useState(false);
 
   const loadTimeline = async (isRefresh = false) => {
-    // Timeline requires a specific origin to be selected
     if (!searchFilters.OrigenPreContactoID) {
       setTimelineData([]);
       return;
@@ -176,7 +175,8 @@ const TimelineView = ({ navigation, searchFilters, onRefresh }) => {
       setTimelineData(response.data || []);
     } catch (error) {
       console.error('Error loading timeline:', error);
-      Alert.alert('Error', 'No se pudo cargar la línea de tiempo');
+      setTimelineData([]);
+      // Alert.alert('Error', 'No se pudo cargar la línea de tiempo');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -294,12 +294,11 @@ const CalendarView = ({ navigation, searchFilters, onRefresh }) => {
       }
 
       const filters = {
-        EstadoActividadID: "3,4",
-        SucursalID: user?.SucursalID,
-        UsuarioID: user?.UsuarioID,
+        CalendarioActividadOrigenID: 2,
+        Completada: false,
       };
 
-      const response = await GestionComercialService.consultarMiCalendarioTabla(filters);
+      const response = await GestionComercialService.consultarActividadesCalendario(filters);
       setEvents(response.rows || []);
     } catch (error) {
       console.error('Error loading calendar events:', error);
@@ -312,7 +311,7 @@ const CalendarView = ({ navigation, searchFilters, onRefresh }) => {
 
   useEffect(() => {
     loadEvents();
-  }, [searchFilters]);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -372,45 +371,74 @@ const CalendarView = ({ navigation, searchFilters, onRefresh }) => {
 const GestionComercial = ({ navigation }) => {
   const { user } = useGlobal();
   const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [currentTab, setCurrentTab] = useState('Tabla');
   const [searchFilters, setSearchFilters] = useState({
     OrigenPreContactoID: null,
     EstadoProcesoID: "1,4",
-    AsesorID: null,
     FechaInicial: null,
     FechaFinal: null,
     FullSearch: '',
     EstadoGeneral: null,
+    EstadoActividadID: "3,4",
+    TipoCalendarioActividadID: null,
   });
   const [hasFilters, setHasFilters] = useState(false);
+  const [origenes, setOrigenes] = useState([]);
+  const [tiposCalendarioActividades, setTiposCalendarioActividades] = useState([]);
+  const [filterDataLoading, setFilterDataLoading] = useState(false);
+
+  const getCurrentMode = () => {
+    switch (currentTab) {
+      case 'Tabla': return 'table';
+      case 'LineaTiempo': return 'timeline';
+      case 'Calendario': return 'calendar';
+      default: return 'table';
+    }
+  };
 
   useEffect(() => {
-    const loadDefaultOrigin = async () => {
+    const loadFilterData = async () => {
+      setFilterDataLoading(true);
       try {
-        const response = await GestionComercialService.consultarOrigenesPreContactosSucursales({
+        // Load origenes
+        const origenesResponse = await GestionComercialService.consultarOrigenesPreContactosSucursales({
           SucursalID: user?.SucursalID,
         });
-        if (response.rows && response.rows.length > 0) {
+        setOrigenes(origenesResponse.rows || []);
+        if (origenesResponse.rows && origenesResponse.rows.length > 0) {
           setSearchFilters(prev => ({
             ...prev,
-            OrigenPreContactoID: response.rows[0].OrigenPreContactoID
+            OrigenPreContactoID: origenesResponse.rows[0].OrigenPreContactoID
           }));
         }
-        // Keep OrigenPreContactoID as null to allow loading all contacts if no origins found
+
+
+        // Load tipos calendario actividades
+        const tiposResponse = await GestionComercialService.consultarTiposCalendarioActividades();
+        setTiposCalendarioActividades(tiposResponse.rows || []);
       } catch (error) {
-        console.error('Error loading default origin:', error);
-        // Keep OrigenPreContactoID as null to allow loading all contacts
+        console.error('Error loading filter data:', error);
+      } finally {
+        setFilterDataLoading(false);
       }
     };
 
     if (user?.SucursalID) {
-      loadDefaultOrigin();
+      loadFilterData();
     }
   }, [user?.SucursalID]);
 
   const handleApplyFilters = (filters) => {
     setSearchFilters(filters);
-    setHasFilters(Object.values(filters).some(value =>
-      value !== null && value !== '' && value !== "1,4"
+    const mode = getCurrentMode();
+    let defaultValues = {};
+    if (mode === 'table' || mode === 'timeline') {
+      defaultValues = { EstadoProcesoID: "1,4" };
+    } else if (mode === 'calendar') {
+      defaultValues = { EstadoActividadID: "3,4" };
+    }
+    setHasFilters(Object.keys(filters).some(key =>
+      filters[key] !== null && filters[key] !== '' && filters[key] !== defaultValues[key]
     ));
   };
 
@@ -452,7 +480,7 @@ const GestionComercial = ({ navigation }) => {
       </View>
 
       <Tab.Navigator
-        screenOptions={{
+        screenOptions={({ route }) => ({
           tabBarActiveTintColor: '#337ab7',
           tabBarInactiveTintColor: '#8E8E93',
           tabBarIndicatorStyle: {
@@ -473,7 +501,10 @@ const GestionComercial = ({ navigation }) => {
             borderBottomColor: '#F2F2F7',
           },
           swipeEnabled: false, // Fix navigation conflict with horizontal timeline
-        }}
+          tabBarOnPress: () => {
+            setCurrentTab(route.name);
+          },
+        })}
       >
         <Tab.Screen
           name="Tabla"
@@ -521,6 +552,10 @@ const GestionComercial = ({ navigation }) => {
         onClose={() => setFilterModalVisible(false)}
         onApplyFilters={handleApplyFilters}
         initialFilters={searchFilters}
+        mode={getCurrentMode()}
+        origenes={origenes}
+        tiposCalendarioActividades={tiposCalendarioActividades}
+        loading={filterDataLoading}
       />
     </SafeAreaView>
   );
