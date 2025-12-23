@@ -487,7 +487,7 @@ const ActivityFollowupScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={[ 'bottom']}>
       <Tab.Navigator
         screenOptions={{
           tabBarActiveTintColor: '#337ab7',
@@ -534,7 +534,9 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   headerButton: {
-    padding: 10,
+    marginRight: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   formContainer: {
     flex: 1,
@@ -648,6 +650,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     paddingVertical: 20,
     paddingHorizontal: 20,
+    marginBottom: 20,
   },
   saveButton: {
     backgroundColor: COLORS.primary,

@@ -56,7 +56,51 @@ const NewChat = ({ navigation }) => {
       loadContacts();
     }
     loadCuentasMensajeria();
-  }, [currentView, searchText]);
+
+    navigation.setOptions({
+      headerTitle: () => (
+        <Text style={{ color: '#337ab7', fontSize: 18, fontWeight: 'bold' }}>
+          {currentView === 'contacts' ? 'Nuevo chat' : (selectedContact?.Nombre || 'Nuevo contacto')}
+        </Text>
+      ),
+      headerLeft: () => (
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() => {
+            if (currentView === 'template') {
+              setCurrentView('contacts');
+              setSelectedContact(null);
+              setFormData({
+                CuentaMensajeriaID: null,
+                PlantillaComunicacionID: null,
+                MensajeEnvio: '',
+                Variables: [],
+              });
+              setPlantillas([]);
+              setPlantillaSeleccionada(null);
+            } else {
+              navigation.goBack();
+            }
+          }}
+        >
+          <Ionicons name="arrow-back" size={24} color="#337ab7" />
+        </TouchableOpacity>
+      ),
+      headerRight: () => {
+        if (currentView === 'contacts') {
+          return (
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={() => setShowManualInput(true)}
+            >
+              <Ionicons name="person-add" size={24} color="#337ab7" />
+            </TouchableOpacity>
+          );
+        }
+        return null;
+      },
+    });
+  }, [currentView, searchText, navigation, selectedContact]);
 
   const loadContacts = async () => {
     setLoadingContacts(true);
@@ -351,22 +395,6 @@ const NewChat = ({ navigation }) => {
   if (currentView === 'contacts') {
     return (
       <SafeAreaView style={[styles.container, { marginBottom: insets.bottom }]}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="arrow-back" size={24} color="#337ab7" />
-          </TouchableOpacity>
-          <Text style={styles.title}>Nuevo chat</Text>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => setShowManualInput(true)}
-          >
-            <Ionicons name="person-add" size={24} color="#337ab7" />
-          </TouchableOpacity>
-        </View>
-
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
           <TextInput
@@ -435,36 +463,6 @@ const NewChat = ({ navigation }) => {
   // --- TEMPLATE VIEW (Modernized) ---
   return (
     <SafeAreaView style={[styles.chatContainer]}>
-      <View style={styles.chatHeader}>
-        <View style={styles.chatHeaderLeft}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => {
-              setCurrentView('contacts');
-              setSelectedContact(null);
-              setFormData({
-                CuentaMensajeriaID: null,
-                PlantillaComunicacionID: null,
-                MensajeEnvio: '',
-                Variables: [],
-              });
-              setPlantillas([]);
-              setPlantillaSeleccionada(null);
-            }}
-          >
-            <Ionicons name="arrow-back" size={24} color="#337ab7" style={[{ marginLeft: 16 }]} />
-          </TouchableOpacity>
-          <View>
-            <Text style={styles.chatHeaderTitle} numberOfLines={1}>
-              {selectedContact?.Nombre || 'Nuevo contacto'}
-            </Text>
-            <Text style={styles.chatHeaderSubtitle} numberOfLines={1}>
-              {selectedContact?.Telefono}
-            </Text>
-          </View>
-        </View>
-      </View>
-
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
@@ -629,7 +627,9 @@ const styles = StyleSheet.create({
     color: '#337ab7',
   },
   headerButton: {
-    padding: 8,
+    marginRight: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
 
   // --- Search ---

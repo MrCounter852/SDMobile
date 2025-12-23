@@ -29,6 +29,38 @@ const ContactDetail = ({ navigation, route }) => {
     loadFollowups();
   }, []);
 
+  useEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={24} color="#337ab7" />
+        </TouchableOpacity>
+      ),
+      headerTitle: () => (
+        <Text style={{ color: '#337ab7', fontSize: 18, fontWeight: 'bold' }}>Detalle</Text>
+      ),
+      headerRight: () => (
+        <View style={{ flexDirection: 'row' }}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={handleEdit}
+          >
+            <Ionicons name="pencil-outline" size={24} color="#337ab7" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={handleDelete}
+          >
+            <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, [navigation]);
+
   const loadContactDetail = async () => {
     if (!contact.ProcesoID) return;
 
@@ -137,32 +169,6 @@ const ContactDetail = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1C1C1E" />
-        </TouchableOpacity>
-        <Text style={styles.title} numberOfLines={1}>
-          Detalle
-        </Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={handleEdit}
-          >
-            <Ionicons name="pencil-outline" size={20} color="#337ab7" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={handleDelete}
-          >
-            <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Contact Summary Card */}
         <View style={styles.heroSection}>
@@ -321,40 +327,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#fff',
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F2F2F7',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  title: {
-    flex: 1,
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#1C1C1E',
-    letterSpacing: -0.5,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
   headerButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F2F2F7',
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginRight: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   content: {
     flex: 1,

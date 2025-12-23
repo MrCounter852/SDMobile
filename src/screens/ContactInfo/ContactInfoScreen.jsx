@@ -328,7 +328,9 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   headerButton: {
-    padding: 10,
+    marginRight: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   contactHeader: {
     flexDirection: "row",

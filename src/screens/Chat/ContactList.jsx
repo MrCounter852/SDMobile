@@ -11,6 +11,7 @@ import {
   ScrollView,
   Vibration
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -450,13 +451,24 @@ const ContactList = ({ navigation }) => {
           )
         ) : (
           <View style={styles.header}>
-            <Text style={styles.title}>Centro de contacto</Text>
-            <TouchableOpacity
-              style={styles.newChatButton}
-              onPress={() => navigation.navigate('NewChat')}
-            >
-              <Text style={styles.newChatButtonText}>Nuevo Chat</Text>
-            </TouchableOpacity>
+            <View>
+              <Text style={styles.headerSubtitle}>Centro de</Text>
+              <Text style={styles.title}>Contacto</Text>
+            </View>
+            <View style={styles.headerButtons}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('NewChat')}
+              >
+                <LinearGradient
+                  colors={['#337ab7', '#00ACC4']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.newChatButton}
+                >
+                  <Text style={styles.newChatButtonText}>Nuevo Chat</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
@@ -504,19 +516,33 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
-    height: 75,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+  },
+  headerSubtitle: {
+    fontSize: 13,
+    color: '#8E8E93',
+    fontWeight: '500',
+    marginBottom: 2,
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontWeight: '800',
     color: '#337ab7',
+    letterSpacing: -0.5,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   newChatButton: {
-    backgroundColor: '#337ab7',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,

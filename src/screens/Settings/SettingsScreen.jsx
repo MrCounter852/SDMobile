@@ -1,11 +1,30 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Switch, Linking, AppState, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { checkPermissionsAsync } from '../../core/notificationConfig';
 
 const SettingsScreen = () => {
+    const navigation = useNavigation();
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const appState = useRef(AppState.currentState);
+
+    useEffect(() => {
+        navigation.setOptions({
+            headerTitle: () => (
+                <Text style={{ color: '#337ab7', fontSize: 18, fontWeight: 'bold' }}>Configuración</Text>
+            ),
+            headerLeft: () => (
+                <TouchableOpacity
+                    style={styles.headerButton}
+                    onPress={() => navigation.goBack()}
+                >
+                    <Ionicons name="arrow-back" size={24} color="#337ab7" />
+                </TouchableOpacity>
+            ),
+            headerRight: () => null,
+        });
+    }, [navigation]);
 
     const checkStatus = async () => {
         const status = await checkPermissionsAsync();
@@ -91,6 +110,11 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#f5f7fa',
         padding: 20,
+    },
+    headerButton: {
+        marginRight: 16,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
     },
     section: {
         backgroundColor: 'white',

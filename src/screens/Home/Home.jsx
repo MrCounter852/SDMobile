@@ -23,6 +23,7 @@ import useGlobal from "../../core/global";
 import MenuPanel from "../../components/MenuPanel";
 import { ContactList } from "../Chat";
 import { useChatStore } from "../../core/chatStore";
+import getEnvironmentConfig from "../../config/environments";
 const Tab = createBottomTabNavigator();
 
 const Home = () => {
@@ -50,7 +51,7 @@ const Home = () => {
         const token = await SecureStore.getItemAsync("accessToken");
         if (!token) return;
         const response = await fetch(
-          "https://ns2.sedierp.com//API_SIS/api/OpcionesMenu/OpcionesMenuConsultar",
+          `${getEnvironmentConfig().BASE_URL_NS}/API_SIS/api/OpcionesMenu/OpcionesMenuConsultar`,
           {
             method: "POST",
             headers: {
