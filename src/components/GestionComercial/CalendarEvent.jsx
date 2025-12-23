@@ -21,20 +21,6 @@ const CalendarEvent = ({ event, onPress }) => {
     return completada ? '#4CAF50' : '#FF9800';
   };
 
-  const formatDateTime = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    const dateStr = date.toLocaleDateString('es-CO', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-    const timeStr = date.toLocaleTimeString('es-CO', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-    return `${dateStr} ${timeStr}`;
-  };
 
   return (
     <TouchableOpacity
@@ -54,18 +40,45 @@ const CalendarEvent = ({ event, onPress }) => {
             />
           </View>
         </View>
-        <Text style={styles.time}>
-          {formatDateTime(event.FechaInicio)}
-        </Text>
+        <View style={styles.timeContainer}>
+          <Text style={styles.date}>
+            {new Date(event.FechaInicio).toLocaleDateString('es-CO', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric'
+            })}
+          </Text>
+          <Text style={styles.time}>
+            {new Date(event.FechaInicio).toLocaleTimeString('es-CO', {
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </Text>
+        </View>
       </View>
 
       <View style={styles.details}>
         <Text style={styles.contact} numberOfLines={1}>
-          {event.Contacto || 'Sin contacto'}
+          {event.Contacto || event.VisitanteNombreCompleto || event.Usuario || 'Sin contacto'}
         </Text>
         <Text style={styles.type}>
           {event.TipoCalendarioActividadNombre}
         </Text>
+        {!!event.Celular && (
+          <Text style={styles.detail}>
+            <Ionicons name="call-outline" size={12} color="#666" /> {event.Celular}
+          </Text>
+        )}
+        {!!event.Email && (
+          <Text style={styles.detail} numberOfLines={1}>
+            <Ionicons name="mail-outline" size={12} color="#666" /> {event.Email}
+          </Text>
+        )}
+        {!!event.Direccion && (
+          <Text style={styles.detail} numberOfLines={1}>
+            <Ionicons name="location-outline" size={12} color="#666" /> {event.Direccion}
+          </Text>
+        )}
       </View>
 
       {!!event.Descripcion && (
@@ -117,6 +130,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: 8,
   },
+  timeContainer: {
+    alignItems: 'flex-end',
+  },
+  date: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
+  },
   time: {
     fontSize: 12,
     color: '#666',
@@ -134,6 +155,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#337ab7',
     fontWeight: '500',
+  },
+  detail: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
   },
   description: {
     fontSize: 14,

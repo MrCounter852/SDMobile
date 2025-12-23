@@ -451,7 +451,7 @@ const GestionComercial = ({ navigation }) => {
       <View style={styles.header}>
         <View>
           <Text style={styles.headerSubtitle}>Centro de</Text>
-          <Text style={styles.title}>Gestión Comercial</Text>
+          <Text style={styles.title}>Gestión comercial</Text>
         </View>
         <View style={styles.headerButtons}>
           <TouchableOpacity

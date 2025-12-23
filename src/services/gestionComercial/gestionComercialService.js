@@ -142,17 +142,22 @@ class GestionComercialService {
   // Consultar actividades del calendario
   async consultarActividadesCalendario(filtros) {
     const endpoint = '/CalendariosActividades/CalendariosActividadesConsultar';
+    const body = {
+      Page: filtros?.Page || 0,
+      Rows: filtros?.Rows || 0,
+      CalendarioActividadOrigenID: filtros?.CalendarioActividadOrigenID || 2,
+      CodigoOrigen: filtros?.CodigoOrigen || null,
+      Completada: filtros?.Completada || null,
+      Token: this.global.user?.Token,
+    };
+    console.log('Payload for consultarActividadesCalendario:', body);
     return this.makeRequest(endpoint, {
       method: 'POST',
-      body: JSON.stringify({
-        Page: filtros?.Page || 0,
-        Rows: filtros?.Rows || 0,
-        CalendarioActividadOrigenID: filtros?.CalendarioActividadOrigenID || 2,
-        CodigoOrigen: filtros?.CodigoOrigen || null,
-        Completada: filtros?.Completada || null,
-        Token: this.global.user?.Token,
-      }),
-    }, false, true); // useSIS
+      body: JSON.stringify(body),
+    }, false, true).then(response => {
+      console.log('Response for consultarActividadesCalendario:', response);
+      return response;
+    }); // useSIS
   }
 
   // Consultar mi calendario
