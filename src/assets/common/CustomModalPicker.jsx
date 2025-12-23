@@ -47,6 +47,7 @@ const CustomModalPicker = ({
   renderItem,
   loading = false,
   onSearch,
+  error,
 }) => {
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -174,14 +175,15 @@ const CustomModalPicker = ({
         {required && <Text style={styles.required}>*</Text>}
       </View>
       <TouchableOpacity
-        style={styles.selectBox}
+        style={[styles.selectBox, error && styles.selectBoxError]}
         onPress={() => setShowModal(true)}
       >
         <Text style={[styles.selectBoxText, !selectedValue && styles.selectBoxPlaceholder]}>
           {selectedItem ? (selectedItem.label || selectedItem.Nombre || selectedItem.NombreCompleto || selectedItem.Descripcion || selectedItem) : placeholder || "Seleccione"}
         </Text>
-        <Ionicons name="chevron-down" size={18} color={COLORS.text} />
+        <Ionicons name="chevron-down" size={18} color={error ? COLORS.danger : COLORS.text} />
       </TouchableOpacity>
+      {error && <Text style={styles.errorText}>{error}</Text>}
       <SearchableModal
         visible={showModal}
         onClose={() => setShowModal(false)}
@@ -230,6 +232,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 14,
   },
+  selectBoxError: {
+    borderColor: '#DC2626',
+    backgroundColor: '#FEF2F2',
+  },
   selectBoxText: {
     flex: 1,
     fontSize: 14,
@@ -237,6 +243,12 @@ const styles = StyleSheet.create({
   },
   selectBoxPlaceholder: {
     color: COLORS.textSecondary,
+  },
+  errorText: {
+    color: '#DC2626',
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
   },
   item: {
     flexDirection: 'row',

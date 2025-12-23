@@ -362,6 +362,16 @@ class LeadService {
     });
     return response?.data || response;
   }
+
+  async consultarCombosOrigenes(origenID) {
+    const response = await this.makeRequest('/CamposPreContactos/ConfiguracionCamposPrecontactosConsultar', {
+      body: this.withToken({
+        OrigenPreContactoID: origenID,
+      }),
+      api: 'CRM',
+    });
+    return this.normalizeList(response);
+  }
 }
 
 export default new LeadService();
