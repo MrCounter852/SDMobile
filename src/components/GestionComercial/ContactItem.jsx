@@ -7,7 +7,7 @@ const ContactItem = ({ item, onPress }) => {
   const d = {
     nombre: item.NombreCompleto || item.nombreCompleto || item.Nombre || item.nombre ||
       (item.Nombres || item.nombres ? `${item.Nombres || item.nombres} ${item.Apellidos || item.apellidos || ''}`.trim() : 'Contacto sin nombre'),
-    estado: item.EstadoProcesoNombre || 'N/A',
+    estado: item.EstadoProcesoNombre || item.Estado || 'N/A',
     celular: item.Celular || item.celular || item.Telefono || item.telefono || 'Sin celular',
     asesor: item.AsesorNombreCompleto || item.asesorNombreCompleto || '',
     fecha: item.Fecha || item.fecha || item.FechaRegistro || item.fechaRegistro || '',

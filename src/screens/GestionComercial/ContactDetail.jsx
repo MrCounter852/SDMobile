@@ -187,7 +187,7 @@ const ContactDetail = ({ navigation, route }) => {
             <View style={styles.gridRow}>
               <View style={styles.gridItem}>
                 <Text style={styles.detailLabel}>Tipo</Text>
-                <Text style={styles.detailValue}>{contactDetail.OrigenNombre || 'N/A'}</Text>
+                <Text style={styles.detailValue}>{contactDetail.TipoInmuebleNombre || 'N/A'}</Text>
               </View>
               <View style={styles.gridItem}>
                 <Text style={styles.detailLabel}>Asesor</Text>
