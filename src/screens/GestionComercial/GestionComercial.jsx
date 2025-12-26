@@ -289,6 +289,7 @@ const TimelineView = ({ navigation, searchFilters, refreshTrigger, onSelectConta
 
 // Calendar View Component
 const CalendarView = ({ navigation, searchFilters, refreshTrigger }) => {
+  const { user } = useGlobal();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -302,11 +303,16 @@ const CalendarView = ({ navigation, searchFilters, refreshTrigger }) => {
       }
 
       const filters = {
-        CalendarioActividadOrigenID: 2,
-        Completada: false,
+        EstadoActividadID: "2",
+        SucursalID: user?.SucursalID,
+        TipoCalendarioActividadID: searchFilters?.TipoCalendarioActividadID || null,
+        UsuarioID: user?.UsuarioID || null,
+        FechaInicial: searchFilters?.FechaInicial || null,
+        FechaFinal: searchFilters?.FechaFinal || null,
+        FullSearch: searchFilters?.FullSearch || null,
       };
 
-      const response = await GestionComercialService.consultarActividadesCalendario(filters);
+      const response = await GestionComercialService.consultarMiCalendarioTabla(filters);
       setEvents(response.rows || []);
     } catch (error) {
       console.error('Error loading calendar events:', error);
