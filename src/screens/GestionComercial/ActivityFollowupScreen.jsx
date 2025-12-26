@@ -797,7 +797,6 @@ const ActivityFollowupScreen = () => {
           <Tab.Screen
             name="NuevoSeguimiento"
             children={() => <FollowupForm contact={contact} onRefresh={() => {
-              // This will be handled by the tab navigator refreshing the component
             }} />}
             options={{
               tabBarLabel: "Nuevo seg.",

@@ -705,6 +705,7 @@ const styles = StyleSheet.create({
   },
   headerButtonActive: {
     backgroundColor: '#E5F1FF',
+    borderRadius: 20,
   },
   addButton: {
     width: 44,

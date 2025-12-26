@@ -126,6 +126,7 @@ class SignalRService {
                                 sound: true,
                                 channelId: 'default',
                                 priority: Notifications.AndroidNotificationPriority.HIGH,
+                                largeIcon: '../../assets/icon.png',
                                 data: { data: notifData, url: notifData.Url },
                             },
                             trigger: null,
