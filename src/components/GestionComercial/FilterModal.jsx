@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -70,28 +70,58 @@ const FilterModal = ({
     setFilters(defaultFilters);
   };
 
-  const estados = [
+  const estados = useMemo(() => [
     { ID: null, Nombre: "Todos" },
     { ID: "1,4", Nombre: "Vigentes" },
     { ID: "2", Nombre: "Finalizados" },
     { ID: "3", Nombre: "Inviables" },
-  ];
+  ], []);
 
-  const estadosGenerales = [
+  const estadosGenerales = useMemo(() => [
     { ID: null, Nombre: "Todos" },
     { ID: "V", Nombre: "Vigentes" },
     { ID: "A", Nombre: "Próximas a vencer" },
     { ID: "R", Nombre: "Vencidas" },
-  ];
+  ], []);
 
-  const estadosActividades = [
+  const estadosActividades = useMemo(() => [
     { ID: null, Nombre: "Todas" },
     { ID: "1", Nombre: "Finalizadas" },
     { ID: "2", Nombre: "Vigentes" },
     { ID: "3", Nombre: "Vencidas" },
     { ID: "4", Nombre: "Pendientes o próximas a vencer" },
     { ID: "3,4", Nombre: "Vencidas y Pendientes" },
-  ];
+  ], []);
+
+  const origenesItems = useMemo(() =>
+    origenes.map((origen) => (
+      <Picker.Item
+        key={origen.OrigenPreContactoID}
+        label={origen.Nombre}
+        value={origen.OrigenPreContactoID}
+      />
+    )), [origenes]);
+
+  const tiposCalendarioItems = useMemo(() =>
+    tiposCalendarioActividades.map((tipo) => (
+      <Picker.Item
+        key={tipo.TipoCalendarioActividadID}
+        label={tipo.Nombre}
+        value={tipo.TipoCalendarioActividadID}
+      />
+    )), [tiposCalendarioActividades]);
+
+  const estadosItems = useMemo(() => estados.map((estado) => (
+    <Picker.Item key={estado.ID} label={estado.Nombre} value={estado.ID} />
+  )), [estados]);
+
+  const estadosGeneralesItems = useMemo(() => estadosGenerales.map((estado) => (
+    <Picker.Item key={estado.ID} label={estado.Nombre} value={estado.ID} />
+  )), [estadosGenerales]);
+
+  const estadosActividadesItems = useMemo(() => estadosActividades.map((estado) => (
+    <Picker.Item key={estado.ID} label={estado.Nombre} value={estado.ID} />
+  )), [estadosActividades]);
 
   return (
     <Modal
@@ -148,13 +178,7 @@ const FilterModal = ({
                         style={styles.picker}
                       >
                         <Picker.Item label="Todos" value={null} />
-                        {origenes.map((origen) => (
-                          <Picker.Item
-                            key={origen.OrigenPreContactoID}
-                            label={origen.Nombre}
-                            value={origen.OrigenPreContactoID}
-                          />
-                        ))}
+                        {origenesItems}
                       </Picker>
                     </View>
                   </View>
@@ -173,13 +197,7 @@ const FilterModal = ({
                         }
                         style={styles.picker}
                       >
-                        {estados.map((estado) => (
-                          <Picker.Item
-                            key={estado.ID}
-                            label={estado.Nombre}
-                            value={estado.ID}
-                          />
-                        ))}
+                        {estadosItems}
                       </Picker>
                     </View>
                   </View>
@@ -195,13 +213,7 @@ const FilterModal = ({
                         }
                         style={styles.picker}
                       >
-                        {estadosGenerales.map((estado) => (
-                          <Picker.Item
-                            key={estado.ID}
-                            label={estado.Nombre}
-                            value={estado.ID}
-                          />
-                        ))}
+                        {estadosGeneralesItems}
                       </Picker>
                     </View>
                   </View>
@@ -221,13 +233,7 @@ const FilterModal = ({
                         }
                         style={styles.picker}
                       >
-                        {estadosActividades.map((estado) => (
-                          <Picker.Item
-                            key={estado.ID}
-                            label={estado.Nombre}
-                            value={estado.ID}
-                          />
-                        ))}
+                        {estadosActividadesItems}
                       </Picker>
                     </View>
                   </View>
@@ -270,13 +276,7 @@ const FilterModal = ({
                         style={styles.picker}
                       >
                         <Picker.Item label="Todos" value={null} />
-                        {tiposCalendarioActividades.map((tipo) => (
-                          <Picker.Item
-                            key={tipo.TipoCalendarioActividadID}
-                            label={tipo.Nombre}
-                            value={tipo.TipoCalendarioActividadID}
-                          />
-                        ))}
+                        {tiposCalendarioItems}
                       </Picker>
                     </View>
                   </View>
