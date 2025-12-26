@@ -167,6 +167,15 @@ const ContactDetail = ({ navigation, route }) => {
     }).format(value);
   };
 
+  const parseInmuebles = (inmuebleString) => {
+    if (!inmuebleString || inmuebleString === '[]') return [];
+    try {
+      return JSON.parse(inmuebleString);
+    } catch (e) {
+      return [];
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -225,6 +234,82 @@ const ContactDetail = ({ navigation, route }) => {
             </View>
           )}
         </View>
+
+        {/* Property Details Section */}
+        {(contactDetail.OrigenPreContactoID == 2 || contactDetail.OrigenPreContactoID == 4 || contactDetail.OrigenPreContactoID == 5) && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Detalles del Inmueble</Text>
+              <Ionicons name="home-outline" size={20} color="#AEAEB2" />
+            </View>
+
+            {(contactDetail.Habitaciones || contactDetail.Garajes || contactDetail.Banos || contactDetail.TipoOfertaNombre || contactDetail.TipoInmuebleNombre || contactDetail.Inmueble) ? (
+              <View style={styles.propertyDetails}>
+              {(contactDetail.TipoOfertaNombre || contactDetail.TipoInmuebleNombre) && (
+                <View style={styles.propertyRow}>
+                  {contactDetail.TipoOfertaNombre && (
+                    <View style={styles.propertyItem}>
+                      <Ionicons name="business-outline" size={16} color="#337ab7" />
+                      <Text style={styles.propertyLabel}>Tipo Oferta</Text>
+                      <Text style={styles.propertyValue}>{contactDetail.TipoOfertaNombre}</Text>
+                    </View>
+                  )}
+                  {contactDetail.TipoInmuebleNombre && (
+                    <View style={styles.propertyItem}>
+                      <Ionicons name="home-outline" size={16} color="#337ab7" />
+                      <Text style={styles.propertyLabel}>Tipo Inmueble</Text>
+                      <Text style={styles.propertyValue}>{contactDetail.TipoInmuebleNombre}</Text>
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {(contactDetail.Habitaciones || contactDetail.Garajes || contactDetail.Banos) && (
+                <View style={styles.propertyRow}>
+                  {contactDetail.Habitaciones && (
+                    <View style={styles.propertyItem}>
+                      <Ionicons name="bed-outline" size={16} color="#337ab7" />
+                      <Text style={styles.propertyLabel}>Habitaciones</Text>
+                      <Text style={styles.propertyValue}>{contactDetail.Habitaciones}</Text>
+                    </View>
+                  )}
+                  {contactDetail.Garajes && (
+                    <View style={styles.propertyItem}>
+                      <Ionicons name="car-outline" size={16} color="#337ab7" />
+                      <Text style={styles.propertyLabel}>Garajes</Text>
+                      <Text style={styles.propertyValue}>{contactDetail.Garajes}</Text>
+                    </View>
+                  )}
+                  {contactDetail.Banos && (
+                    <View style={styles.propertyItem}>
+                      <Ionicons name="water-outline" size={16} color="#337ab7" />
+                      <Text style={styles.propertyLabel}>Baños</Text>
+                      <Text style={styles.propertyValue}>{contactDetail.Banos}</Text>
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {contactDetail.Inmueble && parseInmuebles(contactDetail.Inmueble).length > 0 && (
+                <View style={styles.inmueblesSection}>
+                  <Text style={styles.detailLabel}>Inmuebles Asociados</Text>
+                  {parseInmuebles(contactDetail.Inmueble).map((inmueble, index) => (
+                    <View key={index} style={styles.inmuebleItem}>
+                      <Ionicons name="location-outline" size={16} color="#337ab7" />
+                      <View style={styles.inmuebleContent}>
+                        <Text style={styles.inmuebleConsecutivo}>Inmueble N°. {inmueble.Consecutivo}</Text>
+                        <Text style={styles.inmuebleDireccion}>{inmueble.Direccion}</Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+              </View>
+            ) : (
+              <Text style={styles.emptyText}>No hay detalles del inmueble disponibles</Text>
+            )}
+          </View>
+        )}
 
         {/* Activities Section */}
         <View style={styles.section}>
@@ -500,6 +585,63 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 999,
+  },
+  propertyDetails: {
+    gap: 16,
+  },
+  propertyRow: {
+    flexDirection: 'row',
+    gap: 16,
+    flexWrap: 'wrap',
+  },
+  propertyItem: {
+    flex: 1,
+    minWidth: 80,
+    alignItems: 'center',
+    backgroundColor: '#F8F8FA',
+    padding: 12,
+    borderRadius: 12,
+  },
+  propertyLabel: {
+    fontSize: 10,
+    color: '#8E8E93',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  propertyValue: {
+    fontSize: 16,
+    color: '#1C1C1E',
+    fontWeight: '700',
+    marginTop: 2,
+    textAlign: 'center',
+  },
+  inmueblesSection: {
+    marginTop: 16,
+  },
+  inmuebleItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#F8F8FA',
+    padding: 12,
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  inmuebleContent: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  inmuebleConsecutivo: {
+    fontSize: 14,
+    color: '#1C1C1E',
+    fontWeight: '600',
+  },
+  inmuebleDireccion: {
+    fontSize: 12,
+    color: '#3A3A3C',
+    marginTop: 2,
+    lineHeight: 16,
   },
 });
 
