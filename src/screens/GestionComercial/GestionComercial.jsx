@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,9 @@ import {
   RefreshControl,
   Alert,
   ActivityIndicator,
+  Vibration,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,11 +23,12 @@ import ContactItem from '../../components/GestionComercial/ContactItem';
 import FilterModal from '../../components/GestionComercial/FilterModal';
 import TimelineColumn from '../../components/GestionComercial/TimelineColumn';
 import CalendarEvent from '../../components/GestionComercial/CalendarEvent';
+import ColorPickerModal from '../../components/GestionComercial/ColorPickerModal';
 
 const Tab = createMaterialTopTabNavigator();
 
 // Table View Component
-const TableView = ({ navigation, searchFilters, onRefresh }) => {
+const TableView = ({ navigation, searchFilters, refreshTrigger, selectedContact, onSelectContact, onDeselectContact }) => {
   const { user } = useGlobal();
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -77,7 +80,7 @@ const TableView = ({ navigation, searchFilters, onRefresh }) => {
 
   useEffect(() => {
     loadContacts(1, true);
-  }, [searchFilters]);
+  }, [searchFilters, refreshTrigger]);
 
   useFocusEffect(
     useCallback(() => {
@@ -87,7 +90,6 @@ const TableView = ({ navigation, searchFilters, onRefresh }) => {
 
   const handleRefresh = () => {
     loadContacts(1, true);
-    onRefresh && onRefresh();
   };
 
   const handleLoadMore = () => {
@@ -100,12 +102,17 @@ const TableView = ({ navigation, searchFilters, onRefresh }) => {
     navigation.navigate('ContactDetail', { contact });
   };
 
-  const renderContact = ({ item }) => (
-    <ContactItem
-      item={item}
-      onPress={handleContactPress}
-    />
-  );
+  const renderContact = ({ item }) => {
+    const isSelected = selectedContact?.ProcesoID === item.ProcesoID;
+    return (
+      <ContactItem
+        item={item}
+        onPress={handleContactPress}
+        onLongPress={(contact) => onSelectContact(contact)}
+        isSelected={isSelected}
+      />
+    );
+  };
 
   const renderFooter = () => {
     if (!loading || refreshing) return null;
@@ -123,6 +130,7 @@ const TableView = ({ navigation, searchFilters, onRefresh }) => {
         data={contacts}
         renderItem={renderContact}
         keyExtractor={(item) => item.ProcesoID?.toString() || Math.random().toString()}
+        key={refreshTrigger}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -148,7 +156,7 @@ const TableView = ({ navigation, searchFilters, onRefresh }) => {
 };
 
 // Timeline View Component
-const TimelineView = ({ navigation, searchFilters, onRefresh }) => {
+const TimelineView = ({ navigation, searchFilters, refreshTrigger, onSelectContact }) => {
   const { user } = useGlobal();
   const [timelineData, setTimelineData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -185,7 +193,7 @@ const TimelineView = ({ navigation, searchFilters, onRefresh }) => {
 
   useEffect(() => {
     loadTimeline();
-  }, [searchFilters]);
+  }, [searchFilters, refreshTrigger]);
 
   useFocusEffect(
     useCallback(() => {
@@ -195,11 +203,14 @@ const TimelineView = ({ navigation, searchFilters, onRefresh }) => {
 
   const handleRefresh = () => {
     loadTimeline(true);
-    onRefresh && onRefresh();
   };
 
   const handleContactPress = (contact) => {
     navigation.navigate('ContactDetail', { contact });
+  };
+
+  const handleLongPress = (contact) => {
+    onSelectContact(contact);
   };
 
   const handleMoveContact = async (contact, direction) => {
@@ -279,8 +290,7 @@ const TimelineView = ({ navigation, searchFilters, onRefresh }) => {
 };
 
 // Calendar View Component
-const CalendarView = ({ navigation, searchFilters, onRefresh }) => {
-  const { user } = useGlobal();
+const CalendarView = ({ navigation, searchFilters, refreshTrigger }) => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -311,7 +321,7 @@ const CalendarView = ({ navigation, searchFilters, onRefresh }) => {
 
   useEffect(() => {
     loadEvents();
-  }, []);
+  }, [refreshTrigger]);
 
   useFocusEffect(
     useCallback(() => {
@@ -321,7 +331,6 @@ const CalendarView = ({ navigation, searchFilters, onRefresh }) => {
 
   const handleRefresh = () => {
     loadEvents(true);
-    onRefresh && onRefresh();
   };
 
   const handleEventPress = (event) => {
@@ -386,6 +395,11 @@ const GestionComercial = ({ navigation }) => {
   const [origenes, setOrigenes] = useState([]);
   const [tiposCalendarioActividades, setTiposCalendarioActividades] = useState([]);
   const [filterDataLoading, setFilterDataLoading] = useState(false);
+  const [selectedContact, setSelectedContact] = useState(null);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [colorPickerVisible, setColorPickerVisible] = useState(false);
+  const [contactColors, setContactColors] = useState({});
+  const isInitialMount = useRef(true);
 
   const getCurrentMode = () => {
     switch (currentTab) {
@@ -393,6 +407,27 @@ const GestionComercial = ({ navigation }) => {
       case 'LineaTiempo': return 'timeline';
       case 'Calendario': return 'calendar';
       default: return 'table';
+    }
+  };
+
+  // Load saved colors from AsyncStorage
+  const loadSavedColors = async () => {
+    try {
+      const savedColors = await AsyncStorage.getItem('contactColors');
+      if (savedColors) {
+        setContactColors(JSON.parse(savedColors));
+      }
+    } catch (error) {
+      console.error('Error loading saved colors:', error);
+    }
+  };
+
+  // Save colors to AsyncStorage
+  const saveColorsToStorage = async (colors) => {
+    try {
+      await AsyncStorage.setItem('contactColors', JSON.stringify(colors));
+    } catch (error) {
+      console.error('Error saving colors:', error);
     }
   };
 
@@ -416,6 +451,9 @@ const GestionComercial = ({ navigation }) => {
         // Load tipos calendario actividades
         const tiposResponse = await GestionComercialService.consultarTiposCalendarioActividades();
         setTiposCalendarioActividades(tiposResponse.rows || []);
+
+        // Load saved colors
+        await loadSavedColors();
       } catch (error) {
         console.error('Error loading filter data:', error);
       } finally {
@@ -427,6 +465,17 @@ const GestionComercial = ({ navigation }) => {
       loadFilterData();
     }
   }, [user?.SucursalID]);
+
+  // Salir automáticamente del modo selección cuando se regresa a esta pantalla
+  useFocusEffect(
+    useCallback(() => {
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+      } else if (isSelectionMode) {
+        handleDeselectContact();
+      }
+    }, [])
+  );
 
   const handleApplyFilters = (filters) => {
     setSearchFilters(filters);
@@ -442,42 +491,125 @@ const GestionComercial = ({ navigation }) => {
     ));
   };
 
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
   const handleRefresh = () => {
-    // This will trigger refresh in child components
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  const handleSelectContact = (contact) => {
+    setSelectedContact(contact);
+    setIsSelectionMode(true);
+  };
+
+  const handleDeselectContact = () => {
+    setSelectedContact(null);
+    setIsSelectionMode(false);
+  };
+
+  const handleColorSelect = async (colorId) => {
+    if (!selectedContact) return;
+
+    // Optimistic update - change locally first for immediate feedback
+    const originalColor = selectedContact.Color;
+
+    // Update local colors storage immediately
+    const newColors = { ...contactColors, [selectedContact.ProcesoID]: colorId };
+    setContactColors(newColors);
+    await saveColorsToStorage(newColors);
+
+    // Update the selected contact color immediately
+    setSelectedContact(prev => ({ ...prev, Color: colorId }));
+
+    try {
+      await GestionComercialService.cambiarColorProceso({
+        ProcesoID: selectedContact.ProcesoID,
+        Color: colorId,
+      });
+
+      Alert.alert('Éxito', 'Color aplicado correctamente');
+
+      // Recargar datos después del éxito de la API
+      handleRefresh();
+
+    } catch (error) {
+      console.error('Error changing color:', error);
+      Alert.alert('Error', 'No se pudo cambiar el color');
+
+      // Revert optimistic update on error
+      const revertedColors = { ...contactColors, [selectedContact.ProcesoID]: originalColor };
+      setContactColors(revertedColors);
+      await saveColorsToStorage(revertedColors);
+      setSelectedContact(prev => ({ ...prev, Color: originalColor }));
+    }
+  };
+
+  const handleViewDetails = () => {
+    if (selectedContact) {
+      handleDeselectContact(); // Salir del modo selección antes de navegar
+      navigation.navigate('ContactDetail', { contact: selectedContact });
+    }
+  };
+
+  const handleViewActivities = () => {
+    if (selectedContact) {
+      handleDeselectContact(); // Salir del modo selección antes de navegar
+      navigation.navigate('ActivityFollowupScreen', { contact: selectedContact });
+    }
   };
 
   return (
     <SafeAreaView style={styles.mainContainer} edges={['top', 'left', 'right']}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerSubtitle}>Centro de</Text>
-          <Text style={styles.title}>Gestión comercial</Text>
-        </View>
-        <View style={styles.headerButtons}>
-          <TouchableOpacity
-            style={[styles.headerButton, hasFilters && styles.headerButtonActive]}
-            onPress={() => setFilterModalVisible(true)}
-          >
-            <Ionicons
-              name={hasFilters ? "filter" : "filter-outline"}
-              size={22}
-              color={hasFilters ? "#337ab7" : "#3A3A3C"}
-            />
+      {isSelectionMode ? (
+        <View style={styles.selectedHeader}>
+          <TouchableOpacity style={styles.headerButton} onPress={() => { setIsSelectionMode(false); setSelectedContact(null); }}>
+            <Ionicons name="arrow-back" size={24} color="#337ab7" />
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('NewLeadScreen')}
-          >
-            <LinearGradient
-              colors={['#337ab7', '#00ACC4']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.addButton}
+          <TouchableOpacity style={styles.headerButton} onPress={handleViewDetails}>
+            <Ionicons name="eye-outline" size={24} color="#337ab7" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.headerButton} onPress={handleViewActivities}>
+            <Ionicons name="calendar-outline" size={24} color="#337ab7" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Flag', 'Funcionalidad de flag pendiente')}>
+            <Ionicons name="flag-outline" size={24} color="#337ab7" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.headerButton} onPress={() => setColorPickerVisible(true)}>
+            <Ionicons name="ellipsis-vertical" size={24} color="#337ab7" />
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.headerSubtitle}>Centro de</Text>
+            <Text style={styles.title}>Gestión comercial</Text>
+          </View>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity
+              style={[styles.headerButton, hasFilters && styles.headerButtonActive]}
+              onPress={() => setFilterModalVisible(true)}
             >
-              <Ionicons name="add" size={24} color="#fff" />
-            </LinearGradient>
-          </TouchableOpacity>
+              <Ionicons
+                name={hasFilters ? "filter" : "filter-outline"}
+                size={22}
+                color={hasFilters ? "#337ab7" : "#3A3A3C"}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('NewLeadScreen')}
+            >
+              <LinearGradient
+                colors={['#337ab7', '#00ACC4']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.addButton}
+              >
+                <Ionicons name="add" size={24} color="#fff" />
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      )}
 
       <Tab.Navigator
         screenOptions={({ route }) => ({
@@ -512,7 +644,10 @@ const GestionComercial = ({ navigation }) => {
             <TableView
               navigation={navigation}
               searchFilters={searchFilters}
-              onRefresh={handleRefresh}
+              refreshTrigger={refreshTrigger}
+              selectedContact={selectedContact}
+              onSelectContact={handleSelectContact}
+              onDeselectContact={handleDeselectContact}
             />
           )}
           options={{
@@ -525,7 +660,8 @@ const GestionComercial = ({ navigation }) => {
             <TimelineView
               navigation={navigation}
               searchFilters={searchFilters}
-              onRefresh={handleRefresh}
+              refreshTrigger={refreshTrigger}
+              onSelectContact={handleSelectContact}
             />
           )}
           options={{
@@ -538,7 +674,7 @@ const GestionComercial = ({ navigation }) => {
             <CalendarView
               navigation={navigation}
               searchFilters={searchFilters}
-              onRefresh={handleRefresh}
+              refreshTrigger={refreshTrigger}
             />
           )}
           options={{
@@ -556,6 +692,13 @@ const GestionComercial = ({ navigation }) => {
         origenes={origenes}
         tiposCalendarioActividades={tiposCalendarioActividades}
         loading={filterDataLoading}
+      />
+
+      <ColorPickerModal
+        visible={colorPickerVisible}
+        onClose={() => setColorPickerVisible(false)}
+        onColorSelect={handleColorSelect}
+        selectedContacts={selectedContact ? [selectedContact] : []}
       />
     </SafeAreaView>
   );
@@ -618,6 +761,19 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
+  },
+  selectedHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+    height: 75,
+  },
+  headerButton: {
+    padding: 8,
   },
   container: {
     flex: 1,

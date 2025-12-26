@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Vibration } from 'react-native';
 
-const ContactItem = ({ item, onPress }) => {
+const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
   // Normalize data to handle inconsistent field names from different API endpoints
   const d = {
     nombre: item.NombreCompleto || item.nombreCompleto || item.Nombre || item.nombre ||
@@ -58,8 +59,12 @@ const ContactItem = ({ item, onPress }) => {
   return (
     <TouchableOpacity
       activeOpacity={0.7}
-      style={styles.container}
+      style={[styles.container, isSelected && styles.selectedContainer]}
       onPress={() => onPress && onPress(item)}
+      onLongPress={() => {
+        Vibration.vibrate(50);
+        onLongPress && onLongPress(item);
+      }}
     >
       <View style={styles.content}>
         <View style={styles.header}>
@@ -257,6 +262,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: 6,
     // The overflow: 'hidden' on the container will clip this to the container's radius
+  },
+  selectedContainer: {
+    backgroundColor: '#e0f7fa',
   },
 });
 

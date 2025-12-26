@@ -1,5 +1,6 @@
 import { useGlobal } from '../../core/global';
 import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import getEnvironmentConfig from '../../config/environments';
 
 const API_BASE_CRM = `${getEnvironmentConfig().BASE_URL_NS}/API_CRM/api`;
@@ -36,6 +37,8 @@ class GestionComercialService {
     return {
       'Content-Type': 'application/json',
       'Authorization': token ? `Bearer ${token}` : '',
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache',
     };
   }
 
@@ -109,6 +112,38 @@ class GestionComercialService {
       body: JSON.stringify(body),
     }).then(response => {
       console.log('Response for consultarPreContactos:', response);
+      // Merge locally stored colors with API response, prioritizing API
+      if (response.rows && Array.isArray(response.rows)) {
+        // Get stored colors from AsyncStorage
+        return AsyncStorage.getItem('contactColors').then(storedColors => {
+          const colors = storedColors ? JSON.parse(storedColors) : {};
+          const updatedColors = { ...colors };
+          response.rows = response.rows.map(contact => {
+            const apiColor = contact.Color || contact.color || null;
+            const finalColor = apiColor || colors[contact.ProcesoID] || null;
+            // Update local storage with API color if it exists
+            if (apiColor && apiColor !== colors[contact.ProcesoID]) {
+              updatedColors[contact.ProcesoID] = apiColor;
+            }
+            return {
+              ...contact,
+              Color: finalColor
+            };
+          });
+          // Save updated colors back to storage
+          AsyncStorage.setItem('contactColors', JSON.stringify(updatedColors)).catch(error => {
+            console.error('Error saving updated colors:', error);
+          });
+          return response;
+        }).catch(() => {
+          // If error getting stored colors, just return response as is
+          response.rows = response.rows.map(contact => ({
+            ...contact,
+            Color: contact.Color || contact.color || null
+          }));
+          return response;
+        });
+      }
       return response;
     });
   }
