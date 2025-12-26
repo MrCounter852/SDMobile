@@ -22,11 +22,13 @@ const ContactDetail = ({ navigation, route }) => {
   const [contactDetail, setContactDetail] = useState(contact);
   const [activities, setActivities] = useState([]);
   const [followups, setFollowups] = useState([]);
+  const [customFieldsConfig, setCustomFieldsConfig] = useState([]);
 
   useEffect(() => {
     loadContactDetail();
     loadActivities();
     loadFollowups();
+    loadCustomFieldsConfig();
   }, []);
 
   useEffect(() => {
@@ -101,6 +103,17 @@ const ContactDetail = ({ navigation, route }) => {
       setFollowups(response.rows || []);
     } catch (error) {
       console.error('Error loading followups:', error);
+    }
+  };
+
+  const loadCustomFieldsConfig = async () => {
+    if (!contact.OrigenPreContactoID) return;
+
+    try {
+      const response = await GestionComercialService.consultarCombosOrigenes(contact.OrigenPreContactoID);
+      setCustomFieldsConfig(response.data || []);
+    } catch (error) {
+      console.error('Error loading custom fields config:', error);
     }
   };
 
@@ -308,6 +321,29 @@ const ContactDetail = ({ navigation, route }) => {
             ) : (
               <Text style={styles.emptyText}>No hay detalles del inmueble disponibles</Text>
             )}
+          </View>
+        )}
+
+        {/* Custom Fields Section */}
+        {customFieldsConfig.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Campos Personalizados</Text>
+              <Ionicons name="list-outline" size={20} color="#AEAEB2" />
+            </View>
+
+            <View style={styles.customFields}>
+              {customFieldsConfig.map((field) => {
+                const value = contactDetail[`Valor${field.ModelCampo}`];
+                if (!value) return null;
+                return (
+                  <View key={field.CampoPreContactoID} style={styles.customFieldItem}>
+                    <Text style={styles.detailLabel}>{field.LabelCampo}</Text>
+                    <Text style={styles.detailValue}>{value}</Text>
+                  </View>
+                );
+              })}
+            </View>
           </View>
         )}
 
@@ -642,6 +678,14 @@ const styles = StyleSheet.create({
     color: '#3A3A3C',
     marginTop: 2,
     lineHeight: 16,
+  },
+  customFields: {
+    gap: 12,
+  },
+  customFieldItem: {
+    backgroundColor: '#F8F8FA',
+    padding: 12,
+    borderRadius: 12,
   },
 });
 
