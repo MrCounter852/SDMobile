@@ -9,9 +9,7 @@ import {
   RefreshControl,
   Alert,
   ActivityIndicator,
-  Vibration,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -398,7 +396,6 @@ const GestionComercial = ({ navigation }) => {
   const [selectedContact, setSelectedContact] = useState(null);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [colorPickerVisible, setColorPickerVisible] = useState(false);
-  const [contactColors, setContactColors] = useState({});
   const isInitialMount = useRef(true);
 
   const getCurrentMode = () => {
@@ -407,27 +404,6 @@ const GestionComercial = ({ navigation }) => {
       case 'LineaTiempo': return 'timeline';
       case 'Calendario': return 'calendar';
       default: return 'table';
-    }
-  };
-
-  // Load saved colors from AsyncStorage
-  const loadSavedColors = async () => {
-    try {
-      const savedColors = await AsyncStorage.getItem('contactColors');
-      if (savedColors) {
-        setContactColors(JSON.parse(savedColors));
-      }
-    } catch (error) {
-      console.error('Error loading saved colors:', error);
-    }
-  };
-
-  // Save colors to AsyncStorage
-  const saveColorsToStorage = async (colors) => {
-    try {
-      await AsyncStorage.setItem('contactColors', JSON.stringify(colors));
-    } catch (error) {
-      console.error('Error saving colors:', error);
     }
   };
 
@@ -451,9 +427,6 @@ const GestionComercial = ({ navigation }) => {
         // Load tipos calendario actividades
         const tiposResponse = await GestionComercialService.consultarTiposCalendarioActividades();
         setTiposCalendarioActividades(tiposResponse.rows || []);
-
-        // Load saved colors
-        await loadSavedColors();
       } catch (error) {
         console.error('Error loading filter data:', error);
       } finally {
@@ -510,17 +483,6 @@ const GestionComercial = ({ navigation }) => {
   const handleColorSelect = async (colorId) => {
     if (!selectedContact) return;
 
-    // Optimistic update - change locally first for immediate feedback
-    const originalColor = selectedContact.Color;
-
-    // Update local colors storage immediately
-    const newColors = { ...contactColors, [selectedContact.ProcesoID]: colorId };
-    setContactColors(newColors);
-    await saveColorsToStorage(newColors);
-
-    // Update the selected contact color immediately
-    setSelectedContact(prev => ({ ...prev, Color: colorId }));
-
     try {
       await GestionComercialService.cambiarColorProceso({
         ProcesoID: selectedContact.ProcesoID,
@@ -535,12 +497,6 @@ const GestionComercial = ({ navigation }) => {
     } catch (error) {
       console.error('Error changing color:', error);
       Alert.alert('Error', 'No se pudo cambiar el color');
-
-      // Revert optimistic update on error
-      const revertedColors = { ...contactColors, [selectedContact.ProcesoID]: originalColor };
-      setContactColors(revertedColors);
-      await saveColorsToStorage(revertedColors);
-      setSelectedContact(prev => ({ ...prev, Color: originalColor }));
     }
   };
 
