@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,14 +10,17 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { Picker } from '@react-native-picker/picker';
-import { useGlobal } from '../../core/global';
-const GestionComercialService = require('../../services/GestionComercial/gestionComercialService').default;
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { Picker } from "@react-native-picker/picker";
+import { useGlobal } from "../../core/global";
+import { Line } from "react-native-svg";
+const GestionComercialService =
+  require("../../services/GestionComercial/gestionComercialService").default;
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -134,13 +137,16 @@ const DateTimePicker = ({
   value,
   onChange,
   placeholder,
-  mode = 'datetime',
+  mode = "datetime",
 }) => {
   const [show, setShow] = useState(false);
 
   const handlePress = () => {
     // For now, just show a placeholder - would need a proper date picker
-    Alert.alert('Date Picker', 'Date picker functionality would be implemented here');
+    Alert.alert(
+      "Date Picker",
+      "Date picker functionality would be implemented here"
+    );
   };
 
   return (
@@ -169,21 +175,21 @@ const ActivityForm = ({ contact }) => {
   const [closureTypes, setClosureTypes] = useState([]);
 
   const [form, setForm] = useState({
-    TipoCalendarioActividadID: '',
-    Asunto: '',
-    FechaInicio: '',
-    FechaVencimiento: '',
-    Descripcion: '',
-    UsuarioID: user?.UsuarioID || '',
-    Contacto: contact?.NombreCompleto || '',
-    Cliente: '',
-    Celular: contact?.Celular || '',
-    Email: contact?.Email || '',
-    Direccion: '',
+    TipoCalendarioActividadID: "",
+    Asunto: "",
+    FechaInicio: "",
+    FechaVencimiento: "",
+    Descripcion: "",
+    UsuarioID: user?.UsuarioID || "",
+    Contacto: contact?.NombreCompleto || "",
+    Cliente: "",
+    Celular: contact?.Celular || "",
+    Email: contact?.Email || "",
+    Direccion: "",
     Entregable: false,
     Notificacion: true,
-    ObservacionesCierre: '',
-    CalendarioActividadCierreDetalleID: '',
+    ObservacionesCierre: "",
+    CalendarioActividadCierreDetalleID: "",
   });
 
   useEffect(() => {
@@ -201,13 +207,18 @@ const ActivityForm = ({ contact }) => {
       setUsers(usersResp.rows || []);
       setClosureTypes(closureResp.rows || []);
     } catch (error) {
-      console.error('Error loading activity data:', error);
+      console.error("Error loading activity data:", error);
     }
   };
 
   const handleSave = async () => {
-    if (!form.TipoCalendarioActividadID || !form.Asunto || !form.FechaInicio || !form.FechaVencimiento) {
-      Alert.alert('Error', 'Por favor complete todos los campos requeridos');
+    if (
+      !form.TipoCalendarioActividadID ||
+      !form.Asunto ||
+      !form.FechaInicio ||
+      !form.FechaVencimiento
+    ) {
+      Alert.alert("Error", "Por favor complete todos los campos requeridos");
       return;
     }
 
@@ -222,24 +233,30 @@ const ActivityForm = ({ contact }) => {
         Token: user.Token,
       };
 
-      const response = await GestionComercialService.insertarActividadCalendario(payload);
-      Alert.alert('Éxito', response.rows[0]?.Descripcion || 'Actividad guardada correctamente', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      const response =
+        await GestionComercialService.insertarActividadCalendario(payload);
+      Alert.alert(
+        "Éxito",
+        response.rows[0]?.Descripcion || "Actividad guardada correctamente",
+        [{ text: "OK", onPress: () => navigation.goBack() }]
+      );
     } catch (error) {
-      console.error('Error saving activity:', error);
-      Alert.alert('Error', 'No se pudo guardar la actividad');
+      console.error("Error saving activity:", error);
+      Alert.alert("Error", "No se pudo guardar la actividad");
     } finally {
       setLoading(false);
     }
   };
 
   const updateForm = (field, value) => {
-    setForm(prev => ({ ...prev, [field]: value }));
+    setForm((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
-    <ScrollView style={styles.formContainer} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.formContainer}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Información de la actividad</Text>
 
@@ -247,7 +264,9 @@ const ActivityForm = ({ contact }) => {
           label="Tipo de actividad"
           required
           selectedValue={form.TipoCalendarioActividadID}
-          onValueChange={(value) => updateForm('TipoCalendarioActividadID', value)}
+          onValueChange={(value) =>
+            updateForm("TipoCalendarioActividadID", value)
+          }
           items={activityTypes}
           placeholder="Seleccione tipo de actividad"
         />
@@ -256,7 +275,7 @@ const ActivityForm = ({ contact }) => {
           label="Asunto"
           required
           value={form.Asunto}
-          onChangeText={(value) => updateForm('Asunto', value)}
+          onChangeText={(value) => updateForm("Asunto", value)}
           placeholder="Ingrese el asunto de la actividad"
           icon="document-text"
         />
@@ -265,7 +284,7 @@ const ActivityForm = ({ contact }) => {
           label="Fecha de inicio"
           required
           value={form.FechaInicio}
-          onChange={(value) => updateForm('FechaInicio', value)}
+          onChange={(value) => updateForm("FechaInicio", value)}
           placeholder="Seleccione fecha de inicio"
         />
 
@@ -273,14 +292,14 @@ const ActivityForm = ({ contact }) => {
           label="Fecha de vencimiento"
           required
           value={form.FechaVencimiento}
-          onChange={(value) => updateForm('FechaVencimiento', value)}
+          onChange={(value) => updateForm("FechaVencimiento", value)}
           placeholder="Seleccione fecha de vencimiento"
         />
 
         <CustomInput
           label="Descripción"
           value={form.Descripcion}
-          onChangeText={(value) => updateForm('Descripcion', value)}
+          onChangeText={(value) => updateForm("Descripcion", value)}
           placeholder="Ingrese descripción detallada"
           multiline
           icon="information-circle"
@@ -293,7 +312,7 @@ const ActivityForm = ({ contact }) => {
         <CustomPicker
           label="Usuario asignado"
           selectedValue={form.UsuarioID}
-          onValueChange={(value) => updateForm('UsuarioID', value)}
+          onValueChange={(value) => updateForm("UsuarioID", value)}
           items={users}
           placeholder="Seleccione usuario"
         />
@@ -305,7 +324,7 @@ const ActivityForm = ({ contact }) => {
         <CustomInput
           label="Contacto"
           value={form.Contacto}
-          onChangeText={(value) => updateForm('Contacto', value)}
+          onChangeText={(value) => updateForm("Contacto", value)}
           placeholder="Nombre del contacto"
           icon="person"
         />
@@ -313,7 +332,7 @@ const ActivityForm = ({ contact }) => {
         <CustomInput
           label="Cliente"
           value={form.Cliente}
-          onChangeText={(value) => updateForm('Cliente', value)}
+          onChangeText={(value) => updateForm("Cliente", value)}
           placeholder="Nombre del cliente"
           icon="business"
         />
@@ -321,7 +340,7 @@ const ActivityForm = ({ contact }) => {
         <CustomInput
           label="Celular"
           value={form.Celular}
-          onChangeText={(value) => updateForm('Celular', value)}
+          onChangeText={(value) => updateForm("Celular", value)}
           placeholder="Número de celular"
           keyboardType="phone-pad"
           icon="call"
@@ -330,7 +349,7 @@ const ActivityForm = ({ contact }) => {
         <CustomInput
           label="Email"
           value={form.Email}
-          onChangeText={(value) => updateForm('Email', value)}
+          onChangeText={(value) => updateForm("Email", value)}
           placeholder="Correo electrónico"
           keyboardType="email-address"
           icon="mail"
@@ -339,23 +358,26 @@ const ActivityForm = ({ contact }) => {
         <CustomInput
           label="Dirección"
           value={form.Direccion}
-          onChangeText={(value) => updateForm('Direccion', value)}
+          onChangeText={(value) => updateForm("Direccion", value)}
           placeholder="Dirección"
           icon="location"
         />
       </View>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-          onPress={handleSave}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <Text style={styles.saveButtonText}>Guardar Actividad</Text>
-          )}
+        <TouchableOpacity onPress={handleSave} disabled={loading}>
+          <LinearGradient
+            colors={["#337ab7", "#00ACC4"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.saveButtonText}>Guardar actividad</Text>
+            )}
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -369,12 +391,15 @@ const FollowupForm = ({ contact }) => {
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
-    Observaciones: '',
+    Observaciones: "",
   });
 
   const handleSave = async () => {
     if (!form.Observaciones.trim()) {
-      Alert.alert('Error', 'Por favor ingrese las observaciones del seguimiento');
+      Alert.alert(
+        "Error",
+        "Por favor ingrese las observaciones del seguimiento"
+      );
       return;
     }
 
@@ -382,46 +407,57 @@ const FollowupForm = ({ contact }) => {
     try {
       const payload = {
         OrigenID: contact.ProcesoID,
-        OrigenSeguimientoID: 'CRM-PRO',
+        OrigenSeguimientoID: "CRM-PRO",
         Observaciones: form.Observaciones,
         DirIP: user.Ip,
         Usuario: user.UsuarioID,
         Token: user.Token,
       };
 
-      const response = await GestionComercialService.insertarSeguimiento(payload);
-      Alert.alert('Éxito', response.rows[0]?.Descripcion || 'Seguimiento guardado correctamente', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      const response = await GestionComercialService.insertarSeguimiento(
+        payload
+      );
+      Alert.alert(
+        "Éxito",
+        response.rows[0]?.Descripcion || "Seguimiento guardado correctamente",
+        [{ text: "OK", onPress: () => navigation.goBack() }]
+      );
     } catch (error) {
-      console.error('Error saving followup:', error);
-      Alert.alert('Error', 'No se pudo guardar el seguimiento');
+      console.error("Error saving followup:", error);
+      Alert.alert("Error", "No se pudo guardar el seguimiento");
     } finally {
       setLoading(false);
     }
   };
 
   const updateForm = (field, value) => {
-    setForm(prev => ({ ...prev, [field]: value }));
+    setForm((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
-    <ScrollView style={styles.formContainer} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.formContainer}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Nuevo Seguimiento</Text>
+        <Text style={styles.sectionTitle}>Nuevo seguimiento</Text>
 
         <CustomInput
           label="Observaciones"
           required
           value={form.Observaciones}
-          onChangeText={(value) => updateForm('Observaciones', value)}
+          onChangeText={(value) => updateForm("Observaciones", value)}
           placeholder="Ingrese las observaciones del seguimiento"
           multiline
           icon="document-text"
         />
 
         <View style={styles.infoBox}>
-          <Ionicons name="information-circle" size={20} color={COLORS.primary} />
+          <Ionicons
+            name="information-circle"
+            size={20}
+            color={COLORS.primary}
+          />
           <Text style={styles.infoText}>
             Este seguimiento se asociará al contacto: {contact?.NombreCompleto}
           </Text>
@@ -430,15 +466,21 @@ const FollowupForm = ({ contact }) => {
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity
-          style={[styles.saveButton, loading && styles.saveButtonDisabled]}
           onPress={handleSave}
           disabled={loading}
         >
+          <LinearGradient
+            colors={["#337ab7", "#00ACC4"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+          >
           {loading ? (
             <ActivityIndicator color="#fff" size="small" />
           ) : (
-            <Text style={styles.saveButtonText}>Guardar Seguimiento</Text>
+            <Text style={styles.saveButtonText}>Guardar seguimiento</Text>
           )}
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -454,7 +496,7 @@ const ActivityFollowupScreen = () => {
     navigation.setOptions({
       headerTitle: () => (
         <Text style={{ color: "#337ab7", fontSize: 18, fontWeight: "bold" }}>
-          Nueva Actividad/Seguimiento
+          Nueva actividad/seguimiento
         </Text>
       ),
       headerLeft: () => (
@@ -474,7 +516,9 @@ const ActivityFollowupScreen = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.centerContent}>
           <Ionicons name="alert-circle" size={64} color="#ccc" />
-          <Text style={styles.errorText}>No se encontró información del contacto</Text>
+          <Text style={styles.errorText}>
+            No se encontró información del contacto
+          </Text>
           <TouchableOpacity
             style={styles.retryButton}
             onPress={() => navigation.goBack()}
@@ -487,37 +531,42 @@ const ActivityFollowupScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={[ 'bottom']}>
-      <Tab.Navigator
-        screenOptions={{
-          tabBarActiveTintColor: '#337ab7',
-          tabBarInactiveTintColor: '#666',
-          tabBarIndicatorStyle: { backgroundColor: '#337ab7' },
-          tabBarLabelStyle: { fontSize: 14, fontWeight: '500' },
-          tabBarStyle: { backgroundColor: '#fff' },
-        }}
+    <SafeAreaView style={styles.container} edges={["bottom"]}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
       >
-        <Tab.Screen
-          name="Actividad"
-          children={() => <ActivityForm contact={contact} />}
-          options={{
-            tabBarLabel: 'Nueva Actividad',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="calendar" size={size} color={color} />
-            ),
+        <Tab.Navigator
+          screenOptions={{
+            tabBarActiveTintColor: "#337ab7",
+            tabBarInactiveTintColor: "#666",
+            tabBarIndicatorStyle: { backgroundColor: "#337ab7" },
+            tabBarLabelStyle: { fontSize: 14, fontWeight: "500" },
+            tabBarStyle: { backgroundColor: "#fff" },
           }}
-        />
-        <Tab.Screen
-          name="Seguimiento"
-          children={() => <FollowupForm contact={contact} />}
-          options={{
-            tabBarLabel: 'Nuevo Seguimiento',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="document-text" size={size} color={color} />
-            ),
-          }}
-        />
-      </Tab.Navigator>
+        >
+          <Tab.Screen
+            name="Seguimiento"
+            children={() => <FollowupForm contact={contact} />}
+            options={{
+              tabBarLabel: "Nuevo seguimiento",
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="document-text" size={size} color={color} />
+              ),
+            }}
+          />
+          <Tab.Screen
+            name="Actividad"
+            children={() => <ActivityForm contact={contact} />}
+            options={{
+              tabBarLabel: "Nueva actividad",
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="calendar" size={size} color={color} />
+              ),
+            }}
+          />
+        </Tab.Navigator>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -529,8 +578,8 @@ const styles = StyleSheet.create({
   },
   centerContent: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   headerButton: {
@@ -548,14 +597,14 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 20,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.text,
     marginBottom: 20,
   },
@@ -563,14 +612,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   labelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 6,
     marginLeft: 4,
   },
   label: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: "500",
     color: COLORS.textSecondary,
   },
   required: {
@@ -579,8 +628,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: COLORS.inputBg,
     borderRadius: 12,
     borderWidth: 1,
@@ -590,17 +639,17 @@ const styles = StyleSheet.create({
   },
   inputWrapperMultiline: {
     height: 100,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
     paddingTop: 12,
   },
   input: {
     flex: 1,
     fontSize: 15,
     color: COLORS.text,
-    height: '100%',
+    height: "100%",
   },
   inputMultiline: {
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   inputIcon: {
     marginRight: 10,
@@ -610,18 +659,18 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
-    justifyContent: 'center',
+    justifyContent: "center",
     height: 50,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   picker: {
-    width: '100%',
+    width: "100%",
     color: COLORS.text,
   },
   datePickerWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     backgroundColor: COLORS.inputBg,
     borderRadius: 12,
     borderWidth: 1,
@@ -633,9 +682,9 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   infoBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#EFF6FF',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#EFF6FF",
     borderRadius: 8,
     padding: 12,
     marginTop: 16,
@@ -655,7 +704,7 @@ const styles = StyleSheet.create({
   saveButton: {
     backgroundColor: COLORS.primary,
     paddingVertical: 16,
-    alignItems: 'center',
+    alignItems: "center",
     borderRadius: 30,
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
@@ -667,14 +716,14 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   saveButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   errorText: {
     fontSize: 16,
     color: COLORS.danger,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 16,
   },
   retryButton: {
@@ -687,8 +736,8 @@ const styles = StyleSheet.create({
   },
   retryText: {
     color: COLORS.primary,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
   },
 });
 

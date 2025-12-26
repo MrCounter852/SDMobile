@@ -81,9 +81,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     label: {
-        fontSize: 14,
-        fontWeight: "600",
-        color: COLORS.text,
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
     },
     required: {
         color: COLORS.danger,
