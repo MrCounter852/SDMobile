@@ -124,12 +124,15 @@ class GestionComercialService {
 
   // Consultar líneas de tiempo
   async consultarLineasTiempo(filtros) {
+    const estadoProcesoID = filtros?.EstadoProcesoID || "1,4";
+    const estadoProcesoNombre = estadoProcesoID === "1,4" ? "Nuevo y En gestión" : estadoProcesoID;
     const endpoint = '/PreContactos/LineasTiemposConsultar';
     const body = {
       Page: filtros?.Page || 1,
       Rows: filtros?.Rows || 15,
       OrigenPreContactoID: filtros?.OrigenPreContactoID || null,
-      EstadoProcesoID: filtros?.EstadoProcesoID || "1,4",
+      EstadoProcesoID: estadoProcesoID,
+      EstadoProcesoNombre: estadoProcesoNombre,
       AsesorID: filtros?.AsesorID || this.global.asesorID || null,
       SucursalID: filtros?.SucursalID || null,
       FechaInicial: filtros?.FechaInicial || null,

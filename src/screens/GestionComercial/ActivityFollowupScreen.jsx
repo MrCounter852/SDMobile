@@ -186,6 +186,8 @@ const ActivityForm = ({ contact }) => {
     Celular: contact?.Celular || "",
     Email: contact?.Email || "",
     Direccion: "",
+    Telefono: "",
+    Link: "",
     Entregable: false,
     Notificacion: true,
     ObservacionesCierre: "",
@@ -362,6 +364,23 @@ const ActivityForm = ({ contact }) => {
           placeholder="Dirección"
           icon="location"
         />
+
+        <CustomInput
+          label="Teléfono"
+          value={form.Telefono}
+          onChangeText={(value) => updateForm("Telefono", value)}
+          placeholder="Teléfono"
+          keyboardType="phone-pad"
+          icon="call"
+        />
+
+        <CustomInput
+          label="Link de reuniones"
+          value={form.Link}
+          onChangeText={(value) => updateForm("Link", value)}
+          placeholder="Link de zoom o meet"
+          icon="link"
+        />
       </View>
 
       <View style={styles.buttonContainer}>
@@ -385,7 +404,7 @@ const ActivityForm = ({ contact }) => {
 };
 
 // Followup Form Component
-const FollowupForm = ({ contact }) => {
+const FollowupForm = ({ contact, onRefresh }) => {
   const navigation = useNavigation();
   const { user } = useGlobal();
   const [loading, setLoading] = useState(false);
@@ -420,7 +439,10 @@ const FollowupForm = ({ contact }) => {
       Alert.alert(
         "Éxito",
         response.rows[0]?.Descripcion || "Seguimiento guardado correctamente",
-        [{ text: "OK", onPress: () => navigation.goBack() }]
+        [{ text: "OK", onPress: () => {
+          setForm({ Observaciones: "" }); // Clear form
+          if (onRefresh) onRefresh(); // Refresh the list
+        } }]
       );
     } catch (error) {
       console.error("Error saving followup:", error);
@@ -487,6 +509,213 @@ const FollowupForm = ({ contact }) => {
   );
 };
 
+// Followup List Component
+const FollowupList = ({ contact }) => {
+  const [followups, setFollowups] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadFollowups();
+  }, []);
+
+  const loadFollowups = async () => {
+    try {
+      const response = await GestionComercialService.consultarSeguimientos({
+        OrigenID: contact.ProcesoID,
+        OrigenSeguimientoID: "CRM-PRO",
+      });
+      setFollowups(response.rows || []);
+    } catch (error) {
+      console.error("Error loading followups:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-CO', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.centerContent}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={styles.loadingText}>Cargando seguimientos...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView style={styles.listContainer}>
+      {followups.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="document-text-outline" size={64} color="#ccc" />
+          <Text style={styles.emptyText}>No hay seguimientos registrados</Text>
+        </View>
+      ) : (
+        followups.map((item, index) => (
+          <View key={index} style={styles.listItem}>
+            <View style={styles.listItemHeader}>
+              <Ionicons name="document-text" size={20} color={COLORS.primary} />
+              <Text style={styles.listItemDate}>{formatDate(item.FechaRegistro)}</Text>
+            </View>
+            <Text style={styles.listItemContent}>{item.Observaciones}</Text>
+            {item.RegistroUsuario && (
+              <Text style={styles.listItemUser}>Por: {item.RegistroUsuario}</Text>
+            )}
+          </View>
+        ))
+      )}
+    </ScrollView>
+  );
+};
+
+// Activity List Component
+const ActivityList = ({ contact, onRefresh }) => {
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadActivities();
+  }, []);
+
+  const loadActivities = async () => {
+    try {
+      const response = await GestionComercialService.consultarActividadesCalendario({
+        CalendarioActividadOrigenID: 2,
+        CodigoOrigen: contact.ProcesoID,
+      });
+      setActivities(response.rows || []);
+    } catch (error) {
+      console.error("Error loading activities:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFinalizeActivity = (activity) => {
+    Alert.alert(
+      "Finalizar actividad",
+      `¿Desea finalizar la actividad "${activity.Asunto}"?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Finalizar",
+          onPress: () => finalizeActivity(activity)
+        }
+      ]
+    );
+  };
+
+  const finalizeActivity = async (activity) => {
+    try {
+      const response = await GestionComercialService.cerrarActividadCalendario({
+        CalendarioActividadID: activity.CalendarioActividadID,
+        ObservacionesCierre: "Finalizada desde móvil",
+        DirIP: "mobile",
+        Usuario: activity.UsuarioID,
+        Token: activity.Token,
+      });
+      Alert.alert("Éxito", "Actividad finalizada correctamente");
+      loadActivities(); // Reload activities
+      if (onRefresh) onRefresh();
+    } catch (error) {
+      console.error("Error finalizing activity:", error);
+      Alert.alert("Error", "No se pudo finalizar la actividad");
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-CO', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.centerContent}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={styles.loadingText}>Cargando actividades...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView style={styles.listContainer}>
+      {activities.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="calendar-outline" size={64} color="#ccc" />
+          <Text style={styles.emptyText}>No hay actividades registradas</Text>
+        </View>
+      ) : (
+        activities.map((item, index) => (
+          <View key={index} style={styles.listItem}>
+            <View style={styles.listItemHeader}>
+              <Ionicons
+                name={item.Completada ? "checkmark-circle" : "calendar"}
+                size={20}
+                color={item.Completada ? COLORS.success : COLORS.primary}
+              />
+              <Text style={styles.listItemTitle}>{item.Asunto}</Text>
+              {!item.Completada && (
+                <TouchableOpacity
+                  style={styles.finalizeButton}
+                  onPress={() => handleFinalizeActivity(item)}
+                >
+                  <Text style={styles.finalizeButtonText}>Finalizar</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            <Text style={styles.listItemContent}>{item.Descripcion}</Text>
+            <View style={styles.activityDetails}>
+              <Text style={styles.detailText}>
+                Inicio: {formatDate(item.FechaInicio)}
+              </Text>
+              <Text style={styles.detailText}>
+                Fin: {formatDate(item.FechaVencimiento)}
+              </Text>
+            </View>
+            {item.Email && (
+              <Text style={styles.detailText}>Email: {item.Email}</Text>
+            )}
+            {item.Link && (
+              <Text style={styles.detailText}>Link: {item.Link}</Text>
+            )}
+            {item.Completada && item.ObservacionesCierre && (
+              <View style={styles.closureNotes}>
+                <Text style={styles.closureTitle}>Observaciones de cierre:</Text>
+                <Text style={styles.closureText}>{item.ObservacionesCierre}</Text>
+              </View>
+            )}
+          </View>
+        ))
+      )}
+    </ScrollView>
+  );
+};
+
 const ActivityFollowupScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
@@ -496,7 +725,7 @@ const ActivityFollowupScreen = () => {
     navigation.setOptions({
       headerTitle: () => (
         <Text style={{ color: "#337ab7", fontSize: 18, fontWeight: "bold" }}>
-          Nueva actividad/seguimiento
+          Actividades y seguimientos
         </Text>
       ),
       headerLeft: () => (
@@ -541,27 +770,49 @@ const ActivityFollowupScreen = () => {
             tabBarActiveTintColor: "#337ab7",
             tabBarInactiveTintColor: "#666",
             tabBarIndicatorStyle: { backgroundColor: "#337ab7" },
-            tabBarLabelStyle: { fontSize: 14, fontWeight: "500" },
+            tabBarLabelStyle: { fontSize: 12, fontWeight: "500" },
             tabBarStyle: { backgroundColor: "#fff" },
           }}
         >
           <Tab.Screen
-            name="Seguimiento"
-            children={() => <FollowupForm contact={contact} />}
+            name="Seguimientos"
+            children={() => <FollowupList contact={contact} />}
             options={{
-              tabBarLabel: "Nuevo seguimiento",
+              tabBarLabel: "Seguimientos",
               tabBarIcon: ({ color, size }) => (
-                <Ionicons name="document-text" size={size} color={color} />
+                <Ionicons name="document-text-outline" size={size} color={color} />
               ),
             }}
           />
           <Tab.Screen
-            name="Actividad"
+            name="Actividades"
+            children={() => <ActivityList contact={contact} />}
+            options={{
+              tabBarLabel: "Actividades",
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="calendar-outline" size={size} color={color} />
+              ),
+            }}
+          />
+          <Tab.Screen
+            name="NuevoSeguimiento"
+            children={() => <FollowupForm contact={contact} onRefresh={() => {
+              // This will be handled by the tab navigator refreshing the component
+            }} />}
+            options={{
+              tabBarLabel: "Nuevo seg.",
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="add-circle" size={size} color={color} />
+              ),
+            }}
+          />
+          <Tab.Screen
+            name="NuevaActividad"
             children={() => <ActivityForm contact={contact} />}
             options={{
-              tabBarLabel: "Nueva actividad",
+              tabBarLabel: "Nueva act.",
               tabBarIcon: ({ color, size }) => (
-                <Ionicons name="calendar" size={size} color={color} />
+                <Ionicons name="add-circle-outline" size={size} color={color} />
               ),
             }}
           />
@@ -738,6 +989,105 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     fontWeight: "600",
     textAlign: "center",
+  },
+  listContainer: {
+    flex: 1,
+    padding: 20,
+  },
+  listItem: {
+    backgroundColor: COLORS.card,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+  },
+  listItemHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  listItemTitle: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: "600",
+    color: COLORS.text,
+    marginLeft: 8,
+  },
+  listItemDate: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginLeft: 8,
+  },
+  listItemContent: {
+    fontSize: 14,
+    color: COLORS.text,
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  listItemUser: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    fontStyle: "italic",
+  },
+  activityDetails: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  detailText: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginBottom: 4,
+  },
+  finalizeButton: {
+    backgroundColor: COLORS.success,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  finalizeButtonText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  closureNotes: {
+    backgroundColor: "#EFF6FF",
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  closureTitle: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: COLORS.primary,
+    marginBottom: 4,
+  },
+  closureText: {
+    fontSize: 14,
+    color: COLORS.text,
+    lineHeight: 20,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: COLORS.textSecondary,
+    textAlign: "center",
+    marginTop: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: COLORS.textSecondary,
+    textAlign: "center",
+    marginTop: 16,
   },
 });
 

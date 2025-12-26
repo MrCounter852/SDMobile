@@ -5,10 +5,17 @@ import { Vibration } from 'react-native';
 
 const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
   // Normalize data to handle inconsistent field names from different API endpoints
+  const getEstadoNombre = (item) => {
+    if (item.EstadoProcesoNombre) return item.EstadoProcesoNombre;
+    if (item.EstadoProcesoID === 1) return 'Nuevo';
+    if (item.EstadoProcesoID === 4) return 'En gestión';
+    return item.Estado || 'N/A';
+  };
+
   const d = {
     nombre: item.NombreCompleto || item.nombreCompleto || item.Nombre || item.nombre ||
       (item.Nombres || item.nombres ? `${item.Nombres || item.nombres} ${item.Apellidos || item.apellidos || ''}`.trim() : 'Contacto sin nombre'),
-    estado: item.EstadoProcesoNombre || item.Estado || 'N/A',
+    estado: getEstadoNombre(item),
     celular: item.Celular || item.celular || item.Telefono || item.telefono || 'Sin celular',
     asesor: item.AsesorNombreCompleto || item.asesorNombreCompleto || '',
     fecha: item.Fecha || item.fecha || item.FechaRegistro || item.fechaRegistro || '',
@@ -69,14 +76,16 @@ const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
       <View style={styles.content}>
         <View style={styles.header}>
           <View style={styles.nameContainer}>
-            <Text style={styles.name} numberOfLines={1}>
+            <Text style={[styles.name, { flex: 1 }]} numberOfLines={1} ellipsizeMode="tail">
               {d.nombre}
             </Text>
-            <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-              <Text style={styles.statusText}>
-                {d.estado}
-              </Text>
-            </View>
+            {d.estado !== 'N/A' && (
+              <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
+                <Text style={styles.statusText}>
+                  {d.estado}
+                </Text>
+              </View>
+            )}
           </View>
           <View style={styles.actions}>
             {d.seguimientos > 0 && (
@@ -111,7 +120,7 @@ const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
               <View style={styles.iconCircle}>
                 <Ionicons name="person-outline" size={12} color="#8E8E93" />
               </View>
-              <Text style={styles.detailText} numberOfLines={1}>{d.asesor}</Text>
+              <Text style={[styles.detailText, { flex: 1 }]} numberOfLines={1} ellipsizeMode="tail">{d.asesor}</Text>
             </View>
           )}
         </View>
