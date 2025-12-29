@@ -24,6 +24,148 @@ const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
     actividades: String(item.CountActividades || item.countActividades || 0),
     estadoGeneral: String(item.EstadoGeneral || item.estadoGeneral || ''),
     color: item.Color || item.color || null,
+    origenID: item.OrigenPreContactoID || null,
+  };
+
+  // Render specific content based on OrigenPreContactoID
+  const renderOriginSpecificContent = () => {
+    // Arrendatarios (4) & Ventas (5): Show property details
+    if (d.origenID === 4 || d.origenID === 5) {
+      const habitaciones = item.Habitaciones || 0;
+      const banos = item.Banos || 0;
+      const garajes = item.Garajes || 0;
+      const tipoInmueble = item.TipoInmuebleNombre || '';
+      const tipoOferta = item.TipoOfertaNombre || '';
+
+      return (
+        <View style={styles.originContent}>
+          {(tipoInmueble || tipoOferta) && (
+            <View style={styles.detailRow}>
+              <View style={styles.iconCircle}>
+                <Ionicons name="home-outline" size={12} color="#8E8E93" />
+              </View>
+              <Text style={styles.detailText}>
+                {tipoInmueble && tipoOferta ? `${tipoInmueble} - ${tipoOferta}` : tipoInmueble || tipoOferta}
+              </Text>
+            </View>
+          )}
+          {(habitaciones > 0 || banos > 0 || garajes > 0) && (
+            <View style={styles.propertyDetails}>
+              {habitaciones > 0 && (
+                <View style={styles.propertyBadge}>
+                  <Ionicons name="bed-outline" size={14} color="#337ab7" />
+                  <Text style={styles.propertyText}>{String(habitaciones)}</Text>
+                </View>
+              )}
+              {banos > 0 && (
+                <View style={styles.propertyBadge}>
+                  <Ionicons name="water-outline" size={14} color="#337ab7" />
+                  <Text style={styles.propertyText}>{String(banos)}</Text>
+                </View>
+              )}
+              {garajes > 0 && (
+                <View style={styles.propertyBadge}>
+                  <Ionicons name="car-outline" size={14} color="#337ab7" />
+                  <Text style={styles.propertyText}>{String(garajes)}</Text>
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+      );
+    }
+
+    // Avaluos (7): Show TipoAvaluoNombre
+    if (d.origenID === 7) {
+      const tipoAvaluo = item.TipoAvaluoNombre || '';
+      if (tipoAvaluo) {
+        return (
+          <View style={styles.originContent}>
+            <View style={styles.detailRow}>
+              <View style={styles.iconCircle}>
+                <Ionicons name="document-text-outline" size={12} color="#8E8E93" />
+              </View>
+              <Text style={styles.detailText}>{String(tipoAvaluo)}</Text>
+            </View>
+          </View>
+        );
+      }
+    }
+
+    // Captaciones (2): Show TipoOfertaNombre
+    if (d.origenID === 2) {
+      const tipoOferta = item.TipoOfertaNombre || '';
+      if (tipoOferta) {
+        return (
+          <View style={styles.originContent}>
+            <View style={styles.detailRow}>
+              <View style={styles.iconCircle}>
+                <Ionicons name="pricetag-outline" size={12} color="#8E8E93" />
+              </View>
+              <Text style={styles.detailText}>{String(tipoOferta)}</Text>
+            </View>
+          </View>
+        );
+      }
+    }
+
+    // Clientes (3): Show custom fields ValorCampo1, ValorCampo2
+    if (d.origenID === 3) {
+      const campo1 = item.ValorCampo1 || '';
+      const campo2 = item.ValorCampo2 || '';
+      if (campo1 || campo2) {
+        return (
+          <View style={styles.originContent}>
+            {campo1 && (
+              <View style={styles.detailRow}>
+                <View style={styles.iconCircle}>
+                  <Ionicons name="information-circle-outline" size={12} color="#8E8E93" />
+                </View>
+                <Text style={styles.detailText} numberOfLines={1}>{String(campo1)}</Text>
+              </View>
+            )}
+            {campo2 && (
+              <View style={styles.detailRow}>
+                <View style={styles.iconCircle}>
+                  <Ionicons name="information-circle-outline" size={12} color="#8E8E93" />
+                </View>
+                <Text style={styles.detailText} numberOfLines={1}>{String(campo2)}</Text>
+              </View>
+            )}
+          </View>
+        );
+      }
+    }
+
+    // Storage estandar (6): Show custom fields ValorCampo1, ValorCampo3
+    if (d.origenID === 6) {
+      const campo1 = item.ValorCampo1 || '';
+      const campo3 = item.ValorCampo3 || '';
+      if (campo1 || campo3) {
+        return (
+          <View style={styles.originContent}>
+            {campo1 && (
+              <View style={styles.detailRow}>
+                <View style={styles.iconCircle}>
+                  <Ionicons name="cube-outline" size={12} color="#8E8E93" />
+                </View>
+                <Text style={styles.detailText} numberOfLines={1}>{String(campo1)}</Text>
+              </View>
+            )}
+            {campo3 && (
+              <View style={styles.detailRow}>
+                <View style={styles.iconCircle}>
+                  <Ionicons name="cube-outline" size={12} color="#8E8E93" />
+                </View>
+                <Text style={styles.detailText} numberOfLines={1}>{String(campo3)}</Text>
+              </View>
+            )}
+          </View>
+        );
+      }
+    }
+
+    return null;
   };
 
   const getEstadoColor = (estado) => {
@@ -38,10 +180,10 @@ const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
   const statusColor = d.color || getEstadoColor(d.estado);
 
   const formatDate = (dateString) => {
-    if (!dateString) return '';
+    if (!dateString) return 'N/A';
     try {
       const date = new Date(dateString);
-      if (isNaN(date.getTime())) return dateString;
+      if (isNaN(date.getTime())) return String(dateString);
       return date.toLocaleDateString('es-CO', {
         day: '2-digit',
         month: '2-digit',
@@ -50,17 +192,22 @@ const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
         minute: '2-digit'
       });
     } catch (e) {
-      return dateString;
+      return String(dateString);
     }
   };
 
   const formatCurrency = (value) => {
-    if (!value) return '';
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0
-    }).format(value);
+    if (value === null || value === undefined) return 'N/A';
+    if (value === 0) return '$0';
+    try {
+      return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0
+      }).format(value);
+    } catch (e) {
+      return 'N/A';
+    }
   };
 
   return (
@@ -77,12 +224,12 @@ const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
         <View style={styles.header}>
           <View style={styles.nameContainer}>
             <Text style={[styles.name, { flex: 1 }]} numberOfLines={1} ellipsizeMode="tail">
-              {d.nombre}
+              {String(d.nombre)}
             </Text>
             {d.estado !== 'N/A' && (
               <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
                 <Text style={styles.statusText}>
-                  {d.estado}
+                  {String(d.estado)}
                 </Text>
               </View>
             )}
@@ -91,7 +238,7 @@ const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
             {d.seguimientos > 0 && (
               <View style={styles.badge}>
                 <Ionicons name="chatbubble-ellipses-outline" size={14} color="#337ab7" />
-                <Text style={styles.badgeText}>{d.seguimientos}</Text>
+                <Text style={styles.badgeText}>{String(d.seguimientos)}</Text>
               </View>
             )}
             {d.actividades > 0 && (
@@ -101,7 +248,7 @@ const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
                   size={14}
                   color={d.estadoGeneral === 'V' ? '#88E782' : d.estadoGeneral === 'A' ? '#00ACC4' : '#337ab7'}
                 />
-                <Text style={styles.badgeText}>{d.actividades}</Text>
+                <Text style={styles.badgeText}>{String(d.actividades)}</Text>
               </View>
             )}
           </View>
@@ -112,7 +259,7 @@ const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
             <View style={styles.iconCircle}>
               <Ionicons name="call-outline" size={12} color="#8E8E93" />
             </View>
-            <Text style={styles.detailText}>{d.celular}</Text>
+            <Text style={styles.detailText}>{String(d.celular)}</Text>
           </View>
 
           {!!d.asesor && (
@@ -120,9 +267,12 @@ const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
               <View style={styles.iconCircle}>
                 <Ionicons name="person-outline" size={12} color="#8E8E93" />
               </View>
-              <Text style={[styles.detailText, { flex: 1 }]} numberOfLines={1} ellipsizeMode="tail">{d.asesor}</Text>
+              <Text style={[styles.detailText, { flex: 1 }]} numberOfLines={1} ellipsizeMode="tail">{String(d.asesor)}</Text>
             </View>
           )}
+
+          {/* Origin-specific content */}
+          {renderOriginSpecificContent()}
         </View>
 
         <View style={styles.divider} />
@@ -274,6 +424,30 @@ const styles = StyleSheet.create({
   },
   selectedContainer: {
     backgroundColor: '#e0f7fa',
+  },
+  originContent: {
+    marginTop: 6,
+    gap: 6,
+  },
+  propertyDetails: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 4,
+  },
+  propertyBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E5F1FF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
+  },
+  propertyText: {
+    fontSize: 12,
+    color: '#337ab7',
+    fontWeight: '600',
   },
 });
 

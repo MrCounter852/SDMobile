@@ -160,24 +160,33 @@ const ContactDetail = ({ navigation, route }) => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-CO', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'N/A';
+      return date.toLocaleDateString('es-CO', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return 'N/A';
+    }
   };
 
   const formatCurrency = (value) => {
-    if (!value) return '';
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0
-    }).format(value);
+    if (!value || value === 0) return 'N/A';
+    try {
+      return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0
+      }).format(value);
+    } catch (e) {
+      return 'N/A';
+    }
   };
 
   const parseInmuebles = (inmuebleString) => {
@@ -194,46 +203,128 @@ const ContactDetail = ({ navigation, route }) => {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Contact Summary Card */}
         <View style={styles.heroSection}>
-          <ContactItem item={contactDetail} />
+          {contactDetail && contactDetail.ProcesoID ? (
+            <ContactItem item={contactDetail} />
+          ) : (
+            <View style={{ padding: 20 }}>
+              <Text style={{ textAlign: 'center', color: '#8E8E93' }}>Cargando...</Text>
+            </View>
+          )}
         </View>
 
         {/* Additional Details */}
-        {/* Info Grid Section */}
+        {/* TEMPORARILY COMMENTED FOR DEBUGGING */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Información</Text>
+            <Text style={styles.sectionTitle}>Información General</Text>
             <Ionicons name="information-circle-outline" size={20} color="#AEAEB2" />
           </View>
 
           <View style={styles.detailGrid}>
-            <View style={styles.gridRow}>
-              <View style={styles.gridItem}>
-                <Text style={styles.detailLabel}>Tipo</Text>
-                <Text style={styles.detailValue}>{contactDetail.TipoInmuebleNombre || 'N/A'}</Text>
-              </View>
-              <View style={styles.gridItem}>
-                <Text style={styles.detailLabel}>Asesor</Text>
-                <Text style={styles.detailValue}>{contactDetail.AsesorNombreCompleto || 'No asignado'}</Text>
-              </View>
-            </View>
-
-            <View style={styles.gridRow}>
-              <View style={styles.gridItem}>
-                <Text style={styles.detailLabel}>Contacto</Text>
-                <Text style={styles.detailValue}>{contactDetail.FormaContactoNombre || 'N/A'}</Text>
-              </View>
-              <View style={styles.gridItem}>
-                <Text style={styles.detailLabel}>Origen</Text>
-                <Text style={styles.detailValue}>{contactDetail.FormaComoNosConocioNombre || 'N/A'}</Text>
-              </View>
-            </View>
-
-            {contactDetail.ValorNegocio && (
+            {(contactDetail.Email || contactDetail.Celular) && (
               <View style={styles.gridRow}>
-                <View style={[styles.gridItem, { flex: 1 }]}>
-                  <Text style={styles.detailLabel}>Valor Negocio</Text>
-                  <Text style={[styles.detailValue, styles.valueHighlight]}>{formatCurrency(contactDetail.ValorNegocio)}</Text>
+                {contactDetail.Email && (
+                  <View style={styles.gridItem}>
+                    <Text style={styles.detailLabel}>Email</Text>
+                    <Text style={styles.detailValue} numberOfLines={1}>{String(contactDetail.Email)}</Text>
+                  </View>
+                )}
+                {contactDetail.Celular && (
+                  <View style={styles.gridItem}>
+                    <Text style={styles.detailLabel}>Celular</Text>
+                    <Text style={styles.detailValue}>{String(contactDetail.Celular)}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {(contactDetail.AsesorNombreCompleto || contactDetail.EstadoProcesoNombre) && (
+              <View style={styles.gridRow}>
+                {contactDetail.AsesorNombreCompleto && (
+                  <View style={styles.gridItem}>
+                    <Text style={styles.detailLabel}>Asesor</Text>
+                    <Text style={styles.detailValue} numberOfLines={1}>{String(contactDetail.AsesorNombreCompleto)}</Text>
+                  </View>
+                )}
+                {contactDetail.EstadoProcesoNombre && (
+                  <View style={styles.gridItem}>
+                    <Text style={styles.detailLabel}>Estado</Text>
+                    <Text style={styles.detailValue}>{String(contactDetail.EstadoProcesoNombre)}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {(contactDetail.OrigenPreContactoNombre || contactDetail.FormaContactoNombre) && (
+              <View style={styles.gridRow}>
+                {contactDetail.OrigenPreContactoNombre && (
+                  <View style={styles.gridItem}>
+                    <Text style={styles.detailLabel}>Origen</Text>
+                    <Text style={styles.detailValue}>{String(contactDetail.OrigenPreContactoNombre)}</Text>
+                  </View>
+                )}
+                {contactDetail.FormaContactoNombre && (
+                  <View style={styles.gridItem}>
+                    <Text style={styles.detailLabel}>Forma Contacto</Text>
+                    <Text style={styles.detailValue}>{String(contactDetail.FormaContactoNombre)}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {contactDetail.FormaComoNosConocioNombre && (
+              <View style={styles.gridRow}>
+                <View style={styles.gridItem}>
+                  <Text style={styles.detailLabel}>¿Cómo nos conoció?</Text>
+                  <Text style={styles.detailValue}>{String(contactDetail.FormaComoNosConocioNombre)}</Text>
                 </View>
+                {contactDetail.FormaComoNosConocioDetalleNombre && (
+                  <View style={styles.gridItem}>
+                    <Text style={styles.detailLabel}>Detalle</Text>
+                    <Text style={styles.detailValue}>{String(contactDetail.FormaComoNosConocioDetalleNombre)}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* Row 5: Fechas */}
+            {(contactDetail.Fecha || contactDetail.FechaCierre) && (
+              <View style={styles.gridRow}>
+                {contactDetail.Fecha && (
+                  <View style={styles.gridItem}>
+                    <Text style={styles.detailLabel}>Fecha Registro</Text>
+                    <Text style={styles.detailValue}>{formatDate(contactDetail.Fecha)}</Text>
+                  </View>
+                )}
+                {contactDetail.FechaCierre && (
+                  <View style={styles.gridItem}>
+                    <Text style={styles.detailLabel}>Fecha Cierre</Text>
+                    <Text style={styles.detailValue}>{formatDate(contactDetail.FechaCierre)}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* Row 6: Fecha Posible Servicio & Estado General */}
+            {(contactDetail.FechaPosibleServicio || contactDetail.EstadoGeneral) && (
+              <View style={styles.gridRow}>
+                {contactDetail.FechaPosibleServicio && (
+                  <View style={styles.gridItem}>
+                    <Text style={styles.detailLabel}>Fecha Posible Servicio</Text>
+                    <Text style={styles.detailValue}>{formatDate(contactDetail.FechaPosibleServicio)}</Text>
+                  </View>
+                )}
+                {contactDetail.EstadoGeneral && (
+                  <View style={styles.gridItem}>
+                    <Text style={styles.detailLabel}>Estado General</Text>
+                    <Text style={styles.detailValue}>
+                      {contactDetail.EstadoGeneral === 'R' ? 'Regular' :
+                        contactDetail.EstadoGeneral === 'V' ? 'Verde' :
+                          contactDetail.EstadoGeneral === 'A' ? 'Amarillo' :
+                            String(contactDetail.EstadoGeneral)}
+                    </Text>
+                  </View>
+                )}
               </View>
             )}
           </View>
@@ -242,11 +333,32 @@ const ContactDetail = ({ navigation, route }) => {
             <View style={styles.observations}>
               <Text style={styles.detailLabel}>Observaciones</Text>
               <View style={styles.observationCard}>
-                <Text style={styles.observationsText}>{contactDetail.Observaciones}</Text>
+                <Text style={styles.observationsText}>{String(contactDetail.Observaciones)}</Text>
               </View>
             </View>
           )}
         </View>
+
+        {/* Avaluos Section - OrigenPreContactoID = 7 */}
+        {contactDetail.OrigenPreContactoID == 7 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Información del Avalúo</Text>
+              <Ionicons name="document-text-outline" size={20} color="#AEAEB2" />
+            </View>
+
+            <View style={styles.detailGrid}>
+              {contactDetail.TipoAvaluoNombre && (
+                <View style={styles.gridRow}>
+                  <View style={styles.gridItem}>
+                    <Text style={styles.detailLabel}>Tipo de Avalúo</Text>
+                    <Text style={styles.detailValue}>{String(contactDetail.TipoAvaluoNombre)}</Text>
+                  </View>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
 
         {/* Property Details Section */}
         {(contactDetail.OrigenPreContactoID == 2 || contactDetail.OrigenPreContactoID == 4 || contactDetail.OrigenPreContactoID == 5) && (
@@ -256,67 +368,87 @@ const ContactDetail = ({ navigation, route }) => {
               <Ionicons name="home-outline" size={20} color="#AEAEB2" />
             </View>
 
-            {(contactDetail.Habitaciones || contactDetail.Garajes || contactDetail.Banos || contactDetail.TipoOfertaNombre || contactDetail.TipoInmuebleNombre || contactDetail.Inmueble) ? (
+            {(contactDetail.Habitaciones || contactDetail.Garajes || contactDetail.Banos || contactDetail.TipoOfertaNombre || contactDetail.TipoInmuebleNombre || contactDetail.Inmueble || contactDetail.EstadoMandato || contactDetail.EstadoCorretaje) ? (
               <View style={styles.propertyDetails}>
-              {(contactDetail.TipoOfertaNombre || contactDetail.TipoInmuebleNombre) && (
-                <View style={styles.propertyRow}>
-                  {contactDetail.TipoOfertaNombre && (
-                    <View style={styles.propertyItem}>
-                      <Ionicons name="business-outline" size={16} color="#337ab7" />
-                      <Text style={styles.propertyLabel}>Tipo Oferta</Text>
-                      <Text style={styles.propertyValue}>{contactDetail.TipoOfertaNombre}</Text>
-                    </View>
-                  )}
-                  {contactDetail.TipoInmuebleNombre && (
-                    <View style={styles.propertyItem}>
-                      <Ionicons name="home-outline" size={16} color="#337ab7" />
-                      <Text style={styles.propertyLabel}>Tipo Inmueble</Text>
-                      <Text style={styles.propertyValue}>{contactDetail.TipoInmuebleNombre}</Text>
-                    </View>
-                  )}
-                </View>
-              )}
-
-              {(contactDetail.Habitaciones || contactDetail.Garajes || contactDetail.Banos) && (
-                <View style={styles.propertyRow}>
-                  {contactDetail.Habitaciones && (
-                    <View style={styles.propertyItem}>
-                      <Ionicons name="bed-outline" size={16} color="#337ab7" />
-                      <Text style={styles.propertyLabel}>Habitaciones</Text>
-                      <Text style={styles.propertyValue}>{contactDetail.Habitaciones}</Text>
-                    </View>
-                  )}
-                  {contactDetail.Garajes && (
-                    <View style={styles.propertyItem}>
-                      <Ionicons name="car-outline" size={16} color="#337ab7" />
-                      <Text style={styles.propertyLabel}>Garajes</Text>
-                      <Text style={styles.propertyValue}>{contactDetail.Garajes}</Text>
-                    </View>
-                  )}
-                  {contactDetail.Banos && (
-                    <View style={styles.propertyItem}>
-                      <Ionicons name="water-outline" size={16} color="#337ab7" />
-                      <Text style={styles.propertyLabel}>Baños</Text>
-                      <Text style={styles.propertyValue}>{contactDetail.Banos}</Text>
-                    </View>
-                  )}
-                </View>
-              )}
-
-              {contactDetail.Inmueble && parseInmuebles(contactDetail.Inmueble).length > 0 && (
-                <View style={styles.inmueblesSection}>
-                  <Text style={styles.detailLabel}>Inmuebles Asociados</Text>
-                  {parseInmuebles(contactDetail.Inmueble).map((inmueble, index) => (
-                    <View key={index} style={styles.inmuebleItem}>
-                      <Ionicons name="location-outline" size={16} color="#337ab7" />
-                      <View style={styles.inmuebleContent}>
-                        <Text style={styles.inmuebleConsecutivo}>Inmueble N°. {inmueble.Consecutivo}</Text>
-                        <Text style={styles.inmuebleDireccion}>{inmueble.Direccion}</Text>
+                {(contactDetail.TipoOfertaNombre || contactDetail.TipoInmuebleNombre) && (
+                  <View style={styles.propertyRow}>
+                    {contactDetail.TipoOfertaNombre && (
+                      <View style={styles.propertyItem}>
+                        <Ionicons name="business-outline" size={16} color="#337ab7" />
+                        <Text style={styles.propertyLabel}>Tipo Oferta</Text>
+                        <Text style={styles.propertyValue}>{String(contactDetail.TipoOfertaNombre)}</Text>
                       </View>
-                    </View>
-                  ))}
-                </View>
-              )}
+                    )}
+                    {contactDetail.TipoInmuebleNombre && (
+                      <View style={styles.propertyItem}>
+                        <Ionicons name="home-outline" size={16} color="#337ab7" />
+                        <Text style={styles.propertyLabel}>Tipo Inmueble</Text>
+                        <Text style={styles.propertyValue}>{String(contactDetail.TipoInmuebleNombre)}</Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+
+                {(contactDetail.Habitaciones || contactDetail.Garajes || contactDetail.Banos) && (
+                  <View style={styles.propertyRow}>
+                    {contactDetail.Habitaciones && (
+                      <View style={styles.propertyItem}>
+                        <Ionicons name="bed-outline" size={16} color="#337ab7" />
+                        <Text style={styles.propertyLabel}>Habitaciones</Text>
+                        <Text style={styles.propertyValue}>{String(contactDetail.Habitaciones)}</Text>
+                      </View>
+                    )}
+                    {contactDetail.Garajes && (
+                      <View style={styles.propertyItem}>
+                        <Ionicons name="car-outline" size={16} color="#337ab7" />
+                        <Text style={styles.propertyLabel}>Garajes</Text>
+                        <Text style={styles.propertyValue}>{String(contactDetail.Garajes)}</Text>
+                      </View>
+                    )}
+                    {contactDetail.Banos && (
+                      <View style={styles.propertyItem}>
+                        <Ionicons name="water-outline" size={16} color="#337ab7" />
+                        <Text style={styles.propertyLabel}>Baños</Text>
+                        <Text style={styles.propertyValue}>{String(contactDetail.Banos)}</Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+
+                {/* Captaciones specific fields: EstadoMandato & EstadoCorretaje */}
+                {contactDetail.OrigenPreContactoID == 2 && (contactDetail.EstadoMandato || contactDetail.EstadoCorretaje) && (
+                  <View style={styles.propertyRow}>
+                    {contactDetail.EstadoMandato && (
+                      <View style={styles.propertyItem}>
+                        <Ionicons name="document-text-outline" size={16} color="#337ab7" />
+                        <Text style={styles.propertyLabel}>Estado Mandato</Text>
+                        <Text style={styles.propertyValue}>{String(contactDetail.EstadoMandato)}</Text>
+                      </View>
+                    )}
+                    {contactDetail.EstadoCorretaje && (
+                      <View style={styles.propertyItem}>
+                        <Ionicons name="ribbon-outline" size={16} color="#337ab7" />
+                        <Text style={styles.propertyLabel}>Estado Corretaje</Text>
+                        <Text style={styles.propertyValue}>{String(contactDetail.EstadoCorretaje)}</Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+
+                {contactDetail.Inmueble && parseInmuebles(contactDetail.Inmueble).length > 0 && (
+                  <View style={styles.inmueblesSection}>
+                    <Text style={styles.detailLabel}>Inmuebles Asociados</Text>
+                    {parseInmuebles(contactDetail.Inmueble).map((inmueble, index) => (
+                      <View key={index} style={styles.inmuebleItem}>
+                        <Ionicons name="location-outline" size={16} color="#337ab7" />
+                        <View style={styles.inmuebleContent}>
+                          <Text style={styles.inmuebleConsecutivo}>Inmueble N°. {String(inmueble.Consecutivo)}</Text>
+                          <Text style={styles.inmuebleDireccion}>{String(inmueble.Direccion)}</Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                )}
               </View>
             ) : (
               <Text style={styles.emptyText}>No hay detalles del inmueble disponibles</Text>
@@ -338,8 +470,8 @@ const ContactDetail = ({ navigation, route }) => {
                 if (!value) return null;
                 return (
                   <View key={field.CampoPreContactoID} style={styles.customFieldItem}>
-                    <Text style={styles.detailLabel}>{field.LabelCampo}</Text>
-                    <Text style={styles.detailValue}>{value}</Text>
+                    <Text style={styles.detailLabel}>{String(field.LabelCampo)}</Text>
+                    <Text style={styles.detailValue}>{String(value)}</Text>
                   </View>
                 );
               })}
@@ -376,7 +508,7 @@ const ContactDetail = ({ navigation, route }) => {
                 </View>
                 <View style={styles.activityContent}>
                   <Text style={styles.activityTitle} numberOfLines={1}>
-                    {activity.Asunto}
+                    {String(activity.Asunto)}
                   </Text>
                   <Text style={styles.activityDate}>
                     {formatDate(activity.FechaInicio)}
@@ -414,7 +546,7 @@ const ContactDetail = ({ navigation, route }) => {
               <View key={followup.SeguimientoID} style={styles.followupItem}>
                 <View style={styles.followupContent}>
                   <Text style={styles.followupText} numberOfLines={2}>
-                    {followup.Observaciones}
+                    {String(followup.Observaciones)}
                   </Text>
                   <Text style={styles.followupDate}>
                     {formatDate(followup.FechaRegistro)}
