@@ -25,7 +25,7 @@ const TimelineColumn = ({ linea, onContactPress, onMoveContact, refreshing, onRe
           </View>
         </View>
         <TouchableOpacity style={styles.filterButton}>
-          <Ionicons name="ellipsis-horizontal" size={18} color="#8E8E93" />
+          <Ionicons name="filter-outline" size={18} color="#8E8E93" />
         </TouchableOpacity>
       </View>
 

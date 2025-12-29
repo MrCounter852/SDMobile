@@ -13,8 +13,9 @@ import {
   ActivityIndicator,
   Animated,
   Dimensions,
+  Keyboard,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { LinearGradient } from "expo-linear-gradient";
@@ -47,6 +48,8 @@ const FilterModal = ({
 
   const { height } = Dimensions.get("window");
   const animatedValue = useRef(new Animated.Value(0)).current;
+  const insets = useSafeAreaInsets();
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   useEffect(() => {
     if (visible && initialFilters) {
@@ -84,6 +87,24 @@ const FilterModal = ({
     inputRange: [0, 1],
     outputRange: [height, 0],
   });
+
+  useEffect(() => {
+    const keyboardShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      if (Platform.OS === 'android') {
+        setKeyboardOffset(0);
+      }
+    });
+    const keyboardHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      if (Platform.OS === 'android') {
+        setKeyboardOffset(-30);
+      }
+    });
+
+    return () => {
+      keyboardShowListener.remove();
+      keyboardHideListener.remove();
+    };
+  }, [insets.bottom]);
 
   const handleApplyFilters = () => {
     onApplyFilters(filters);
@@ -167,7 +188,8 @@ const FilterModal = ({
       <SafeAreaView style={{ flex: 1 }}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : keyboardOffset}
         >
           <View style={styles.overlay}>
             <Animated.View
@@ -199,6 +221,7 @@ const FilterModal = ({
               <ScrollView
                 style={styles.content}
                 showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
               >
                 {loading && (
                   <View style={styles.loadingContainer}>
