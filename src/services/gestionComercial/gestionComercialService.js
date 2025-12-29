@@ -78,8 +78,12 @@ class GestionComercialService {
   // Consultar pre-contactos por origen
   async consultarPreContactos(filtros) {
     let endpoint = '/PreContactos/PreContactosPorOrigenConsultar';
-    if (filtros.OrigenPreContactoID == 2 || filtros.OrigenPreContactoID == 4 || filtros.OrigenPreContactoID == 5) {
+    if (filtros.OrigenPreContactoID == 2) {
+      endpoint = '/Inmuebles/ProcesosPropietariosConsultar/';
+    } else if (filtros.OrigenPreContactoID == 4) {
       endpoint = '/Inmuebles/ProcesosArrendatariosConsultar';
+    } else if (filtros.OrigenPreContactoID == 5) {
+      endpoint = '/Inmuebles/ProcesosVentasGBIConsultar/';
     } else if (filtros.OrigenPreContactoID == 7) {
       endpoint = '/PreContactos/PreContactosAvaluosConsultar/';
     }
