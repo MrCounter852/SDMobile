@@ -13,16 +13,16 @@ const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
   };
 
   const d = {
-    nombre: item.NombreCompleto || item.nombreCompleto || item.Nombre || item.nombre ||
-      (item.Nombres || item.nombres ? `${item.Nombres || item.nombres} ${item.Apellidos || item.apellidos || ''}`.trim() : 'Contacto sin nombre'),
-    estado: getEstadoNombre(item),
-    celular: item.Celular || item.celular || item.Telefono || item.telefono || 'Sin celular',
-    asesor: item.AsesorNombreCompleto || item.asesorNombreCompleto || '',
-    fecha: item.Fecha || item.fecha || item.FechaRegistro || item.fechaRegistro || '',
+    nombre: String(item.NombreCompleto || item.nombreCompleto || item.Nombre || item.nombre ||
+      (item.Nombres || item.nombres ? `${item.Nombres || item.nombres} ${item.Apellidos || item.apellidos || ''}`.trim() : 'Contacto sin nombre')),
+    estado: String(getEstadoNombre(item)),
+    celular: String(item.Celular || item.celular || item.Telefono || item.telefono || 'Sin celular'),
+    asesor: String(item.AsesorNombreCompleto || item.asesorNombreCompleto || ''),
+    fecha: String(item.Fecha || item.fecha || item.FechaRegistro || item.fechaRegistro || ''),
     valor: item.ValorNegocio || item.valorNegocio || 0,
-    seguimientos: item.CountSeguimientos || item.countSeguimientos || 0,
-    actividades: item.CountActividades || item.countActividades || 0,
-    estadoGeneral: item.EstadoGeneral || item.estadoGeneral || '',
+    seguimientos: String(item.CountSeguimientos || item.countSeguimientos || 0),
+    actividades: String(item.CountActividades || item.countActividades || 0),
+    estadoGeneral: String(item.EstadoGeneral || item.estadoGeneral || ''),
     color: item.Color || item.color || null,
   };
 

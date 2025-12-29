@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,8 @@ import {
   Platform,
   KeyboardAvoidingView,
   ActivityIndicator,
+  Animated,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -43,6 +45,9 @@ const FilterModal = ({
     ...initialFilters,
   });
 
+  const { height } = Dimensions.get("window");
+  const animatedValue = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     if (visible && initialFilters) {
       setFilters({
@@ -51,9 +56,38 @@ const FilterModal = ({
     }
   }, [visible, initialFilters]);
 
+  useEffect(() => {
+    if (visible) {
+      animatedValue.setValue(0);
+      Animated.timing(animatedValue, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [visible]);
+
+  const handleClose = () => {
+    Animated.timing(animatedValue, {
+      toValue: 0,
+      duration: 250,
+      useNativeDriver: true,
+    }).start(() => onClose());
+  };
+
+  const backdropOpacity = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
+
+  const slideY = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [height, 0],
+  });
+
   const handleApplyFilters = () => {
     onApplyFilters(filters);
-    onClose();
+    handleClose();
   };
 
   const handleResetFilters = () => {
@@ -125,182 +159,193 @@ const FilterModal = ({
 
   return (
     <Modal
-      animationType="slide"
+      animationType="none"
       transparent={true}
       visible={visible}
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <SafeAreaView style={{ flex: 1 }}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
-        <View style={styles.overlay}>
-          <TouchableOpacity
-            style={styles.dismissArea}
-            activeOpacity={1}
-            onPress={onClose}
-          />
-          <View style={styles.container}>
-            <View style={styles.dragHandle} />
-
-            <View style={styles.header}>
-              <Text style={styles.title}>Filtros</Text>
-              <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                <Ionicons name="close" size={20} color="#1C1C1E" />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView
-              style={styles.content}
-              showsVerticalScrollIndicator={false}
+          <View style={styles.overlay}>
+            <Animated.View
+              style={[
+                styles.dimmer,
+                { opacity: backdropOpacity },
+              ]}
+            />
+            <TouchableOpacity
+              style={styles.dismissArea}
+              activeOpacity={1}
+              onPress={handleClose}
+            />
+            <Animated.View
+              style={[
+                styles.container,
+                { transform: [{ translateY: slideY }] }
+              ]}
             >
-              {loading && (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="small" color="#337ab7" />
-                  <Text style={styles.loadingText}>Cargando filtros...</Text>
-                </View>
-              )}
-              {(mode === 'table' || mode === 'timeline') && (
-                <>
-                  {/* Origen */}
-                  <View style={styles.filterSection}>
-                    <Text style={styles.label}>Tipo de contacto</Text>
-                    <View style={styles.pickerContainer}>
-                      <Picker
-                        selectedValue={filters.OrigenPreContactoID}
-                        onValueChange={(value) =>
-                          setFilters((prev) => ({
-                            ...prev,
-                            OrigenPreContactoID: value,
-                          }))
-                        }
-                        style={styles.picker}
-                      >
-                        <Picker.Item label="Todos" value={null} />
-                        {origenesItems}
-                      </Picker>
-                    </View>
-                  </View>
+              <View style={styles.dragHandle} />
 
-                  {/* Estado Proceso */}
-                  <View style={styles.filterSection}>
-                    <Text style={styles.label}>Estado del proceso</Text>
-                    <View style={styles.pickerContainer}>
-                      <Picker
-                        selectedValue={filters.EstadoProcesoID}
-                        onValueChange={(value) =>
-                          setFilters((prev) => ({
-                            ...prev,
-                            EstadoProcesoID: value,
-                          }))
-                        }
-                        style={styles.picker}
-                      >
-                        {estadosItems}
-                      </Picker>
-                    </View>
-                  </View>
-
-                  {/* Estado General */}
-                  <View style={styles.filterSection}>
-                    <Text style={styles.label}>Estado general</Text>
-                    <View style={styles.pickerContainer}>
-                      <Picker
-                        selectedValue={filters.EstadoGeneral}
-                        onValueChange={(value) =>
-                          setFilters((prev) => ({ ...prev, EstadoGeneral: value }))
-                        }
-                        style={styles.picker}
-                      >
-                        {estadosGeneralesItems}
-                      </Picker>
-                    </View>
-                  </View>
-                </>
-              )}
-
-              {mode === 'calendar' && (
-                <>
-                  {/* Estados Actividad */}
-                  <View style={styles.filterSection}>
-                    <Text style={styles.label}>Estados</Text>
-                    <View style={styles.pickerContainer}>
-                      <Picker
-                        selectedValue={filters.EstadoActividadID}
-                        onValueChange={(value) =>
-                          setFilters((prev) => ({ ...prev, EstadoActividadID: value }))
-                        }
-                        style={styles.picker}
-                      >
-                        {estadosActividadesItems}
-                      </Picker>
-                    </View>
-                  </View>
-
-                  {/* Fecha Inicial */}
-                  <View style={styles.filterSection}>
-                    <Text style={styles.label}>Fecha inicial</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      placeholder="DD/MM/YYYY"
-                      value={filters.FechaInicial || ''}
-                      onChangeText={(text) =>
-                        setFilters((prev) => ({ ...prev, FechaInicial: text }))
-                      }
-                    />
-                  </View>
-
-                  {/* Fecha Final */}
-                  <View style={styles.filterSection}>
-                    <Text style={styles.label}>Fecha final</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      placeholder="DD/MM/YYYY"
-                      value={filters.FechaFinal || ''}
-                      onChangeText={(text) =>
-                        setFilters((prev) => ({ ...prev, FechaFinal: text }))
-                      }
-                    />
-                  </View>
-
-                  {/* Tipos Actividades */}
-                  <View style={styles.filterSection}>
-                    <Text style={styles.label}>Tipos actividades</Text>
-                    <View style={styles.pickerContainer}>
-                      <Picker
-                        selectedValue={filters.TipoCalendarioActividadID}
-                        onValueChange={(value) =>
-                          setFilters((prev) => ({ ...prev, TipoCalendarioActividadID: value }))
-                        }
-                        style={styles.picker}
-                      >
-                        <Picker.Item label="Todos" value={null} />
-                        {tiposCalendarioItems}
-                      </Picker>
-                    </View>
-                  </View>
-                </>
-              )}
-
-
-
-              {/* Búsqueda - común */}
-              <View style={styles.filterSection}>
-                <Text style={styles.label}>Búsqueda</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder={mode === 'calendar' ? "Buscar por asunto, contacto..." : "Buscar por nombre, email, celular..."}
-                  value={filters.FullSearch}
-                  onChangeText={(text) =>
-                    setFilters((prev) => ({ ...prev, FullSearch: text }))
-                  }
-                  maxLength={100}
-                />
+              <View style={styles.header}>
+                <Text style={styles.title}>Filtros</Text>
+                <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
+                  <Ionicons name="close" size={20} color="#1C1C1E" />
+                </TouchableOpacity>
               </View>
 
-              {/* Fechas - Para versión futura si se necesita */}
-              {/* <View style={styles.filterSection}>
+              <ScrollView
+                style={styles.content}
+                showsVerticalScrollIndicator={false}
+              >
+                {loading && (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="small" color="#337ab7" />
+                    <Text style={styles.loadingText}>Cargando filtros...</Text>
+                  </View>
+                )}
+                {(mode === 'table' || mode === 'timeline') && (
+                  <>
+                    {/* Origen */}
+                    <View style={styles.filterSection}>
+                      <Text style={styles.label}>Tipo de contacto</Text>
+                      <View style={styles.pickerContainer}>
+                        <Picker
+                          selectedValue={filters.OrigenPreContactoID}
+                          onValueChange={(value) =>
+                            setFilters((prev) => ({
+                              ...prev,
+                              OrigenPreContactoID: value,
+                            }))
+                          }
+                          style={styles.picker}
+                        >
+                          <Picker.Item label="Todos" value={null} />
+                          {origenesItems}
+                        </Picker>
+                      </View>
+                    </View>
+
+                    {/* Estado Proceso */}
+                    <View style={styles.filterSection}>
+                      <Text style={styles.label}>Estado del proceso</Text>
+                      <View style={styles.pickerContainer}>
+                        <Picker
+                          selectedValue={filters.EstadoProcesoID}
+                          onValueChange={(value) =>
+                            setFilters((prev) => ({
+                              ...prev,
+                              EstadoProcesoID: value,
+                            }))
+                          }
+                          style={styles.picker}
+                        >
+                          {estadosItems}
+                        </Picker>
+                      </View>
+                    </View>
+
+                    {/* Estado General */}
+                    <View style={styles.filterSection}>
+                      <Text style={styles.label}>Estado general</Text>
+                      <View style={styles.pickerContainer}>
+                        <Picker
+                          selectedValue={filters.EstadoGeneral}
+                          onValueChange={(value) =>
+                            setFilters((prev) => ({ ...prev, EstadoGeneral: value }))
+                          }
+                          style={styles.picker}
+                        >
+                          {estadosGeneralesItems}
+                        </Picker>
+                      </View>
+                    </View>
+                  </>
+                )}
+
+                {mode === 'calendar' && (
+                  <>
+                    {/* Estados Actividad */}
+                    <View style={styles.filterSection}>
+                      <Text style={styles.label}>Estados</Text>
+                      <View style={styles.pickerContainer}>
+                        <Picker
+                          selectedValue={filters.EstadoActividadID}
+                          onValueChange={(value) =>
+                            setFilters((prev) => ({ ...prev, EstadoActividadID: value }))
+                          }
+                          style={styles.picker}
+                        >
+                          {estadosActividadesItems}
+                        </Picker>
+                      </View>
+                    </View>
+
+                    {/* Fecha Inicial */}
+                    <View style={styles.filterSection}>
+                      <Text style={styles.label}>Fecha inicial</Text>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder="DD/MM/YYYY"
+                        value={filters.FechaInicial || ''}
+                        onChangeText={(text) =>
+                          setFilters((prev) => ({ ...prev, FechaInicial: text }))
+                        }
+                      />
+                    </View>
+
+                    {/* Fecha Final */}
+                    <View style={styles.filterSection}>
+                      <Text style={styles.label}>Fecha final</Text>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder="DD/MM/YYYY"
+                        value={filters.FechaFinal || ''}
+                        onChangeText={(text) =>
+                          setFilters((prev) => ({ ...prev, FechaFinal: text }))
+                        }
+                      />
+                    </View>
+
+                    {/* Tipos Actividades */}
+                    <View style={styles.filterSection}>
+                      <Text style={styles.label}>Tipos actividades</Text>
+                      <View style={styles.pickerContainer}>
+                        <Picker
+                          selectedValue={filters.TipoCalendarioActividadID}
+                          onValueChange={(value) =>
+                            setFilters((prev) => ({ ...prev, TipoCalendarioActividadID: value }))
+                          }
+                          style={styles.picker}
+                        >
+                          <Picker.Item label="Todos" value={null} />
+                          {tiposCalendarioItems}
+                        </Picker>
+                      </View>
+                    </View>
+                  </>
+                )}
+
+
+
+                {/* Búsqueda - común */}
+                <View style={styles.filterSection}>
+                  <Text style={styles.label}>Búsqueda</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder={mode === 'calendar' ? "Buscar por asunto, contacto..." : "Buscar por nombre, email, celular..."}
+                    value={filters.FullSearch}
+                    onChangeText={(text) =>
+                      setFilters((prev) => ({ ...prev, FullSearch: text }))
+                    }
+                    maxLength={100}
+                  />
+                </View>
+
+                {/* Fechas - Para versión futura si se necesita */}
+                {/* <View style={styles.filterSection}>
                 <Text style={styles.label}>Fecha inicial</Text>
                 <TextInput
                   style={styles.textInput}
@@ -319,39 +364,42 @@ const FilterModal = ({
                   onChangeText={(text) => setFilters(prev => ({ ...prev, FechaFinal: text }))}
                 />
               </View> */}
-            </ScrollView>
+              </ScrollView>
 
-            <View style={styles.footer}>
-              <TouchableOpacity
-                style={[styles.button, styles.resetButton]}
-                onPress={handleResetFilters}
-              >
-                <Text style={styles.resetButtonText}>Limpiar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleApplyFilters}>
-                <LinearGradient
-                  colors={["#337ab7", "#00ACC4"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={[styles.button, styles.applyButton]}
+              <View style={styles.footer}>
+                <TouchableOpacity
+                  style={[styles.button, styles.resetButton]}
+                  onPress={handleResetFilters}
                 >
-                  <Text style={styles.applyButtonText}>Aplicar filtros</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
+                  <Text style={styles.resetButtonText}>Limpiar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleApplyFilters}>
+                  <LinearGradient
+                    colors={["#337ab7", "#00ACC4"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={[styles.button, styles.applyButton]}
+                  >
+                    <Text style={styles.applyButtonText}>Aplicar filtros</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
           </View>
-        </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </Modal>
+    </Modal >
   );
 };
 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
     justifyContent: "flex-end",
+  },
+  dimmer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.4)",
   },
   dismissArea: {
     position: "absolute",
