@@ -97,10 +97,10 @@ const ContactDetail = ({ navigation, route }) => {
 
     try {
       const response = await GestionComercialService.consultarSeguimientos({
-        OrigenID: 2, // Pre-contactos
-        OrigenSeguimientoID: contact.ProcesoID,
+        OrigenID: contact.ProcesoID,
+        OrigenSeguimientoID: "CRM-PRO",
       });
-      setFollowups(response.rows || []);
+      setFollowups(response.rows || (Array.isArray(response) ? response : []));
     } catch (error) {
       console.error('Error loading followups:', error);
     }
@@ -815,11 +815,18 @@ const ContactDetail = ({ navigation, route }) => {
               <View key={followup.SeguimientoID} style={styles.followupItem}>
                 <View style={styles.followupContent}>
                   <Text style={styles.followupText} numberOfLines={2}>
-                    {String(followup.Observaciones)}
+                    {String(followup.Comentario || followup.Observaciones || '')}
                   </Text>
-                  <Text style={styles.followupDate}>
-                    {formatDate(followup.FechaRegistro)}
-                  </Text>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
+                    <Text style={styles.followupDate}>
+                      {followup.FechaRegistroAmigable || formatDate(followup.FechaRegistro)}
+                    </Text>
+                    {followup.NombreCompleto && (
+                      <Text style={[styles.followupDate, { fontStyle: 'italic' }]}>
+                        Por: {followup.NombreCompleto}
+                      </Text>
+                    )}
+                  </View>
                 </View>
               </View>
             ))

@@ -550,7 +550,7 @@ const FollowupForm = ({ contact, onRefresh }) => {
       await GestionComercialService.insertarSeguimiento({
         OrigenID: contact.ProcesoID,
         OrigenSeguimientoID: "CRM-PRO",
-        Observaciones: observaciones,
+        Comentario: observaciones,
         Token: user?.Token,
       });
       Alert.alert("Éxito", "Seguimiento guardado");
@@ -604,9 +604,9 @@ const FollowupList = ({ contact, refreshKey }) => {
         OrigenID: contact.ProcesoID,
         OrigenSeguimientoID: "CRM-PRO",
       });
-      setItems(resp.rows || []);
+      setItems(resp.rows || (Array.isArray(resp) ? resp : []));
     } catch (e) {
-      console.error(e);
+      console.error("FollowupList - Error loading:", e);
     } finally {
       setLoading(false);
     }
@@ -623,10 +623,10 @@ const FollowupList = ({ contact, refreshKey }) => {
           <View key={idx} style={styles.listItem}>
             <View style={styles.listItemHeader}>
               <Ionicons name="chatbubble-ellipses-outline" size={20} color={COLORS.primary} />
-              <Text style={styles.listItemDate}>{new Date(item.FechaRegistro).toLocaleString()}</Text>
+              <Text style={styles.listItemDate}>{item.FechaRegistroAmigable || new Date(item.FechaRegistro).toLocaleString()}</Text>
             </View>
-            <Text style={styles.listItemContent}>{item.Observaciones}</Text>
-            <Text style={styles.listItemUser}>Por: {item.RegistroUsuario}</Text>
+            <Text style={styles.listItemContent}>{item.Comentario}</Text>
+            <Text style={styles.listItemUser}>Por: {item.NombreCompleto}</Text>
           </View>
         ))
       )}
