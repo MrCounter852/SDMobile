@@ -240,7 +240,30 @@ const ActivityForm = ({ contact }) => {
       Alert.alert(
         "Éxito",
         response.rows[0]?.Descripcion || "Actividad guardada correctamente",
-        [{ text: "OK", onPress: () => navigation.goBack() }]
+        [{
+          text: "OK", onPress: () => {
+            setForm({
+              TipoCalendarioActividadID: "",
+              Asunto: "",
+              FechaInicio: "",
+              FechaVencimiento: "",
+              Descripcion: "",
+              UsuarioID: user?.UsuarioID || "",
+              Contacto: contact?.NombreCompleto || "",
+              Cliente: "",
+              Celular: contact?.Celular || "",
+              Email: contact?.Email || "",
+              Direccion: "",
+              Telefono: "",
+              Link: "",
+              Entregable: false,
+              Notificacion: true,
+              ObservacionesCierre: "",
+              CalendarioActividadCierreDetalleID: "",
+            });
+            if (onRefresh) onRefresh();
+          }
+        }]
       );
     } catch (error) {
       console.error("Error saving activity:", error);
@@ -255,10 +278,7 @@ const ActivityForm = ({ contact }) => {
   };
 
   return (
-    <ScrollView
-      style={styles.formContainer}
-      showsVerticalScrollIndicator={false}
-    >
+    <View style={styles.formSectionContainer}>
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Información de la actividad</Text>
 
@@ -399,7 +419,7 @@ const ActivityForm = ({ contact }) => {
           </LinearGradient>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+    </View>
   );
 };
 
@@ -439,10 +459,12 @@ const FollowupForm = ({ contact, onRefresh }) => {
       Alert.alert(
         "Éxito",
         response.rows[0]?.Descripcion || "Seguimiento guardado correctamente",
-        [{ text: "OK", onPress: () => {
-          setForm({ Observaciones: "" }); // Clear form
-          if (onRefresh) onRefresh(); // Refresh the list
-        } }]
+        [{
+          text: "OK", onPress: () => {
+            setForm({ Observaciones: "" }); // Clear form
+            if (onRefresh) onRefresh(); // Refresh the list
+          }
+        }]
       );
     } catch (error) {
       console.error("Error saving followup:", error);
@@ -457,10 +479,7 @@ const FollowupForm = ({ contact, onRefresh }) => {
   };
 
   return (
-    <ScrollView
-      style={styles.formContainer}
-      showsVerticalScrollIndicator={false}
-    >
+    <View style={styles.formSectionContainer}>
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Nuevo seguimiento</Text>
 
@@ -497,26 +516,26 @@ const FollowupForm = ({ contact, onRefresh }) => {
             end={{ x: 1, y: 1 }}
             style={[styles.saveButton, loading && styles.saveButtonDisabled]}
           >
-          {loading ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <Text style={styles.saveButtonText}>Guardar seguimiento</Text>
-          )}
+            {loading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.saveButtonText}>Guardar seguimiento</Text>
+            )}
           </LinearGradient>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+    </View>
   );
 };
 
 // Followup List Component
-const FollowupList = ({ contact }) => {
+const FollowupList = ({ contact, refreshKey }) => {
   const [followups, setFollowups] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadFollowups();
-  }, []);
+  }, [refreshKey]);
 
   const loadFollowups = async () => {
     try {
@@ -558,7 +577,7 @@ const FollowupList = ({ contact }) => {
   }
 
   return (
-    <ScrollView style={styles.listContainer}>
+    <View style={styles.listSectionContainer}>
       {followups.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="document-text-outline" size={64} color="#ccc" />
@@ -578,18 +597,18 @@ const FollowupList = ({ contact }) => {
           </View>
         ))
       )}
-    </ScrollView>
+    </View>
   );
 };
 
 // Activity List Component
-const ActivityList = ({ contact, onRefresh }) => {
+const ActivityList = ({ contact, onRefresh, refreshKey }) => {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadActivities();
-  }, []);
+  }, [refreshKey]);
 
   const loadActivities = async () => {
     try {
@@ -663,7 +682,7 @@ const ActivityList = ({ contact, onRefresh }) => {
   }
 
   return (
-    <ScrollView style={styles.listContainer}>
+    <View style={styles.listSectionContainer}>
       {activities.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="calendar-outline" size={64} color="#ccc" />
@@ -712,7 +731,7 @@ const ActivityList = ({ contact, onRefresh }) => {
           </View>
         ))
       )}
-    </ScrollView>
+    </View>
   );
 };
 
@@ -759,6 +778,32 @@ const ActivityFollowupScreen = () => {
     );
   }
 
+  const FollowupsTab = () => {
+    const [refreshKey, setRefreshKey] = useState(0);
+    const handleRefresh = () => setRefreshKey(prev => prev + 1);
+
+    return (
+      <ScrollView style={styles.tabContainer} showsVerticalScrollIndicator={false}>
+        <FollowupForm contact={contact} onRefresh={handleRefresh} />
+        <View style={styles.tabSeparator} />
+        <FollowupList contact={contact} refreshKey={refreshKey} />
+      </ScrollView>
+    );
+  };
+
+  const ActivitiesTab = () => {
+    const [refreshKey, setRefreshKey] = useState(0);
+    const handleRefresh = () => setRefreshKey(prev => prev + 1);
+
+    return (
+      <ScrollView style={styles.tabContainer} showsVerticalScrollIndicator={false}>
+        <ActivityForm contact={contact} onRefresh={handleRefresh} />
+        <View style={styles.tabSeparator} />
+        <ActivityList contact={contact} refreshKey={refreshKey} onRefresh={handleRefresh} />
+      </ScrollView>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={["bottom"]}>
       <KeyboardAvoidingView
@@ -770,49 +815,22 @@ const ActivityFollowupScreen = () => {
             tabBarActiveTintColor: "#337ab7",
             tabBarInactiveTintColor: "#666",
             tabBarIndicatorStyle: { backgroundColor: "#337ab7" },
-            tabBarLabelStyle: { fontSize: 12, fontWeight: "500" },
+            tabBarLabelStyle: { fontSize: 13, fontWeight: "700" },
             tabBarStyle: { backgroundColor: "#fff" },
           }}
         >
           <Tab.Screen
-            name="Seguimientos"
-            children={() => <FollowupList contact={contact} />}
+            name="SeguimientosTab"
+            component={FollowupsTab}
             options={{
               tabBarLabel: "Seguimientos",
-              tabBarIcon: ({ color, size }) => (
-                <Ionicons name="document-text-outline" size={size} color={color} />
-              ),
             }}
           />
           <Tab.Screen
-            name="Actividades"
-            children={() => <ActivityList contact={contact} />}
+            name="ActividadesTab"
+            component={ActivitiesTab}
             options={{
               tabBarLabel: "Actividades",
-              tabBarIcon: ({ color, size }) => (
-                <Ionicons name="calendar-outline" size={size} color={color} />
-              ),
-            }}
-          />
-          <Tab.Screen
-            name="NuevoSeguimiento"
-            children={() => <FollowupForm contact={contact} onRefresh={() => {
-            }} />}
-            options={{
-              tabBarLabel: "Nuevo seg.",
-              tabBarIcon: ({ color, size }) => (
-                <Ionicons name="add-circle" size={size} color={color} />
-              ),
-            }}
-          />
-          <Tab.Screen
-            name="NuevaActividad"
-            children={() => <ActivityForm contact={contact} />}
-            options={{
-              tabBarLabel: "Nueva act.",
-              tabBarIcon: ({ color, size }) => (
-                <Ionicons name="add-circle-outline" size={size} color={color} />
-              ),
             }}
           />
         </Tab.Navigator>
@@ -851,6 +869,22 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
+  },
+  tabContainer: {
+    flex: 1,
+  },
+  formSectionContainer: {
+    padding: 20,
+  },
+  listSectionContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  tabSeparator: {
+    height: 1,
+    backgroundColor: COLORS.border,
+    marginHorizontal: 20,
+    marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 16,
