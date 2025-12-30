@@ -315,12 +315,15 @@ const TimelineView = ({ navigation, searchFilters, refreshTrigger, onSelectConta
 };
 
 // Calendar View Component
-const CalendarView = ({ navigation, searchFilters, refreshTrigger }) => {
+const CalendarView = ({ navigation, searchFilters, refreshTrigger, events, loading, onRefresh }) => {
   return (
     <GestionComercialCalendar
       navigation={navigation}
       searchFilters={searchFilters}
       refreshTrigger={refreshTrigger}
+      externalEvents={events}
+      externalLoading={loading}
+      onRefresh={onRefresh}
     />
   );
 };
@@ -347,6 +350,8 @@ const GestionComercial = ({ navigation }) => {
   const [selectedContact, setSelectedContact] = useState(null);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [colorPickerVisible, setColorPickerVisible] = useState(false);
+  const [calendarEvents, setCalendarEvents] = useState([]);
+  const [calendarLoading, setCalendarLoading] = useState(false);
   const isInitialMount = useRef(true);
 
   const getCurrentMode = () => {
@@ -383,6 +388,50 @@ const GestionComercial = ({ navigation }) => {
       loadFilterData();
     }
   }, [user?.SucursalID]);
+
+  const loadCalendarData = async (isRefresh = false) => {
+    if (!user?.UsuarioID) return;
+    if (calendarLoading && !isRefresh) return;
+
+    setCalendarLoading(true);
+    try {
+      const d = new Date();
+      const filters = {
+        ...searchFilters,
+        UsuarioID: user?.UsuarioID,
+        SucursalID: user?.SucursalID,
+        AnoCalendario: d.getFullYear(),
+        MesCalendario: d.getMonth() + 1,
+        ModoCalendar: 'MONTH', // Load all for the month
+      };
+
+      const response = await GestionComercialService.consultarMiCalendario(filters);
+      let data = response;
+      if (typeof response === 'string') {
+        try { data = JSON.parse(response); } catch (e) { }
+      }
+      const arrayData = Array.isArray(data) ? data : (data?.rows || data?.data || []);
+      setCalendarEvents(arrayData);
+    } catch (error) {
+      console.error('Error loading calendar data:', error);
+    } finally {
+      setCalendarLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (currentTab === 'Calendario') {
+      loadCalendarData();
+    }
+  }, [currentTab, searchFilters, refreshTrigger]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (currentTab === 'Calendario') {
+        loadCalendarData(true);
+      }
+    }, [currentTab, searchFilters, refreshTrigger])
+  );
 
   // Salir automáticamente del modo selección cuando se regresa a esta pantalla
   useFocusEffect(
@@ -641,6 +690,9 @@ const GestionComercial = ({ navigation }) => {
               navigation={navigation}
               searchFilters={{ ...searchFilters, tags: activeTags, onClear: clearFilter }}
               refreshTrigger={refreshTrigger}
+              events={calendarEvents}
+              loading={calendarLoading}
+              onRefresh={() => loadCalendarData(true)}
             />
           )}
           options={{
