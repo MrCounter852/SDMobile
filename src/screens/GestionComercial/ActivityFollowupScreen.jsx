@@ -18,6 +18,7 @@ import { createMaterialTopTabNavigator } from "@react-navigation/material-top-ta
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Picker } from "@react-native-picker/picker";
+import DateTimePickerComponent from "@react-native-community/datetimepicker";
 import { useGlobal } from "../../core/global";
 
 const GestionComercialService =
@@ -129,9 +130,54 @@ const DateTimePicker = ({
   onChange,
   placeholder,
 }) => {
+  const [show, setShow] = useState(false);
+  const [mode, setMode] = useState("date");
+
   const handlePress = () => {
-    // Placeholder for date picker integration
-    Alert.alert("Calendario", "La selección de fecha se implementará con un componente nativo.");
+    setMode("date");
+    setShow(true);
+  };
+
+  const handleDateChange = (event, selectedDate) => {
+    if (event.type === "dismissed") {
+      setShow(false);
+      return;
+    }
+
+    const currentDate = selectedDate || new Date();
+
+    if (Platform.OS === "android" && mode === "date") {
+      setShow(false); // Hide date picker before showing time picker
+      setTimeout(() => {
+        setMode("time");
+        setShow(true);
+      }, 100);
+    } else {
+      setShow(Platform.OS === "ios");
+
+      const year = currentDate.getFullYear();
+      const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+      const day = String(currentDate.getDate()).padStart(2, "0");
+      const hours = String(currentDate.getHours()).padStart(2, "0");
+      const minutes = String(currentDate.getMinutes()).padStart(2, "0");
+
+      const formattedValue = `${year}-${month}-${day} ${hours}:${minutes}`;
+      onChange(formattedValue);
+    }
+  };
+
+  // Create a Date object from the string value for the picker
+  const getPickerDate = () => {
+    if (!value) return new Date();
+    try {
+      // Assuming value is "YYYY-MM-DD HH:MM"
+      const [datePart, timePart] = value.split(" ");
+      const [year, month, day] = datePart.split("-").map(Number);
+      const [hours, minutes] = timePart.split(":").map(Number);
+      return new Date(year, month - 1, day, hours, minutes);
+    } catch (e) {
+      return new Date();
+    }
   };
 
   return (
@@ -146,6 +192,16 @@ const DateTimePicker = ({
         </Text>
         <Ionicons name="calendar-outline" size={18} color={COLORS.textSecondary} />
       </TouchableOpacity>
+
+      {show && (
+        <DateTimePickerComponent
+          value={getPickerDate()}
+          mode={mode}
+          is24Hour={true}
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={handleDateChange}
+        />
+      )}
     </View>
   );
 };
@@ -376,12 +432,14 @@ const ActivityForm = ({ contact, onRefresh }) => {
           label="Fecha Inicio"
           required
           value={form.FechaInicio}
+          onChange={(v) => updateForm("FechaInicio", v)}
           placeholder="YYYY-MM-DD HH:MM"
         />
         <DateTimePicker
           label="Fecha Vencimiento"
           required
           value={form.FechaVencimiento}
+          onChange={(v) => updateForm("FechaVencimiento", v)}
           placeholder="YYYY-MM-DD HH:MM"
         />
         <CustomInput
