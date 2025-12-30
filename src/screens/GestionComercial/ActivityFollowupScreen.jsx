@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -18,7 +19,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Picker } from "@react-native-picker/picker";
 import { useGlobal } from "../../core/global";
-import { Line } from "react-native-svg";
+
 const GestionComercialService =
   require("../../services/GestionComercial/gestionComercialService").default;
 
@@ -37,7 +38,10 @@ const COLORS = {
   white: "#FFFFFF",
   danger: "#DC2626",
   success: "#10B981",
+  warning: "#F59E0B",
 };
+
+// --- Helper Components ---
 
 const CustomInput = ({
   label,
@@ -60,7 +64,7 @@ const CustomInput = ({
       {icon && (
         <Ionicons
           name={icon}
-          size={20}
+          size={18}
           color={COLORS.textSecondary}
           style={styles.inputIcon}
         />
@@ -107,21 +111,8 @@ const CustomPicker = ({
         {items.map((item, index) => (
           <Picker.Item
             key={item.id || item.value || index}
-            label={
-              item.label ||
-              item.Nombre ||
-              item.NombreCompleto ||
-              item.Descripcion ||
-              item
-            }
-            value={
-              item.id ||
-              item.value ||
-              item.TipoCalendarioActividadID ||
-              item.UsuarioID ||
-              item.CalendarioActividadCierreDetalleID ||
-              item
-            }
+            label={item.label || item.Nombre || item.NombreCompleto || item.Descripcion || String(item)}
+            value={item.value || item.id || item.TipoCalendarioActividadID || item.UsuarioID || item.ComplejoID || item.CausalInviabilidadID || item}
             color={COLORS.text}
             style={{ fontSize: 14 }}
           />
@@ -137,16 +128,10 @@ const DateTimePicker = ({
   value,
   onChange,
   placeholder,
-  mode = "datetime",
 }) => {
-  const [show, setShow] = useState(false);
-
   const handlePress = () => {
-    // For now, just show a placeholder - would need a proper date picker
-    Alert.alert(
-      "Date Picker",
-      "Date picker functionality would be implemented here"
-    );
+    // Placeholder for date picker integration
+    Alert.alert("Calendario", "La selección de fecha se implementará con un componente nativo.");
   };
 
   return (
@@ -159,20 +144,125 @@ const DateTimePicker = ({
         <Text style={[styles.input, !value && styles.placeholderText]}>
           {value || placeholder}
         </Text>
-        <Ionicons name="calendar" size={20} color={COLORS.textSecondary} />
+        <Ionicons name="calendar-outline" size={18} color={COLORS.textSecondary} />
       </TouchableOpacity>
     </View>
   );
 };
 
-// Activity Form Component
-const ActivityForm = ({ contact }) => {
-  const navigation = useNavigation();
+// --- Sub-components ---
+
+const ContactInfoHeader = ({ contact }) => {
+  const [showInfo, setShowInfo] = useState(false);
+
+  return (
+    <View style={styles.contextHeader}>
+      <View style={styles.contextRow}>
+        <View style={styles.contextMain}>
+          <Text style={styles.contextLabel}>Contacto:</Text>
+          <Text style={styles.contextValue}>{contact.NombreCompleto || contact.Nombres}</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.infoToggleButton}
+          onPress={() => setShowInfo(!showInfo)}
+        >
+          <Ionicons
+            name={showInfo ? "chevron-up" : "information-circle-outline"}
+            size={22}
+            color={COLORS.primary}
+          />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.contextRow}>
+        <View style={styles.contextMain}>
+          <Text style={styles.contextLabel}>Celular:</Text>
+          <Text style={styles.contextValue}>{contact.Celular || 'N/A'}</Text>
+        </View>
+        <View style={styles.actionButtons}>
+          <TouchableOpacity
+            style={styles.actionIcon}
+            onPress={() => Linking.openURL(`tel:${contact.Celular}`)}
+          >
+            <Ionicons name="call" size={18} color={COLORS.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionIcon}
+            onPress={() => Linking.openURL(`whatsapp://send?phone=${contact.Celular}`)}
+          >
+            <Ionicons name="logo-whatsapp" size={18} color={COLORS.success} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {showInfo && (
+        <View style={styles.extraInfoContainer}>
+          <View style={styles.infoLine}>
+            <Ionicons name="person-outline" size={14} color={COLORS.textSecondary} />
+            <Text style={styles.infoText}>Asesor: {contact.AsesorNombreCompleto || contact.Asesor || 'No asignado'}</Text>
+          </View>
+          {contact.Email && (
+            <View style={styles.infoLine}>
+              <Ionicons name="mail-outline" size={14} color={COLORS.textSecondary} />
+              <Text style={styles.infoText}>Email: {contact.Email}</Text>
+            </View>
+          )}
+          {contact.Fecha && (
+            <View style={styles.infoLine}>
+              <Ionicons name="calendar-outline" size={14} color={COLORS.textSecondary} />
+              <Text style={styles.infoText}>Registro: {new Date(contact.Fecha).toLocaleDateString()}</Text>
+            </View>
+          )}
+          {contact.Observaciones && (
+            <View style={styles.infoLine}>
+              <Ionicons name="chatbox-outline" size={14} color={COLORS.textSecondary} />
+              <Text style={styles.infoText}>Obs: {contact.Observaciones}</Text>
+            </View>
+          )}
+        </View>
+      )}
+    </View>
+  );
+};
+
+const InviableAlert = ({ contact }) => {
+  if (contact.EstadoProcesoID !== 7) return null;
+  return (
+    <View style={styles.inviableAlert}>
+      <View style={styles.alertHeader}>
+        <Ionicons name="warning" size={20} color={COLORS.danger} />
+        <Text style={styles.alertTitle}>Contacto Inviable</Text>
+      </View>
+      <Text style={styles.alertText}>
+        <Text style={styles.boldLabel}>Causa: </Text>
+        {contact.CausalInviabilidadNombre}
+      </Text>
+      {contact.FechaInviabilidad && (
+        <Text style={styles.alertText}>
+          <Text style={styles.boldLabel}>Fecha: </Text>
+          {new Date(contact.FechaInviabilidad).toLocaleDateString()}
+        </Text>
+      )}
+      {contact.ObservacionesInviabilidad && (
+        <Text style={styles.alertText}>
+          <Text style={styles.boldLabel}>Obs: </Text>
+          {contact.ObservacionesInviabilidad}
+        </Text>
+      )}
+    </View>
+  );
+};
+
+const ActivityForm = ({ contact, onRefresh }) => {
   const { user } = useGlobal();
   const [loading, setLoading] = useState(false);
   const [activityTypes, setActivityTypes] = useState([]);
   const [users, setUsers] = useState([]);
-  const [closureTypes, setClosureTypes] = useState([]);
+  const [complejos, setComplejos] = useState([]);
+
+  const [showInmuebleSelector, setShowInmuebleSelector] = useState(false);
+  const [showVisitanteFields, setShowVisitanteFields] = useState(false);
+  const [showComplejoSelector, setShowComplejoSelector] = useState(false);
 
   const [form, setForm] = useState({
     TipoCalendarioActividadID: "",
@@ -182,16 +272,15 @@ const ActivityForm = ({ contact }) => {
     Descripcion: "",
     UsuarioID: user?.UsuarioID || "",
     Contacto: contact?.NombreCompleto || "",
-    Cliente: "",
     Celular: contact?.Celular || "",
     Email: contact?.Email || "",
-    Direccion: "",
-    Telefono: "",
     Link: "",
-    Entregable: false,
+    VisitanteDocumento: "",
+    VisitanteNombreCompleto: "",
+    ComplejoID: "",
+    InmuebleID: "",
+    AsignarProceso: false,
     Notificacion: true,
-    ObservacionesCierre: "",
-    CalendarioActividadCierreDetalleID: "",
   });
 
   useEffect(() => {
@@ -200,27 +289,35 @@ const ActivityForm = ({ contact }) => {
 
   const loadInitialData = async () => {
     try {
-      const [typesResp, usersResp, closureResp] = await Promise.all([
+      const [typesResp, usersResp, complejosResp] = await Promise.all([
         GestionComercialService.consultarTiposCalendarioActividades(),
         GestionComercialService.consultarAsesores(),
-        GestionComercialService.consultarCalendariosActividadesCierresDetalles(),
+        GestionComercialService.consultarComplejos(),
       ]);
       setActivityTypes(typesResp.rows || []);
       setUsers(usersResp.rows || []);
-      setClosureTypes(closureResp.rows || []);
+      setComplejos(complejosResp.rows || []);
     } catch (error) {
       console.error("Error loading activity data:", error);
     }
   };
 
+  useEffect(() => {
+    const isVisitType = contact.OrigenPreContactoID === 1 || contact.OrigenPreContactoID === 6;
+    const isPropertyType = form.TipoCalendarioActividadID === 3;
+
+    setShowVisitanteFields(isVisitType);
+    setShowComplejoSelector(isVisitType);
+    setShowInmuebleSelector(isPropertyType);
+  }, [form.TipoCalendarioActividadID, contact.OrigenPreContactoID]);
+
+  const updateForm = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handleSave = async () => {
-    if (
-      !form.TipoCalendarioActividadID ||
-      !form.Asunto ||
-      !form.FechaInicio ||
-      !form.FechaVencimiento
-    ) {
-      Alert.alert("Error", "Por favor complete todos los campos requeridos");
+    if (!form.TipoCalendarioActividadID || !form.Asunto || !form.FechaInicio || !form.FechaVencimiento) {
+      Alert.alert("Error", "Por favor complete los campos obligatorios");
       return;
     }
 
@@ -228,43 +325,27 @@ const ActivityForm = ({ contact }) => {
     try {
       const payload = {
         ...form,
-        CalendarioActividadOrigenID: 2, // Pre-contactos
+        CalendarioActividadOrigenID: 2,
         CodigoOrigen: contact.ProcesoID,
-        DirIP: user.Ip,
-        Usuario: user.UsuarioID,
-        Token: user.Token,
+        Token: user?.Token,
       };
-
-      const response =
-        await GestionComercialService.insertarActividadCalendario(payload);
-      Alert.alert(
-        "Éxito",
-        response.rows[0]?.Descripcion || "Actividad guardada correctamente",
-        [{
-          text: "OK", onPress: () => {
-            setForm({
-              TipoCalendarioActividadID: "",
-              Asunto: "",
-              FechaInicio: "",
-              FechaVencimiento: "",
-              Descripcion: "",
-              UsuarioID: user?.UsuarioID || "",
-              Contacto: contact?.NombreCompleto || "",
-              Cliente: "",
-              Celular: contact?.Celular || "",
-              Email: contact?.Email || "",
-              Direccion: "",
-              Telefono: "",
-              Link: "",
-              Entregable: false,
-              Notificacion: true,
-              ObservacionesCierre: "",
-              CalendarioActividadCierreDetalleID: "",
-            });
-            if (onRefresh) onRefresh();
-          }
-        }]
-      );
+      await GestionComercialService.insertarActividadCalendario(payload);
+      Alert.alert("Éxito", "Actividad guardada correctamente");
+      setForm({
+        ...form,
+        TipoCalendarioActividadID: "",
+        Asunto: "",
+        FechaInicio: "",
+        FechaVencimiento: "",
+        Descripcion: "",
+        Link: "",
+        VisitanteDocumento: "",
+        VisitanteNombreCompleto: "",
+        ComplejoID: "",
+        InmuebleID: "",
+        AsignarProceso: false,
+      });
+      if (onRefresh) onRefresh();
     } catch (error) {
       console.error("Error saving activity:", error);
       Alert.alert("Error", "No se pudo guardar la actividad");
@@ -273,133 +354,111 @@ const ActivityForm = ({ contact }) => {
     }
   };
 
-  const updateForm = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
-
   return (
     <View style={styles.formSectionContainer}>
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Información de la actividad</Text>
-
         <CustomPicker
           label="Tipo de actividad"
           required
           selectedValue={form.TipoCalendarioActividadID}
-          onValueChange={(value) =>
-            updateForm("TipoCalendarioActividadID", value)
-          }
-          items={activityTypes}
-          placeholder="Seleccione tipo de actividad"
+          onValueChange={(v) => updateForm("TipoCalendarioActividadID", v)}
+          items={activityTypes.map(t => ({ label: t.Nombre, value: t.TipoCalendarioActividadID }))}
         />
-
         <CustomInput
           label="Asunto"
           required
           value={form.Asunto}
-          onChangeText={(value) => updateForm("Asunto", value)}
-          placeholder="Ingrese el asunto de la actividad"
-          icon="document-text"
+          onChangeText={(v) => updateForm("Asunto", v)}
+          placeholder="Ingrese un asunto descriptivo"
         />
-
         <DateTimePicker
-          label="Fecha de inicio"
+          label="Fecha Inicio"
           required
           value={form.FechaInicio}
-          onChange={(value) => updateForm("FechaInicio", value)}
-          placeholder="Seleccione fecha de inicio"
+          placeholder="YYYY-MM-DD HH:MM"
         />
-
         <DateTimePicker
-          label="Fecha de vencimiento"
+          label="Fecha Vencimiento"
           required
           value={form.FechaVencimiento}
-          onChange={(value) => updateForm("FechaVencimiento", value)}
-          placeholder="Seleccione fecha de vencimiento"
+          placeholder="YYYY-MM-DD HH:MM"
         />
-
         <CustomInput
           label="Descripción"
           value={form.Descripcion}
-          onChangeText={(value) => updateForm("Descripcion", value)}
-          placeholder="Ingrese descripción detallada"
+          onChangeText={(v) => updateForm("Descripcion", v)}
           multiline
-          icon="information-circle"
         />
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Asignación</Text>
-
+        <Text style={styles.sectionTitle}>Seguimiento y Registro</Text>
         <CustomPicker
-          label="Usuario asignado"
+          label="Responsable"
+          required
           selectedValue={form.UsuarioID}
-          onValueChange={(value) => updateForm("UsuarioID", value)}
-          items={users}
-          placeholder="Seleccione usuario"
+          onValueChange={(v) => updateForm("UsuarioID", v)}
+          items={users.map(u => ({ label: u.NombreCompleto, value: u.UsuarioID }))}
+        />
+        <View style={styles.checkboxContainer}>
+          <TouchableOpacity
+            style={styles.checkboxWrapper}
+            onPress={() => updateForm("AsignarProceso", !form.AsignarProceso)}
+          >
+            <Ionicons
+              name={form.AsignarProceso ? "checkbox" : "square-outline"}
+              size={24}
+              color={COLORS.primary}
+            />
+            <Text style={styles.checkboxLabel}>Asignar proceso al responsable</Text>
+          </TouchableOpacity>
+        </View>
+        <CustomInput
+          label="Email Invitados"
+          value={form.Email}
+          onChangeText={(v) => updateForm("Email", v)}
+          placeholder="correos separados por ;"
         />
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Información de contacto</Text>
-
+        <Text style={styles.sectionTitle}>Atributos ERP Web</Text>
+        {showVisitanteFields && (
+          <>
+            <CustomInput
+              label="Documento Visitante"
+              value={form.VisitanteDocumento}
+              onChangeText={(v) => updateForm("VisitanteDocumento", v)}
+              keyboardType="numeric"
+            />
+            <CustomInput
+              label="Nombre Visitante"
+              value={form.VisitanteNombreCompleto}
+              onChangeText={(v) => updateForm("VisitanteNombreCompleto", v)}
+            />
+          </>
+        )}
+        {showComplejoSelector && (
+          <CustomPicker
+            label="Complejo"
+            selectedValue={form.ComplejoID}
+            onValueChange={(v) => updateForm("ComplejoID", v)}
+            items={complejos.map(c => ({ label: c.Nombre, value: c.ComplejoID }))}
+          />
+        )}
+        {showInmuebleSelector && (
+          <CustomInput
+            label="ID Inmueble"
+            value={form.InmuebleID}
+            onChangeText={(v) => updateForm("InmuebleID", v)}
+          />
+        )}
         <CustomInput
-          label="Contacto"
-          value={form.Contacto}
-          onChangeText={(value) => updateForm("Contacto", value)}
-          placeholder="Nombre del contacto"
-          icon="person"
-        />
-
-        <CustomInput
-          label="Cliente"
-          value={form.Cliente}
-          onChangeText={(value) => updateForm("Cliente", value)}
-          placeholder="Nombre del cliente"
-          icon="business"
-        />
-
-        <CustomInput
-          label="Celular"
-          value={form.Celular}
-          onChangeText={(value) => updateForm("Celular", value)}
-          placeholder="Número de celular"
-          keyboardType="phone-pad"
-          icon="call"
-        />
-
-        <CustomInput
-          label="Email"
-          value={form.Email}
-          onChangeText={(value) => updateForm("Email", value)}
-          placeholder="Correo electrónico"
-          keyboardType="email-address"
-          icon="mail"
-        />
-
-        <CustomInput
-          label="Dirección"
-          value={form.Direccion}
-          onChangeText={(value) => updateForm("Direccion", value)}
-          placeholder="Dirección"
-          icon="location"
-        />
-
-        <CustomInput
-          label="Teléfono"
-          value={form.Telefono}
-          onChangeText={(value) => updateForm("Telefono", value)}
-          placeholder="Teléfono"
-          keyboardType="phone-pad"
-          icon="call"
-        />
-
-        <CustomInput
-          label="Link de reuniones"
+          label="Link Reunión"
           value={form.Link}
-          onChangeText={(value) => updateForm("Link", value)}
-          placeholder="Link de zoom o meet"
-          icon="link"
+          onChangeText={(v) => updateForm("Link", v)}
+          placeholder="Zoom, Table, etc."
         />
       </View>
 
@@ -407,15 +466,9 @@ const ActivityForm = ({ contact }) => {
         <TouchableOpacity onPress={handleSave} disabled={loading}>
           <LinearGradient
             colors={["#337ab7", "#00ACC4"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
             style={[styles.saveButton, loading && styles.saveButtonDisabled]}
           >
-            {loading ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <Text style={styles.saveButtonText}>Guardar actividad</Text>
-            )}
+            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Guardar Actividad</Text>}
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -423,104 +476,55 @@ const ActivityForm = ({ contact }) => {
   );
 };
 
-// Followup Form Component
 const FollowupForm = ({ contact, onRefresh }) => {
-  const navigation = useNavigation();
   const { user } = useGlobal();
   const [loading, setLoading] = useState(false);
-
-  const [form, setForm] = useState({
-    Observaciones: "",
-  });
+  const [observaciones, setObservaciones] = useState("");
 
   const handleSave = async () => {
-    if (!form.Observaciones.trim()) {
-      Alert.alert(
-        "Error",
-        "Por favor ingrese las observaciones del seguimiento"
-      );
+    if (!observaciones.trim()) {
+      Alert.alert("Error", "Ingrese las observaciones");
       return;
     }
 
     setLoading(true);
     try {
-      const payload = {
+      await GestionComercialService.insertarSeguimiento({
         OrigenID: contact.ProcesoID,
         OrigenSeguimientoID: "CRM-PRO",
-        Observaciones: form.Observaciones,
-        DirIP: user.Ip,
-        Usuario: user.UsuarioID,
-        Token: user.Token,
-      };
-
-      const response = await GestionComercialService.insertarSeguimiento(
-        payload
-      );
-      Alert.alert(
-        "Éxito",
-        response.rows[0]?.Descripcion || "Seguimiento guardado correctamente",
-        [{
-          text: "OK", onPress: () => {
-            setForm({ Observaciones: "" }); // Clear form
-            if (onRefresh) onRefresh(); // Refresh the list
-          }
-        }]
-      );
+        Observaciones: observaciones,
+        Token: user?.Token,
+      });
+      Alert.alert("Éxito", "Seguimiento guardado");
+      setObservaciones("");
+      if (onRefresh) onRefresh();
     } catch (error) {
       console.error("Error saving followup:", error);
-      Alert.alert("Error", "No se pudo guardar el seguimiento");
     } finally {
       setLoading(false);
     }
   };
 
-  const updateForm = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
-
   return (
     <View style={styles.formSectionContainer}>
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Nuevo seguimiento</Text>
-
+        <Text style={styles.sectionTitle}>Nuevo Seguimiento</Text>
         <CustomInput
           label="Observaciones"
           required
-          value={form.Observaciones}
-          onChangeText={(value) => updateForm("Observaciones", value)}
-          placeholder="Ingrese las observaciones del seguimiento"
+          value={observaciones}
+          onChangeText={setObservaciones}
           multiline
-          icon="document-text"
+          placeholder="¿Qué novedades hay con este contacto?"
         />
-
-        <View style={styles.infoBox}>
-          <Ionicons
-            name="information-circle"
-            size={20}
-            color={COLORS.primary}
-          />
-          <Text style={styles.infoText}>
-            Este seguimiento se asociará al contacto: {contact?.NombreCompleto}
-          </Text>
-        </View>
       </View>
-
       <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          onPress={handleSave}
-          disabled={loading}
-        >
+        <TouchableOpacity onPress={handleSave} disabled={loading}>
           <LinearGradient
             colors={["#337ab7", "#00ACC4"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
             style={[styles.saveButton, loading && styles.saveButtonDisabled]}
           >
-            {loading ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <Text style={styles.saveButtonText}>Guardar seguimiento</Text>
-            )}
+            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Guardar Seguimiento</Text>}
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -528,72 +532,43 @@ const FollowupForm = ({ contact, onRefresh }) => {
   );
 };
 
-// Followup List Component
 const FollowupList = ({ contact, refreshKey }) => {
-  const [followups, setFollowups] = useState([]);
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadFollowups();
+    load();
   }, [refreshKey]);
 
-  const loadFollowups = async () => {
+  const load = async () => {
     try {
-      const response = await GestionComercialService.consultarSeguimientos({
+      const resp = await GestionComercialService.consultarSeguimientos({
         OrigenID: contact.ProcesoID,
         OrigenSeguimientoID: "CRM-PRO",
       });
-      setFollowups(response.rows || []);
-    } catch (error) {
-      console.error("Error loading followups:", error);
+      setItems(resp.rows || []);
+    } catch (e) {
+      console.error(e);
     } finally {
       setLoading(false);
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('es-CO', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch (e) {
-      return dateString;
-    }
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.centerContent}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={styles.loadingText}>Cargando seguimientos...</Text>
-      </View>
-    );
-  }
+  if (loading) return <ActivityIndicator style={{ marginTop: 20 }} color={COLORS.primary} />;
 
   return (
     <View style={styles.listSectionContainer}>
-      {followups.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="document-text-outline" size={64} color="#ccc" />
-          <Text style={styles.emptyText}>No hay seguimientos registrados</Text>
-        </View>
+      {items.length === 0 ? (
+        <Text style={styles.emptyText}>No hay seguimientos registrados.</Text>
       ) : (
-        followups.map((item, index) => (
-          <View key={index} style={styles.listItem}>
+        items.map((item, idx) => (
+          <View key={idx} style={styles.listItem}>
             <View style={styles.listItemHeader}>
-              <Ionicons name="document-text" size={20} color={COLORS.primary} />
-              <Text style={styles.listItemDate}>{formatDate(item.FechaRegistro)}</Text>
+              <Ionicons name="chatbubble-ellipses-outline" size={20} color={COLORS.primary} />
+              <Text style={styles.listItemDate}>{new Date(item.FechaRegistro).toLocaleString()}</Text>
             </View>
             <Text style={styles.listItemContent}>{item.Observaciones}</Text>
-            {item.RegistroUsuario && (
-              <Text style={styles.listItemUser}>Por: {item.RegistroUsuario}</Text>
-            )}
+            <Text style={styles.listItemUser}>Por: {item.RegistroUsuario}</Text>
           </View>
         ))
       )}
@@ -601,139 +576,54 @@ const FollowupList = ({ contact, refreshKey }) => {
   );
 };
 
-// Activity List Component
-const ActivityList = ({ contact, onRefresh, refreshKey }) => {
-  const [activities, setActivities] = useState([]);
+const ActivityList = ({ contact, refreshKey }) => {
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadActivities();
+    load();
   }, [refreshKey]);
 
-  const loadActivities = async () => {
+  const load = async () => {
     try {
-      const response = await GestionComercialService.consultarActividadesCalendario({
+      const resp = await GestionComercialService.consultarActividadesCalendario({
         CalendarioActividadOrigenID: 2,
         CodigoOrigen: contact.ProcesoID,
       });
-      setActivities(response.rows || []);
-    } catch (error) {
-      console.error("Error loading activities:", error);
+      setItems(resp.rows || []);
+    } catch (e) {
+      console.error(e);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFinalizeActivity = (activity) => {
-    Alert.alert(
-      "Finalizar actividad",
-      `¿Desea finalizar la actividad "${activity.Asunto}"?`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Finalizar",
-          onPress: () => finalizeActivity(activity)
-        }
-      ]
-    );
-  };
-
-  const finalizeActivity = async (activity) => {
-    try {
-      const response = await GestionComercialService.cerrarActividadCalendario({
-        CalendarioActividadID: activity.CalendarioActividadID,
-        ObservacionesCierre: "Finalizada desde móvil",
-        DirIP: "mobile",
-        Usuario: activity.UsuarioID,
-        Token: activity.Token,
-      });
-      Alert.alert("Éxito", "Actividad finalizada correctamente");
-      loadActivities(); // Reload activities
-      if (onRefresh) onRefresh();
-    } catch (error) {
-      console.error("Error finalizing activity:", error);
-      Alert.alert("Error", "No se pudo finalizar la actividad");
-    }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('es-CO', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch (e) {
-      return dateString;
-    }
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.centerContent}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={styles.loadingText}>Cargando actividades...</Text>
-      </View>
-    );
-  }
+  if (loading) return <ActivityIndicator style={{ marginTop: 20 }} color={COLORS.primary} />;
 
   return (
     <View style={styles.listSectionContainer}>
-      {activities.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="calendar-outline" size={64} color="#ccc" />
-          <Text style={styles.emptyText}>No hay actividades registradas</Text>
-        </View>
+      {items.length === 0 ? (
+        <Text style={styles.emptyText}>No hay actividades registradas.</Text>
       ) : (
-        activities.map((item, index) => (
-          <View key={index} style={styles.listItem}>
+        items.map((item, idx) => (
+          <View key={idx} style={styles.listItem}>
             <View style={styles.listItemHeader}>
-              <Ionicons
-                name={item.Completada ? "checkmark-circle" : "calendar"}
-                size={20}
-                color={item.Completada ? COLORS.success : COLORS.primary}
-              />
+              <Ionicons name={item.Completada ? "checkmark-circle" : "calendar-outline"} size={20} color={item.Completada ? COLORS.success : COLORS.primary} />
               <Text style={styles.listItemTitle}>{item.Asunto}</Text>
-              {!item.Completada && (
-                <TouchableOpacity
-                  style={styles.finalizeButton}
-                  onPress={() => handleFinalizeActivity(item)}
-                >
-                  <Text style={styles.finalizeButtonText}>Finalizar</Text>
-                </TouchableOpacity>
-              )}
             </View>
             <Text style={styles.listItemContent}>{item.Descripcion}</Text>
-            <View style={styles.activityDetails}>
-              <Text style={styles.detailText}>
-                Inicio: {formatDate(item.FechaInicio)}
-              </Text>
-              <Text style={styles.detailText}>
-                Fin: {formatDate(item.FechaVencimiento)}
-              </Text>
+            <View style={styles.activityStats}>
+              <Text style={styles.detailText}>Inicio: {new Date(item.FechaInicio).toLocaleDateString()}</Text>
+              <Text style={styles.detailText}>Vence: {new Date(item.FechaVencimiento).toLocaleDateString()}</Text>
             </View>
-            {item.Email && (
-              <Text style={styles.detailText}>Email: {item.Email}</Text>
-            )}
-            {item.Link && (
-              <Text style={styles.detailText}>Link: {item.Link}</Text>
-            )}
-            {item.Completada && item.ObservacionesCierre && (
-              <View style={styles.closureNotes}>
-                <Text style={styles.closureTitle}>Observaciones de cierre:</Text>
-                <Text style={styles.closureText}>{item.ObservacionesCierre}</Text>
-              </View>
-            )}
           </View>
         ))
       )}
     </View>
   );
 };
+
+// --- Main Screen ---
 
 const ActivityFollowupScreen = () => {
   const navigation = useNavigation();
@@ -742,49 +632,24 @@ const ActivityFollowupScreen = () => {
 
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: () => (
-        <Text style={{ color: "#337ab7", fontSize: 18, fontWeight: "bold" }}>
-          Actividades y seguimientos
-        </Text>
-      ),
+      headerTitle: "Actividades y seguimientos",
+      headerTitleStyle: { fontSize: 18, fontWeight: 'bold' },
+      headerTintColor: '#337ab7',
       headerLeft: () => (
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#337ab7" />
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 16, marginLeft: 16 }}>
+          <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
         </TouchableOpacity>
       ),
-      headerRight: () => null,
     });
   }, [navigation]);
 
-  if (!contact) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centerContent}>
-          <Ionicons name="alert-circle" size={64} color="#ccc" />
-          <Text style={styles.errorText}>
-            No se encontró información del contacto
-          </Text>
-          <TouchableOpacity
-            style={styles.retryButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.retryText}>Volver</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  if (!contact) return null;
 
   const FollowupsTab = () => {
     const [refreshKey, setRefreshKey] = useState(0);
-    const handleRefresh = () => setRefreshKey(prev => prev + 1);
-
     return (
-      <ScrollView style={styles.tabContainer} showsVerticalScrollIndicator={false}>
-        <FollowupForm contact={contact} onRefresh={handleRefresh} />
+      <ScrollView style={styles.tabContainer}>
+        <FollowupForm contact={contact} onRefresh={() => setRefreshKey(k => k + 1)} />
         <View style={styles.tabSeparator} />
         <FollowupList contact={contact} refreshKey={refreshKey} />
       </ScrollView>
@@ -793,46 +658,30 @@ const ActivityFollowupScreen = () => {
 
   const ActivitiesTab = () => {
     const [refreshKey, setRefreshKey] = useState(0);
-    const handleRefresh = () => setRefreshKey(prev => prev + 1);
-
     return (
-      <ScrollView style={styles.tabContainer} showsVerticalScrollIndicator={false}>
-        <ActivityForm contact={contact} onRefresh={handleRefresh} />
+      <ScrollView style={styles.tabContainer}>
+        <ActivityForm contact={contact} onRefresh={() => setRefreshKey(k => k + 1)} />
         <View style={styles.tabSeparator} />
-        <ActivityList contact={contact} refreshKey={refreshKey} onRefresh={handleRefresh} />
+        <ActivityList contact={contact} refreshKey={refreshKey} />
       </ScrollView>
     );
   };
 
   return (
     <SafeAreaView style={styles.container} edges={["bottom"]}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
+      <ContactInfoHeader contact={contact} />
+      <InviableAlert contact={contact} />
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <Tab.Navigator
           screenOptions={{
-            tabBarActiveTintColor: "#337ab7",
-            tabBarInactiveTintColor: "#666",
-            tabBarIndicatorStyle: { backgroundColor: "#337ab7" },
+            tabBarActiveTintColor: COLORS.primary,
             tabBarLabelStyle: { fontSize: 13, fontWeight: "700" },
-            tabBarStyle: { backgroundColor: "#fff" },
+            tabBarStyle: { elevation: 0, shadowOpacity: 0 },
+            tabBarIndicatorStyle: { backgroundColor: COLORS.primary },
           }}
         >
-          <Tab.Screen
-            name="SeguimientosTab"
-            component={FollowupsTab}
-            options={{
-              tabBarLabel: "Seguimientos",
-            }}
-          />
-          <Tab.Screen
-            name="ActividadesTab"
-            component={ActivitiesTab}
-            options={{
-              tabBarLabel: "Actividades",
-            }}
-          />
+          <Tab.Screen name="Seguimientos" component={FollowupsTab} />
+          <Tab.Screen name="Actividades" component={ActivitiesTab} />
         </Tab.Navigator>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -840,288 +689,58 @@ const ActivityFollowupScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  centerContent: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  headerButton: {
-    marginRight: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  formContainer: {
-    flex: 1,
-    padding: 20,
-  },
-  section: {
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-  },
-  tabContainer: {
-    flex: 1,
-  },
-  formSectionContainer: {
-    padding: 20,
-  },
-  listSectionContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
-  tabSeparator: {
-    height: 1,
-    backgroundColor: COLORS.border,
-    marginHorizontal: 20,
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: COLORS.text,
-    marginBottom: 20,
-  },
-  inputContainer: {
-    marginBottom: 16,
-  },
-  labelContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 6,
-    marginLeft: 4,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: COLORS.textSecondary,
-  },
-  required: {
-    color: COLORS.danger,
-    marginLeft: 2,
-    fontSize: 13,
-  },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.inputBg,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingHorizontal: 12,
-    height: 50,
-  },
-  inputWrapperMultiline: {
-    height: 100,
-    alignItems: "flex-start",
-    paddingTop: 12,
-  },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    color: COLORS.text,
-    height: "100%",
-  },
-  inputMultiline: {
-    textAlignVertical: "top",
-  },
-  inputIcon: {
-    marginRight: 10,
-  },
-  pickerWrapper: {
-    backgroundColor: COLORS.inputBg,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    justifyContent: "center",
-    height: 50,
-    overflow: "hidden",
-  },
-  picker: {
-    width: "100%",
-    color: COLORS.text,
-  },
-  datePickerWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: COLORS.inputBg,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingHorizontal: 12,
-    height: 50,
-  },
-  placeholderText: {
-    color: COLORS.textSecondary,
-  },
-  infoBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#EFF6FF",
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 16,
-  },
-  infoText: {
-    flex: 1,
-    fontSize: 14,
-    color: COLORS.primary,
-    marginLeft: 8,
-    lineHeight: 20,
-  },
-  buttonContainer: {
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  saveButton: {
-    backgroundColor: COLORS.primary,
-    paddingVertical: 16,
-    alignItems: "center",
-    borderRadius: 30,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  saveButtonDisabled: {
-    opacity: 0.6,
-  },
-  saveButtonText: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  errorText: {
-    fontSize: 16,
-    color: COLORS.danger,
-    textAlign: "center",
-    marginTop: 16,
-  },
-  retryButton: {
-    marginTop: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-  },
-  retryText: {
-    color: COLORS.primary,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-  listContainer: {
-    flex: 1,
-    padding: 20,
-  },
-  listItem: {
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-  },
-  listItemHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  listItemTitle: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: "600",
-    color: COLORS.text,
-    marginLeft: 8,
-  },
-  listItemDate: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginLeft: 8,
-  },
-  listItemContent: {
-    fontSize: 14,
-    color: COLORS.text,
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-  listItemUser: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    fontStyle: "italic",
-  },
-  activityDetails: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  detailText: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginBottom: 4,
-  },
-  finalizeButton: {
-    backgroundColor: COLORS.success,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  finalizeButtonText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  closureNotes: {
-    backgroundColor: "#EFF6FF",
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  closureTitle: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: COLORS.primary,
-    marginBottom: 4,
-  },
-  closureText: {
-    fontSize: 14,
-    color: COLORS.text,
-    lineHeight: 20,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 40,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    textAlign: "center",
-    marginTop: 16,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    textAlign: "center",
-    marginTop: 16,
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  contextHeader: { backgroundColor: COLORS.white, padding: 16, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  contextRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
+  contextMain: { flex: 1 },
+  contextLabel: { fontSize: 12, color: COLORS.textSecondary, marginBottom: 2 },
+  contextValue: { fontSize: 16, fontWeight: "700", color: COLORS.text },
+  infoToggleButton: { padding: 4 },
+  actionButtons: { flexDirection: "row" },
+  actionIcon: { marginLeft: 16, padding: 4 },
+  extraInfoContainer: { marginTop: 8, padding: 12, backgroundColor: COLORS.inputBg, borderRadius: 8 },
+  infoLine: { flexDirection: "row", alignItems: "center", marginBottom: 6 },
+  infoText: { fontSize: 13, color: COLORS.textSecondary, marginLeft: 8 },
+  inviableAlert: { backgroundColor: "#FEF2F2", padding: 16, borderLeftWidth: 4, borderLeftColor: COLORS.danger },
+  alertHeader: { flexDirection: "row", alignItems: "center", marginBottom: 8 },
+  alertTitle: { fontSize: 15, fontWeight: "700", color: COLORS.danger, marginLeft: 8 },
+  alertText: { fontSize: 14, color: COLORS.textSecondary, marginBottom: 4 },
+  boldLabel: { fontWeight: "700", color: COLORS.text },
+  tabContainer: { flex: 1 },
+  formSectionContainer: { padding: 16 },
+  section: { backgroundColor: COLORS.card, borderRadius: 12, padding: 16, marginBottom: 16, elevation: 1, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2 },
+  sectionTitle: { fontSize: 14, fontWeight: "800", color: COLORS.primary, textTransform: "uppercase", marginBottom: 16, letterSpacing: 0.5 },
+  inputContainer: { marginBottom: 14 },
+  labelContainer: { flexDirection: "row", marginBottom: 6 },
+  label: { fontSize: 13, fontWeight: "600", color: COLORS.textSecondary },
+  required: { color: COLORS.danger, marginLeft: 2 },
+  inputWrapper: { flexDirection: "row", alignItems: "center", backgroundColor: COLORS.inputBg, borderRadius: 8, borderWidth: 1, borderColor: COLORS.border, paddingHorizontal: 12, height: 45 },
+  inputWrapperMultiline: { height: 80, alignItems: "flex-start", paddingTop: 8 },
+  input: { flex: 1, fontSize: 14, color: COLORS.text },
+  inputMultiline: { textAlignVertical: "top" },
+  inputIcon: { marginRight: 8 },
+  pickerWrapper: { backgroundColor: COLORS.inputBg, borderRadius: 8, borderWidth: 1, borderColor: COLORS.border, height: 45, justifyContent: "center" },
+  picker: { width: "100%", color: COLORS.text },
+  datePickerWrapper: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: COLORS.inputBg, borderRadius: 8, borderWidth: 1, borderColor: COLORS.border, paddingHorizontal: 12, height: 45 },
+  placeholderText: { color: COLORS.textSecondary },
+  checkboxContainer: { marginBottom: 14 },
+  checkboxWrapper: { flexDirection: "row", alignItems: "center" },
+  checkboxLabel: { marginLeft: 8, fontSize: 14, color: COLORS.textSecondary },
+  buttonContainer: { marginTop: 8 },
+  saveButton: { paddingVertical: 14, borderRadius: 8, alignItems: "center" },
+  saveButtonText: { color: COLORS.white, fontSize: 15, fontWeight: "700" },
+  saveButtonDisabled: { opacity: 0.5 },
+  listSectionContainer: { padding: 16 },
+  listItem: { backgroundColor: COLORS.card, borderRadius: 12, padding: 16, marginBottom: 12, borderLeftWidth: 4, borderLeftColor: COLORS.primary },
+  listItemHeader: { flexDirection: "row", alignItems: "center", marginBottom: 8 },
+  listItemTitle: { fontSize: 15, fontWeight: "700", color: COLORS.text, marginLeft: 8 },
+  listItemDate: { fontSize: 12, color: COLORS.textSecondary, marginLeft: 8 },
+  listItemContent: { fontSize: 14, color: COLORS.text, lineHeight: 20 },
+  listItemUser: { fontSize: 12, color: COLORS.textSecondary, marginTop: 8, fontStyle: "italic" },
+  activityStats: { flexDirection: "row", justifyContent: "space-between", marginTop: 8 },
+  detailText: { fontSize: 11, color: COLORS.textSecondary },
+  emptyText: { textAlign: "center", color: COLORS.textSecondary, marginTop: 32 },
+  tabSeparator: { height: 8, backgroundColor: COLORS.background },
 });
 
 export default ActivityFollowupScreen;
