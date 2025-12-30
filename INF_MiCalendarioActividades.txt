@@ -1,0 +1,173 @@
+USE [ERP_BD]
+GO
+/****** Object:  StoredProcedure [CRM].[INF_MiCalendarioActividades]    Script Date: 30/12/2025 10:27:3 a. m. ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [CRM].[INF_MiCalendarioActividades]
+(
+	 @CalendarioActividadID			  INT = NULL
+	,@UsuarioID						  INT = NULL	
+	,@SucursalID					  INT = NULL	
+	,@TipoCalendarioActividadID		  INT = NULL
+	,@FechaInicial					  DATETIME = NULL
+	,@FechaFinal					  DATETIME = NULL
+	,@Fecha							  DATETIME = NULL
+	,@EstadoActividadID				  VARCHAR(5) = NULL	
+	,@AnoCalendario					  INT = NULL
+	,@MesCalendario					  INT = NULL
+	,@SemanaCalendario				  INT = NULL
+	,@DiaCalendario					  INT = NULL
+	,@ModoCalendar					  VARCHAR(10) = NULL	
+	,@FullSearch					  VARCHAR(100) = NULL
+	,@Return						  VARCHAR(MAX) OUTPUT
+	,@EmpresaID							INT = NULL
+)
+AS
+DECLARE 
+	 @Temp_CalendarioActividadID		  INT = @CalendarioActividadID
+	,@Temp_UsuarioID					  INT = @UsuarioID	
+	,@Temp_SucursalID					  INT = @SucursalID	
+	,@Temp_TipoCalendarioActividadID	  INT = @TipoCalendarioActividadID
+	,@Temp_FechaInicial					  DATE = CAST(@FechaInicial AS DATE)
+	,@Temp_FechaFinal					  DATE = CAST(@FechaFinal AS DATE)	
+	,@Temp_Fecha						  DATE = CAST(@Fecha AS DATE)
+	,@Temp_EstadoActividadID			  VARCHAR(5) = @EstadoActividadID	
+	,@Temp_AnoCalendario				  INT = @AnoCalendario
+	,@Temp_MesCalendario				  INT = @MesCalendario
+	,@Temp_SemanaCalendario				  INT = @SemanaCalendario
+	,@Temp_DiaCalendario				  INT = @DiaCalendario
+	,@Temp_ModoCalendar					  VARCHAR(10) = @ModoCalendar	
+	,@Temp_FullSearch					  VARCHAR(100) = @FullSearch		
+	,@Temp_EmpresaID					  INT = @EmpresaID
+BEGIN	
+	SET DATEFORMAT DMY
+	DECLARE 
+		 @SQL	  VARCHAR(MAX) = ''
+		,@Filtros VARCHAR(MAX) = ''
+
+	-- =====================================================================================================================
+	-- WHERE
+	-- =====================================================================================================================
+	SET @Filtros += '(CA.EmpresaID = ' + CAST(@Temp_EmpresaID AS VARCHAR(10)) + ')'
+
+	IF(@Temp_CalendarioActividadID IS NOT NULL)
+		SET @Filtros += ' AND (CA.CalendarioActividadID = ' + CAST(@Temp_CalendarioActividadID AS VARCHAR(10)) + ')'
+		
+	IF(@Temp_UsuarioID IS NOT NULL)
+		SET @Filtros += ' AND (CA.UsuarioID = ' + CAST(@Temp_UsuarioID AS VARCHAR(10)) + ')'
+
+	IF(@Temp_SucursalID IS NOT NULL)
+		SET @Filtros += ' AND (SU.SucursalID = ' + CAST(@Temp_SucursalID AS VARCHAR(10)) + ')'
+
+	IF(@Temp_TipoCalendarioActividadID IS NOT NULL)
+		SET @Filtros += ' AND (CA.TipoCalendarioActividadID = ' + CAST(@Temp_TipoCalendarioActividadID AS VARCHAR(40)) + ')'
+
+	IF(@Temp_FechaInicial IS NOT NULL)
+		SET @Filtros += ' AND (CAST(CA.FechaInicio AS DATE) >= CAST(''' + FORMAT(@Temp_FechaInicial, 'dd/MM/yyyy') + ''' AS DATE))'	
+
+	IF(@Temp_FechaFinal IS NOT NULL)
+		SET @Filtros += ' AND (CAST(CA.FechaInicio AS DATE) <= CAST(''' + FORMAT(@Temp_FechaFinal, 'dd/MM/yyyy') + ''' AS DATE))'
+
+	IF(@Temp_Fecha IS NOT NULL)
+		SET @Filtros += ' AND (CAST(CA.FechaInicio AS DATE) = CAST(''' + FORMAT(@Temp_Fecha, 'dd/MM/yyyy') + ''' AS DATE))'
+
+	IF(@Temp_EstadoActividadID IS NOT NULL)	
+		SET @Filtros += ' AND (CASE WHEN CA.Completada = 1 THEN 1 --Finalizadas
+									WHEN DATEDIFF(MINUTE, @Temp_FechaHoy, CA.FechaVencimiento) > 240 THEN 2 --Vigentes
+									WHEN DATEDIFF(MINUTE, @Temp_FechaHoy, CA.FechaVencimiento) < -30 THEN 3 --Vencidas									
+								ELSE 
+									4 --Pendientes 
+								END ' + CASE WHEN CHARINDEX(',', @Temp_EstadoActividadID) = 0 THEN ' = ' + @Temp_EstadoActividadID ELSE 'IN(' + @Temp_EstadoActividadID + ')' END + ')'
+
+	IF(@Temp_AnoCalendario IS NOT NULL)
+		SET @Filtros += ' AND (YEAR(CA.FechaInicio) = ' + CAST(@Temp_AnoCalendario AS VARCHAR(10)) + ')'
+
+	IF(@Temp_MesCalendario IS NOT NULL)
+		SET @Filtros += ' AND (MONTH(CA.FechaInicio) = ' + CAST(@Temp_MesCalendario AS VARCHAR(10)) + ')'
+
+	IF(@Temp_SemanaCalendario IS NOT NULL)
+		SET @Filtros += ' AND (DATEPART(WEEK, CA.FechaInicio) = ' + CAST(@Temp_SemanaCalendario AS VARCHAR(10)) + ')'
+
+	IF(@Temp_DiaCalendario IS NOT NULL)
+		SET @Filtros += ' AND (DAY(CA.FechaInicio) = ' + CAST(@Temp_DiaCalendario AS VARCHAR(10)) + ')'
+
+	IF(@FullSearch IS NOT NULL)
+	BEGIN
+		SET @Filtros += ' AND (CA.Asunto + ISNULL('' '' + CA.Direccion, '''') + ISNULL('' '' + CA.Celular, '''')  + ISNULL('' '' + CA.Descripcion, '''') LIKE ''%' + @FullSearch + '%'')'
+	END
+
+	CREATE TABLE #JSONActividades
+	(
+		DataSource			VARCHAR(MAX)
+	)
+
+	SET @SQL = '
+	DECLARE
+		@Temp_FechaHoy			DATETIME = GETDATE()
+
+	INSERT INTO #JSONActividades
+	(
+		DataSource
+	)
+	VALUES
+	((
+		SELECT
+			 CA.CalendarioActividadID	
+			,CA.Completada
+			,title = ''('' + FORMAT(CA.FechaInicio, N''hh:mm tt'', ''es-CO'') + '' - '' + FORMAT(ISNULL(CA.FechaVencimiento, DATEADD(MINUTE, 15, CA.FechaInicio)), N''hh:mm tt'', ''es-CO'') + '') - '' + CA.Asunto + ISNULL('', <i class="fal fa-user"></i> '' + PC.NombreCompleto, '''') + ISNULL('', <i class="fal fa-phone"></i> '' + ISNULL(PC.Celular, CA.Celular), '''') + ISNULL('', <i class="fal fa-home"></i> '' + ISNULL(CA.Direccion, PC.Direccion), '''') + ISNULL('', <i class="fal fa-box"></i>Complejo: '' + COM.Nombre, '''') + ISNULL('', <i class="fal fa-home"></i>Nro inmueble: '' + CAST(I.Consecutivo AS VARCHAR(100)), '''')
+			,startsAt = CA.FechaInicio
+			,endsAt = ISNULL(CA.FechaVencimiento, DATEADD(MINUTE, 15, CA.FechaInicio))
+			,draggable = CAST(0 AS BIT)
+			,resizable = CAST(0 AS BIT)
+			,color = JSON_QUERY(CASE WHEN CA.Completada = 1 THEN ''{ "primary": "#2e6da4", "secondary": "#337ab7" }'' --Finalizadas
+									 WHEN DATEDIFF(MINUTE, @Temp_FechaHoy, CA.FechaVencimiento) > 240 THEN ''{ "primary": "#006400", "secondary": "#caffca" }'' --Vigentes
+									 WHEN DATEDIFF(MINUTE, @Temp_FechaHoy, CA.FechaVencimiento) < -30 THEN ''{ "primary": "#ad2121", "secondary": "#fae3e3" }'' --Vencidas
+								ELSE 
+									''{ "primary": "#e3bc08", "secondary": "#fdf1ba" }'' --Pendientes 
+								END)			
+			,ProcesoID = CASE WHEN CA.CalendarioActividadOrigenID = 2 THEN CA.CodigoOrigen ELSE NULL END			
+		FROM
+			SIS.CalendariosActividades CA WITH(NOLOCK)		
+				INNER JOIN
+			SIS.SucursalesUsuarios SU WITH(NOLOCK)	
+					ON
+						SU.UsuarioID = CA.UsuarioID
+				LEFT JOIN
+			CRM.Procesos P WITH(NOLOCK)
+					ON
+						P.ProcesoID = CA.CodigoOrigen
+							AND
+						CA.CalendarioActividadOrigenID = 2
+				LEFT JOIN
+			CRM.PreContactos PC WITH(NOLOCK)
+					ON
+						PC.PreContactoID = P.PreContactoID
+				LEFT JOIN
+			GBI.InmueblesProcesosProcesos IPP WITH(NOLOCK)
+					ON
+						IPP.InmuebleProcesoProcesoID = CA.InmuebleProcesoProcesoID			
+				LEFT JOIN
+			GBI.InmueblesProcesos IP WITH(NOLOCK)
+					ON
+						IP.InmuebleProcesoID = IPP.InmuebleProcesoID
+				LEFT JOIN
+			GBI.Inmuebles I WITH(NOLOCK)
+					ON 
+						ISNULL(IP.InmuebleID, CA.InmuebleID) = I.InmuebleID			
+				LEFT JOIN
+			STRG.Complejos COM WITH(NOLOCK)
+					ON
+						COM.ComplejoID = CA.ComplejoID
+		WHERE	
+			' + @Filtros + '
+		FOR JSON PATH, INCLUDE_NULL_VALUES
+	))'		
+
+	PRINT(@SQL)	
+	EXEC(@SQL)	
+	
+	SET
+		@Return = ISNULL((SELECT TOP(1) DataSource FROM #JSONActividades),'[]')
+END

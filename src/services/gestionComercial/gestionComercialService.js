@@ -187,8 +187,9 @@ class GestionComercialService {
         ModoCalendar: filtros?.ModoCalendar || null,
         Token: this.global.user?.Token,
       }),
-    }, true, false); // useCRM
+    }, true, false);
   }
+
 
   // Consultar mi calendario tabla
   async consultarMiCalendarioTabla(filtros) {
@@ -210,7 +211,7 @@ class GestionComercialService {
         SortDirection: filtros?.SortDirection || null,
         Token: this.global.user?.Token,
       }),
-    }); // useCRM
+    });
   }
 
   // Insertar pre-contacto
