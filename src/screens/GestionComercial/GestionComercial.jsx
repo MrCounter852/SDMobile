@@ -480,12 +480,13 @@ const GestionComercial = ({ navigation }) => {
   // Salir automáticamente del modo selección cuando se regresa a esta pantalla
   useFocusEffect(
     useCallback(() => {
-      if (isInitialMount.current) {
-        isInitialMount.current = false;
-      } else if (isSelectionMode) {
+      // Solo actuar si no es el montaje inicial y hay algo seleccionado
+      if (!isInitialMount.current) {
         handleDeselectContact();
+      } else {
+        isInitialMount.current = false;
       }
-    }, [isSelectionMode])
+    }, [handleDeselectContact])
   );
 
   const handleApplyFilters = (filters) => {
@@ -513,10 +514,10 @@ const GestionComercial = ({ navigation }) => {
     setIsSelectionMode(true);
   };
 
-  const handleDeselectContact = () => {
+  const handleDeselectContact = useCallback(() => {
     setSelectedContact(null);
     setIsSelectionMode(false);
-  };
+  }, []);
 
   const handleColorSelect = async (colorId) => {
     if (!selectedContact) return;
@@ -553,6 +554,7 @@ const GestionComercial = ({ navigation }) => {
   };
 
   const getActiveFilterTags = () => {
+    if (filterDataLoading) return [];
     const tags = [];
     const mode = getCurrentMode();
 
