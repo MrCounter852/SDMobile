@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
     View,
     Text,
@@ -12,35 +12,30 @@ import {
     LocaleConfig,
     Timeline,
     CalendarProvider,
-    ExpandableCalendar
+    ExpandableCalendar,
 } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
 import { useGlobal } from '../../core/global';
 import GestionComercialService from '../../services/GestionComercial/gestionComercialService';
 
-// Configure Spanish locale for calendars
+// Configure Spanish locale
 LocaleConfig.locales['es'] = {
-    monthNames: [
-        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-    ],
-    monthNamesShort: ['Ene.', 'Feb.', 'Mar.', 'Abr.', 'May.', 'Jun.', 'Jul.', 'Ago.', 'Sep.', 'Oct.', 'Nov.', 'Dic.'],
+    monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+    monthNamesShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
     dayNames: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
     dayNamesShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
     today: 'Hoy'
 };
 LocaleConfig.defaultLocale = 'es';
 
-const { width } = Dimensions.get('window');
-
 const GestionComercialCalendar = ({ navigation, searchFilters, refreshTrigger }) => {
     const { user } = useGlobal();
-    const [viewMode, setViewMode] = useState('month'); // 'month', 'week', 'day'
+    const [viewMode, setViewMode] = useState('month'); // 'month', 'week'
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    const fetchCalendarData = async (date) => {
+    const fetchCalendarData = useCallback(async (date) => {
         if (!user?.UsuarioID) return;
         setLoading(true);
         try {
@@ -51,43 +46,73 @@ const GestionComercialCalendar = ({ navigation, searchFilters, refreshTrigger })
                 SucursalID: user?.SucursalID,
                 AnoCalendario: d.getFullYear(),
                 MesCalendario: d.getMonth() + 1,
-                ModoCalendar: viewMode === 'week' ? 'WEEK' : (viewMode === 'day' ? 'DAY' : 'MONTH'),
+                ModoCalendar: viewMode.toUpperCase(),
             };
-
-            if (viewMode === 'day') {
-                filters.DiaCalendario = d.getDate();
-            }
 
             const response = await GestionComercialService.consultarMiCalendario(filters);
 
-            // The API returns a string that needs to be parsed if it's not already an object
-            const parsedData = typeof response === 'string' ? JSON.parse(response) : response;
-            setEvents(Array.isArray(parsedData) ? parsedData : []);
+            let data = response;
+            if (typeof response === 'string') {
+                try { data = JSON.parse(response); } catch (e) { console.error('JSON parse error', e); }
+            }
+
+            const arrayData = Array.isArray(data) ? data : (data?.rows || data?.data || []);
+            setEvents(arrayData);
         } catch (error) {
             console.error('Error fetching calendar data:', error);
             setEvents([]);
         } finally {
             setLoading(false);
         }
-    };
+    }, [user?.UsuarioID, user?.SucursalID, searchFilters, viewMode]);
 
     useEffect(() => {
         fetchCalendarData(selectedDate);
-    }, [selectedDate, viewMode, refreshTrigger, searchFilters]);
+    }, [selectedDate, viewMode, refreshTrigger, fetchCalendarData]);
 
-    const markedDates = useMemo(() => {
+    const processedData = useMemo(() => {
         const marks = {};
+        const timelineForSelectedDay = [];
+
         events.forEach(event => {
-            if (!event.startsAt) return;
-            const dateKey = event.startsAt.split('T')[0];
-            if (!marks[dateKey]) {
-                marks[dateKey] = { marked: true, dots: [] };
+            if (!event.startsAt || !event.endsAt) return;
+
+            const startStr = event.startsAt.split('T')[0];
+            const endStr = event.endsAt.split('T')[0];
+
+            // 1. Mark ranges for month view
+            const start = new Date(startStr);
+            const end = new Date(endStr);
+            const curr = new Date(start);
+
+            while (curr <= end) {
+                const dateKey = curr.toISOString().split('T')[0];
+                if (!marks[dateKey]) {
+                    marks[dateKey] = { marked: true, dots: [] };
+                }
+                if (!marks[dateKey].dots.some(d => d.key === String(event.CalendarioActividadID))) {
+                    marks[dateKey].dots.push({
+                        key: String(event.CalendarioActividadID),
+                        color: event.color?.primary || '#337ab7',
+                        selectedDotColor: '#fff'
+                    });
+                }
+
+                // 2. Prepare timeline events for the currently SELECTED day
+                if (dateKey === selectedDate) {
+                    const startTimePart = event.startsAt.split('T')[1];
+                    const endTimePart = event.endsAt.split('T')[1];
+
+                    timelineForSelectedDay.push({
+                        start: `${dateKey} ${startTimePart}`,
+                        end: `${dateKey} ${endTimePart}`,
+                        title: (event.title || '').replace(/<[^>]*>?/gm, ''),
+                        summary: '',
+                        color: event.color?.secondary || '#fae3e3',
+                    });
+                }
+                curr.setDate(curr.getDate() + 1);
             }
-            marks[dateKey].dots.push({
-                key: event.CalendarioActividadID.toString(),
-                color: event.color?.primary || '#337ab7',
-                selectedDotColor: '#fff'
-            });
         });
 
         marks[selectedDate] = {
@@ -96,98 +121,78 @@ const GestionComercialCalendar = ({ navigation, searchFilters, refreshTrigger })
             selectedColor: '#337ab7'
         };
 
-        return marks;
+        return { marks, timelineForSelectedDay };
     }, [events, selectedDate]);
 
-    const timelineEvents = useMemo(() => {
-        return events.map(event => ({
-            start: event.startsAt.replace('T', ' '),
-            end: event.endsAt.replace('T', ' '),
-            title: event.title.replace(/<[^>]*>?/gm, ''), // Remove HTML tags
-            summary: '',
-            color: event.color?.secondary || '#fae3e3',
-        }));
-    }, [events]);
-
-    const onDateChanged = (date) => {
-        setSelectedDate(date);
-    };
-
-    const renderViewSelector = () => (
-        <View style={styles.selectorContainer}>
-            <TouchableOpacity
-                style={[styles.selectorItem, viewMode === 'month' && styles.selectorItemActive]}
-                onPress={() => setViewMode('month')}
-            >
-                <Text style={[styles.selectorText, viewMode === 'month' && styles.selectorTextActive]}>Mes</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={[styles.selectorItem, viewMode === 'week' && styles.selectorItemActive]}
-                onPress={() => setViewMode('week')}
-            >
-                <Text style={[styles.selectorText, viewMode === 'week' && styles.selectorTextActive]}>Semana</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={[styles.selectorItem, viewMode === 'day' && styles.selectorItemActive]}
-                onPress={() => setViewMode('day')}
-            >
-                <Text style={[styles.selectorText, viewMode === 'day' && styles.selectorTextActive]}>Día</Text>
-            </TouchableOpacity>
-        </View>
-    );
+    const onEventPress = useCallback((event) => {
+        const original = events.find(e => {
+            const cleanTitle = (e.title || '').replace(/<[^>]*>?/gm, '');
+            return cleanTitle.includes(event.title);
+        });
+        if (original) navigation.navigate('ActivityDetail', { activity: original });
+    }, [events, navigation]);
 
     return (
         <CalendarProvider
             date={selectedDate}
-            onDateChanged={onDateChanged}
-            theme={{ todayButtonTextColor: '#337ab7' }}
+            onDateChanged={setSelectedDate}
         >
             <View style={styles.container}>
-                {renderViewSelector()}
+                <View style={styles.selectorContainer}>
+                    {['month', 'week'].map((mode) => (
+                        <TouchableOpacity
+                            key={mode}
+                            style={[styles.selectorItem, viewMode === mode && styles.selectorItemActive]}
+                            onPress={() => setViewMode(mode)}
+                        >
+                            <Text style={[styles.selectorText, viewMode === mode && styles.selectorTextActive]}>
+                                {mode === 'month' ? 'Mes' : 'Semana'}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
 
                 {loading && <ActivityIndicator style={styles.loader} size="large" color="#337ab7" />}
 
                 {viewMode === 'month' ? (
                     <Calendar
                         current={selectedDate}
-                        markedDates={markedDates}
+                        markedDates={processedData.marks}
                         markingType={'multi-dot'}
                         onDayPress={(day) => setSelectedDate(day.dateString)}
+                        onMonthChange={(month) => setSelectedDate(month.dateString)}
                         theme={{
                             todayTextColor: '#337ab7',
                             arrowColor: '#337ab7',
-                            indicatorColor: '#337ab7',
+                            selectedDayBackgroundColor: '#337ab7',
                             textDayFontWeight: '400',
                             textMonthFontWeight: '700',
-                            textDayHeaderFontWeight: '600',
                         }}
                     />
                 ) : (
                     <View style={{ flex: 1 }}>
-                        {viewMode === 'week' && (
-                            <ExpandableCalendar
-                                firstDay={1}
-                                markedDates={markedDates}
-                                theme={{
-                                    todayTextColor: '#337ab7',
-                                    selectedDayBackgroundColor: '#337ab7',
-                                }}
-                            />
-                        )}
-                        <Timeline
-                            format24h={false}
-                            events={timelineEvents}
-                            start={8}
-                            end={22}
-                            onEventPress={(event) => {
-                                const originalEvent = events.find(e => e.title.includes(event.title));
-                                if (originalEvent) {
-                                    navigation.navigate('ActivityDetail', { activity: originalEvent });
-                                }
+                        <ExpandableCalendar
+                            firstDay={1}
+                            markedDates={processedData.marks}
+                            theme={{
+                                todayTextColor: '#337ab7',
+                                selectedDayBackgroundColor: '#337ab7'
                             }}
+                        />
+                        <Timeline
+                            key={`timeline-${selectedDate}`} // Force re-render on date change to ensure correct painters
+                            date={selectedDate}
+                            events={processedData.timelineForSelectedDay}
+                            format24h={false}
+                            start={7}
+                            end={22}
+                            onEventPress={onEventPress}
+                            showNowIndicator
+                            scrollToFirst
+                            initialTime={{ hour: 8, minute: 0 }}
                             styles={{
-                                line: { backgroundColor: '#eee', height: 1 },
-                                timeLabel: { color: '#666', fontSize: 10 },
+                                container: { backgroundColor: '#fff' },
+                                line: { backgroundColor: '#eee', height: 1 }
                             }}
                         />
                     </View>
@@ -198,42 +203,13 @@ const GestionComercialCalendar = ({ navigation, searchFilters, refreshTrigger })
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#fff',
-    },
-    selectorContainer: {
-        flexDirection: 'row',
-        padding: 10,
-        backgroundColor: '#f8f9fa',
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-    },
-    selectorItem: {
-        flex: 1,
-        paddingVertical: 8,
-        alignItems: 'center',
-        borderRadius: 20,
-    },
-    selectorItemActive: {
-        backgroundColor: '#337ab7',
-    },
-    selectorText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#666',
-    },
-    selectorTextActive: {
-        color: '#fff',
-    },
-    loader: {
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        marginLeft: -20,
-        marginTop: -20,
-        zIndex: 10,
-    },
+    container: { flex: 1, backgroundColor: '#fff' },
+    selectorContainer: { flexDirection: 'row', padding: 10, backgroundColor: '#f8f9fa', borderBottomWidth: 1, borderBottomColor: '#eee' },
+    selectorItem: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 20 },
+    selectorItemActive: { backgroundColor: '#337ab7' },
+    selectorText: { fontSize: 14, fontWeight: '600', color: '#666' },
+    selectorTextActive: { color: '#fff' },
+    loader: { position: 'absolute', top: '50%', left: '50%', marginLeft: -20, marginTop: -20, zIndex: 10 },
 });
 
 export default GestionComercialCalendar;
