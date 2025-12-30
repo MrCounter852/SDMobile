@@ -83,7 +83,7 @@ const TableView = ({ navigation, searchFilters, refreshTrigger, selectedContact,
   useFocusEffect(
     useCallback(() => {
       loadContacts(1, true);
-    }, [])
+    }, [searchFilters, refreshTrigger])
   );
 
   const handleRefresh = () => {
@@ -124,6 +124,18 @@ const TableView = ({ navigation, searchFilters, refreshTrigger, selectedContact,
 
   return (
     <View style={styles.container}>
+      {searchFilters.tags && searchFilters.tags.length > 0 && (
+        <View style={styles.tagsOuterContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tagsScrollContent}>
+            {searchFilters.tags.map((tag) => (
+              <TouchableOpacity key={tag.key} style={styles.tagItem} onPress={() => searchFilters.onClear(tag.key)}>
+                <Text style={styles.tagLabel}>{tag.label}</Text>
+                <Ionicons name="close-circle" size={16} color="#337ab7" style={{ marginLeft: 4 }} />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
       <FlatList
         data={contacts}
         renderItem={renderContact}
@@ -196,7 +208,7 @@ const TimelineView = ({ navigation, searchFilters, refreshTrigger, onSelectConta
   useFocusEffect(
     useCallback(() => {
       loadTimeline(true);
-    }, [])
+    }, [searchFilters, refreshTrigger])
   );
 
   const handleRefresh = () => {
@@ -261,29 +273,43 @@ const TimelineView = ({ navigation, searchFilters, refreshTrigger, onSelectConta
   }
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.timelineContainer}
-    >
-      {timelineData.map((linea) => (
-        <TimelineColumn
-          key={linea.ProcesoLineaTiempoID}
-          linea={linea}
-          onContactPress={handleContactPress}
-          onMoveContact={handleMoveContact}
-          refreshing={refreshing}
-          onRefresh={handleRefresh}
-        />
-      ))}
-
-      {timelineData.length === 0 && (
-        <View style={styles.emptyTimeline}>
-          <Ionicons name="git-branch-outline" size={64} color="#ccc" />
-          <Text style={styles.emptyText}>No hay línea de tiempo configurada</Text>
+    <View style={{ flex: 1 }}>
+      {searchFilters.tags && searchFilters.tags.length > 0 && (
+        <View style={styles.tagsOuterContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tagsScrollContent}>
+            {searchFilters.tags.map((tag) => (
+              <TouchableOpacity key={tag.key} style={styles.tagItem} onPress={() => searchFilters.onClear(tag.key)}>
+                <Text style={styles.tagLabel}>{tag.label}</Text>
+                <Ionicons name="close-circle" size={16} color="#337ab7" style={{ marginLeft: 4 }} />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
       )}
-    </ScrollView>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.timelineContainer}
+      >
+        {timelineData.map((linea) => (
+          <TimelineColumn
+            key={linea.ProcesoLineaTiempoID}
+            linea={linea}
+            onContactPress={handleContactPress}
+            onMoveContact={handleMoveContact}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+          />
+        ))}
+
+        {timelineData.length === 0 && (
+          <View style={styles.emptyTimeline}>
+            <Ionicons name="git-branch-outline" size={64} color="#ccc" />
+            <Text style={styles.emptyText}>No hay línea de tiempo configurada</Text>
+          </View>
+        )}
+      </ScrollView>
+    </View>
   );
 };
 
@@ -330,7 +356,7 @@ const CalendarView = ({ navigation, searchFilters, refreshTrigger }) => {
   useFocusEffect(
     useCallback(() => {
       loadEvents(true);
-    }, [])
+    }, [searchFilters, refreshTrigger])
   );
 
   const handleRefresh = () => {
@@ -352,6 +378,18 @@ const CalendarView = ({ navigation, searchFilters, refreshTrigger }) => {
 
   return (
     <View style={styles.container}>
+      {searchFilters.tags && searchFilters.tags.length > 0 && (
+        <View style={styles.tagsOuterContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tagsScrollContent}>
+            {searchFilters.tags.map((tag) => (
+              <TouchableOpacity key={tag.key} style={styles.tagItem} onPress={() => searchFilters.onClear(tag.key)}>
+                <Text style={styles.tagLabel}>{tag.label}</Text>
+                <Ionicons name="close-circle" size={16} color="#337ab7" style={{ marginLeft: 4 }} />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
       <FlatList
         data={events}
         renderItem={({ item }) => (
@@ -422,12 +460,6 @@ const GestionComercial = ({ navigation }) => {
           SucursalID: user?.SucursalID,
         });
         setOrigenes(origenesResponse.rows || []);
-        if (origenesResponse.rows && origenesResponse.rows.length > 0) {
-          setSearchFilters(prev => ({
-            ...prev,
-            OrigenPreContactoID: origenesResponse.rows[0].OrigenPreContactoID
-          }));
-        }
 
 
         // Load tipos calendario actividades
@@ -453,7 +485,7 @@ const GestionComercial = ({ navigation }) => {
       } else if (isSelectionMode) {
         handleDeselectContact();
       }
-    }, [])
+    }, [isSelectionMode])
   );
 
   const handleApplyFilters = (filters) => {
@@ -519,6 +551,69 @@ const GestionComercial = ({ navigation }) => {
       navigation.navigate('ActivityFollowupScreen', { contact: selectedContact });
     }
   };
+
+  const getActiveFilterTags = () => {
+    const tags = [];
+    const mode = getCurrentMode();
+
+    if (searchFilters.FullSearch) {
+      tags.push({ key: 'FullSearch', label: `"${searchFilters.FullSearch}"` });
+    }
+
+    if (searchFilters.OrigenPreContactoID) {
+      const origen = origenes.find(o => o.OrigenPreContactoID === searchFilters.OrigenPreContactoID);
+      if (origen) {
+        tags.push({ key: 'OrigenPreContactoID', label: origen.Nombre });
+      }
+    }
+
+    if (searchFilters.TipoCalendarioActividadID) {
+      const tipo = tiposCalendarioActividades.find(t => t.TipoCalendarioActividadID === searchFilters.TipoCalendarioActividadID);
+      if (tipo) {
+        tags.push({ key: 'TipoCalendarioActividadID', label: tipo.Nombre });
+      }
+    }
+
+    if (searchFilters.FechaInicial || searchFilters.FechaFinal) {
+      const start = searchFilters.FechaInicial ? searchFilters.FechaInicial.split(' ')[0] : '...';
+      const end = searchFilters.FechaFinal ? searchFilters.FechaFinal.split(' ')[0] : '...';
+      tags.push({ key: 'Dates', label: `${start} a ${end}` });
+    }
+
+    if (mode === 'table' || mode === 'timeline') {
+      if (searchFilters.EstadoProcesoID && searchFilters.EstadoProcesoID !== "1,4") {
+        tags.push({ key: 'EstadoProcesoID', label: 'Estados' });
+      }
+    } else if (mode === 'calendar') {
+      if (searchFilters.EstadoActividadID && searchFilters.EstadoActividadID !== "3,4") {
+        tags.push({ key: 'EstadoActividadID', label: 'Estados Act.' });
+      }
+    }
+
+    return tags;
+  };
+
+  const clearFilter = (key) => {
+    const mode = getCurrentMode();
+    const newFilters = { ...searchFilters };
+
+    if (key === 'Dates') {
+      newFilters.FechaInicial = null;
+      newFilters.FechaFinal = null;
+    } else if (key === 'EstadoProcesoID') {
+      newFilters.EstadoProcesoID = "1,4";
+    } else if (key === 'EstadoActividadID') {
+      newFilters.EstadoActividadID = "3,4";
+    } else if (key === 'FullSearch') {
+      newFilters.FullSearch = '';
+    } else {
+      newFilters[key] = null;
+    }
+
+    handleApplyFilters(newFilters);
+  };
+
+  const activeTags = getActiveFilterTags();
 
   return (
     <SafeAreaView style={styles.mainContainer} edges={['top', 'left', 'right']}>
@@ -605,7 +700,7 @@ const GestionComercial = ({ navigation }) => {
           children={() => (
             <TableView
               navigation={navigation}
-              searchFilters={searchFilters}
+              searchFilters={{ ...searchFilters, tags: activeTags, onClear: clearFilter }}
               refreshTrigger={refreshTrigger}
               selectedContact={selectedContact}
               onSelectContact={handleSelectContact}
@@ -621,7 +716,7 @@ const GestionComercial = ({ navigation }) => {
           children={() => (
             <TimelineView
               navigation={navigation}
-              searchFilters={searchFilters}
+              searchFilters={{ ...searchFilters, tags: activeTags, onClear: clearFilter }}
               refreshTrigger={refreshTrigger}
               onSelectContact={handleSelectContact}
             />
@@ -635,7 +730,7 @@ const GestionComercial = ({ navigation }) => {
           children={() => (
             <CalendarView
               navigation={navigation}
-              searchFilters={searchFilters}
+              searchFilters={{ ...searchFilters, tags: activeTags, onClear: clearFilter }}
               refreshTrigger={refreshTrigger}
             />
           )}
@@ -783,6 +878,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 64,
+  },
+  tagsOuterContainer: {
+    backgroundColor: '#fff',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F2F7',
+  },
+  tagsScrollContent: {
+    paddingHorizontal: 20,
+    gap: 8,
+  },
+  tagItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E5F1FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#337ab720',
+  },
+  tagLabel: {
+    fontSize: 13,
+    color: '#337ab7',
+    fontWeight: '600',
   },
 });
 
