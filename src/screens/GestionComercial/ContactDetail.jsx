@@ -177,7 +177,7 @@ const ContactDetail = ({ navigation, route }) => {
   };
 
   const formatCurrency = (value) => {
-    if (!value || value === 0) return 'N/A';
+    if (value === undefined || value === null || isNaN(value)) return '$0';
     try {
       return new Intl.NumberFormat('es-CO', {
         style: 'currency',
@@ -185,7 +185,7 @@ const ContactDetail = ({ navigation, route }) => {
         minimumFractionDigits: 0
       }).format(value);
     } catch (e) {
-      return 'N/A';
+      return '$0';
     }
   };
 
@@ -204,7 +204,22 @@ const ContactDetail = ({ navigation, route }) => {
         {/* Contact Summary Card */}
         <View style={styles.heroSection}>
           {contactDetail && contactDetail.ProcesoID ? (
-            <ContactItem item={contactDetail} />
+            <View>
+              <ContactItem item={contactDetail} />
+              {contactDetail.OrigenPreContactoNombre && (
+                <View style={styles.originBadgeContainer}>
+                  <LinearGradient
+                    colors={['#337ab7', '#00ACC4']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.originBadge}
+                  >
+                    <Ionicons name="pricetag-outline" size={12} color="#fff" style={{ marginRight: 4 }} />
+                    <Text style={styles.originBadgeText}>{contactDetail.OrigenPreContactoNombre}</Text>
+                  </LinearGradient>
+                </View>
+              )}
+            </View>
           ) : (
             <View style={{ padding: 20 }}>
               <Text style={{ textAlign: 'center', color: '#8E8E93' }}>Cargando...</Text>
@@ -479,6 +494,142 @@ const ContactDetail = ({ navigation, route }) => {
           </View>
         )}
 
+        {/* Storage Specific: Initial Services */}
+        {(contactDetail.OrigenPreContactoID == 1 || contactDetail.OrigenPreContactoID == 6) && contactDetail.ProcesosServiciosIniciales?.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Servicios Iniciales Interesado</Text>
+              <Ionicons name="cube-outline" size={20} color="#AEAEB2" />
+            </View>
+            <View style={styles.tagContainer}>
+              {contactDetail.ProcesosServiciosIniciales.map((servicio, index) => (
+                <View key={index} style={styles.serviceTag}>
+                  <Text style={styles.serviceTagText}>{servicio.Nombre}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Financial Section: Cotizaciones, Ordenes, Facturas */}
+        {(contactDetail.Cotizaciones?.length > 0 || contactDetail.OrdenesServicios?.length > 0 || contactDetail.PreFacturas?.length > 0 || contactDetail.Facturas?.length > 0) && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Gestión Comercial y Financiera</Text>
+              <Ionicons name="card-outline" size={20} color="#AEAEB2" />
+            </View>
+
+            {/* Cotizaciones */}
+            {contactDetail.Cotizaciones?.length > 0 && (
+              <View style={styles.financialSubsection}>
+                <Text style={styles.subsectionTitle}>Cotizaciones</Text>
+                {contactDetail.Cotizaciones.map((cot, index) => (
+                  <View key={index} style={styles.financialItem}>
+                    <View style={styles.financialItemHeader}>
+                      <Text style={styles.financialItemTitle}>Cotización #{cot.Consecutivo}</Text>
+                      <View style={[styles.statusBadge, { backgroundColor: cot.Aprobada ? '#E8F5E9' : '#FFF3E0' }]}>
+                        <Text style={[styles.statusBadgeText, { color: cot.Aprobada ? '#2E7D32' : '#EF6C00' }]}>
+                          {cot.Aprobada ? 'Aprobada' : 'Pendiente'}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.financialItemContent}>
+                      <Text style={styles.financialItemValue}>{formatCurrency(cot.ValorCotizacion)}</Text>
+                      <Text style={styles.financialItemDate}>{formatDate(cot.FechaElaboracion)}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Ordenes de Servicio */}
+            {contactDetail.OrdenesServicios?.length > 0 && (
+              <View style={styles.financialSubsection}>
+                <Text style={styles.subsectionTitle}>Órdenes de Servicio</Text>
+                {contactDetail.OrdenesServicios.map((os, index) => (
+                  <View key={index} style={styles.financialItem}>
+                    <View style={styles.financialItemHeader}>
+                      <Text style={styles.financialItemTitle}>OS #{os.Consecutivo}</Text>
+                      <View style={[styles.statusBadge, { backgroundColor: '#E3F2FD' }]}>
+                        <Text style={[styles.statusBadgeText, { color: '#1565C0' }]}>
+                          {os.EstadoOrdenServicioNombre}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.financialItemContent}>
+                      <Text style={styles.financialItemValue}>{formatCurrency(os.ValorOrdenServicio)}</Text>
+                      <Text style={styles.financialItemDate}>{formatDate(os.FechaElaboracion)}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Facturación */}
+            {(contactDetail.PreFacturas?.length > 0 || contactDetail.Facturas?.length > 0) && (
+              <View style={styles.financialSubsection}>
+                <Text style={styles.subsectionTitle}>Facturación</Text>
+                {contactDetail.PreFacturas?.map((pf, index) => (
+                  <View key={`pf-${index}`} style={styles.financialItem}>
+                    <View style={styles.financialItemHeader}>
+                      <Text style={styles.financialItemTitle}>Pre-Factura {pf.Prefijo}-{pf.Consecutivo}</Text>
+                      <View style={[styles.statusBadge, { backgroundColor: '#F3E5F5' }]}>
+                        <Text style={[styles.statusBadgeText, { color: '#7B1FA2' }]}>Borrador</Text>
+                      </View>
+                    </View>
+                    <View style={styles.financialItemContent}>
+                      <Text style={styles.financialItemValue}>{formatCurrency(pf.ValorPreFactura)}</Text>
+                      <Text style={styles.financialItemDate}>{formatDate(pf.FechaCreacion)}</Text>
+                    </View>
+                  </View>
+                ))}
+                {contactDetail.Facturas?.map((f, index) => (
+                  <View key={`f-${index}`} style={styles.financialItem}>
+                    <View style={styles.financialItemHeader}>
+                      <Text style={styles.financialItemTitle}>Factura {f.Prefijo}{f.Consecutivo}</Text>
+                      <View style={[styles.statusBadge, { backgroundColor: '#E8F5E9' }]}>
+                        <Text style={[styles.statusBadgeText, { color: '#2E7D32' }]}>Emitida</Text>
+                      </View>
+                    </View>
+                    <View style={styles.financialItemContent}>
+                      <Text style={styles.financialItemValue}>{formatCurrency(f.ValorFactura)}</Text>
+                      <Text style={styles.financialItemDate}>{formatDate(f.FechaCreacion)}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Documentation Section */}
+        {(contactDetail.FormatoVinculacion?.FormatoVinculacionID || contactDetail.FormatoSeguro?.FormatoSeguroID) && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Documentación</Text>
+              <Ionicons name="document-attach-outline" size={20} color="#AEAEB2" />
+            </View>
+            {contactDetail.FormatoVinculacion?.FormatoVinculacionID && (
+              <View style={styles.documentItem}>
+                <Ionicons name="document-text-outline" size={24} color="#337ab7" />
+                <View style={styles.documentContent}>
+                  <Text style={styles.documentTitle}>Formato de Vinculación #{contactDetail.FormatoVinculacion.Consecutivo}</Text>
+                  <Text style={styles.documentStatus}>{contactDetail.FormatoVinculacion.EstadoFirmasSignio || 'En proceso'}</Text>
+                </View>
+              </View>
+            )}
+            {contactDetail.FormatoSeguro?.FormatoSeguroID && (
+              <View style={styles.documentItem}>
+                <Ionicons name="shield-checkmark-outline" size={24} color="#4CAF50" />
+                <View style={styles.documentContent}>
+                  <Text style={styles.documentTitle}>{contactDetail.FormatoSeguro.TipoFormatoSeguroNombre || 'Formato de Seguro'}</Text>
+                  <Text style={styles.documentStatus}>{contactDetail.FormatoSeguro.EstadoFirmaSignio || 'En proceso'}</Text>
+                </View>
+              </View>
+            )}
+          </View>
+        )}
+
         {/* Activities Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -600,6 +751,29 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 4,
     marginBottom: 12,
+  },
+  originBadgeContainer: {
+    alignItems: 'center',
+    marginTop: -10,
+    marginBottom: 10,
+  },
+  originBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    shadowColor: '#337ab7',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  originBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
   },
   section: {
     backgroundColor: '#fff',
@@ -753,6 +927,99 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 999,
+  },
+  tagContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+  },
+  serviceTag: {
+    backgroundColor: '#E5F1FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#337ab720',
+  },
+  serviceTagText: {
+    color: '#337ab7',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  financialSubsection: {
+    marginBottom: 20,
+    marginTop: 10,
+  },
+  subsectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#8E8E93',
+    textTransform: 'uppercase',
+    marginBottom: 12,
+    letterSpacing: 0.5,
+  },
+  financialItem: {
+    backgroundColor: '#F8F8FA',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+  },
+  financialItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  financialItemTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1C1C1E',
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  statusBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  financialItemContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  financialItemValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#337ab7',
+  },
+  financialItemDate: {
+    fontSize: 12,
+    color: '#8E8E93',
+  },
+  documentItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8F8FA',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  documentContent: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  documentTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1C1C1E',
+  },
+  documentStatus: {
+    fontSize: 13,
+    color: '#8E8E93',
+    marginTop: 2,
   },
   propertyDetails: {
     gap: 16,
