@@ -31,7 +31,17 @@ LocaleConfig.defaultLocale = 'es';
 const GestionComercialCalendar = ({ navigation, searchFilters, refreshTrigger }) => {
     const { user } = useGlobal();
     const [viewMode, setViewMode] = useState('month'); // 'month', 'week'
-    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+
+    // YYYY-MM-DD string that represents LOCAL today
+    const getLocalTodayStr = () => {
+        const d = new Date();
+        const str = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        console.log('[Calendar] getLocalTodayStr:', str, 'Raw Date:', d.toString(), 'Hours:', d.getHours());
+        return str;
+    };
+
+    const todayStr = useMemo(() => getLocalTodayStr(), []);
+    const [selectedDate, setSelectedDate] = useState(todayStr);
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(false);
 
@@ -39,7 +49,9 @@ const GestionComercialCalendar = ({ navigation, searchFilters, refreshTrigger })
         if (!user?.UsuarioID) return;
         setLoading(true);
         try {
-            const d = new Date(date);
+            const parts = date.split('-').map(Number);
+            const d = new Date(parts[0], parts[1] - 1, parts[2]);
+
             const filters = {
                 ...searchFilters,
                 UsuarioID: user?.UsuarioID,
@@ -80,13 +92,16 @@ const GestionComercialCalendar = ({ navigation, searchFilters, refreshTrigger })
             const startStr = event.startsAt.split('T')[0];
             const endStr = event.endsAt.split('T')[0];
 
-            // 1. Mark ranges for month view
-            const start = new Date(startStr);
-            const end = new Date(endStr);
+            const startParts = startStr.split('-').map(Number);
+            const endParts = endStr.split('-').map(Number);
+
+            const start = new Date(startParts[0], startParts[1] - 1, startParts[2]);
+            const end = new Date(endParts[0], endParts[1] - 1, endParts[2]);
             const curr = new Date(start);
 
             while (curr <= end) {
-                const dateKey = curr.toISOString().split('T')[0];
+                const dateKey = `${curr.getFullYear()}-${String(curr.getMonth() + 1).padStart(2, '0')}-${String(curr.getDate()).padStart(2, '0')}`;
+
                 if (!marks[dateKey]) {
                     marks[dateKey] = { marked: true, dots: [] };
                 }
@@ -98,7 +113,6 @@ const GestionComercialCalendar = ({ navigation, searchFilters, refreshTrigger })
                     });
                 }
 
-                // 2. Prepare timeline events for the currently SELECTED day
                 if (dateKey === selectedDate) {
                     const startTimePart = event.startsAt.split('T')[1];
                     const endTimePart = event.endsAt.split('T')[1];
@@ -131,6 +145,9 @@ const GestionComercialCalendar = ({ navigation, searchFilters, refreshTrigger })
         });
         if (original) navigation.navigate('ActivityDetail', { activity: original });
     }, [events, navigation]);
+
+    // Use scrollToNow only on initial load of the current day
+    const [initialScrollDone, setInitialScrollDone] = useState(false);
 
     return (
         <CalendarProvider
@@ -180,19 +197,22 @@ const GestionComercialCalendar = ({ navigation, searchFilters, refreshTrigger })
                             }}
                         />
                         <Timeline
-                            key={`timeline-${selectedDate}`} // Force re-render on date change to ensure correct painters
+                            key={`timeline-${selectedDate}`}
                             date={selectedDate}
                             events={processedData.timelineForSelectedDay}
                             format24h={false}
-                            start={7}
-                            end={22}
+                            start={0} // Start from 0 to verify where the line falls
+                            end={24}
                             onEventPress={onEventPress}
-                            showNowIndicator
-                            scrollToFirst
-                            initialTime={{ hour: 8, minute: 0 }}
+                            showNowIndicator={selectedDate === todayStr}
+                            scrollToNow={selectedDate === todayStr && !initialScrollDone}
+                            onScroll={() => !initialScrollDone && setInitialScrollDone(true)}
+                            initialTime={{ hour: new Date().getHours(), minute: 0 }}
                             styles={{
                                 container: { backgroundColor: '#fff' },
-                                line: { backgroundColor: '#eee', height: 1 }
+                                line: { backgroundColor: '#eee', height: 1 },
+                                nowIndicatorLine: { backgroundColor: '#88E782', height: 2 },
+                                nowIndicatorKnob: { backgroundColor: '#88E782', width: 10, height: 10, borderRadius: 5 }
                             }}
                         />
                     </View>
