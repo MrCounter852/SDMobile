@@ -242,7 +242,6 @@ const ContactDetail = ({ navigation, route }) => {
         </View>
 
         {/* Additional Details */}
-        {/* TEMPORARILY COMMENTED FOR DEBUGGING */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Información General</Text>
@@ -879,8 +878,6 @@ const styles = StyleSheet.create({
   },
   originBadgeContainer: {
     alignItems: 'center',
-    marginTop: -10,
-    marginBottom: 10,
   },
   originBadge: {
     flexDirection: 'row',
