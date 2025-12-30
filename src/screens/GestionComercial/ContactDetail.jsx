@@ -159,6 +159,14 @@ const ContactDetail = ({ navigation, route }) => {
     navigation.navigate('ActivityFollowupScreen', { contact: contactDetail });
   };
 
+  const getEstratosStr = (item) => {
+    const estratos = [];
+    for (let i = 1; i <= 6; i++) {
+      if (item[`Estrato${i}`]) estratos.push(i);
+    }
+    return estratos.length > 0 ? estratos.join(', ') : 'N/A';
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     try {
@@ -189,20 +197,26 @@ const ContactDetail = ({ navigation, route }) => {
     }
   };
 
-  const parseInmuebles = (inmuebleString) => {
-    if (!inmuebleString || inmuebleString === '[]') return [];
-    try {
-      return JSON.parse(inmuebleString);
-    } catch (e) {
-      return [];
+  const safeParseArray = (data) => {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    if (typeof data === 'string') {
+      if (data === '[]' || data === '') return [];
+      try {
+        const parsed = JSON.parse(data);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return [];
+      }
     }
+    return [];
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Contact Summary Card */}
-        <View style={styles.heroSection}>
+        <View>
           {contactDetail && contactDetail.ProcesoID ? (
             <View>
               <ContactItem item={contactDetail} />
@@ -375,6 +389,61 @@ const ContactDetail = ({ navigation, route }) => {
           </View>
         )}
 
+        {/* Property Search & Preferences Section */}
+        {(contactDetail.PresupuestoDesde || contactDetail.PresupuestoHasta || contactDetail.AreaDesde || contactDetail.AreaHasta || contactDetail.CondicionInmuebleNombre || contactDetail.AntiguedadInmuebleNombre) && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Búsqueda y Preferencias</Text>
+              <Ionicons name="search-outline" size={20} color="#AEAEB2" />
+            </View>
+
+            <View style={styles.detailGrid}>
+              {(contactDetail.PresupuestoDesde || contactDetail.PresupuestoHasta) && (
+                <View style={styles.gridRow}>
+                  <View style={styles.gridItem}>
+                    <Text style={styles.detailLabel}>Presupuesto</Text>
+                    <Text style={styles.detailValue}>
+                      {contactDetail.PresupuestoDesde ? formatCurrency(contactDetail.PresupuestoDesde) : '$0'} - {contactDetail.PresupuestoHasta ? formatCurrency(contactDetail.PresupuestoHasta) : 'Máz.'}
+                    </Text>
+                  </View>
+                </View>
+              )}
+              {(contactDetail.AreaDesde || contactDetail.AreaHasta) && (
+                <View style={styles.gridRow}>
+                  <View style={styles.gridItem}>
+                    <Text style={styles.detailLabel}>Área (m²)</Text>
+                    <Text style={styles.detailValue}>
+                      {contactDetail.AreaDesde || 0} - {contactDetail.AreaHasta || 'Máz.'} m²
+                    </Text>
+                  </View>
+                  {(contactDetail.Estrato1 || contactDetail.Estrato2 || contactDetail.Estrato3 || contactDetail.Estrato4 || contactDetail.Estrato5 || contactDetail.Estrato6) && (
+                    <View style={styles.gridItem}>
+                      <Text style={styles.detailLabel}>Estratos</Text>
+                      <Text style={styles.detailValue}>{getEstratosStr(contactDetail)}</Text>
+                    </View>
+                  )}
+                </View>
+              )}
+              {(contactDetail.CondicionInmuebleNombre || contactDetail.AntiguedadInmuebleNombre) && (
+                <View style={styles.gridRow}>
+                  {contactDetail.CondicionInmuebleNombre && (
+                    <View style={styles.gridItem}>
+                      <Text style={styles.detailLabel}>Condición</Text>
+                      <Text style={styles.detailValue}>{String(contactDetail.CondicionInmuebleNombre)}</Text>
+                    </View>
+                  )}
+                  {contactDetail.AntiguedadInmuebleNombre && (
+                    <View style={styles.gridItem}>
+                      <Text style={styles.detailLabel}>Antigüedad</Text>
+                      <Text style={styles.detailValue}>{String(contactDetail.AntiguedadInmuebleNombre)}</Text>
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+
         {/* Property Details Section */}
         {(contactDetail.OrigenPreContactoID == 2 || contactDetail.OrigenPreContactoID == 4 || contactDetail.OrigenPreContactoID == 5) && (
           <View style={styles.section}>
@@ -383,7 +452,7 @@ const ContactDetail = ({ navigation, route }) => {
               <Ionicons name="home-outline" size={20} color="#AEAEB2" />
             </View>
 
-            {(contactDetail.Habitaciones || contactDetail.Garajes || contactDetail.Banos || contactDetail.TipoOfertaNombre || contactDetail.TipoInmuebleNombre || contactDetail.Inmueble || contactDetail.EstadoMandato || contactDetail.EstadoCorretaje) ? (
+            {(contactDetail.Cantidadhabitaciones || contactDetail.Habitaciones || contactDetail.CantidadGarajes || contactDetail.Garajes || contactDetail.CantidadBanos || contactDetail.Banos || contactDetail.TipoOfertaNombre || contactDetail.TipoInmuebleNombre || contactDetail.EstadoMandato || contactDetail.EstadoCorretaje) ? (
               <View style={styles.propertyDetails}>
                 {(contactDetail.TipoOfertaNombre || contactDetail.TipoInmuebleNombre) && (
                   <View style={styles.propertyRow}>
@@ -404,31 +473,23 @@ const ContactDetail = ({ navigation, route }) => {
                   </View>
                 )}
 
-                {(contactDetail.Habitaciones || contactDetail.Garajes || contactDetail.Banos) && (
-                  <View style={styles.propertyRow}>
-                    {contactDetail.Habitaciones && (
-                      <View style={styles.propertyItem}>
-                        <Ionicons name="bed-outline" size={16} color="#337ab7" />
-                        <Text style={styles.propertyLabel}>Habitaciones</Text>
-                        <Text style={styles.propertyValue}>{String(contactDetail.Habitaciones)}</Text>
-                      </View>
-                    )}
-                    {contactDetail.Garajes && (
-                      <View style={styles.propertyItem}>
-                        <Ionicons name="car-outline" size={16} color="#337ab7" />
-                        <Text style={styles.propertyLabel}>Garajes</Text>
-                        <Text style={styles.propertyValue}>{String(contactDetail.Garajes)}</Text>
-                      </View>
-                    )}
-                    {contactDetail.Banos && (
-                      <View style={styles.propertyItem}>
-                        <Ionicons name="water-outline" size={16} color="#337ab7" />
-                        <Text style={styles.propertyLabel}>Baños</Text>
-                        <Text style={styles.propertyValue}>{String(contactDetail.Banos)}</Text>
-                      </View>
-                    )}
+                <View style={styles.propertyRow}>
+                  <View style={styles.propertyItem}>
+                    <Ionicons name="bed-outline" size={16} color="#337ab7" />
+                    <Text style={styles.propertyLabel}>Habitaciones</Text>
+                    <Text style={styles.propertyValue}>{String(contactDetail.Cantidadhabitaciones || contactDetail.Habitaciones || '0')}</Text>
                   </View>
-                )}
+                  <View style={styles.propertyItem}>
+                    <Ionicons name="car-outline" size={16} color="#337ab7" />
+                    <Text style={styles.propertyLabel}>Garajes</Text>
+                    <Text style={styles.propertyValue}>{String(contactDetail.CantidadGarajes || contactDetail.Garajes || '0')}</Text>
+                  </View>
+                  <View style={styles.propertyItem}>
+                    <Ionicons name="water-outline" size={16} color="#337ab7" />
+                    <Text style={styles.propertyLabel}>Baños</Text>
+                    <Text style={styles.propertyValue}>{String(contactDetail.CantidadBanos || contactDetail.Banos || '0')}</Text>
+                  </View>
+                </View>
 
                 {/* Captaciones specific fields: EstadoMandato & EstadoCorretaje */}
                 {contactDetail.OrigenPreContactoID == 2 && (contactDetail.EstadoMandato || contactDetail.EstadoCorretaje) && (
@@ -449,30 +510,87 @@ const ContactDetail = ({ navigation, route }) => {
                     )}
                   </View>
                 )}
-
-                {contactDetail.Inmueble && parseInmuebles(contactDetail.Inmueble).length > 0 && (
-                  <View style={styles.inmueblesSection}>
-                    <Text style={styles.detailLabel}>Inmuebles Asociados</Text>
-                    {parseInmuebles(contactDetail.Inmueble).map((inmueble, index) => (
-                      <View key={index} style={styles.inmuebleItem}>
-                        <Ionicons name="location-outline" size={16} color="#337ab7" />
-                        <View style={styles.inmuebleContent}>
-                          <Text style={styles.inmuebleConsecutivo}>Inmueble N°. {String(inmueble.Consecutivo)}</Text>
-                          <Text style={styles.inmuebleDireccion}>{String(inmueble.Direccion)}</Text>
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                )}
               </View>
             ) : (
-              <Text style={styles.emptyText}>No hay detalles del inmueble disponibles</Text>
+              <Text style={styles.emptyText}>No hay detalles del inmueble registrados</Text>
             )}
           </View>
         )}
 
+        {/* Associated Properties (InmueblesProcesos) */}
+        {(safeParseArray(contactDetail.InmueblesProcesos).length > 0 || safeParseArray(contactDetail.Inmueble).length > 0) && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Inmuebles Asociados ({safeParseArray(contactDetail.InmueblesProcesos).length || safeParseArray(contactDetail.Inmueble).length})</Text>
+              <Ionicons name="location-outline" size={20} color="#AEAEB2" />
+            </View>
+
+            {safeParseArray(contactDetail.InmueblesProcesos).map((inmueble, index) => (
+              <View key={`inm-${index}`} style={styles.propertyCard}>
+                <View style={styles.propertyCardHeader}>
+                  <Text style={styles.propertyCardTitle}>{inmueble.TipoInmueble} - N°. {inmueble.InmuebleConsecutivo}</Text>
+                  <View style={[styles.statusBadge, { backgroundColor: '#E3F2FD' }]}>
+                    <Text style={[styles.statusBadgeText, { color: '#1565C0' }]}>{inmueble.EstadoProcesoInmuebleNombre}</Text>
+                  </View>
+                </View>
+                <Text style={styles.propertyCardAddress}>{inmueble.InmuebleDireccion}</Text>
+                <Text style={styles.propertyCardSub}>{inmueble.Barrio} | {inmueble.Localidad}</Text>
+
+                <View style={styles.propertyCardGrid}>
+                  <View style={styles.propertyCardStat}>
+                    <Text style={styles.statLabel}>Canon</Text>
+                    <Text style={styles.statValue}>{formatCurrency(inmueble.ValorCanon)}</Text>
+                  </View>
+                  <View style={styles.propertyCardStat}>
+                    <Text style={styles.statLabel}>Admón</Text>
+                    <Text style={styles.statValue}>{formatCurrency(inmueble.ValorAdmin)}</Text>
+                  </View>
+                  {inmueble.ValorVenta && (
+                    <View style={styles.propertyCardStat}>
+                      <Text style={styles.statLabel}>Venta</Text>
+                      <Text style={styles.statValue}>{formatCurrency(inmueble.ValorVenta)}</Text>
+                    </View>
+                  ) || (
+                      <View style={styles.propertyCardStat}>
+                        <Text style={styles.statLabel}>Habs/Baños</Text>
+                        <Text style={styles.statValue}>{inmueble.Habitaciones}/{inmueble.Banos}</Text>
+                      </View>
+                    )}
+                </View>
+              </View>
+            ))}
+
+            {safeParseArray(contactDetail.InmueblesProcesos).length === 0 && safeParseArray(contactDetail.Inmueble).map((inmueble, index) => (
+              <View key={`legacy-inm-${index}`} style={styles.inmuebleItem}>
+                <Ionicons name="location-outline" size={16} color="#337ab7" />
+                <View style={styles.inmuebleContent}>
+                  <Text style={styles.inmuebleConsecutivo}>Inmueble N°. {String(inmueble.Consecutivo)}</Text>
+                  <Text style={styles.inmuebleDireccion}>{String(inmueble.Direccion)}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Locations of Interest */}
+        {safeParseArray(contactDetail.ProcesosInmobiliariaLocalidades).length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Ubicaciones de Interés</Text>
+              <Ionicons name="map-outline" size={20} color="#AEAEB2" />
+            </View>
+            <View style={styles.tagContainer}>
+              {safeParseArray(contactDetail.ProcesosInmobiliariaLocalidades).map((loc, index) => (
+                <View key={index} style={styles.locationTag}>
+                  <Text style={styles.locationTagText}>{loc.LocalidadNombre || loc.Nombre}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
         {/* Custom Fields Section */}
-        {customFieldsConfig.length > 0 && (
+        {safeParseArray(customFieldsConfig).length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Campos Personalizados</Text>
@@ -480,7 +598,7 @@ const ContactDetail = ({ navigation, route }) => {
             </View>
 
             <View style={styles.customFields}>
-              {customFieldsConfig.map((field) => {
+              {safeParseArray(customFieldsConfig).map((field) => {
                 const value = contactDetail[`Valor${field.ModelCampo}`];
                 if (!value) return null;
                 return (
@@ -495,14 +613,14 @@ const ContactDetail = ({ navigation, route }) => {
         )}
 
         {/* Storage Specific: Initial Services */}
-        {(contactDetail.OrigenPreContactoID == 1 || contactDetail.OrigenPreContactoID == 6) && contactDetail.ProcesosServiciosIniciales?.length > 0 && (
+        {(contactDetail.OrigenPreContactoID == 1 || contactDetail.OrigenPreContactoID == 6) && safeParseArray(contactDetail.ProcesosServiciosIniciales).length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Servicios Iniciales Interesado</Text>
               <Ionicons name="cube-outline" size={20} color="#AEAEB2" />
             </View>
             <View style={styles.tagContainer}>
-              {contactDetail.ProcesosServiciosIniciales.map((servicio, index) => (
+              {safeParseArray(contactDetail.ProcesosServiciosIniciales).map((servicio, index) => (
                 <View key={index} style={styles.serviceTag}>
                   <Text style={styles.serviceTagText}>{servicio.Nombre}</Text>
                 </View>
@@ -512,7 +630,7 @@ const ContactDetail = ({ navigation, route }) => {
         )}
 
         {/* Financial Section: Cotizaciones, Ordenes, Facturas */}
-        {(contactDetail.Cotizaciones?.length > 0 || contactDetail.OrdenesServicios?.length > 0 || contactDetail.PreFacturas?.length > 0 || contactDetail.Facturas?.length > 0) && (
+        {(safeParseArray(contactDetail.Cotizaciones).length > 0 || safeParseArray(contactDetail.OrdenesServicios).length > 0 || safeParseArray(contactDetail.PreFacturas).length > 0 || safeParseArray(contactDetail.Facturas).length > 0) && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Gestión Comercial y Financiera</Text>
@@ -520,10 +638,10 @@ const ContactDetail = ({ navigation, route }) => {
             </View>
 
             {/* Cotizaciones */}
-            {contactDetail.Cotizaciones?.length > 0 && (
+            {safeParseArray(contactDetail.Cotizaciones).length > 0 && (
               <View style={styles.financialSubsection}>
                 <Text style={styles.subsectionTitle}>Cotizaciones</Text>
-                {contactDetail.Cotizaciones.map((cot, index) => (
+                {safeParseArray(contactDetail.Cotizaciones).map((cot, index) => (
                   <View key={index} style={styles.financialItem}>
                     <View style={styles.financialItemHeader}>
                       <Text style={styles.financialItemTitle}>Cotización #{cot.Consecutivo}</Text>
@@ -543,10 +661,10 @@ const ContactDetail = ({ navigation, route }) => {
             )}
 
             {/* Ordenes de Servicio */}
-            {contactDetail.OrdenesServicios?.length > 0 && (
+            {safeParseArray(contactDetail.OrdenesServicios).length > 0 && (
               <View style={styles.financialSubsection}>
                 <Text style={styles.subsectionTitle}>Órdenes de Servicio</Text>
-                {contactDetail.OrdenesServicios.map((os, index) => (
+                {safeParseArray(contactDetail.OrdenesServicios).map((os, index) => (
                   <View key={index} style={styles.financialItem}>
                     <View style={styles.financialItemHeader}>
                       <Text style={styles.financialItemTitle}>OS #{os.Consecutivo}</Text>
@@ -566,10 +684,10 @@ const ContactDetail = ({ navigation, route }) => {
             )}
 
             {/* Facturación */}
-            {(contactDetail.PreFacturas?.length > 0 || contactDetail.Facturas?.length > 0) && (
+            {(safeParseArray(contactDetail.PreFacturas).length > 0 || safeParseArray(contactDetail.Facturas).length > 0) && (
               <View style={styles.financialSubsection}>
                 <Text style={styles.subsectionTitle}>Facturación</Text>
-                {contactDetail.PreFacturas?.map((pf, index) => (
+                {safeParseArray(contactDetail.PreFacturas).map((pf, index) => (
                   <View key={`pf-${index}`} style={styles.financialItem}>
                     <View style={styles.financialItemHeader}>
                       <Text style={styles.financialItemTitle}>Pre-Factura {pf.Prefijo}-{pf.Consecutivo}</Text>
@@ -583,7 +701,7 @@ const ContactDetail = ({ navigation, route }) => {
                     </View>
                   </View>
                 ))}
-                {contactDetail.Facturas?.map((f, index) => (
+                {safeParseArray(contactDetail.Facturas).map((f, index) => (
                   <View key={`f-${index}`} style={styles.financialItem}>
                     <View style={styles.financialItemHeader}>
                       <Text style={styles.financialItemTitle}>Factura {f.Prefijo}{f.Consecutivo}</Text>
@@ -1020,6 +1138,73 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#8E8E93',
     marginTop: 2,
+  },
+  propertyCard: {
+    backgroundColor: '#F8F8FA',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#337ab7',
+  },
+  propertyCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  propertyCardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1C1C1E',
+    flex: 1,
+  },
+  propertyCardAddress: {
+    fontSize: 14,
+    color: '#3A3A3C',
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  propertyCardSub: {
+    fontSize: 12,
+    color: '#8E8E93',
+    marginBottom: 12,
+  },
+  propertyCardGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 12,
+  },
+  propertyCardStat: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statLabel: {
+    fontSize: 10,
+    color: '#8E8E93',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  statValue: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#337ab7',
+  },
+  locationTag: {
+    backgroundColor: '#F2F2F7',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#AEAEB230',
+  },
+  locationTagText: {
+    color: '#3A3A3C',
+    fontSize: 13,
+    fontWeight: '600',
   },
   propertyDetails: {
     gap: 16,
