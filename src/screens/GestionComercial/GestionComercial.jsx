@@ -22,6 +22,7 @@ import FilterModal from '../../components/GestionComercial/FilterModal';
 import TimelineColumn from '../../components/GestionComercial/TimelineColumn';
 import CalendarEvent from '../../components/GestionComercial/CalendarEvent';
 import ColorPickerModal from '../../components/GestionComercial/ColorPickerModal';
+import GestionComercialCalendar from '../../components/GestionComercial/GestionComercialCalendar';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -315,106 +316,12 @@ const TimelineView = ({ navigation, searchFilters, refreshTrigger, onSelectConta
 
 // Calendar View Component
 const CalendarView = ({ navigation, searchFilters, refreshTrigger }) => {
-  const { user } = useGlobal();
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const loadEvents = async (isRefresh = false) => {
-    try {
-      if (isRefresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-
-      const filters = {
-        EstadoActividadID: "2",
-        SucursalID: user?.SucursalID,
-        TipoCalendarioActividadID: searchFilters?.TipoCalendarioActividadID || null,
-        UsuarioID: user?.UsuarioID || null,
-        FechaInicial: searchFilters?.FechaInicial || null,
-        FechaFinal: searchFilters?.FechaFinal || null,
-        FullSearch: searchFilters?.FullSearch || null,
-      };
-
-      const response = await GestionComercialService.consultarMiCalendarioTabla(filters);
-      setEvents(response.rows || []);
-    } catch (error) {
-      console.error('Error loading calendar events:', error);
-      Alert.alert('Error', 'No se pudieron cargar las actividades');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    loadEvents();
-  }, [refreshTrigger]);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadEvents(true);
-    }, [searchFilters, refreshTrigger])
-  );
-
-  const handleRefresh = () => {
-    loadEvents(true);
-  };
-
-  const handleEventPress = (event) => {
-    navigation.navigate('ActivityDetail', { activity: event });
-  };
-
-  if (loading && !refreshing) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#337ab7" />
-        <Text style={styles.loadingText}>Cargando actividades...</Text>
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.container}>
-      {searchFilters.tags && searchFilters.tags.length > 0 && (
-        <View style={styles.tagsOuterContainer}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tagsScrollContent}>
-            {searchFilters.tags.map((tag) => (
-              <TouchableOpacity key={tag.key} style={styles.tagItem} onPress={() => searchFilters.onClear(tag.key)}>
-                <Text style={styles.tagLabel}>{tag.label}</Text>
-                <Ionicons name="close-circle" size={16} color="#337ab7" style={{ marginLeft: 4 }} />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      )}
-      <FlatList
-        data={events}
-        renderItem={({ item }) => (
-          <CalendarEvent
-            event={item}
-            onPress={handleEventPress}
-          />
-        )}
-        keyExtractor={(item) => item.CalendarioActividadID?.toString() || Math.random().toString()}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            colors={['#337ab7']}
-          />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="calendar-outline" size={64} color="#ccc" />
-            <Text style={styles.emptyText}>No hay actividades programadas</Text>
-          </View>
-        }
-        contentContainerStyle={events.length === 0 ? styles.emptyList : null}
-      />
-    </View>
+    <GestionComercialCalendar
+      navigation={navigation}
+      searchFilters={searchFilters}
+      refreshTrigger={refreshTrigger}
+    />
   );
 };
 
