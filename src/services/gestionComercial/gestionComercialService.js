@@ -109,12 +109,10 @@ class GestionComercialService {
       SortDirection: filtros?.SortDirection || null,
       Token: this.global.user?.Token,
     };
-    console.log('Payload for consultarPreContactos:', body);
     return this.makeRequest(endpoint, {
       method: 'POST',
       body: JSON.stringify(body),
     }).then(response => {
-      console.log('Response for consultarPreContactos:', response);
       // Ensure Color is set from API response
       if (response.rows && Array.isArray(response.rows)) {
         response.rows = response.rows.map(contact => ({
@@ -145,12 +143,10 @@ class GestionComercialService {
       ProcesoLineaTiempoID: filtros?.ProcesoLineaTiempoID || null,
       Token: this.global.user?.Token,
     };
-    console.log('Payload for consultarLineasTiempo:', body);
     return this.makeRequest(endpoint, {
       method: 'POST',
       body: JSON.stringify(body),
     }).then(response => {
-      console.log('Response for consultarLineasTiempo:', response);
       return response;
     });
   }
@@ -166,12 +162,10 @@ class GestionComercialService {
       Completada: filtros?.Completada || null,
       Token: this.global.user?.Token,
     };
-    console.log('Payload for consultarActividadesCalendario:', body);
     return this.makeRequest(endpoint, {
       method: 'POST',
       body: JSON.stringify(body),
     }, false, true).then(response => {
-      console.log('Response for consultarActividadesCalendario:', response);
       return response;
     }); // useSIS
   }

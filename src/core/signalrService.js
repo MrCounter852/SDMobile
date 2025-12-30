@@ -19,15 +19,6 @@ class SignalRService {
         this.isConnecting = true;
         const state = useGlobal.getState();
 
-        // DEBUG: Imprimir estado actual para verificar que los datos existen
-        console.log('[SignalR] Debug State:', {
-            EmpresaID: state.empresa?.EmpresaID,
-            EmpresaUniqueID: state.empresa?.EmpresaUniqueID,
-            UsuarioID: state.user?.UsuarioUniqueID || state.usuarioID,
-            SucursalID: state.sucursal?.SucursalID,
-            SucursalUniqueID: state.sucursal?.SucursalUniqueID
-        });
-
         // Construir query string con datos de la sesión (MATCHING WEB CLIENT FORMAT)
         // La web usa PascalCase en las LLAVES, pero minúsculas en los VALORES.
         // NOTA: 'UniqueID' viene del login como el UUID del usuario.
@@ -37,8 +28,6 @@ class SignalRService {
             SucursalUniqueID: (state.sucursal?.SucursalUniqueID || state.user?.SucursalUniqueID || state.sucursal?.SucursalID || '').toLowerCase(),
             OpcionMenu: 'CRM/CentroContacto/Principal'
         };
-
-        console.log('[SignalR] Connecting with final params:', qs);
 
         const baseUrl = `${getEnvironmentConfig().SIGNALR_URL}`;
 
@@ -61,7 +50,6 @@ class SignalRService {
 
         try {
             await this.connection.start();
-            console.log('[SignalR] Connected! ID:', this.connection.id);
             this.isConnected = true;
             this.isConnecting = false;
 
@@ -89,9 +77,6 @@ class SignalRService {
         // Notificaciones push
         // Firma exacta web: function (Notificaciones, IfPush)
         this.hubProxy.on('NotificacionPush', async (data, IfPush) => {
-            console.log('[SignalR] NotificacionPush received:', { dataLength: data?.length, IfPush });
-
-            // Actualizar store de notificaciones en tiempo real
             const chatStore = require('./chatStore').default;
             if (data && Array.isArray(data)) {
 
@@ -138,25 +123,20 @@ class SignalRService {
 
         // Sincronización de opción de menú
         this.hubProxy.on('SincronizarOpcionMenuEmpresa', (data) => {
-            console.log('[SignalR] SincronizarOpcionMenuEmpresa received:', data);
-            // Actualizar store de chat
-            const chatStore = require('./chatStore').default; // Lazy load para evitar ciclos si los hubiera
+            const chatStore = require('./chatStore').default;
             chatStore.getState().handleSignalRUpdate(data);
         });
 
         // Sincronización
         this.hubProxy.on('SyncNotificacionPush', (data) => {
-            console.log('[SignalR] SyncNotificacionPush received:', data);
         });
 
         // Eventos de conexión
         this.connection.stateChanged((change) => {
             const states = { 0: 'connecting', 1: 'connected', 2: 'reconnecting', 4: 'disconnected' };
-            console.log(`[SignalR] State changed: ${states[change.oldState]} -> ${states[change.newState]}`);
         });
 
         this.connection.disconnected(() => {
-            console.log('[SignalR] Disconnected event');
             this.handleDisconnect();
         });
 

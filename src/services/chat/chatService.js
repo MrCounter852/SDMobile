@@ -24,12 +24,10 @@ class ChatApiService {
       // El erpToken ahora es el token de OauthToken que funciona para las APIs
       const erpToken = await SecureStore.getItemAsync('erpToken');
       if (erpToken) {
-        console.log('Using erpToken from SecureStore');
         return erpToken;
       }
       // Fallback al accessToken si no hay erpToken
       const accessToken = await SecureStore.getItemAsync('accessToken');
-      console.log('Using accessToken as fallback');
       return accessToken || '';
     } catch (error) {
       console.error('Error getting stored token:', error);
@@ -297,7 +295,6 @@ class ChatApiService {
     }
 
     const result = await response.json();
-    console.log('CDN upload success:', result);
     return result;
   }
 
@@ -369,7 +366,6 @@ class ChatApiService {
       const dirInfo = await FileSystem.getInfoAsync(this.CACHE_DIR);
       if (dirInfo.exists) {
         await FileSystem.deleteAsync(this.CACHE_DIR, { idempotent: true });
-        console.log('[Cache Manager] Cache cleared');
       }
     } catch (error) {
       console.error('[Cache Manager] Error clearing cache:', error);
@@ -406,7 +402,6 @@ class ChatApiService {
           // Delete if expired (Age check)
           if (now - info.modificationTime * 1000 > this.MAX_FILE_AGE) {
             await FileSystem.deleteAsync(fileUri, { idempotent: true });
-            console.log(`[Cache Manager] Deleted expired file: ${file}`);
           } else {
             totalSize += info.size;
             fileStats.push({
@@ -428,7 +423,6 @@ class ChatApiService {
 
           await FileSystem.deleteAsync(file.uri, { idempotent: true });
           totalSize -= file.size;
-          console.log(`[Cache Manager] Deleted for space: ${file.uri}`);
         }
       }
 
@@ -451,7 +445,7 @@ class ChatApiService {
       if (info.exists) return fileUri;
       return null;
     } catch (error) {
-      console.log("Error checking cache:", error);
+      console.error('[Cache Manager] Error checking cache:', error);
       return null;
     }
   }

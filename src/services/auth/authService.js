@@ -77,6 +77,5 @@ export const getSessionData = async (token) => {
     method: 'GET',
   });
   const data = await response.json();
-  console.log('Session Data:', data);
   return data;
 };
