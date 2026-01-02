@@ -66,6 +66,25 @@ const getLocalTodayStr = () => {
 };
 
 /**
+ * ISO Week number calculator
+ */
+const getWeekNumber = (dateStr) => {
+  const d = new Date(dateStr + "T12:00:00");
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
+  const week1 = new Date(d.getFullYear(), 0, 4);
+  return (
+    1 +
+    Math.round(
+      ((d.getTime() - week1.getTime()) / 86400000 -
+        3 +
+        ((week1.getDay() + 6) % 7)) /
+        7
+    )
+  );
+};
+
+/**
  * Commercial Management Calendar Component
  * Simplified to show permanent Week/Timeline view.
  */
@@ -87,19 +106,23 @@ const GestionComercialCalendar = ({
 
     setLoading(true);
     try {
-      const d = new Date();
+      const d = new Date(selectedDate + "T12:00:00");
       const filters = {
         ...searchFilters,
         UsuarioID: user?.UsuarioID,
+        Usuario: user?.NombreCompleto,
         SucursalID: user?.SucursalID,
         AnoCalendario: d.getFullYear(),
         MesCalendario: d.getMonth() + 1,
-        ModoCalendar: "MONTH", // Load all for the month
+        SemanaCalendario: getWeekNumber(selectedDate),
+        ModoCalendar: "week",
       };
 
       const response = await GestionComercialService.consultarMiCalendario(
         filters
       );
+      console.log("ConsultarMiCalendario", selectedDate);
+      console.log(response);
       let data = response;
       if (typeof response === "string") {
         try {
@@ -119,7 +142,7 @@ const GestionComercialCalendar = ({
 
   useEffect(() => {
     loadCalendarData();
-  }, [searchFilters, refreshTrigger]);
+  }, [searchFilters, refreshTrigger, selectedDate]);
 
   // Pre-process events to clean titles and extract date parts
   const activities = useMemo(() => {

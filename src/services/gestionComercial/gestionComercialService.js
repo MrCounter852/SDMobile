@@ -53,7 +53,8 @@ class GestionComercialService {
       headers,
       ...options,
     };
-
+    console.log(endpoint)
+    console.log(options)
     try {
       const response = await fetch(url, config);
 
@@ -180,6 +181,8 @@ class GestionComercialService {
         SucursalID: filtros?.SucursalID || null,
         TipoCalendarioActividadID: filtros?.TipoCalendarioActividadID || null,
         UsuarioID: filtros?.UsuarioID || null,
+        Usuario: this.global.user?.NombreCompleto || null,
+        EmpresaID: filtros?.EmpresaID || this.global.empresa?.EmpresaID || this.global.user?.EmpresaID || null,
         AnoCalendario: filtros?.AnoCalendario || null,
         MesCalendario: filtros?.MesCalendario || null,
         SemanaCalendario: filtros?.SemanaCalendario || null,
