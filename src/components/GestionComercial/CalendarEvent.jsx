@@ -92,7 +92,7 @@ const CalendarEvent = ({ event, onPress }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
+    backgroundColor: '#fffs',
     marginHorizontal: 16,
     marginVertical: 4,
     borderRadius: 8,

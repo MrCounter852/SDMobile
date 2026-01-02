@@ -1,0 +1,265 @@
+USE [ERP_BD]
+GO
+/****** Object:  StoredProcedure [CRM].[INF_MiCalendarioActividadesTabla]    Script Date: 2/01/2026 10:03:21 a. m. ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [CRM].[INF_MiCalendarioActividadesTabla]
+(
+	 @Page							  INT = NULL
+	,@Rows							  INT = NULL
+	,@CalendarioActividadID			  INT = NULL
+	,@UsuarioID						  INT = NULL	
+	,@SucursalID					  INT = NULL
+	,@TipoCalendarioActividadID		  INT = NULL
+	,@FechaInicial					  DATETIME = NULL
+	,@FechaFinal					  DATETIME = NULL
+	,@Fecha							  DATETIME = NULL
+	,@EstadoActividadID				  VARCHAR(5) = NULL	
+	,@SortColumn					  VARCHAR(150) = NULL
+	,@SortDirection					  VARCHAR(4) = NULL	
+	,@FullSearch					  VARCHAR(100) = NULL
+	,@EmpresaID						  INT = NULL
+)
+AS
+DECLARE 
+	 @Temp_Offset						  INT = 0
+	,@Temp_Rows							  INT = ISNULL(@Rows,10)
+	,@Temp_page							  INT = ISNULL(@page,1)
+	,@Temp_CalendarioActividadID		  INT = @CalendarioActividadID
+	,@Temp_UsuarioID					  INT = @UsuarioID	
+	,@Temp_SucursalID					  INT = @SucursalID
+	,@Temp_TipoCalendarioActividadID	  INT = @TipoCalendarioActividadID
+	,@Temp_FechaInicial					  DATE = CAST(@FechaInicial AS DATE)
+	,@Temp_FechaFinal					  DATE = CAST(@FechaFinal AS DATE)	
+	,@Temp_Fecha						  DATE = CAST(@Fecha AS DATE)
+	,@Temp_EstadoActividadID			  VARCHAR(5) = @EstadoActividadID	
+	,@Temp_SortColumn					  VARCHAR(150) = @SortColumn
+	,@Temp_SortDirection				  VARCHAR(4) = @SortDirection	
+	,@Temp_FullSearch					  VARCHAR(100) = @FullSearch		
+	,@Temp_EmpresaID					  INT = @EmpresaID
+BEGIN	
+	SET DATEFORMAT DMY
+	SET 
+		@Temp_Offset = (@Temp_Page-1) * @Temp_Rows
+
+	DECLARE 
+		 @SQL	  VARCHAR(MAX) = ''
+		,@Filtros VARCHAR(MAX) = ''
+		,@OrderBy VARCHAR(MAX) = ''
+		
+	-- =====================================================================================================================
+	-- ORDER BY
+	-- =====================================================================================================================
+	IF(@Temp_SortColumn IS NOT NULL)
+		SET @OrderBy = CASE WHEN @Temp_SortColumn = 'Contacto' THEN ' PC.NombreCompleto '
+							WHEN @Temp_SortColumn = 'Cliente' THEN ' PC.ClienteNombreCompleto ' 
+					   ELSE 
+							@Temp_SortColumn END + ' ' + @Temp_SortDirection
+	ELSE
+		SET @OrderBy = ' CA.Completada ASC, CA.FechaInicio ASC '
+
+	-- =====================================================================================================================
+	-- WHERE
+	-- =====================================================================================================================
+	SET @Filtros += '(CA.EmpresaID = ' + CAST(@Temp_EmpresaID AS VARCHAR(10)) + ')'
+
+	IF(@Temp_CalendarioActividadID IS NOT NULL)
+		SET @Filtros += ' AND (CA.CalendarioActividadID = ' + CAST(@Temp_CalendarioActividadID AS VARCHAR(10)) + ')'
+		
+	IF(@Temp_UsuarioID IS NOT NULL)
+		SET @Filtros += ' AND (CA.UsuarioID = ' + CAST(@Temp_UsuarioID AS VARCHAR(10)) + ')'
+
+	IF(@Temp_SucursalID IS NOT NULL)
+		SET @Filtros += ' AND (SU.SucursalID = ' + CAST(@Temp_SucursalID AS VARCHAR(10)) + ')'
+
+	IF(@Temp_TipoCalendarioActividadID IS NOT NULL)
+		SET @Filtros += ' AND (CA.TipoCalendarioActividadID = ' + CAST(@Temp_TipoCalendarioActividadID AS VARCHAR(40)) + ')'
+
+	IF(@Temp_FechaInicial IS NOT NULL)
+		SET @Filtros += ' AND (CAST(CA.FechaInicio AS DATE) >= CAST(''' + FORMAT(@Temp_FechaInicial, 'dd/MM/yyyy') + ''' AS DATE))'
+
+	IF(@Temp_FechaFinal IS NOT NULL)
+		SET @Filtros += ' AND (CAST(CA.FechaInicio AS DATE) <= CAST(''' + FORMAT(@Temp_FechaFinal, 'dd/MM/yyyy') + ''' AS DATE))'
+
+	IF(@Temp_Fecha IS NOT NULL)
+		SET @Filtros += ' AND (CAST(CA.FechaInicio AS DATE) = CAST(''' + FORMAT(@Temp_Fecha, 'dd/MM/yyyy') + ''' AS DATE))'
+
+	IF(@Temp_EstadoActividadID IS NOT NULL)			
+		SET @Filtros += ' AND (CASE WHEN CA.Completada = 1 THEN 1 --Finalizadas
+									WHEN DATEDIFF(MINUTE, @Temp_FechaHoy, CA.FechaVencimiento) > 240 THEN 2 --Vigentes									
+									WHEN DATEDIFF(MINUTE, @Temp_FechaHoy, CA.FechaVencimiento) < -30 THEN 3 --Vencidas
+								ELSE 
+									4 --Pendientes 
+								END ' + CASE WHEN CHARINDEX(',', @Temp_EstadoActividadID) = 0 THEN ' = ' + @Temp_EstadoActividadID ELSE 'IN(' + @Temp_EstadoActividadID + ')' END + ')'
+
+	IF(@FullSearch IS NOT NULL)
+	BEGIN
+		SET @Filtros += ' AND (CA.Asunto + ISNULL('' '' + ISNULL(CA.Direccion, PC.Direccion), '''') + ISNULL('' '' + ISNULL(CA.Celular, PC.Celular), '''')  + ISNULL('' '' + CA.Descripcion, '''') LIKE ''%' + @FullSearch + '%'')'
+	END
+
+	SET @SQL = '
+	DECLARE
+		 @Cantidad							INT
+		,@Temp_FechaHoy						DATETIME = GETDATE()		
+
+	SELECT
+		@Cantidad = COUNT(1)
+	FROM
+		SIS.CalendariosActividades CA WITH(NOLOCK)	
+			INNER JOIN
+		SIS.SucursalesUsuarios SU WITH(NOLOCK)	
+				ON
+					SU.UsuarioID = CA.UsuarioID
+			LEFT JOIN
+		CRM.Procesos P WITH(NOLOCK)
+				ON
+					P.ProcesoID = CA.CodigoOrigen
+						AND
+					CA.CalendarioActividadOrigenID = 2
+			LEFT JOIN
+		CRM.PreContactos PC WITH(NOLOCK)
+				ON
+					PC.PreContactoID = P.PreContactoID
+	WHERE		
+		' + @Filtros + '	
+
+	SELECT
+		 CA.CalendarioActividadID		
+		,CA.Asunto		
+		,CA.TipoCalendarioActividadID
+		,CA.FechaInicio
+		,CA.FechaVencimiento
+		,CA.VisitanteNombreCompleto
+		,CA.VisitanteDocumento
+		,CA.Descripcion
+		,Direccion = ISNULL(CA.Direccion, PC.Direccion)
+		,Celular = ISNULL(CA.Celular, PC.Celular)
+		,Email = ISNULL(CA.Email, PC.Email)
+		,CA.Completada
+		,CA.CalendarioActividadOrigenID		
+		,CA.CodigoOrigen
+		,CA.UsuarioID
+		,CA.InmuebleProcesoProcesoID
+		,CA.InmuebleID
+		,CA.ComplejoID
+		,CA.CalendarioActividadCierreDetalleID
+		,PC.NombreCompleto		
+		,PC.ClienteNombreCompleto
+		,PC.SucursalID		
+	INTO
+		#CalendariosActividades
+	FROM
+		SIS.CalendariosActividades CA WITH(NOLOCK)
+			INNER JOIN
+		SIS.SucursalesUsuarios SU WITH(NOLOCK)	
+				ON
+					SU.UsuarioID = CA.UsuarioID
+			LEFT JOIN
+		CRM.Procesos P WITH(NOLOCK)
+				ON
+					P.ProcesoID = CA.CodigoOrigen
+						AND
+					CA.CalendarioActividadOrigenID = 2
+			LEFT JOIN
+		CRM.PreContactos PC WITH(NOLOCK)
+				ON
+					PC.PreContactoID = P.PreContactoID
+	WHERE	
+		' + @Filtros + '
+	ORDER BY 
+		' + @OrderBy + CASE WHEN @Temp_Rows <> 0 THEN ' OFFSET ' + CAST(@Temp_Offset AS VARCHAR(10)) + ' ROWS FETCH NEXT ' + CAST(@Temp_Rows AS VARCHAR(10)) + ' ROWS ONLY ' ELSE '' END + '
+
+	SELECT
+		 Cantidad = COUNT(1)
+		,CalendarioActividadID
+	INTO
+		#TotalCierresDetalles
+	FROM
+		#CalendariosActividades CA WITH(NOLOCK)
+			INNER JOIN
+		SIS.CalendariosActividadesCierresDetalles CACD WITH(NOLOCK)
+				ON
+			ISNULL(CACD.SucursalID, CA.SucursalID) = CA.SucursalID
+				AND
+			CACD.EmpresaID = ' + CAST(@Temp_EmpresaID AS VARCHAR(10)) + '
+				AND
+			CACD.Activo = 1
+	GROUP BY
+		CA.CalendarioActividadID
+
+	SELECT 	
+		 CA.CalendarioActividadID		
+		,CA.Asunto
+		,CA.TipoCalendarioActividadID
+		,CA.FechaInicio
+		,CA.FechaVencimiento
+		,CA.VisitanteNombreCompleto
+		,CA.VisitanteDocumento
+		,CA.Descripcion
+		,CA.Direccion		
+		,CA.Celular
+		,CA.Email				
+		,CA.Completada				
+		,CA.UsuarioID
+		,EstadoActividadID = CASE WHEN CA.Completada = 1 THEN 1 --Finalizadas
+								WHEN DATEDIFF(MINUTE, @Temp_FechaHoy, CA.FechaVencimiento) > 240 THEN 2 --Vigentes
+								WHEN DATEDIFF(MINUTE, @Temp_FechaHoy, CA.FechaVencimiento) < -30 THEN 3 --Vencidas
+							ELSE 
+								4 --Pendientes
+							END
+		,ProcesoID = CASE WHEN CA.CalendarioActividadOrigenID = 2 THEN CA.CodigoOrigen ELSE NULL END		
+		,CA.InmuebleID
+		,CA.ComplejoID
+		,Contacto = CA.NombreCompleto
+		,Cliente = CA.ClienteNombreCompleto
+		,Usuario = T.NombreCompleto		
+		,InmuebleDescripcion = ''Inmueble N°.'' + CAST(I.Consecutivo AS VARCHAR(50)) + '', Dirección: '' + I.Direccion		
+		,ComplejoNombre = COM.Nombre
+		,CalendarioActividadCierreDetalleNombre = CACD.Nombre
+		,CantidadActividadesCierres = ISNULL(TCD.Cantidad, 0)
+		,TotalRows = @Cantidad
+	FROM
+		#CalendariosActividades CA WITH(NOLOCK)		
+			LEFT JOIN
+		SIS.Usuarios U WITH(NOLOCK)
+				ON
+					U.UsuarioID = CA.UsuarioID
+			LEFT JOIN
+		SIS.Terceros T WITH(NOLOCK)
+				ON
+					U.TerceroID = T.TerceroID
+			LEFT JOIN
+		GBI.InmueblesProcesosProcesos IPP WITH(NOLOCK)
+				ON
+					IPP.InmuebleProcesoProcesoID = CA.InmuebleProcesoProcesoID			
+			LEFT JOIN
+		GBI.InmueblesProcesos IP WITH(NOLOCK)
+				ON
+					IP.InmuebleProcesoID = IPP.InmuebleProcesoID
+			LEFT JOIN
+		GBI.Inmuebles I WITH(NOLOCK)
+				ON 
+					ISNULL(IP.InmuebleID, CA.InmuebleID) = I.InmuebleID			
+			LEFT JOIN
+		STRG.Complejos COM WITH(NOLOCK)
+				ON
+					COM.ComplejoID = CA.ComplejoID	
+			LEFT JOIN
+		SIS.CalendariosActividadesCierresDetalles CACD WITH(NOLOCK)
+				ON
+					CACD.CalendarioActividadCierreDetalleID = CA.CalendarioActividadCierreDetalleID
+			LEFT JOIN
+		#TotalCierresDetalles TCD WITH(NOLOCK)
+				ON
+					CA.CalendarioActividadID = TCD.CalendarioActividadID
+	ORDER BY '
+		+  REPLACE(@OrderBy, 'PC.', 'CA.') + '
+		
+	DROP TABLE #CalendariosActividades
+		'
+
+	PRINT(@SQL)	
+	EXEC(@SQL)	
+END

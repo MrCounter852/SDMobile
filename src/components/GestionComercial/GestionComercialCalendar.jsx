@@ -85,6 +85,37 @@ const getWeekNumber = (dateStr) => {
 };
 
 /**
+ * Helper to format date as DD/MM/YYYY
+ */
+const formatDateDMY = (date) => {
+  return `${String(date.getDate()).padStart(2, "0")}/${String(
+    date.getMonth() + 1
+  ).padStart(2, "0")}/${date.getFullYear()}`;
+};
+
+/**
+ * Get range (Monday to Sunday) for the week of a given date,
+ * plus one additional week back (14-15 days total).
+ */
+const getWeekRange = (dateStr) => {
+  const date = new Date(dateStr + "T12:00:00");
+  const day = date.getDay();
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Monday of current week
+  const monday = new Date(new Date(date).setDate(diff));
+
+  const startRange = new Date(monday);
+  startRange.setDate(startRange.getDate() - 7); // One additional week back
+
+  const sunday = new Date(monday);
+  sunday.setDate(sunday.getDate() + 6); // End of current week
+
+  return {
+    start: formatDateDMY(startRange),
+    end: formatDateDMY(sunday),
+  };
+};
+
+/**
  * Commercial Management Calendar Component
  * Simplified to show permanent Week/Timeline view.
  */
@@ -106,33 +137,32 @@ const GestionComercialCalendar = ({
 
     setLoading(true);
     try {
-      const d = new Date(selectedDate + "T12:00:00");
+      const range = getWeekRange(selectedDate);
       const filters = {
         ...searchFilters,
         UsuarioID: user?.UsuarioID,
-        Usuario: user?.NombreCompleto,
         SucursalID: user?.SucursalID,
-        AnoCalendario: d.getFullYear(),
-        MesCalendario: d.getMonth() + 1,
-        SemanaCalendario: getWeekNumber(selectedDate),
-        ModoCalendar: "week",
+        FechaInicial: range.start,
+        FechaFinal: range.end,
+        Token: user?.Token,
       };
 
-      const response = await GestionComercialService.consultarMiCalendario(
+      console.log(
+        "[Calendar] Loading data with filters:",
+        JSON.stringify(filters)
+      );
+      const response = await GestionComercialService.consultarMiCalendarioTabla(
         filters
       );
-      console.log("ConsultarMiCalendario", selectedDate);
-      console.log(response);
-      let data = response;
-      if (typeof response === "string") {
-        try {
-          data = JSON.parse(response);
-        } catch (e) {}
-      }
-      const arrayData = Array.isArray(data)
-        ? data
-        : data?.rows || data?.data || [];
-      setEvents(arrayData);
+      console.log(
+        "[Calendar] Raw response (rows count):",
+        response?.rows?.length || 0
+      );
+
+      // Handle the { total, rows, result } structure
+      const rowData =
+        response?.rows || (Array.isArray(response) ? response : []);
+      setEvents(rowData);
     } catch (error) {
       console.error("Error loading calendar data:", error);
     } finally {
@@ -144,22 +174,60 @@ const GestionComercialCalendar = ({
     loadCalendarData();
   }, [searchFilters, refreshTrigger, selectedDate]);
 
+  // Status color mapping
+  const getStatusColors = (statusID) => {
+    switch (statusID) {
+      case 1:
+        return { primary: "#2e6da4", secondary: "#e3effa" }; // Finalizadas
+      case 2:
+        return { primary: "#006400", secondary: "#e6ffe6" }; // Vigentes
+      case 3:
+        return { primary: "#ad2121", secondary: "#fae3e3" }; // Vencidas
+      default:
+        return { primary: "#e3bc08", secondary: "#fdf1ba" }; // Pendientes
+    }
+  };
+
   // Pre-process events to clean titles and extract date parts
   const activities = useMemo(() => {
     return events
       .map((event) => {
-        if (!event.startsAt || !event.endsAt) return null;
+        if (!event.FechaInicio || !event.FechaVencimiento) return null;
 
-        const [startStr, startTimeStr] = event.startsAt.split("T");
-        const [endStr, endTimeStr] = event.endsAt.split("T");
+        // Robust parsing for "YYYY-MM-DDTHH:mm:ss" or "YYYY-MM-DD HH:mm:ss"
+        const startRaw = event.FechaInicio.trim();
+        const endRaw = event.FechaVencimiento.trim();
+
+        const startParts = startRaw.split(/[T ]/);
+        const endParts = endRaw.split(/[T ]/);
+
+        const startStr = startParts[0];
+        const endStr = endParts[0];
+
+        // Ensure time is at least HH:mm:ss
+        const startTimeStr = startParts[1]?.substring(0, 8) || "00:00:00";
+        const endTimeStr = endParts[1]?.substring(0, 8) || "23:59:59";
+
+        const statusColors = getStatusColors(event.EstadoActividadID);
 
         return {
           ...event,
+          CalendarioActividadID: event.CalendarioActividadID,
+          startsAt: startRaw,
+          endsAt: endRaw,
           startDateStr: startStr,
           endDateStr: endStr,
           startTimeStr,
           endTimeStr,
-          cleanTitle: (event.title || "").replace(/<[^>]*>?/gm, ""),
+          cleanTitle: event.Asunto || "",
+          descripcion: event.Descripcion,
+          direccion: event.Direccion,
+          cliente: event.Cliente,
+          visitante: event.VisitanteNombreCompleto,
+          complejo: event.ComplejoNombre,
+          cierre: event.CalendarioActividadCierreDetalleNombre,
+          proceso: event.ProcesoID,
+          statusColors,
           startParts: startStr.split("-").map(Number),
           endParts: endStr.split("-").map(Number),
         };
@@ -199,7 +267,7 @@ const GestionComercialCalendar = ({
         ) {
           marks[dateKey].dots.push({
             key: String(event.CalendarioActividadID),
-            color: event.color?.primary || "#337ab7",
+            color: event.statusColors?.primary || "#337ab7",
             selectedDotColor: "#fff",
           });
         }
@@ -222,20 +290,51 @@ const GestionComercialCalendar = ({
 
   // Filter events for the currently selected day timeline
   const timelineEvents = useMemo(() => {
-    return activities
-      .filter(
-        (event) =>
-          selectedDate >= event.startDateStr && selectedDate <= event.endDateStr
-      )
-      .map((event) => ({
-        start: `${selectedDate} ${event.startTimeStr}`,
-        end: `${selectedDate} ${event.endTimeStr}`,
-        title: event.cleanTitle,
-        summary: "",
-        color: event.color?.secondary || "#fae3e3",
-      }));
-  }, [activities, selectedDate]);
+    const selDate = selectedDate.trim();
+    const res = activities
+      .filter((event) => {
+        const start = event.startDateStr.trim();
+        const end = event.endDateStr.trim();
+        return selDate >= start && selDate <= end;
+      })
+      .map((event) => {
+        const startStr = event.startDateStr.trim();
+        const endStr = event.endDateStr.trim();
 
+        const isStartingToday = startStr === selDate;
+        const isEndingToday = endStr === selDate;
+
+        const displayStart = isStartingToday ? event.startTimeStr : "00:00:00";
+        const displayEnd = isEndingToday ? event.endTimeStr : "23:59:59";
+
+        return {
+          id: String(event.CalendarioActividadID),
+          start: `${selDate} ${displayStart}`,
+          end: `${selDate} ${displayEnd}`,
+          title: event.cleanTitle,
+          contact: event.Contacto,
+          celular: event.Celular,
+          email: event.Email,
+          inmueble: event.InmuebleDescripcion,
+          descripcion: event.descripcion,
+          direccion: event.direccion,
+          cliente: event.cliente,
+          visitante: event.visitante,
+          complejo: event.complejo,
+          cierre: event.cierre,
+          proceso: event.proceso,
+          timeLabel: isStartingToday
+            ? event.startTimeStr.substring(0, 5)
+            : "Continuación",
+          summary: "",
+          color: "transparent",
+          primaryColor: event.statusColors?.primary,
+          secondaryColor: event.statusColors?.secondary,
+        };
+      });
+    console.log(`[Calendar] Timeline events for ${selDate}:`, res.length);
+    return res;
+  }, [activities, selectedDate]);
   const handleEventPress = useCallback(
     (event) => {
       const original = activities.find((e) =>
@@ -250,8 +349,75 @@ const GestionComercialCalendar = ({
   // Custom event renderer for better appearance
   const renderEvent = useCallback((event) => {
     return (
-      <View style={[styles.eventContainer, { backgroundColor: event.color }]}>
-        <Text style={styles.eventTitle}>{event.title}</Text>
+      <View
+        style={[
+          styles.eventCard,
+          {
+            backgroundColor: event.secondaryColor,
+            borderLeftColor: event.primaryColor,
+            height: "100%", // Forzar a ocupar todo el alto dado por el Timeline
+          },
+        ]}
+      >
+        <View style={styles.eventContent}>
+          <Text style={styles.eventTitleText}>{event.title}</Text>
+
+          {event.descripcion && (
+            <Text style={styles.eventDescriptionText} numberOfLines={3}>
+              {event.descripcion}
+            </Text>
+          )}
+
+          <View style={styles.detailsContainer}>
+            {event.cliente && (
+              <Text style={styles.eventDetailLabel}>🏢 {event.cliente}</Text>
+            )}
+
+            {event.contact && (
+              <Text style={styles.eventContactText}>👤 {event.contact}</Text>
+            )}
+
+            {event.visitante && (
+              <Text style={styles.eventExtraText}>
+                👋 Vis: {event.visitante}
+              </Text>
+            )}
+
+            {event.celular && (
+              <Text style={styles.eventExtraText}>📞 {event.celular}</Text>
+            )}
+
+            {event.email && (
+              <Text style={styles.eventExtraText}>✉️ {event.email}</Text>
+            )}
+
+            {event.direccion && (
+              <Text style={styles.eventExtraText}>📍 {event.direccion}</Text>
+            )}
+
+            {event.complejo && (
+              <Text style={styles.eventExtraText}>🏗️ {event.complejo}</Text>
+            )}
+
+            {event.inmueble && (
+              <Text style={styles.eventInmuebleText}>🏠 {event.inmueble}</Text>
+            )}
+
+            {event.proceso && (
+              <Text style={styles.eventBadgeText}>
+                #️⃣ Proceso: {event.proceso}
+              </Text>
+            )}
+
+            {event.cierre && (
+              <Text style={styles.eventClosureText}>🏁 {event.cierre}</Text>
+            )}
+          </View>
+
+          <Text style={[styles.eventTimeText, { color: event.primaryColor }]}>
+            {event.timeLabel}
+          </Text>
+        </View>
       </View>
     );
   }, []);
@@ -289,7 +455,7 @@ const GestionComercialCalendar = ({
             theme={calendarThemeObj}
           />
           <Timeline
-            key="calendar-timeline"
+            key={`timeline-${selectedDate}`}
             date={selectedDate}
             events={timelineEvents}
             format24h={false}
@@ -325,7 +491,7 @@ const calendarTheme = {
 };
 
 const timelineStyles = {
-  container: { backgroundColor: "#fff" },
+  container: { backgroundColor: "transparent" },
   line: { backgroundColor: "#eee", height: 1 },
   nowIndicatorLine: { backgroundColor: "#88E782", height: 2 },
   nowIndicatorKnob: {
@@ -361,17 +527,84 @@ const styles = StyleSheet.create({
     color: "#337ab7",
     textTransform: "capitalize",
   },
-  eventContainer: {
-    padding: 4,
-    flex: 1,
-    borderRadius: 4,
-    justifyContent: "center",
+  eventCard: {
+    borderRadius: 6,
+    borderLeftWidth: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+    marginLeft: 40,
+    overflow: "hidden", // Para que el fondo no se salga de los bordes redondeados
   },
-  eventTitle: {
+  eventContent: {
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+  },
+  eventTitleText: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#1C1C1E",
+    lineHeight: 18,
+    marginBottom: 4,
+  },
+  eventDescriptionText: {
+    fontSize: 12,
+    color: "#555",
+    marginBottom: 8,
+    lineHeight: 16,
+    fontStyle: "italic",
+  },
+  detailsContainer: {
+    marginTop: 4,
+    borderTopWidth: 0.5,
+    borderTopColor: "#f0f0f0",
+    paddingTop: 4,
+  },
+  eventDetailLabel: {
     fontSize: 11,
+    color: "#2e6da4",
     fontWeight: "700",
-    color: "#333",
-    textAlign: "center",
+    marginBottom: 2,
+  },
+  eventContactText: {
+    fontSize: 11,
+    color: "#4a4a4a",
+    marginTop: 2,
+    fontWeight: "700",
+  },
+  eventExtraText: {
+    fontSize: 11,
+    color: "#6e6e6e",
+    marginTop: 2,
+    fontWeight: "500",
+  },
+  eventInmuebleText: {
+    fontSize: 10,
+    color: "#337ab7",
+    marginTop: 4,
+    fontWeight: "600",
+  },
+  eventBadgeText: {
+    fontSize: 10,
+    color: "#8e8e93",
+    marginTop: 4,
+    fontWeight: "500",
+  },
+  eventClosureText: {
+    fontSize: 10,
+    color: "#d9534f",
+    marginTop: 4,
+    fontWeight: "700",
+    textTransform: "uppercase",
+  },
+  eventTimeText: {
+    fontSize: 11,
+    fontWeight: "900",
+    textTransform: "uppercase",
+    marginTop: 8,
+    alignSelf: "flex-end",
   },
 });
 

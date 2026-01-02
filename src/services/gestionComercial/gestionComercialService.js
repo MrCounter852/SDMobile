@@ -53,10 +53,10 @@ class GestionComercialService {
       headers,
       ...options,
     };
-    console.log(endpoint)
-    console.log(options)
+    console.log(`[Service] Request to: ${url}`, options.body);
     try {
       const response = await fetch(url, config);
+      console.log(`[Service] Response status: ${response.status}`);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -201,11 +201,13 @@ class GestionComercialService {
       method: 'POST',
       body: JSON.stringify({
         Page: filtros?.Page || 1,
-        Rows: filtros?.Rows || 30,
+        Rows: filtros?.Rows || 100,
         EstadoActividadID: filtros?.EstadoActividadID || "3,4",
-        SucursalID: filtros?.SucursalID || null,
+        SucursalID: filtros?.SucursalID || this.global.user?.SucursalID || null,
         TipoCalendarioActividadID: filtros?.TipoCalendarioActividadID || null,
         UsuarioID: filtros?.UsuarioID || null,
+        Usuario: filtros?.Usuario || this.global.user?.NombreCompleto || null,
+        EmpresaID: null,
         FechaInicial: filtros?.FechaInicial || null,
         FechaFinal: filtros?.FechaFinal || null,
         Fecha: filtros?.Fecha || null,
