@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { View, StyleSheet, ActivityIndicator, Text } from "react-native";
 import {
   LocaleConfig,
@@ -7,6 +7,8 @@ import {
   WeekCalendar,
 } from "react-native-calendars";
 import { useGlobal } from "../../core/global";
+const GestionComercialService =
+  require("../../services/GestionComercial/gestionComercialService").default;
 
 // Configure Spanish locale
 LocaleConfig.locales["es"] = {
@@ -69,17 +71,59 @@ const getLocalTodayStr = () => {
  */
 const GestionComercialCalendar = ({
   navigation,
-  externalEvents = [],
-  externalLoading = false,
-  onRefresh,
+  searchFilters = {},
+  refreshTrigger,
 }) => {
+  const { user } = useGlobal();
   const todayStr = useMemo(() => getLocalTodayStr(), []);
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [initialScrollDone, setInitialScrollDone] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const loadCalendarData = async (isRefresh = false) => {
+    if (!user?.UsuarioID) return;
+    if (loading && !isRefresh) return;
+
+    setLoading(true);
+    try {
+      const d = new Date();
+      const filters = {
+        ...searchFilters,
+        UsuarioID: user?.UsuarioID,
+        SucursalID: user?.SucursalID,
+        AnoCalendario: d.getFullYear(),
+        MesCalendario: d.getMonth() + 1,
+        ModoCalendar: "MONTH", // Load all for the month
+      };
+
+      const response = await GestionComercialService.consultarMiCalendario(
+        filters
+      );
+      let data = response;
+      if (typeof response === "string") {
+        try {
+          data = JSON.parse(response);
+        } catch (e) {}
+      }
+      const arrayData = Array.isArray(data)
+        ? data
+        : data?.rows || data?.data || [];
+      setEvents(arrayData);
+    } catch (error) {
+      console.error("Error loading calendar data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCalendarData();
+  }, [searchFilters, refreshTrigger]);
 
   // Pre-process events to clean titles and extract date parts
   const activities = useMemo(() => {
-    return externalEvents
+    return events
       .map((event) => {
         if (!event.startsAt || !event.endsAt) return null;
 
@@ -98,7 +142,7 @@ const GestionComercialCalendar = ({
         };
       })
       .filter(Boolean);
-  }, [externalEvents]);
+  }, [events]);
 
   // Generate multi-dot markers for the calendar
   const baseMarks = useMemo(() => {
@@ -234,13 +278,13 @@ const GestionComercialCalendar = ({
             scrollToNow={selectedDate === todayStr && !initialScrollDone}
             onScroll={() => !initialScrollDone && setInitialScrollDone(true)}
             initialTime={{ hour: new Date().getHours(), minute: 0 }}
-            onRefresh={onRefresh}
-            refreshing={externalLoading}
+            onRefresh={() => loadCalendarData(true)}
+            refreshing={loading}
             styles={timelineStyles}
           />
         </View>
         {/* Loader shifted to be absolute and not interfere with calendar height calculation */}
-        {externalLoading && (
+        {loading && (
           <ActivityIndicator
             style={styles.loader}
             size="large"
@@ -295,15 +339,15 @@ const styles = StyleSheet.create({
     textTransform: "capitalize",
   },
   eventContainer: {
-    padding: 2,
+    padding: 4,
     flex: 1,
     borderRadius: 4,
     justifyContent: "center",
   },
   eventTitle: {
-    fontSize: 10,
-    fontWeight: "600",
-    color: "#fff",
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#333",
     textAlign: "center",
   },
 });

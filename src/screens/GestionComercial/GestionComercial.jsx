@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -9,25 +9,33 @@ import {
   RefreshControl,
   Alert,
   ActivityIndicator,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useGlobal } from '../../core/global';
-const GestionComercialService = require('../../services/GestionComercial/gestionComercialService').default;
-import ContactItem from '../../components/GestionComercial/ContactItem';
-import FilterModal from '../../components/GestionComercial/FilterModal';
-import TimelineColumn from '../../components/GestionComercial/TimelineColumn';
-import CalendarEvent from '../../components/GestionComercial/CalendarEvent';
-import ColorPickerModal from '../../components/GestionComercial/ColorPickerModal';
-import GestionComercialCalendar from '../../components/GestionComercial/GestionComercialCalendar';
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useGlobal } from "../../core/global";
+const GestionComercialService =
+  require("../../services/GestionComercial/gestionComercialService").default;
+import ContactItem from "../../components/GestionComercial/ContactItem";
+import FilterModal from "../../components/GestionComercial/FilterModal";
+import TimelineColumn from "../../components/GestionComercial/TimelineColumn";
+import CalendarEvent from "../../components/GestionComercial/CalendarEvent";
+import ColorPickerModal from "../../components/GestionComercial/ColorPickerModal";
+import GestionComercialCalendar from "../../components/GestionComercial/GestionComercialCalendar";
 
 const Tab = createMaterialTopTabNavigator();
 
 // Table View Component
-const TableView = ({ navigation, searchFilters, refreshTrigger, selectedContact, onSelectContact, onDeselectContact }) => {
+const TableView = ({
+  navigation,
+  searchFilters,
+  refreshTrigger,
+  selectedContact,
+  onSelectContact,
+  onDeselectContact,
+}) => {
   const { user } = useGlobal();
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -57,20 +65,22 @@ const TableView = ({ navigation, searchFilters, refreshTrigger, selectedContact,
         delete filters.OrigenPreContactoID;
       }
 
-      const response = await GestionComercialService.consultarPreContactos(filters);
+      const response = await GestionComercialService.consultarPreContactos(
+        filters
+      );
       const newContacts = response.rows || [];
 
       if (pageNum === 1) {
         setContacts(newContacts);
       } else {
-        setContacts(prev => [...prev, ...newContacts]);
+        setContacts((prev) => [...prev, ...newContacts]);
       }
 
       setHasMore(newContacts.length === 30);
       setPage(pageNum);
     } catch (error) {
-      console.error('Error loading contacts:', error);
-      Alert.alert('Error', 'No se pudieron cargar los contactos');
+      console.error("Error loading contacts:", error);
+      Alert.alert("Error", "No se pudieron cargar los contactos");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -98,7 +108,7 @@ const TableView = ({ navigation, searchFilters, refreshTrigger, selectedContact,
   };
 
   const handleContactPress = (contact) => {
-    navigation.navigate('ContactDetail', { contact });
+    navigation.navigate("ContactDetail", { contact });
   };
 
   const renderContact = ({ item }) => {
@@ -127,11 +137,24 @@ const TableView = ({ navigation, searchFilters, refreshTrigger, selectedContact,
     <View style={styles.container}>
       {searchFilters.tags && searchFilters.tags.length > 0 && (
         <View style={styles.tagsOuterContainer}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tagsScrollContent}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.tagsScrollContent}
+          >
             {searchFilters.tags.map((tag) => (
-              <TouchableOpacity key={tag.key} style={styles.tagItem} onPress={() => searchFilters.onClear(tag.key)}>
+              <TouchableOpacity
+                key={tag.key}
+                style={styles.tagItem}
+                onPress={() => searchFilters.onClear(tag.key)}
+              >
                 <Text style={styles.tagLabel}>{tag.label}</Text>
-                <Ionicons name="close-circle" size={16} color="#337ab7" style={{ marginLeft: 4 }} />
+                <Ionicons
+                  name="close-circle"
+                  size={16}
+                  color="#337ab7"
+                  style={{ marginLeft: 4 }}
+                />
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -140,13 +163,15 @@ const TableView = ({ navigation, searchFilters, refreshTrigger, selectedContact,
       <FlatList
         data={contacts}
         renderItem={renderContact}
-        keyExtractor={(item) => item.ProcesoID?.toString() || Math.random().toString()}
+        keyExtractor={(item) =>
+          item.ProcesoID?.toString() || Math.random().toString()
+        }
         key={refreshTrigger}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={['#337ab7']}
+            colors={["#337ab7"]}
           />
         }
         onEndReached={handleLoadMore}
@@ -167,7 +192,12 @@ const TableView = ({ navigation, searchFilters, refreshTrigger, selectedContact,
 };
 
 // Timeline View Component
-const TimelineView = ({ navigation, searchFilters, refreshTrigger, onSelectContact }) => {
+const TimelineView = ({
+  navigation,
+  searchFilters,
+  refreshTrigger,
+  onSelectContact,
+}) => {
   const { user } = useGlobal();
   const [timelineData, setTimelineData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -190,10 +220,12 @@ const TimelineView = ({ navigation, searchFilters, refreshTrigger, onSelectConta
         SucursalID: user?.SucursalID,
       };
 
-      const response = await GestionComercialService.consultarLineasTiempo(filters);
+      const response = await GestionComercialService.consultarLineasTiempo(
+        filters
+      );
       setTimelineData(response.data || []);
     } catch (error) {
-      console.error('Error loading timeline:', error);
+      console.error("Error loading timeline:", error);
       setTimelineData([]);
       // Alert.alert('Error', 'No se pudo cargar la línea de tiempo');
     } finally {
@@ -217,7 +249,7 @@ const TimelineView = ({ navigation, searchFilters, refreshTrigger, onSelectConta
   };
 
   const handleContactPress = (contact) => {
-    navigation.navigate('ContactDetail', { contact });
+    navigation.navigate("ContactDetail", { contact });
   };
 
   const handleLongPress = (contact) => {
@@ -227,39 +259,43 @@ const TimelineView = ({ navigation, searchFilters, refreshTrigger, onSelectConta
   const handleMoveContact = async (contact, direction) => {
     // Simplified move logic for mobile
     Alert.alert(
-      'Mover contacto',
-      `¿Mover "${contact.NombreCompleto}" ${direction === 'left' ? 'a la izquierda' : 'a la derecha'}?`,
+      "Mover contacto",
+      `¿Mover "${contact.NombreCompleto}" ${
+        direction === "left" ? "a la izquierda" : "a la derecha"
+      }?`,
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: "Cancelar", style: "cancel" },
         {
-          text: 'Mover',
+          text: "Mover",
           onPress: async () => {
             try {
               // Find target column
-              const currentIndex = timelineData.findIndex(linea =>
-                linea.Procesos?.some(p => p.ProcesoID === contact.ProcesoID)
+              const currentIndex = timelineData.findIndex((linea) =>
+                linea.Procesos?.some((p) => p.ProcesoID === contact.ProcesoID)
               );
 
               if (currentIndex === -1) return;
 
-              const targetIndex = direction === 'left'
-                ? Math.max(0, currentIndex - 1)
-                : Math.min(timelineData.length - 1, currentIndex + 1);
+              const targetIndex =
+                direction === "left"
+                  ? Math.max(0, currentIndex - 1)
+                  : Math.min(timelineData.length - 1, currentIndex + 1);
 
               if (targetIndex === currentIndex) return;
 
               await GestionComercialService.moverLineaTiempo({
                 ProcesoID: contact.ProcesoID,
-                ProcesoLineaTiempoID: timelineData[targetIndex].ProcesoLineaTiempoID,
+                ProcesoLineaTiempoID:
+                  timelineData[targetIndex].ProcesoLineaTiempoID,
               });
 
               loadTimeline(true);
             } catch (error) {
-              console.error('Error moving contact:', error);
-              Alert.alert('Error', 'No se pudo mover el contacto');
+              console.error("Error moving contact:", error);
+              Alert.alert("Error", "No se pudo mover el contacto");
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
@@ -277,11 +313,24 @@ const TimelineView = ({ navigation, searchFilters, refreshTrigger, onSelectConta
     <View style={{ flex: 1 }}>
       {searchFilters.tags && searchFilters.tags.length > 0 && (
         <View style={styles.tagsOuterContainer}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tagsScrollContent}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.tagsScrollContent}
+          >
             {searchFilters.tags.map((tag) => (
-              <TouchableOpacity key={tag.key} style={styles.tagItem} onPress={() => searchFilters.onClear(tag.key)}>
+              <TouchableOpacity
+                key={tag.key}
+                style={styles.tagItem}
+                onPress={() => searchFilters.onClear(tag.key)}
+              >
                 <Text style={styles.tagLabel}>{tag.label}</Text>
-                <Ionicons name="close-circle" size={16} color="#337ab7" style={{ marginLeft: 4 }} />
+                <Ionicons
+                  name="close-circle"
+                  size={16}
+                  color="#337ab7"
+                  style={{ marginLeft: 4 }}
+                />
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -306,7 +355,9 @@ const TimelineView = ({ navigation, searchFilters, refreshTrigger, onSelectConta
         {timelineData.length === 0 && (
           <View style={styles.emptyTimeline}>
             <Ionicons name="git-branch-outline" size={64} color="#ccc" />
-            <Text style={styles.emptyText}>No hay línea de tiempo configurada</Text>
+            <Text style={styles.emptyText}>
+              No hay línea de tiempo configurada
+            </Text>
           </View>
         )}
       </ScrollView>
@@ -315,15 +366,16 @@ const TimelineView = ({ navigation, searchFilters, refreshTrigger, onSelectConta
 };
 
 // Calendar View Component
-const CalendarView = ({ navigation, searchFilters, refreshTrigger, events, loading, onRefresh }) => {
+const CalendarView = ({
+  navigation,
+  searchFilters,
+  refreshTrigger,
+}) => {
   return (
     <GestionComercialCalendar
       navigation={navigation}
       searchFilters={searchFilters}
       refreshTrigger={refreshTrigger}
-      externalEvents={events}
-      externalLoading={loading}
-      onRefresh={onRefresh}
     />
   );
 };
@@ -332,34 +384,38 @@ const CalendarView = ({ navigation, searchFilters, refreshTrigger, events, loadi
 const GestionComercial = ({ navigation }) => {
   const { user } = useGlobal();
   const [filterModalVisible, setFilterModalVisible] = useState(false);
-  const [currentTab, setCurrentTab] = useState('Tabla');
+  const [currentTab, setCurrentTab] = useState("Tabla");
   const [searchFilters, setSearchFilters] = useState({
     OrigenPreContactoID: null,
     EstadoProcesoID: "1,4",
     FechaInicial: null,
     FechaFinal: null,
-    FullSearch: '',
+    FullSearch: "",
     EstadoGeneral: null,
     EstadoActividadID: "3,4",
     TipoCalendarioActividadID: null,
   });
   const [hasFilters, setHasFilters] = useState(false);
   const [origenes, setOrigenes] = useState([]);
-  const [tiposCalendarioActividades, setTiposCalendarioActividades] = useState([]);
+  const [tiposCalendarioActividades, setTiposCalendarioActividades] = useState(
+    []
+  );
   const [filterDataLoading, setFilterDataLoading] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [colorPickerVisible, setColorPickerVisible] = useState(false);
-  const [calendarEvents, setCalendarEvents] = useState([]);
-  const [calendarLoading, setCalendarLoading] = useState(false);
   const isInitialMount = useRef(true);
 
   const getCurrentMode = () => {
     switch (currentTab) {
-      case 'Tabla': return 'table';
-      case 'LineaTiempo': return 'timeline';
-      case 'Calendario': return 'calendar';
-      default: return 'table';
+      case "Tabla":
+        return "table";
+      case "LineaTiempo":
+        return "timeline";
+      case "Calendario":
+        return "calendar";
+      default:
+        return "table";
     }
   };
 
@@ -368,17 +424,20 @@ const GestionComercial = ({ navigation }) => {
       setFilterDataLoading(true);
       try {
         // Load origenes
-        const origenesResponse = await GestionComercialService.consultarOrigenesPreContactosSucursales({
-          SucursalID: user?.SucursalID,
-        });
+        const origenesResponse =
+          await GestionComercialService.consultarOrigenesPreContactosSucursales(
+            {
+              SucursalID: user?.SucursalID,
+            }
+          );
         setOrigenes(origenesResponse.rows || []);
 
-
         // Load tipos calendario actividades
-        const tiposResponse = await GestionComercialService.consultarTiposCalendarioActividades();
+        const tiposResponse =
+          await GestionComercialService.consultarTiposCalendarioActividades();
         setTiposCalendarioActividades(tiposResponse.rows || []);
       } catch (error) {
-        console.error('Error loading filter data:', error);
+        console.error("Error loading filter data:", error);
       } finally {
         setFilterDataLoading(false);
       }
@@ -389,49 +448,7 @@ const GestionComercial = ({ navigation }) => {
     }
   }, [user?.SucursalID]);
 
-  const loadCalendarData = async (isRefresh = false) => {
-    if (!user?.UsuarioID) return;
-    if (calendarLoading && !isRefresh) return;
 
-    setCalendarLoading(true);
-    try {
-      const d = new Date();
-      const filters = {
-        ...searchFilters,
-        UsuarioID: user?.UsuarioID,
-        SucursalID: user?.SucursalID,
-        AnoCalendario: d.getFullYear(),
-        MesCalendario: d.getMonth() + 1,
-        ModoCalendar: 'MONTH', // Load all for the month
-      };
-
-      const response = await GestionComercialService.consultarMiCalendario(filters);
-      let data = response;
-      if (typeof response === 'string') {
-        try { data = JSON.parse(response); } catch (e) { }
-      }
-      const arrayData = Array.isArray(data) ? data : (data?.rows || data?.data || []);
-      setCalendarEvents(arrayData);
-    } catch (error) {
-      console.error('Error loading calendar data:', error);
-    } finally {
-      setCalendarLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (currentTab === 'Calendario') {
-      loadCalendarData();
-    }
-  }, [currentTab, searchFilters, refreshTrigger]);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (currentTab === 'Calendario') {
-        loadCalendarData(true);
-      }
-    }, [currentTab, searchFilters, refreshTrigger])
-  );
 
   // Salir automáticamente del modo selección cuando se regresa a esta pantalla
   useFocusEffect(
@@ -449,20 +466,25 @@ const GestionComercial = ({ navigation }) => {
     setSearchFilters(filters);
     const mode = getCurrentMode();
     let defaultValues = {};
-    if (mode === 'table' || mode === 'timeline') {
+    if (mode === "table" || mode === "timeline") {
       defaultValues = { EstadoProcesoID: "1,4" };
-    } else if (mode === 'calendar') {
+    } else if (mode === "calendar") {
       defaultValues = { EstadoActividadID: "3,4" };
     }
-    setHasFilters(Object.keys(filters).some(key =>
-      filters[key] !== null && filters[key] !== '' && filters[key] !== defaultValues[key]
-    ));
+    setHasFilters(
+      Object.keys(filters).some(
+        (key) =>
+          filters[key] !== null &&
+          filters[key] !== "" &&
+          filters[key] !== defaultValues[key]
+      )
+    );
   };
 
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleRefresh = () => {
-    setRefreshTrigger(prev => prev + 1);
+    setRefreshTrigger((prev) => prev + 1);
   };
 
   const handleSelectContact = (contact) => {
@@ -484,28 +506,29 @@ const GestionComercial = ({ navigation }) => {
         Color: colorId,
       });
 
-      Alert.alert('Éxito', 'Color aplicado correctamente');
+      Alert.alert("Éxito", "Color aplicado correctamente");
 
       // Recargar datos después del éxito de la API
       handleRefresh();
-
     } catch (error) {
-      console.error('Error changing color:', error);
-      Alert.alert('Error', 'No se pudo cambiar el color');
+      console.error("Error changing color:", error);
+      Alert.alert("Error", "No se pudo cambiar el color");
     }
   };
 
   const handleViewDetails = () => {
     if (selectedContact) {
       handleDeselectContact(); // Salir del modo selección antes de navegar
-      navigation.navigate('ContactDetail', { contact: selectedContact });
+      navigation.navigate("ContactDetail", { contact: selectedContact });
     }
   };
 
   const handleViewActivities = () => {
     if (selectedContact) {
       handleDeselectContact(); // Salir del modo selección antes de navegar
-      navigation.navigate('ActivityFollowupScreen', { contact: selectedContact });
+      navigation.navigate("ActivityFollowupScreen", {
+        contact: selectedContact,
+      });
     }
   };
 
@@ -515,36 +538,52 @@ const GestionComercial = ({ navigation }) => {
     const mode = getCurrentMode();
 
     if (searchFilters.FullSearch) {
-      tags.push({ key: 'FullSearch', label: `"${searchFilters.FullSearch}"` });
+      tags.push({ key: "FullSearch", label: `"${searchFilters.FullSearch}"` });
     }
 
     if (searchFilters.OrigenPreContactoID) {
-      const origen = origenes.find(o => o.OrigenPreContactoID === searchFilters.OrigenPreContactoID);
+      const origen = origenes.find(
+        (o) => o.OrigenPreContactoID === searchFilters.OrigenPreContactoID
+      );
       if (origen) {
-        tags.push({ key: 'OrigenPreContactoID', label: origen.Nombre });
+        tags.push({ key: "OrigenPreContactoID", label: origen.Nombre });
       }
     }
 
     if (searchFilters.TipoCalendarioActividadID) {
-      const tipo = tiposCalendarioActividades.find(t => t.TipoCalendarioActividadID === searchFilters.TipoCalendarioActividadID);
+      const tipo = tiposCalendarioActividades.find(
+        (t) =>
+          t.TipoCalendarioActividadID ===
+          searchFilters.TipoCalendarioActividadID
+      );
       if (tipo) {
-        tags.push({ key: 'TipoCalendarioActividadID', label: tipo.Nombre });
+        tags.push({ key: "TipoCalendarioActividadID", label: tipo.Nombre });
       }
     }
 
     if (searchFilters.FechaInicial || searchFilters.FechaFinal) {
-      const start = searchFilters.FechaInicial ? searchFilters.FechaInicial.split(' ')[0] : '...';
-      const end = searchFilters.FechaFinal ? searchFilters.FechaFinal.split(' ')[0] : '...';
-      tags.push({ key: 'Dates', label: `${start} a ${end}` });
+      const start = searchFilters.FechaInicial
+        ? searchFilters.FechaInicial.split(" ")[0]
+        : "...";
+      const end = searchFilters.FechaFinal
+        ? searchFilters.FechaFinal.split(" ")[0]
+        : "...";
+      tags.push({ key: "Dates", label: `${start} a ${end}` });
     }
 
-    if (mode === 'table' || mode === 'timeline') {
-      if (searchFilters.EstadoProcesoID && searchFilters.EstadoProcesoID !== "1,4") {
-        tags.push({ key: 'EstadoProcesoID', label: 'Estados' });
+    if (mode === "table" || mode === "timeline") {
+      if (
+        searchFilters.EstadoProcesoID &&
+        searchFilters.EstadoProcesoID !== "1,4"
+      ) {
+        tags.push({ key: "EstadoProcesoID", label: "Estados" });
       }
-    } else if (mode === 'calendar') {
-      if (searchFilters.EstadoActividadID && searchFilters.EstadoActividadID !== "3,4") {
-        tags.push({ key: 'EstadoActividadID', label: 'Estados Act.' });
+    } else if (mode === "calendar") {
+      if (
+        searchFilters.EstadoActividadID &&
+        searchFilters.EstadoActividadID !== "3,4"
+      ) {
+        tags.push({ key: "EstadoActividadID", label: "Estados Act." });
       }
     }
 
@@ -555,15 +594,15 @@ const GestionComercial = ({ navigation }) => {
     const mode = getCurrentMode();
     const newFilters = { ...searchFilters };
 
-    if (key === 'Dates') {
+    if (key === "Dates") {
       newFilters.FechaInicial = null;
       newFilters.FechaFinal = null;
-    } else if (key === 'EstadoProcesoID') {
+    } else if (key === "EstadoProcesoID") {
       newFilters.EstadoProcesoID = "1,4";
-    } else if (key === 'EstadoActividadID') {
+    } else if (key === "EstadoActividadID") {
       newFilters.EstadoActividadID = "3,4";
-    } else if (key === 'FullSearch') {
-      newFilters.FullSearch = '';
+    } else if (key === "FullSearch") {
+      newFilters.FullSearch = "";
     } else {
       newFilters[key] = null;
     }
@@ -574,22 +613,42 @@ const GestionComercial = ({ navigation }) => {
   const activeTags = getActiveFilterTags();
 
   return (
-    <SafeAreaView style={styles.mainContainer} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.mainContainer} edges={["top", "left", "right"]}>
       {isSelectionMode ? (
         <View style={styles.selectedHeader}>
-          <TouchableOpacity style={styles.headerButton} onPress={() => { setIsSelectionMode(false); setSelectedContact(null); }}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => {
+              setIsSelectionMode(false);
+              setSelectedContact(null);
+            }}
+          >
             <Ionicons name="arrow-back" size={24} color="#337ab7" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerButton} onPress={handleViewDetails}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={handleViewDetails}
+          >
             <Ionicons name="eye-outline" size={24} color="#337ab7" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerButton} onPress={handleViewActivities}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={handleViewActivities}
+          >
             <Ionicons name="calendar-outline" size={24} color="#337ab7" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerButton} onPress={() => Alert.alert('Flag', 'Funcionalidad de flag pendiente')}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() =>
+              Alert.alert("Flag", "Funcionalidad de flag pendiente")
+            }
+          >
             <Ionicons name="flag-outline" size={24} color="#337ab7" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerButton} onPress={() => setColorPickerVisible(true)}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => setColorPickerVisible(true)}
+          >
             <Ionicons name="ellipsis-vertical" size={24} color="#337ab7" />
           </TouchableOpacity>
         </View>
@@ -601,7 +660,10 @@ const GestionComercial = ({ navigation }) => {
           </View>
           <View style={styles.headerButtons}>
             <TouchableOpacity
-              style={[styles.headerButton, hasFilters && styles.headerButtonActive]}
+              style={[
+                styles.headerButton,
+                hasFilters && styles.headerButtonActive,
+              ]}
               onPress={() => setFilterModalVisible(true)}
             >
               <Ionicons
@@ -611,10 +673,10 @@ const GestionComercial = ({ navigation }) => {
               />
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => navigation.navigate('NewLeadScreen')}
+              onPress={() => navigation.navigate("NewLeadScreen")}
             >
               <LinearGradient
-                colors={['#337ab7', '#00ACC4']}
+                colors={["#337ab7", "#00ACC4"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.addButton}
@@ -628,24 +690,24 @@ const GestionComercial = ({ navigation }) => {
 
       <Tab.Navigator
         screenOptions={({ route }) => ({
-          tabBarActiveTintColor: '#337ab7',
-          tabBarInactiveTintColor: '#8E8E93',
+          tabBarActiveTintColor: "#337ab7",
+          tabBarInactiveTintColor: "#8E8E93",
           tabBarIndicatorStyle: {
-            backgroundColor: '#337ab7',
+            backgroundColor: "#337ab7",
             height: 3,
             borderRadius: 3,
           },
           tabBarLabelStyle: {
             fontSize: 13,
-            fontWeight: '600',
-            textTransform: 'none',
+            fontWeight: "600",
+            textTransform: "none",
           },
           tabBarStyle: {
-            backgroundColor: '#fff',
+            backgroundColor: "#fff",
             elevation: 0,
             shadowOpacity: 0,
             borderBottomWidth: 1,
-            borderBottomColor: '#F2F2F7',
+            borderBottomColor: "#F2F2F7",
           },
           swipeEnabled: false, // Fix navigation conflict with horizontal timeline
           tabBarOnPress: () => {
@@ -658,7 +720,11 @@ const GestionComercial = ({ navigation }) => {
           children={() => (
             <TableView
               navigation={navigation}
-              searchFilters={{ ...searchFilters, tags: activeTags, onClear: clearFilter }}
+              searchFilters={{
+                ...searchFilters,
+                tags: activeTags,
+                onClear: clearFilter,
+              }}
               refreshTrigger={refreshTrigger}
               selectedContact={selectedContact}
               onSelectContact={handleSelectContact}
@@ -666,7 +732,7 @@ const GestionComercial = ({ navigation }) => {
             />
           )}
           options={{
-            tabBarLabel: 'Tabla',
+            tabBarLabel: "Tabla",
           }}
         />
         <Tab.Screen
@@ -674,13 +740,17 @@ const GestionComercial = ({ navigation }) => {
           children={() => (
             <TimelineView
               navigation={navigation}
-              searchFilters={{ ...searchFilters, tags: activeTags, onClear: clearFilter }}
+              searchFilters={{
+                ...searchFilters,
+                tags: activeTags,
+                onClear: clearFilter,
+              }}
               refreshTrigger={refreshTrigger}
               onSelectContact={handleSelectContact}
             />
           )}
           options={{
-            tabBarLabel: 'Línea Tiempo',
+            tabBarLabel: "Línea Tiempo",
           }}
         />
         <Tab.Screen
@@ -688,15 +758,16 @@ const GestionComercial = ({ navigation }) => {
           children={() => (
             <CalendarView
               navigation={navigation}
-              searchFilters={{ ...searchFilters, tags: activeTags, onClear: clearFilter }}
+              searchFilters={{
+                ...searchFilters,
+                tags: activeTags,
+                onClear: clearFilter,
+              }}
               refreshTrigger={refreshTrigger}
-              events={calendarEvents}
-              loading={calendarLoading}
-              onRefresh={() => loadCalendarData(true)}
             />
           )}
           options={{
-            tabBarLabel: 'Calendario',
+            tabBarLabel: "Calendario",
           }}
         />
       </Tab.Navigator>
@@ -725,70 +796,70 @@ const GestionComercial = ({ navigation }) => {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: "#F2F2F7",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     elevation: 4,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
   },
   headerSubtitle: {
     fontSize: 13,
-    color: '#8E8E93',
-    fontWeight: '500',
+    color: "#8E8E93",
+    fontWeight: "500",
     marginBottom: 2,
   },
   title: {
     fontSize: 24,
-    fontWeight: '800',
-    color: '#337ab7',
+    fontWeight: "800",
+    color: "#337ab7",
     letterSpacing: -0.5,
   },
   headerButtons: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   headerButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F2F2F7',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#F2F2F7",
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerButtonActive: {
-    backgroundColor: '#E5F1FF',
+    backgroundColor: "#E5F1FF",
     borderRadius: 20,
   },
   addButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     elevation: 4,
-    shadowColor: '#337ab7',
+    shadowColor: "#337ab7",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
   },
   selectedHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+    borderBottomColor: "#e9ecef",
     height: 75,
   },
   headerButton: {
@@ -796,28 +867,28 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: "#F2F2F7",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
   },
   loadingFooter: {
     padding: 24,
-    alignItems: 'center',
+    alignItems: "center",
   },
   loadingText: {
     marginTop: 8,
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 40,
   },
   emptyList: {
@@ -825,45 +896,45 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#AEAEB2',
-    textAlign: 'center',
+    color: "#AEAEB2",
+    textAlign: "center",
     marginTop: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   timelineContainer: {
     padding: 16,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: "#F2F2F7",
   },
   emptyTimeline: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 64,
   },
   tagsOuterContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
+    borderBottomColor: "#F2F2F7",
   },
   tagsScrollContent: {
     paddingHorizontal: 20,
     gap: 8,
   },
   tagItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E5F1FF',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E5F1FF",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#337ab720',
+    borderColor: "#337ab720",
   },
   tagLabel: {
     fontSize: 13,
-    color: '#337ab7',
-    fontWeight: '600',
+    color: "#337ab7",
+    fontWeight: "600",
   },
 });
 
