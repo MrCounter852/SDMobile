@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import facturasCompraService from "../../services/facturasCompra/facturasCompraService";
 
 const FacturaFiltersModal = ({ visible, onClose, onApply, initialFilters }) => {
@@ -60,7 +60,8 @@ const FacturaFiltersModal = ({ visible, onClose, onApply, initialFilters }) => {
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.modalOverlay}>
+      <SafeAreaView style={{ flex: 1 }}>
+        <View style={styles.modalOverlay}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.keyboardView}
@@ -184,6 +185,7 @@ const FacturaFiltersModal = ({ visible, onClose, onApply, initialFilters }) => {
           </View>
         </KeyboardAvoidingView>
       </View>
+        </SafeAreaView>
     </Modal>
   );
 };

@@ -11,6 +11,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -36,6 +37,25 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
   const [selectedRefs, setSelectedRefs] = useState([]);
 
   const insets = useSafeAreaInsets();
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+
+  useEffect(() => {
+    const keyboardShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      if (Platform.OS === 'android') {
+        setKeyboardOffset(0);
+      }
+    });
+    const keyboardHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      if (Platform.OS === 'android') {
+        setKeyboardOffset(-30);
+      }
+    });
+
+    return () => {
+      keyboardShowListener.remove();
+      keyboardHideListener.remove();
+    };
+  }, [insets.bottom]);
 
   useEffect(() => {
     if (visible && item) {
@@ -500,12 +520,14 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.modalOverlay}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.keyboardView}
-        >
-          <View style={styles.modalContent}>
+      <SafeAreaView style={{ flex: 1 }}>
+        <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.keyboardView}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 0 : keyboardOffset}
+          >
+            <View style={styles.modalContent}>
             <View style={styles.header}>
               <Text style={styles.headerTitle}>Detalle de Factura</Text>
               <TouchableOpacity onPress={onClose}>
@@ -603,6 +625,7 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
           </View>
         </KeyboardAvoidingView>
       </View>
+      </SafeAreaView>
     </Modal>
   );
 };
