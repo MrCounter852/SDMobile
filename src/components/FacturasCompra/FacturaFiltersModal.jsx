@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import facturasCompraService from "../../services/facturasCompra/facturasCompraService";
@@ -167,12 +168,18 @@ const FacturaFiltersModal = ({ visible, onClose, onApply, initialFilters }) => {
               >
                 <Text style={styles.clearButtonText}>Limpiar</Text>
               </TouchableOpacity>
-              <TouchableOpacity
+              <LinearGradient
+                colors={["#4ca1af", "#337ab7"]}
+                start={[0, 0]}
+                end={[1, 0]}
                 style={styles.applyButton}
-                onPress={handleApply}
               >
-                <Text style={styles.applyButtonText}>Aplicar filtros</Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleApply}
+                >
+                  <Text style={styles.applyButtonText}>Aplicar filtros</Text>
+                </TouchableOpacity>
+              </LinearGradient>
             </View>
           </View>
         </KeyboardAvoidingView>
@@ -187,14 +194,14 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContent: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     backgroundColor: "#fff",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    height: '80%',
+    height: "80%",
   },
   keyboardView: {
     flex: 1,
@@ -280,7 +287,7 @@ const styles = StyleSheet.create({
   clearButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FF3B30",
+    color: "#337ab7",
   },
   applyButton: {
     flex: 2,
