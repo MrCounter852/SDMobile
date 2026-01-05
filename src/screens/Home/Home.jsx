@@ -14,13 +14,14 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-import Menu from "../Menu/Menu";
+// import Menu from "../Menu/Menu";
 import Perfil from "../Perfil/Perfil";
 import GestionComercial from "../GestionComercial/GestionComercial";
 import Notificaciones from "../Notificaciones/Notificaciones";
 import Favoritos from "../Favoritos/Favoritos";
 import useGlobal from "../../core/global";
-import MenuPanel from "../../components/MenuPanel";
+// import MenuPanel from "../../components/MenuPanel";
+import AprobacionFacturasCompra from "../FacturasCompra/AprobacionFacturasCompra";
 import { ContactList } from "../Chat";
 import { useChatStore } from "../../core/chatStore";
 import getEnvironmentConfig from "../../config/environments";
@@ -30,11 +31,15 @@ const Home = () => {
   const { rolID, setMenuOptions } = useGlobal();
   const notificationCount = useChatStore((state) => state.notifications.length);
   const unreadMessagesCount = useChatStore((state) =>
-    state.contacts.reduce((acc, contact) => acc + (contact.CantidadMensajesSinLeer || 0), 0)
+    state.contacts.reduce(
+      (acc, contact) => acc + (contact.CantidadMensajesSinLeer || 0),
+      0
+    )
   );
 
   const { height } = useWindowDimensions();
   const scrollRef = useRef(null);
+  /*
   const PANEL_HEIGHT = height * 0.6;
   const translateY = useSharedValue(PANEL_HEIGHT);
   const context = useSharedValue({ y: 0 });
@@ -43,6 +48,7 @@ const Home = () => {
   const scrollY = useSharedValue(0);
   const scrollAllowed = useSharedValue(false);
   const isDragging = useSharedValue(false);
+  */
 
   useEffect(() => {
     const fetchMenuOptions = async () => {
@@ -51,7 +57,9 @@ const Home = () => {
         const token = await SecureStore.getItemAsync("accessToken");
         if (!token) return;
         const response = await fetch(
-          `${getEnvironmentConfig().BASE_URL_NS}/API_SIS/api/OpcionesMenu/OpcionesMenuConsultar`,
+          `${
+            getEnvironmentConfig().BASE_URL_NS
+          }/API_SIS/api/OpcionesMenu/OpcionesMenuConsultar`,
           {
             method: "POST",
             headers: {
@@ -72,6 +80,7 @@ const Home = () => {
     fetchMenuOptions();
   }, [rolID, setMenuOptions]);
 
+  /*
   // ---- Gesto manual (drag) ----
   const gesture = Gesture.Pan()
     .simultaneousWithExternalGesture(scrollRef)
@@ -80,7 +89,7 @@ const Home = () => {
     })
     .onUpdate((event) => {
       if (scrollY.value > 0) {
-        return;
+        return ;
       }
       translateY.value = Math.min(
         Math.max(context.value.y + event.translationY, 0),
@@ -98,8 +107,9 @@ const Home = () => {
         panelVisible.value = true;
       }
     });
+*/
 
-
+  /*
   const animatedStyle = useAnimatedStyle(() => {
     const currentOpacity = 1 - (translateY.value / PANEL_HEIGHT);
 
@@ -108,9 +118,7 @@ const Home = () => {
       opacity: currentOpacity,
     };
   });
-
-
-
+*/
 
   return (
     <GestureHandlerRootView style={styles.container}>
@@ -120,7 +128,7 @@ const Home = () => {
             const icons = {
               Chat: "chatbubble-ellipses",
               "Gestión comercial": "briefcase",
-              Menu: "menu",
+              "Facturas de compra": "receipt",
               Notificaciones: "notifications",
               Perfil: "person",
             };
@@ -146,22 +154,8 @@ const Home = () => {
         />
         <Tab.Screen name="Gestión comercial" component={GestionComercial} />
         <Tab.Screen
-          name="Menu"
-          component={Menu}
-          listeners={{
-            tabPress: (e) => {
-              e.preventDefault();
-              if (panelVisible.value) {
-                translateY.value = withSpring(PANEL_HEIGHT, { damping: 90 });
-                opacity.value = withTiming(0);
-                panelVisible.value = false;
-              } else {
-                translateY.value = withSpring(0, { damping: 90 });
-                opacity.value = withTiming(1);
-                panelVisible.value = true;
-              }
-            },
-          }}
+          name="Facturas de compra"
+          component={AprobacionFacturasCompra}
         />
         <Tab.Screen
           name="Notificaciones"
@@ -179,7 +173,8 @@ const Home = () => {
         <Tab.Screen name="Perfil" component={Perfil} />
       </Tab.Navigator>
 
-      {/* Panel flotante */}
+      {/* Panel flotante comentado */}
+      {/* 
       <GestureDetector gesture={gesture}>
         <Animated.View
           style={[
@@ -202,6 +197,7 @@ const Home = () => {
           </View>
         </Animated.View>
       </GestureDetector>
+      */}
     </GestureHandlerRootView>
   );
 };
