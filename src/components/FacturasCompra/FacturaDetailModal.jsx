@@ -9,8 +9,14 @@ import {
   ActivityIndicator,
   Alert,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import facturasCompraService from "../../services/facturasCompra/facturasCompraService";
 
 const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
@@ -18,6 +24,7 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
   const [detail, setDetail] = useState(null);
   const [activeTab, setActiveTab] = useState("general");
   const [observacion, setObservacion] = useState("");
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (visible && item) {
@@ -197,73 +204,83 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Detalle de Factura</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#3A3A3C" />
-            </TouchableOpacity>
-          </View>
-
-          {loading && !detail ? (
-            <View style={styles.centerLoading}>
-              <ActivityIndicator size="large" color="#337ab7" />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.keyboardView}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.header}>
+              <Text style={styles.headerTitle}>Detalle de Factura</Text>
+              <TouchableOpacity onPress={onClose}>
+                <Ionicons name="close" size={24} color="#3A3A3C" />
+              </TouchableOpacity>
             </View>
-          ) : (
-            <>
-              <View style={styles.tabs}>
-                <Tab
-                  label="General"
-                  active={activeTab === "general"}
-                  onPress={() => setActiveTab("general")}
-                />
-                <Tab
-                  label="Flujo"
-                  active={activeTab === "hierarchy"}
-                  onPress={() => setActiveTab("hierarchy")}
-                />
-                <Tab
-                  label="Adjuntos"
-                  active={activeTab === "attachments"}
-                  onPress={() => setActiveTab("attachments")}
-                />
+
+            {loading && !detail ? (
+              <View style={styles.centerLoading}>
+                <ActivityIndicator size="large" color="#337ab7" />
               </View>
-
-              <ScrollView style={styles.body}>
-                {renderTabContent()}
-
-                <View style={styles.observacionSection}>
-                  <Text style={styles.sectionTitle}>Observaciones</Text>
-                  <TextInput
-                    style={styles.textArea}
-                    multiline
-                    numberOfLines={4}
-                    placeholder="Ingrese un comentario aquí..."
-                    value={observacion}
-                    onChangeText={setObservacion}
+            ) : (
+              <>
+                <View style={styles.tabs}>
+                  <Tab
+                    label="General"
+                    active={activeTab === "general"}
+                    onPress={() => setActiveTab("general")}
+                  />
+                  <Tab
+                    label="Flujo"
+                    active={activeTab === "hierarchy"}
+                    onPress={() => setActiveTab("hierarchy")}
+                  />
+                  <Tab
+                    label="Adjuntos"
+                    active={activeTab === "attachments"}
+                    onPress={() => setActiveTab("attachments")}
                   />
                 </View>
-              </ScrollView>
 
-              <View style={styles.footer}>
-                <TouchableOpacity
-                  style={[styles.actionButton, styles.rejectButton]}
-                  onPress={() => handleAction(false)}
-                  disabled={loading}
+                <ScrollView
+                  style={styles.body}
+                  keyboardShouldPersistTaps="handled"
                 >
-                  <Text style={styles.actionButtonText}>Rechazar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.actionButton, styles.approveButton]}
-                  onPress={() => handleAction(true)}
-                  disabled={loading}
+                  {renderTabContent()}
+
+                  <View style={styles.observacionSection}>
+                    <Text style={styles.sectionTitle}>Observaciones</Text>
+                    <TextInput
+                      style={styles.textArea}
+                      multiline
+                      numberOfLines={4}
+                      placeholder="Ingrese un comentario aquí..."
+                      value={observacion}
+                      onChangeText={setObservacion}
+                    />
+                  </View>
+                </ScrollView>
+
+                <View
+                  style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}
                 >
-                  <Text style={styles.actionButtonText}>Aprobar</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
-        </View>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.rejectButton]}
+                    onPress={() => handleAction(false)}
+                    disabled={loading}
+                  >
+                    <Text style={styles.actionButtonText}>Rechazar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.approveButton]}
+                    onPress={() => handleAction(true)}
+                    disabled={loading}
+                  >
+                    <Text style={styles.actionButtonText}>Aprobar</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </View>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );
@@ -317,6 +334,9 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     height: "92%",
+  },
+  keyboardView: {
+    flex: 1,
   },
   header: {
     flexDirection: "row",

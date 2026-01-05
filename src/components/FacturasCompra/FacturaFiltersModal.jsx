@@ -8,8 +8,11 @@ import {
   ScrollView,
   TextInput,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import facturasCompraService from "../../services/facturasCompra/facturasCompraService";
 
 const FacturaFiltersModal = ({ visible, onClose, onApply, initialFilters }) => {
@@ -17,6 +20,7 @@ const FacturaFiltersModal = ({ visible, onClose, onApply, initialFilters }) => {
   const [terceros, setTerceros] = useState([]);
   const [loadingTerceros, setLoadingTerceros] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (visible) {
@@ -56,108 +60,122 @@ const FacturaFiltersModal = ({ visible, onClose, onApply, initialFilters }) => {
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Filtrar facturas</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#3A3A3C" />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView style={styles.body}>
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Búsqueda general</Text>
-              <View style={styles.searchContainer}>
-                <Ionicons name="search-outline" size={20} color="#8E8E93" />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Número de factura, emisor..."
-                  value={filters.FullSearch}
-                  onChangeText={(text) =>
-                    setFilters({ ...filters, FullSearch: text })
-                  }
-                />
-              </View>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.keyboardView}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.header}>
+              <Text style={styles.headerTitle}>Filtrar facturas</Text>
+              <TouchableOpacity onPress={onClose}>
+                <Ionicons name="close" size={24} color="#3A3A3C" />
+              </TouchableOpacity>
             </View>
 
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Emisor (Tercero)</Text>
-              <View style={styles.searchContainer}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Buscar emisor..."
-                  onChangeText={(text) => {
-                    setSearchTerm(text);
-                    loadTerceros(text);
-                  }}
-                />
-                {loadingTerceros && (
-                  <ActivityIndicator size="small" color="#337ab7" />
-                )}
+            <ScrollView style={styles.body} keyboardShouldPersistTaps="handled">
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Búsqueda general</Text>
+                <View style={styles.searchContainer}>
+                  <Ionicons name="search-outline" size={20} color="#8E8E93" />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Número de factura, emisor..."
+                    value={filters.FullSearch}
+                    onChangeText={(text) =>
+                      setFilters({ ...filters, FullSearch: text })
+                    }
+                  />
+                </View>
               </View>
-              <View style={styles.tercerosList}>
-                <TouchableOpacity
-                  style={[
-                    styles.terceroSearched,
-                    filters.TerceroID === null && styles.terceroSelected,
-                  ]}
-                  onPress={() =>
-                    setFilters({
-                      ...filters,
-                      TerceroID: null,
-                      TerceroNombre: "Todos",
-                    })
-                  }
-                >
-                  <Text
-                    style={[
-                      styles.terceroText,
-                      filters.TerceroID === null && styles.terceroTextSelected,
-                    ]}
-                  >
-                    Todos
-                  </Text>
-                </TouchableOpacity>
-                {terceros.map((tercero) => (
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Emisor (Tercero)</Text>
+                <View style={styles.searchContainer}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Buscar emisor..."
+                    onChangeText={(text) => {
+                      setSearchTerm(text);
+                      loadTerceros(text);
+                    }}
+                  />
+                  {loadingTerceros && (
+                    <ActivityIndicator size="small" color="#337ab7" />
+                  )}
+                </View>
+                <View style={styles.tercerosList}>
                   <TouchableOpacity
-                    key={tercero.TerceroID}
                     style={[
                       styles.terceroSearched,
-                      filters.TerceroID === tercero.TerceroID &&
-                        styles.terceroSelected,
+                      filters.TerceroID === null && styles.terceroSelected,
                     ]}
                     onPress={() =>
                       setFilters({
                         ...filters,
-                        TerceroID: tercero.TerceroID,
-                        TerceroNombre: tercero.NombreCompleto,
+                        TerceroID: null,
+                        TerceroNombre: "Todos",
                       })
                     }
                   >
                     <Text
                       style={[
                         styles.terceroText,
-                        filters.TerceroID === tercero.TerceroID &&
+                        filters.TerceroID === null &&
                           styles.terceroTextSelected,
                       ]}
                     >
-                      {tercero.NombreCompleto}
+                      Todos
                     </Text>
                   </TouchableOpacity>
-                ))}
+                  {terceros.map((tercero) => (
+                    <TouchableOpacity
+                      key={tercero.TerceroID}
+                      style={[
+                        styles.terceroSearched,
+                        filters.TerceroID === tercero.TerceroID &&
+                          styles.terceroSelected,
+                      ]}
+                      onPress={() =>
+                        setFilters({
+                          ...filters,
+                          TerceroID: tercero.TerceroID,
+                          TerceroNombre: tercero.NombreCompleto,
+                        })
+                      }
+                    >
+                      <Text
+                        style={[
+                          styles.terceroText,
+                          filters.TerceroID === tercero.TerceroID &&
+                            styles.terceroTextSelected,
+                        ]}
+                      >
+                        {tercero.NombreCompleto}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
-            </View>
-          </ScrollView>
+            </ScrollView>
 
-          <View style={styles.footer}>
-            <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
-              <Text style={styles.clearButtonText}>Limpiar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.applyButton} onPress={handleApply}>
-              <Text style={styles.applyButtonText}>Aplicar filtros</Text>
-            </TouchableOpacity>
+            <View
+              style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}
+            >
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={handleClear}
+              >
+                <Text style={styles.clearButtonText}>Limpiar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.applyButton}
+                onPress={handleApply}
+              >
+                <Text style={styles.applyButtonText}>Aplicar filtros</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );
@@ -174,6 +192,9 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     height: "80%",
+  },
+  keyboardView: {
+    flex: 1,
   },
   header: {
     flexDirection: "row",

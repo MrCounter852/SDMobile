@@ -79,7 +79,7 @@ const FacturaItem = ({ item, onPress }) => {
               <View style={styles.iconCircle}>
                 <Ionicons name="grid-outline" size={12} color="#8E8E93" />
               </View>
-              <Text style={styles.detailText} numberOfLines={1}>
+              <Text style={styles.detailText} numberOfLines={2}>
                 {item.CentroCostoCodigoNombre || "Sin C.C."}
               </Text>
             </View>

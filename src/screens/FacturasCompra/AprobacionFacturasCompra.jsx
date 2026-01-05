@@ -123,7 +123,7 @@ const AprobacionFacturasCompra = ({ navigation }) => {
               color={hasActiveFilters ? "#337ab7" : "#3A3A3C"}
             />
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleRefresh}>
+          {/*<TouchableOpacity onPress={handleRefresh}>
             <LinearGradient
               colors={["#337ab7", "#00ACC4"]}
               start={{ x: 0, y: 0 }}
@@ -132,7 +132,7 @@ const AprobacionFacturasCompra = ({ navigation }) => {
             >
               <Ionicons name="refresh" size={24} color="#fff" />
             </LinearGradient>
-          </TouchableOpacity>
+          </TouchableOpacity>*/}
         </View>
       </View>
 
