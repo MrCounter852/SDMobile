@@ -80,6 +80,7 @@ class FacturasCompraService {
   async consultarFacturaDetalle(facturaCompraID, facturaCompraAprobacionJerarquiaID) {
     const body = {
       FacturaCompraID: facturaCompraID,
+      FacturaCompraAprobacionJerarquiaID: facturaCompraAprobacionJerarquiaID,
       UsuarioID: this.global.user?.UsuarioID,
       Token: this.global.user?.Token
     };
@@ -171,18 +172,6 @@ class FacturasCompraService {
     }, false, true); // useSIS
   }
 
-  async consultarReferencias(facturaCompraID) {
-    const body = {
-      FacturaCompraID: facturaCompraID,
-      Token: this.global.user?.Token
-    };
-
-    // Generic name based on pattern
-    return this.makeRequest('/FacturasCompra/FacturasCompraReferenciasConsultar', {
-      method: 'POST',
-      body: JSON.stringify(body),
-    });
-  }
 }
 
 export default new FacturasCompraService();

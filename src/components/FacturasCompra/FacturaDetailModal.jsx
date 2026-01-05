@@ -26,7 +26,6 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
   const [observacion, setObservacion] = useState("");
 
   // New states for added features
-  const [referencias, setReferencias] = useState([]);
   const [seguimientos, setSeguimientos] = useState([]);
   const [newSeguimiento, setNewSeguimiento] = useState("");
   const [centrosCostos, setCentrosCostos] = useState([]);
@@ -41,7 +40,6 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
       setObservacion("");
       setActiveTab("info");
       loadSeguimientos();
-      loadReferencias();
     }
   }, [visible, item]);
 
@@ -70,18 +68,6 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
       setSeguimientos(response.rows || []);
     } catch (error) {
       console.error("Error loading follow-ups:", error);
-    }
-  };
-
-  const loadReferencias = async () => {
-    if (!item?.FacturaCompraID) return;
-    try {
-      const response = await facturasCompraService.consultarReferencias(
-        item.FacturaCompraID
-      );
-      setReferencias(response || []);
-    } catch (error) {
-      console.error("Error loading references:", error);
     }
   };
 
@@ -191,6 +177,15 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
   const renderTabContent = () => {
     if (!detail) return null;
 
+    // Normalize data: Some endpoints wrap the main entity in a property named after it.
+    // If detail.FacturaCompra exists, use it; if detail.data exists, use detail.data[0];
+    // otherwise use detail itself or detail.rows[0].
+    const invoiceData =
+      detail.FacturaCompra ||
+      (detail.data && detail.data[0]) ||
+      (detail.rows && detail.rows[0]) ||
+      detail;
+
     switch (activeTab) {
       case "info":
         return (
@@ -198,32 +193,43 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
             <Section title="Información General">
               <DetailRow
                 label="Proveedor"
-                value={detail.FacturaCompra?.NombreCompletoTercero}
+                value={
+                  invoiceData.NombreCompleto ||
+                  invoiceData.NombreCompletoTercero
+                }
                 icon="business"
               />
               <DetailRow
                 label="Factura #"
-                value={detail.FacturaCompra?.NumeroDocumento}
+                value={invoiceData.NumeroDocumento}
                 icon="document-text"
               />
               <DetailRow
                 label="Fecha"
-                value={detail.FacturaCompra?.FechaRegistroStr}
+                value={
+                  invoiceData.FechaRegistro || invoiceData.FechaRegistroStr
+                }
                 icon="calendar"
               />
               <DetailRow
                 label="Vencimiento"
-                value={detail.FacturaCompra?.FechaVencimientoStr}
+                value={
+                  invoiceData.FechaVencimiento ||
+                  invoiceData.FechaVencimientoStr
+                }
                 icon="time"
               />
               <DetailRow
                 label="Tipo Pago"
-                value={detail.FacturaCompra?.TipoPagoNombre}
+                value={invoiceData.TipoPagoNombre}
                 icon="card"
               />
               <DetailRow
                 label="C. Costo Actual"
-                value={detail.FacturaCompra?.NombreCentroCosto}
+                value={
+                  invoiceData.CentroCostoCodigoNombre ||
+                  invoiceData.NombreCentroCosto
+                }
                 icon="grid"
               />
             </Section>
@@ -231,42 +237,39 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
             <Section title="Totales">
               <DetailRow
                 label="Subtotal"
-                value={formatCurrency(detail.FacturaCompra?.ValorSubtotal)}
+                value={formatCurrency(invoiceData.ValorSubtotal)}
               />
               <DetailRow
                 label="IVA"
-                value={formatCurrency(detail.FacturaCompra?.ValorIVA)}
+                value={formatCurrency(invoiceData.ValorIVA)}
               />
               <DetailRow
                 label="Total"
-                value={formatCurrency(detail.FacturaCompra?.ValorTotal)}
+                value={formatCurrency(invoiceData.ValorTotal)}
                 highlight
               />
             </Section>
 
             <Section title="Flujo de Aprobación">
-              {(detail.FacturaCompraAprobacionesJerarquias || []).map(
+              {(invoiceData.FacturasCompraAprobacionesJerarquias || []).map(
                 (step, idx) => (
                   <View key={idx} style={styles.stepRow}>
                     <View
                       style={[
                         styles.stepDot,
-                        step.Aprobada && styles.stepDotActive,
+                        step.EstadoAprobacionFacturaCompraID === 2 &&
+                          styles.stepDotActive,
                       ]}
                     />
                     <View style={styles.stepInfo}>
                       <Text style={styles.stepUser}>
-                        {step.NombreCompletoUsuario}
+                        {step.UsuarioNombreCompleto || "Usuario pendiente"}
                       </Text>
                       <Text style={styles.stepStatus}>
-                        {step.Aprobada
-                          ? "Aprobó"
-                          : step.Aprobada === false
-                          ? "Rechazó"
-                          : "Pendiente"}
+                        {step.EstadoAprobacionFacturaCompraNombre}
                       </Text>
-                      {step.Observacion && (
-                        <Text style={styles.stepObs}>{step.Observacion}</Text>
+                      {step.Observaciones && (
+                        <Text style={styles.stepObs}>{step.Observaciones}</Text>
                       )}
                     </View>
                   </View>
@@ -275,8 +278,8 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
             </Section>
 
             <Section title="Adjuntos">
-              {(detail.FacturasCompraAdjuntos || []).length > 0 ? (
-                detail.FacturasCompraAdjuntos.map((adj, idx) => (
+              {(invoiceData.FacturasCompraAdjuntos || []).length > 0 ? (
+                invoiceData.FacturasCompraAdjuntos.map((adj, idx) => (
                   <TouchableOpacity key={idx} style={styles.attachmentRow}>
                     <Ionicons name="attach" size={20} color="#337ab7" />
                     <Text style={styles.attachmentName} numberOfLines={1}>
@@ -332,15 +335,15 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
         return (
           <View style={styles.tabContent}>
             <Section title="Referencias Relacionadas">
-              {referencias.length > 0 ? (
-                referencias.map((ref, idx) => (
+              {(detail?.CentrosCostosReferencias || []).length > 0 ? (
+                (detail.CentrosCostosReferencias || []).map((ref, idx) => (
                   <View key={idx} style={styles.refItem}>
                     <Ionicons name="link-outline" size={20} color="#337ab7" />
                     <View style={styles.refContent}>
-                      <Text style={styles.refTitle}>{ref.TipoReferencia}</Text>
-                      <Text style={styles.refValue}>
-                        {ref.NumeroReferencia}
+                      <Text style={styles.refTitle}>
+                        Grupo {ref.GrupoReferenciaCodigoID}
                       </Text>
+                      <Text style={styles.refValue}>{ref.Referencia}</Text>
                     </View>
                   </View>
                 ))
