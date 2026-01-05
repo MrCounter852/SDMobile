@@ -151,10 +151,32 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
   };
 
   const handleAction = async (aprobar) => {
-    if (!observacion && !aprobar) {
+    if (!observacion.trim()) {
       Alert.alert(
         "Observación requerida",
-        "Debe ingresar una observación para rechazar."
+        `Debe ingresar una observación para ${
+          aprobar ? "aprobar" : "rechazar"
+        }.`
+      );
+      return;
+    }
+
+    const invoiceData =
+      detail.FacturaCompra ||
+      (detail.data && detail.data[0]) ||
+      (detail.rows && detail.rows[0]) ||
+      detail;
+
+    if (
+      invoiceData.CC_APR_FAC_COMPRA &&
+      invoiceData.CentroCostoDirecto &&
+      invoiceData.CountAprobaciones === 0 &&
+      selectedRefs.length === 0 &&
+      aprobar
+    ) {
+      Alert.alert(
+        "Referencia requerida",
+        "Debe ingresar al menos una referencia para esta factura."
       );
       return;
     }
@@ -162,13 +184,13 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
     setLoading(true);
     try {
       await facturasCompraService.aprobarFactura({
-        FacturaCompraID: item.FacturaCompraID,
-        FacturaCompraAprobacionJerarquiaID:
-          item.FacturaCompraAprobacionJerarquiaID,
+        ...item,
+        ...invoiceData,
         EstadoAprobacionFacturaCompraID: aprobar ? 2 : 3,
         Observaciones: observacion,
-        FacturasCompraReferencias: JSON.stringify(selectedRefs),
-        EmpresaID: item.EmpresaID,
+        FacturasCompraReferencias: selectedRefs,
+        Usuario: item.UsuarioID,
+        Fecha: new Date().toISOString(),
       });
       Alert.alert(
         "Éxito",
