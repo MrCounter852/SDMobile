@@ -36,9 +36,11 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
 
   useEffect(() => {
     if (visible && item) {
-      loadDetail();
+      setDetail(null);
+      setSeguimientos([]);
       setObservacion("");
       setActiveTab("info");
+      loadDetail();
       loadSeguimientos();
     }
   }, [visible, item]);
