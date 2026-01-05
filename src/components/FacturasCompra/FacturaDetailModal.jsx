@@ -327,13 +327,16 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
   },
   modalContent: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     backgroundColor: "#F2F2F7",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    height: "92%",
+    height: '92%',
   },
   keyboardView: {
     flex: 1,
