@@ -323,9 +323,8 @@ const GestionComercialCalendar = ({
           complejo: event.complejo,
           cierre: event.cierre,
           proceso: event.proceso,
-          timeLabel: isStartingToday
-            ? event.startTimeStr.substring(0, 5)
-            : "Continuación",
+          startFormatted: `${formatDateDMY(new Date(event.startDateStr))} ${event.startTimeStr.substring(0, 5)}`,
+          endFormatted: `${formatDateDMY(new Date(event.endDateStr))} ${event.endTimeStr.substring(0, 5)}`,
           summary: "",
           color: "transparent",
           primaryColor: event.statusColors?.primary,
@@ -415,7 +414,7 @@ const GestionComercialCalendar = ({
           </View>
 
           <Text style={[styles.eventTimeText, { color: event.primaryColor }]}>
-            {event.timeLabel}
+            Inicio: {event.startFormatted} - Fin: {event.endFormatted}
           </Text>
         </View>
       </View>
@@ -493,12 +492,14 @@ const calendarTheme = {
 const timelineStyles = {
   container: { backgroundColor: "transparent" },
   line: { backgroundColor: "#eee", height: 1 },
-  nowIndicatorLine: { backgroundColor: "#88E782", height: 2 },
+  timeLabel: { backgroundColor: "#fff", zIndex: 10 },
+  nowIndicatorLine: { backgroundColor: "#88E782", height: 2, zIndex: 20 },
   nowIndicatorKnob: {
     backgroundColor: "#88E782",
     width: 10,
     height: 10,
     borderRadius: 5,
+    zIndex: 20
   },
 };
 
@@ -609,3 +610,4 @@ const styles = StyleSheet.create({
 });
 
 export default GestionComercialCalendar;
+
