@@ -33,12 +33,15 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
   const [searchCC, setSearchCC] = useState("");
   const [loadingCC, setLoadingCC] = useState(false);
 
+  const [selectedRefs, setSelectedRefs] = useState([]);
+
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (visible && item) {
       setDetail(null);
       setSeguimientos([]);
+      setSelectedRefs([]);
       setObservacion("");
       setActiveTab("info");
       loadDetail();
@@ -54,6 +57,13 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
         item.FacturaCompraAprobacionJerarquiaID
       );
       setDetail(response);
+
+      const invoiceData =
+        response.FacturaCompra ||
+        (response.data && response.data[0]) ||
+        (response.rows && response.rows[0]) ||
+        response;
+      setSelectedRefs(invoiceData.FacturasCompraReferencias || []);
     } catch (error) {
       console.error("Error loading invoice detail:", error);
       Alert.alert("Error", "No se pudo cargar el detalle de la factura");
@@ -155,8 +165,10 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
         FacturaCompraID: item.FacturaCompraID,
         FacturaCompraAprobacionJerarquiaID:
           item.FacturaCompraAprobacionJerarquiaID,
-        Aprobada: aprobar,
-        Observacion: observacion,
+        EstadoAprobacionFacturaCompraID: aprobar ? 2 : 3,
+        Observaciones: observacion,
+        FacturasCompraReferencias: JSON.stringify(selectedRefs),
+        EmpresaID: item.EmpresaID,
       });
       Alert.alert(
         "Éxito",
@@ -184,9 +196,6 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
   const renderTabContent = () => {
     if (!detail) return null;
 
-    // Normalize data: Some endpoints wrap the main entity in a property named after it.
-    // If detail.FacturaCompra exists, use it; if detail.data exists, use detail.data[0];
-    // otherwise use detail itself or detail.rows[0].
     const invoiceData =
       detail.FacturaCompra ||
       (detail.data && detail.data[0]) ||
@@ -347,22 +356,68 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
       case "referencias":
         return (
           <View style={styles.tabContent}>
-            <Section title="Referencias Relacionadas">
-              {(invoiceData?.CentrosCostosReferencias || []).length > 0 ? (
-                invoiceData.CentrosCostosReferencias.map((ref, idx) => (
-                  <View key={idx} style={styles.refItem}>
-                    <Ionicons name="link-outline" size={20} color="#337ab7" />
+            <Section title="Referencias Asignadas">
+              {selectedRefs.length > 0 ? (
+                selectedRefs.map((ref, idx) => (
+                  <View key={`assigned-${idx}`} style={styles.refItem}>
+                    <Ionicons name="link" size={20} color="#337ab7" />
                     <View style={styles.refContent}>
-                      <Text style={styles.refTitle}>
-                        Grupo {ref.GrupoReferenciaCodigoID}
-                      </Text>
-                      <Text style={styles.refValue}>{ref.Referencia}</Text>
+                      <Text style={styles.refText}>{ref.Referencia}</Text>
                     </View>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setSelectedRefs((prev) =>
+                          prev.filter((_, i) => i !== idx)
+                        );
+                      }}
+                      style={styles.removeRefBtn}
+                    >
+                      <Ionicons
+                        name="trash-outline"
+                        size={20}
+                        color="#FF3B30"
+                      />
+                    </TouchableOpacity>
                   </View>
                 ))
               ) : (
                 <Text style={styles.emptyText}>
-                  No hay referencias registradas
+                  No hay referencias asignadas
+                </Text>
+              )}
+            </Section>
+
+            <Section title="Referencias Disponibles (Centro de Costo)">
+              {(invoiceData?.CentrosCostosReferencias || []).length > 0 ? (
+                invoiceData.CentrosCostosReferencias.filter(
+                  (available) =>
+                    !selectedRefs.some(
+                      (selected) => selected.Referencia === available.Referencia
+                    )
+                ).map((ref, idx) => (
+                  <TouchableOpacity
+                    key={`available-${idx}`}
+                    style={styles.refItem}
+                    onPress={() => {
+                      setSelectedRefs((prev) => [
+                        ...prev,
+                        { Referencia: ref.Referencia },
+                      ]);
+                    }}
+                  >
+                    <Ionicons
+                      name="add-circle-outline"
+                      size={22}
+                      color="#4CAF50"
+                    />
+                    <View style={styles.refContent}>
+                      <Text style={styles.refText}>{ref.Referencia}</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <Text style={styles.emptyText}>
+                  No hay referencias disponibles para este centro de costo
                 </Text>
               )}
             </Section>
@@ -764,21 +819,24 @@ const styles = StyleSheet.create({
   refItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F2F2F7",
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: "#E5E5EA",
   },
   refContent: {
+    flex: 1,
     marginLeft: 12,
   },
-  refTitle: {
-    fontSize: 12,
-    color: "#8E8E93",
-  },
-  refValue: {
+  refText: {
     fontSize: 15,
-    fontWeight: "600",
-    color: "#1C1C1E",
+    color: "#3A3A3C",
+    fontWeight: "500",
+  },
+  removeRefBtn: {
+    padding: 8,
   },
   addSeguimientoBox: {
     flexDirection: "row",
