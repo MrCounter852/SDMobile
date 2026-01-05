@@ -140,6 +140,49 @@ class FacturasCompraService {
       }),
     });
   }
+
+  async consultarSeguimientos(facturaCompraID) {
+    const body = {
+      Page: 1,
+      Rows: 50,
+      OrigenID: facturaCompraID,
+      OrigenSeguimientoID: "FAC-COM",
+      Token: this.global.user?.Token
+    };
+
+    return this.makeRequest('/Seguimientos/SeguimientosConsultar', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }, false, true); // useSIS
+  }
+
+  async insertarSeguimiento(facturaCompraID, comentario) {
+    const body = {
+      OrigenID: facturaCompraID,
+      OrigenSeguimientoID: "FAC-COM",
+      Comentario: comentario,
+      Token: this.global.user?.Token,
+      UsuarioID: this.global.user?.UsuarioID
+    };
+
+    return this.makeRequest('/Seguimientos/SeguimientosInsertar', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }, false, true); // useSIS
+  }
+
+  async consultarReferencias(facturaCompraID) {
+    const body = {
+      FacturaCompraID: facturaCompraID,
+      Token: this.global.user?.Token
+    };
+
+    // Generic name based on pattern
+    return this.makeRequest('/FacturasCompra/FacturasCompraReferenciasConsultar', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
 }
 
 export default new FacturasCompraService();

@@ -22,15 +22,26 @@ import facturasCompraService from "../../services/facturasCompra/facturasCompraS
 const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState(null);
-  const [activeTab, setActiveTab] = useState("general");
+  const [activeTab, setActiveTab] = useState("info");
   const [observacion, setObservacion] = useState("");
+
+  // New states for added features
+  const [referencias, setReferencias] = useState([]);
+  const [seguimientos, setSeguimientos] = useState([]);
+  const [newSeguimiento, setNewSeguimiento] = useState("");
+  const [centrosCostos, setCentrosCostos] = useState([]);
+  const [searchCC, setSearchCC] = useState("");
+  const [loadingCC, setLoadingCC] = useState(false);
+
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (visible && item) {
       loadDetail();
       setObservacion("");
-      setActiveTab("general");
+      setActiveTab("info");
+      loadSeguimientos();
+      loadReferencias();
     }
   }, [visible, item]);
 
@@ -48,6 +59,92 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadSeguimientos = async () => {
+    if (!item?.FacturaCompraID) return;
+    try {
+      const response = await facturasCompraService.consultarSeguimientos(
+        item.FacturaCompraID
+      );
+      setSeguimientos(response.rows || []);
+    } catch (error) {
+      console.error("Error loading follow-ups:", error);
+    }
+  };
+
+  const loadReferencias = async () => {
+    if (!item?.FacturaCompraID) return;
+    try {
+      const response = await facturasCompraService.consultarReferencias(
+        item.FacturaCompraID
+      );
+      setReferencias(response || []);
+    } catch (error) {
+      console.error("Error loading references:", error);
+    }
+  };
+
+  const handleInsertSeguimiento = async () => {
+    if (!newSeguimiento.trim()) return;
+    setLoading(true);
+    try {
+      await facturasCompraService.insertarSeguimiento(
+        item.FacturaCompraID,
+        newSeguimiento
+      );
+      setNewSeguimiento("");
+      loadSeguimientos();
+    } catch (error) {
+      Alert.alert("Error", "No se pudo guardar el seguimiento");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearchCC = async (term) => {
+    setSearchCC(term);
+    if (term.length < 2) {
+      setCentrosCostos([]);
+      return;
+    }
+    setLoadingCC(true);
+    try {
+      const response = await facturasCompraService.consultarCentrosCostos(term);
+      setCentrosCostos(response.rows || []);
+    } catch (error) {
+      console.error("Error searching CC:", error);
+    } finally {
+      setLoadingCC(false);
+    }
+  };
+
+  const handleAsignarCC = async (cc) => {
+    Alert.alert(
+      "Confirmar",
+      `¿Desea asignar el centro de costo ${cc.CodigoNombre} a esta factura?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Asignar",
+          onPress: async () => {
+            setLoading(true);
+            try {
+              await facturasCompraService.asignarCentroCosto({
+                FacturaCompraID: item.FacturaCompraID,
+                CentroCostoID: cc.CentroCostoID,
+              });
+              Alert.alert("Éxito", "Centro de costo asignado correctamente");
+              loadDetail();
+            } catch (error) {
+              Alert.alert("Error", "No se pudo asignar el centro de costo");
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleAction = async (aprobar) => {
@@ -95,7 +192,7 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
     if (!detail) return null;
 
     switch (activeTab) {
-      case "general":
+      case "info":
         return (
           <View style={styles.tabContent}>
             <Section title="Información General">
@@ -124,6 +221,11 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
                 value={detail.FacturaCompra?.TipoPagoNombre}
                 icon="card"
               />
+              <DetailRow
+                label="C. Costo Actual"
+                value={detail.FacturaCompra?.NombreCentroCosto}
+                icon="grid"
+              />
             </Section>
 
             <Section title="Totales">
@@ -141,11 +243,7 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
                 highlight
               />
             </Section>
-          </View>
-        );
-      case "hierarchy":
-        return (
-          <View style={styles.tabContent}>
+
             <Section title="Flujo de Aprobación">
               {(detail.FacturaCompraAprobacionesJerarquias || []).map(
                 (step, idx) => (
@@ -175,11 +273,7 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
                 )
               )}
             </Section>
-          </View>
-        );
-      case "attachments":
-        return (
-          <View style={styles.tabContent}>
+
             <Section title="Adjuntos">
               {(detail.FacturasCompraAdjuntos || []).length > 0 ? (
                 detail.FacturasCompraAdjuntos.map((adj, idx) => (
@@ -196,6 +290,116 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
             </Section>
           </View>
         );
+
+      case "reasignar":
+        return (
+          <View style={styles.tabContent}>
+            <Section title="Reasignar Centro de Costo">
+              <View style={styles.searchBox}>
+                <Ionicons name="search" size={20} color="#8E8E93" />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Buscar centro de costo..."
+                  value={searchCC}
+                  onChangeText={handleSearchCC}
+                />
+                {loadingCC && (
+                  <ActivityIndicator size="small" color="#337ab7" />
+                )}
+              </View>
+              {centrosCostos.map((cc) => (
+                <TouchableOpacity
+                  key={cc.CentroCostoID}
+                  style={styles.ccItem}
+                  onPress={() => handleAsignarCC(cc)}
+                >
+                  <Text style={styles.ccName}>{cc.CodigoNombre}</Text>
+                  <Ionicons name="chevron-forward" size={16} color="#AEAEB2" />
+                </TouchableOpacity>
+              ))}
+              {searchCC.length >= 2 &&
+                centrosCostos.length === 0 &&
+                !loadingCC && (
+                  <Text style={styles.emptyText}>
+                    No se encontraron resultados
+                  </Text>
+                )}
+            </Section>
+          </View>
+        );
+
+      case "referencias":
+        return (
+          <View style={styles.tabContent}>
+            <Section title="Referencias Relacionadas">
+              {referencias.length > 0 ? (
+                referencias.map((ref, idx) => (
+                  <View key={idx} style={styles.refItem}>
+                    <Ionicons name="link-outline" size={20} color="#337ab7" />
+                    <View style={styles.refContent}>
+                      <Text style={styles.refTitle}>{ref.TipoReferencia}</Text>
+                      <Text style={styles.refValue}>
+                        {ref.NumeroReferencia}
+                      </Text>
+                    </View>
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.emptyText}>
+                  No hay referencias registradas
+                </Text>
+              )}
+            </Section>
+          </View>
+        );
+
+      case "seguimientos":
+        return (
+          <View style={styles.tabContent}>
+            <Section title="Nuevo Seguimiento">
+              <View style={styles.addSeguimientoBox}>
+                <TextInput
+                  style={styles.newSegInput}
+                  placeholder="Escriba un seguimiento..."
+                  value={newSeguimiento}
+                  onChangeText={setNewSeguimiento}
+                  multiline
+                />
+                <TouchableOpacity
+                  style={[
+                    styles.addSegButton,
+                    !newSeguimiento.trim() && styles.disabledButton,
+                  ]}
+                  onPress={handleInsertSeguimiento}
+                  disabled={!newSeguimiento.trim() || loading}
+                >
+                  <Ionicons name="send" size={20} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            </Section>
+
+            <Section title="Historial de Seguimientos">
+              {seguimientos.length > 0 ? (
+                seguimientos.map((seg, idx) => (
+                  <View key={idx} style={styles.segItem}>
+                    <View style={styles.segHeader}>
+                      <Text style={styles.segUser}>{seg.NombreCompleto}</Text>
+                      <Text style={styles.segDate}>
+                        {seg.FechaRegistroAmigable}
+                      </Text>
+                    </View>
+                    <Text style={styles.segComment}>{seg.Comentario}</Text>
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.emptyText}>
+                  No hay seguimientos registrados
+                </Text>
+              )}
+            </Section>
+          </View>
+        );
+
       default:
         return null;
     }
@@ -222,22 +426,31 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
               </View>
             ) : (
               <>
-                <View style={styles.tabs}>
-                  <Tab
-                    label="General"
-                    active={activeTab === "general"}
-                    onPress={() => setActiveTab("general")}
-                  />
-                  <Tab
-                    label="Flujo"
-                    active={activeTab === "hierarchy"}
-                    onPress={() => setActiveTab("hierarchy")}
-                  />
-                  <Tab
-                    label="Adjuntos"
-                    active={activeTab === "attachments"}
-                    onPress={() => setActiveTab("attachments")}
-                  />
+                <View style={styles.tabsContainer}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View style={styles.tabs}>
+                      <Tab
+                        label="Información"
+                        active={activeTab === "info"}
+                        onPress={() => setActiveTab("info")}
+                      />
+                      <Tab
+                        label="Reasignar"
+                        active={activeTab === "reasignar"}
+                        onPress={() => setActiveTab("reasignar")}
+                      />
+                      <Tab
+                        label="Referencias"
+                        active={activeTab === "referencias"}
+                        onPress={() => setActiveTab("referencias")}
+                      />
+                      <Tab
+                        label="Seguimientos"
+                        active={activeTab === "seguimientos"}
+                        onPress={() => setActiveTab("seguimientos")}
+                      />
+                    </View>
+                  </ScrollView>
                 </View>
 
                 <ScrollView
@@ -246,37 +459,46 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
                 >
                   {renderTabContent()}
 
-                  <View style={styles.observacionSection}>
-                    <Text style={styles.sectionTitle}>Observaciones</Text>
-                    <TextInput
-                      style={styles.textArea}
-                      multiline
-                      numberOfLines={4}
-                      placeholder="Ingrese un comentario aquí..."
-                      value={observacion}
-                      onChangeText={setObservacion}
-                    />
-                  </View>
+                  {activeTab === "info" && (
+                    <View style={styles.observacionSection}>
+                      <Text style={styles.sectionTitle}>
+                        Acción de Aprobación
+                      </Text>
+                      <TextInput
+                        style={styles.textArea}
+                        multiline
+                        numberOfLines={4}
+                        placeholder="Ingrese un comentario para aprobar/rechazar..."
+                        value={observacion}
+                        onChangeText={setObservacion}
+                      />
+                    </View>
+                  )}
                 </ScrollView>
 
-                <View
-                  style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}
-                >
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.rejectButton]}
-                    onPress={() => handleAction(false)}
-                    disabled={loading}
+                {activeTab === "info" && (
+                  <View
+                    style={[
+                      styles.footer,
+                      { paddingBottom: insets.bottom + 16 },
+                    ]}
                   >
-                    <Text style={styles.actionButtonText}>Rechazar</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.approveButton]}
-                    onPress={() => handleAction(true)}
-                    disabled={loading}
-                  >
-                    <Text style={styles.actionButtonText}>Aprobar</Text>
-                  </TouchableOpacity>
-                </View>
+                    <TouchableOpacity
+                      style={[styles.actionButton, styles.rejectButton]}
+                      onPress={() => handleAction(false)}
+                      disabled={loading}
+                    >
+                      <Text style={styles.actionButtonText}>Rechazar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.actionButton, styles.approveButton]}
+                      onPress={() => handleAction(true)}
+                      disabled={loading}
+                    >
+                      <Text style={styles.actionButtonText}>Aprobar</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
               </>
             )}
           </View>
@@ -329,14 +551,14 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContent: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     backgroundColor: "#F2F2F7",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    height: '92%',
+    height: "92%",
   },
   keyboardView: {
     flex: 1,
@@ -355,12 +577,14 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#1C1C1E",
   },
-  tabs: {
-    flexDirection: "row",
+  tabsContainer: {
     backgroundColor: "#fff",
-    paddingHorizontal: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#E5E5EA",
+  },
+  tabs: {
+    flexDirection: "row",
+    paddingHorizontal: 10,
   },
   tab: {
     paddingVertical: 12,
@@ -487,6 +711,103 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontWeight: "500",
   },
+  searchBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F2F2F7",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    height: 44,
+    marginBottom: 12,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 8,
+    fontSize: 15,
+    color: "#1C1C1E",
+  },
+  ccItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F2F2F7",
+  },
+  ccName: {
+    fontSize: 14,
+    color: "#3A3A3C",
+    flex: 1,
+  },
+  refItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F2F2F7",
+  },
+  refContent: {
+    marginLeft: 12,
+  },
+  refTitle: {
+    fontSize: 12,
+    color: "#8E8E93",
+  },
+  refValue: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#1C1C1E",
+  },
+  addSeguimientoBox: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 12,
+  },
+  newSegInput: {
+    flex: 1,
+    backgroundColor: "#F2F2F7",
+    borderRadius: 10,
+    padding: 10,
+    fontSize: 15,
+    minHeight: 44,
+    maxHeight: 100,
+    color: "#1C1C1E",
+  },
+  addSegButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#337ab7",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  disabledButton: {
+    backgroundColor: "#AEAEB2",
+  },
+  segItem: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F2F2F7",
+  },
+  segHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  segUser: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1C1C1E",
+  },
+  segDate: {
+    fontSize: 12,
+    color: "#8E8E93",
+  },
+  segComment: {
+    fontSize: 14,
+    color: "#3A3A3C",
+    lineHeight: 20,
+  },
   observacionSection: {
     padding: 16,
     backgroundColor: "#fff",
@@ -526,7 +847,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#337ab7",
   },
   rejectButton: {
-    backgroundColor: "#FF3B30",
+    backgroundColor: "gray",
   },
   centerLoading: {
     flex: 1,
