@@ -121,7 +121,8 @@ class FacturasCompraService {
     const body = {
       Page: page,
       Rows: 20,
-      CodigoNombre: term,
+      CodigoNombre: term || null,
+      CentroCostoID: null,
       Token: this.global.user?.Token
     };
 

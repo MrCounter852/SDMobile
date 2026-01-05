@@ -17,6 +17,7 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import facturasCompraService from "../../services/facturasCompra/facturasCompraService";
 
 const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
@@ -92,20 +93,24 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
 
   const handleSearchCC = async (term) => {
     setSearchCC(term);
-    if (term.length < 2) {
-      setCentrosCostos([]);
-      return;
-    }
     setLoadingCC(true);
     try {
       const response = await facturasCompraService.consultarCentrosCostos(term);
-      setCentrosCostos(response.rows || []);
+      const rows = response.rows || [];
+      // Filter out maestro (parent) cost centers as they are usually not transacting
+      setCentrosCostos(rows.filter((cc) => !cc.Maestro));
     } catch (error) {
       console.error("Error searching CC:", error);
     } finally {
       setLoadingCC(false);
     }
   };
+
+  useEffect(() => {
+    if (activeTab === "reasignar" && centrosCostos.length === 0) {
+      handleSearchCC("");
+    }
+  }, [activeTab]);
 
   const handleAsignarCC = async (cc) => {
     Alert.alert(
@@ -228,23 +233,29 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
               />
               <DetailRow
                 label="C. Costo Actual"
-                value={
-                  invoiceData.CentroCostoCodigoNombre ||
-                  invoiceData.NombreCentroCosto
-                }
+                value={invoiceData.CentroCostoCodigoNombre}
                 icon="grid"
+              />
+              {invoiceData.Observaciones && (
+                <DetailRow
+                  label="Observaciones"
+                  value={invoiceData.Observaciones}
+                  icon="chatbubble"
+                />
+              )}
+              <DetailRow
+                label="Tipo Documento"
+                value={invoiceData.TipoDocumentoNombre}
+                icon="id-card"
+              />
+              <DetailRow
+                label="Tipo Factura"
+                value={invoiceData.TipoFacturaCompraNombre}
+                icon="receipt"
               />
             </Section>
 
             <Section title="Totales">
-              <DetailRow
-                label="Subtotal"
-                value={formatCurrency(invoiceData.ValorSubtotal)}
-              />
-              <DetailRow
-                label="IVA"
-                value={formatCurrency(invoiceData.ValorIVA)}
-              />
               <DetailRow
                 label="Total"
                 value={formatCurrency(invoiceData.ValorTotal)}
@@ -285,7 +296,7 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
                   <TouchableOpacity key={idx} style={styles.attachmentRow}>
                     <Ionicons name="attach" size={20} color="#337ab7" />
                     <Text style={styles.attachmentName} numberOfLines={1}>
-                      {adj.NombreOriginal}
+                      {adj.Nombre || adj.NombreOriginal}
                     </Text>
                   </TouchableOpacity>
                 ))
@@ -337,8 +348,8 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
         return (
           <View style={styles.tabContent}>
             <Section title="Referencias Relacionadas">
-              {(detail?.CentrosCostosReferencias || []).length > 0 ? (
-                (detail.CentrosCostosReferencias || []).map((ref, idx) => (
+              {(invoiceData?.CentrosCostosReferencias || []).length > 0 ? (
+                invoiceData.CentrosCostosReferencias.map((ref, idx) => (
                   <View key={idx} style={styles.refItem}>
                     <Ionicons name="link-outline" size={20} color="#337ab7" />
                     <View style={styles.refContent}>
@@ -495,13 +506,19 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
                     >
                       <Text style={styles.actionButtonText}>Rechazar</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.actionButton, styles.approveButton]}
-                      onPress={() => handleAction(true)}
-                      disabled={loading}
+                    <LinearGradient
+                      colors={["#337ab7", "#00ACC4"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.actionButton}
                     >
-                      <Text style={styles.actionButtonText}>Aprobar</Text>
-                    </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleAction(true)}
+                        disabled={loading}
+                      >
+                        <Text style={styles.actionButtonText}>Aprobar</Text>
+                      </TouchableOpacity>
+                    </LinearGradient>
                   </View>
                 )}
               </>
