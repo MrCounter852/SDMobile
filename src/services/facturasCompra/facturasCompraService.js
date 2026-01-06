@@ -49,7 +49,21 @@ class FacturasCompraService {
     try {
       const response = await fetch(url, config);
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        let errorBody = "";
+        try {
+          errorBody = await response.text();
+        } catch (e) {
+          errorBody = "Could not read error body";
+        }
+        
+        console.group("❌ API Request Error");
+        console.log("Endpoint:", endpoint);
+        console.log("Status:", response.status, response.statusText);
+        console.log("Payload:", options.body ? JSON.parse(options.body) : "No body");
+        console.log("Error Body:", errorBody);
+        console.groupEnd();
+
+        throw new Error(`HTTP error! status: ${response.status} - ${errorBody}`);
       }
       return await response.json();
     } catch (error) {
@@ -92,13 +106,24 @@ class FacturasCompraService {
   }
 
   async aprobarFactura(facturaData) {
+    const now = new Date();
+    const formattedDate = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+    const payload = {
+      ...facturaData,
+      Usuario: this.global.user?.UsuarioID,
+      UsuarioID: this.global.user?.UsuarioID,
+      Token: this.global.user?.Token,
+      Fecha: formattedDate,
+      FacturasCompraReferencias: facturaData.FacturasCompraReferencias || [],
+      FacturasCompraAdjuntos: facturaData.FacturasCompraAdjuntos || [],
+    };
+
+    console.log("aprobarFactura Payload:", JSON.stringify(payload, null, 2));
+
     return this.makeRequest('/FacturasCompra/FacturasCompraAprobar', {
       method: 'POST',
-      body: JSON.stringify({
-        ...facturaData,
-        Token: this.global.user?.Token,
-        UsuarioID: this.global.user?.UsuarioID
-      }),
+      body: JSON.stringify(payload),
     });
   }
 
@@ -171,6 +196,12 @@ class FacturasCompraService {
       method: 'POST',
       body: JSON.stringify(body),
     }, false, true); // useSIS
+  }
+
+  getAttachmentUrl(adjuntoID) {
+    const baseUrl = getEnvironmentConfig().BASE_URL_NS;
+    const token = this.global.user?.Token;
+    return `${baseUrl}/API_FAC/api/FacturasCompra/FacturaCompraAdjuntoDescargar?Token=${token}&FacturaCompraAdjuntoID=${adjuntoID}`;
   }
 
 }

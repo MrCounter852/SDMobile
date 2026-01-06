@@ -161,7 +161,7 @@ const FacturaFiltersModal = ({ visible, onClose, onApply, initialFilters }) => {
             </ScrollView>
 
             <View
-              style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}
+              style={[styles.footer]}
             >
               <TouchableOpacity
                 style={styles.clearButton}

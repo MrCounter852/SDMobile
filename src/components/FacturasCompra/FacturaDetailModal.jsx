@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Keyboard,
+  Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -40,13 +41,13 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
   const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   useEffect(() => {
-    const keyboardShowListener = Keyboard.addListener('keyboardDidShow', () => {
-      if (Platform.OS === 'android') {
+    const keyboardShowListener = Keyboard.addListener("keyboardDidShow", () => {
+      if (Platform.OS === "android") {
         setKeyboardOffset(0);
       }
     });
-    const keyboardHideListener = Keyboard.addListener('keyboardDidHide', () => {
-      if (Platform.OS === 'android') {
+    const keyboardHideListener = Keyboard.addListener("keyboardDidHide", () => {
+      if (Platform.OS === "android") {
         setKeyboardOffset(-30);
       }
     });
@@ -170,6 +171,16 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
     );
   };
 
+  const handleViewAttachment = async (adj) => {
+    try {
+      const url = facturasCompraService.getAttachmentUrl(adj.FacturaCompraAdjuntoID);
+      await Linking.openURL(url);
+    } catch (error) {
+      console.error("Error opening attachment:", error);
+      Alert.alert("Error", "No se pudo abrir el archivo adjunto");
+    }
+  };
+
   const handleAction = async (aprobar) => {
     if (!observacion.trim()) {
       Alert.alert(
@@ -209,8 +220,6 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
         EstadoAprobacionFacturaCompraID: aprobar ? 2 : 3,
         Observaciones: observacion,
         FacturasCompraReferencias: selectedRefs,
-        Usuario: item.UsuarioID,
-        Fecha: new Date().toISOString(),
       });
       Alert.alert(
         "Éxito",
@@ -344,7 +353,7 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
             <Section title="Adjuntos">
               {(invoiceData.FacturasCompraAdjuntos || []).length > 0 ? (
                 invoiceData.FacturasCompraAdjuntos.map((adj, idx) => (
-                  <TouchableOpacity key={idx} style={styles.attachmentRow}>
+                  <TouchableOpacity key={idx} style={styles.attachmentRow} onPress={() => handleViewAttachment(adj)}>
                     <Ionicons name="attach" size={20} color="#337ab7" />
                     <Text style={styles.attachmentName} numberOfLines={1}>
                       {adj.Nombre || adj.NombreOriginal}
@@ -528,103 +537,101 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
             keyboardVerticalOffset={Platform.OS === "ios" ? 0 : keyboardOffset}
           >
             <View style={styles.modalContent}>
-            <View style={styles.header}>
-              <Text style={styles.headerTitle}>Detalle de Factura</Text>
-              <TouchableOpacity onPress={onClose}>
-                <Ionicons name="close" size={24} color="#3A3A3C" />
-              </TouchableOpacity>
-            </View>
-
-            {loading && !detail ? (
-              <View style={styles.centerLoading}>
-                <ActivityIndicator size="large" color="#337ab7" />
+              <View style={styles.header}>
+                <Text style={styles.headerTitle}>Detalle de Factura</Text>
+                <TouchableOpacity onPress={onClose}>
+                  <Ionicons name="close" size={24} color="#3A3A3C" />
+                </TouchableOpacity>
               </View>
-            ) : (
-              <>
-                <View style={styles.tabsContainer}>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <View style={styles.tabs}>
-                      <Tab
-                        label="Información"
-                        active={activeTab === "info"}
-                        onPress={() => setActiveTab("info")}
-                      />
-                      <Tab
-                        label="Reasignar"
-                        active={activeTab === "reasignar"}
-                        onPress={() => setActiveTab("reasignar")}
-                      />
-                      <Tab
-                        label="Referencias"
-                        active={activeTab === "referencias"}
-                        onPress={() => setActiveTab("referencias")}
-                      />
-                      <Tab
-                        label="Seguimientos"
-                        active={activeTab === "seguimientos"}
-                        onPress={() => setActiveTab("seguimientos")}
-                      />
-                    </View>
-                  </ScrollView>
-                </View>
 
-                <ScrollView
-                  style={styles.body}
-                  keyboardShouldPersistTaps="handled"
-                >
-                  {renderTabContent()}
+              {loading && !detail ? (
+                <View style={styles.centerLoading}>
+                  <ActivityIndicator size="large" color="#337ab7" />
+                </View>
+              ) : (
+                <>
+                  <View style={styles.tabsContainer}>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                    >
+                      <View style={styles.tabs}>
+                        <Tab
+                          label="Información"
+                          active={activeTab === "info"}
+                          onPress={() => setActiveTab("info")}
+                        />
+                        <Tab
+                          label="Reasignar"
+                          active={activeTab === "reasignar"}
+                          onPress={() => setActiveTab("reasignar")}
+                        />
+                        <Tab
+                          label="Referencias"
+                          active={activeTab === "referencias"}
+                          onPress={() => setActiveTab("referencias")}
+                        />
+                        <Tab
+                          label="Seguimientos"
+                          active={activeTab === "seguimientos"}
+                          onPress={() => setActiveTab("seguimientos")}
+                        />
+                      </View>
+                    </ScrollView>
+                  </View>
+
+                  <ScrollView
+                    style={styles.body}
+                    keyboardShouldPersistTaps="handled"
+                  >
+                    {renderTabContent()}
+
+                    {activeTab === "info" && (
+                      <View style={styles.observacionSection}>
+                        <Text style={styles.sectionTitle}>
+                          Acción de Aprobación
+                        </Text>
+                        <TextInput
+                          style={styles.textArea}
+                          multiline
+                          numberOfLines={4}
+                          placeholder="Ingrese un comentario para aprobar/rechazar..."
+                          value={observacion}
+                          onChangeText={setObservacion}
+                        />
+                      </View>
+                    )}
+                  </ScrollView>
 
                   {activeTab === "info" && (
-                    <View style={styles.observacionSection}>
-                      <Text style={styles.sectionTitle}>
-                        Acción de Aprobación
-                      </Text>
-                      <TextInput
-                        style={styles.textArea}
-                        multiline
-                        numberOfLines={4}
-                        placeholder="Ingrese un comentario para aprobar/rechazar..."
-                        value={observacion}
-                        onChangeText={setObservacion}
-                      />
-                    </View>
-                  )}
-                </ScrollView>
-
-                {activeTab === "info" && (
-                  <View
-                    style={[
-                      styles.footer,
-                      { paddingBottom: insets.bottom + 16 },
-                    ]}
-                  >
-                    <TouchableOpacity
-                      style={[styles.actionButton, styles.rejectButton]}
-                      onPress={() => handleAction(false)}
-                      disabled={loading}
-                    >
-                      <Text style={styles.actionButtonText}>Rechazar</Text>
-                    </TouchableOpacity>
-                    <LinearGradient
-                      colors={["#337ab7", "#00ACC4"]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.actionButton}
-                    >
+                    <View style={[styles.footer]}>
                       <TouchableOpacity
-                        onPress={() => handleAction(true)}
+                        style={[styles.actionButton, styles.rejectButton]}
+                        onPress={() => handleAction(false)}
                         disabled={loading}
                       >
-                        <Text style={styles.actionButtonText}>Aprobar</Text>
+                        <Text style={styles.actionButtonText}>Rechazar</Text>
                       </TouchableOpacity>
-                    </LinearGradient>
-                  </View>
-                )}
-              </>
-            )}
-          </View>
-        </KeyboardAvoidingView>
-      </View>
+                      <LinearGradient
+                        colors={["#337ab7", "#00ACC4"]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.actionButton}
+                      >
+                        <TouchableOpacity
+                          onPress={() => handleAction(true)}
+                          disabled={loading}
+                        >
+                          <Text style={styles.actionButtonText}>Aprobar</Text>
+                        </TouchableOpacity>
+                      </LinearGradient>
+                    </View>
+                  )}
+                </>
+              )}
+            </View>
+          </KeyboardAvoidingView>
+        </View>
       </SafeAreaView>
     </Modal>
   );
