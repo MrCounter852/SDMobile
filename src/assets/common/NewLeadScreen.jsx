@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import {
   View,
   Text,
@@ -21,12 +27,20 @@ import { useGlobal } from "../../core/global";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 // Usamos require().default para asegurar la compatibilidad con el sistema de exportación
-const GestionComercialService = require("../../services/leads/leadService").default;
+const GestionComercialService =
+  require("../../services/leads/leadService").default;
 import PropertySelectionModal from "../../components/PropertySelectionModal";
 import CustomModalPicker from "./CustomModalPicker";
 
-import { COLORS, CustomInput, SectionHeader } from "../../components/GestionComercial/FormComponents";
+import {
+  COLORS,
+  CustomInput,
+  SectionHeader,
+} from "../../components/GestionComercial/FormComponents";
 import DynamicForm from "../../components/GestionComercial/DynamicForm";
+import GeneralInfoSection from "../../components/GestionComercial/NewLead/GeneralInfoSection";
+import SearchDataSection from "../../components/GestionComercial/NewLead/SearchDataSection";
+import ClientDetailSection from "../../components/GestionComercial/NewLead/ClientDetailSection";
 
 const DETAIL_LABELS = {
   2: { label: "propietario", title: "Propietario" },
@@ -150,8 +164,10 @@ const NewLeadScreen = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loadingInmuebles, setLoadingInmuebles] = useState(false);
   const [lastLoadedOrigenId, setLastLoadedOrigenId] = useState(null);
-  const [servicio, setServicio] = useState({ TipoProductoID: '', Nombre: '' });
-  const [procesosServiciosIniciales, setProcesosServiciosIniciales] = useState(preContacto?.ProcesosServiciosIniciales || []);
+  const [servicio, setServicio] = useState({ TipoProductoID: "", Nombre: "" });
+  const [procesosServiciosIniciales, setProcesosServiciosIniciales] = useState(
+    preContacto?.ProcesosServiciosIniciales || []
+  );
   const [tiposProductos, setTiposProductos] = useState([]);
   const [tiposProductosLoaded, setTiposProductosLoaded] = useState(false);
 
@@ -159,7 +175,9 @@ const NewLeadScreen = () => {
     if (!origenId) return;
     setLoadingConfig(true);
     try {
-      const data = await GestionComercialService.consultarCombosOrigenes(origenId);
+      const data = await GestionComercialService.consultarCombosOrigenes(
+        origenId
+      );
       setFormConfig(data || []);
     } catch (error) {
       console.error("NewLeadScreen:loadFormConfig", error);
@@ -230,10 +248,12 @@ const NewLeadScreen = () => {
       return updated;
     });
     // Limpiar campos no correspondientes (mantenemos lógica de Sedi)
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
       ClienteTipoPersonaID: value,
-      ...(value == 2 ? { ClienteNombres: "", ClienteApellidos: "" } : { ClienteNombreRazonSocial: "" })
+      ...(value == 2
+        ? { ClienteNombres: "", ClienteApellidos: "" }
+        : { ClienteNombreRazonSocial: "" }),
     }));
   };
 
@@ -327,7 +347,8 @@ const NewLeadScreen = () => {
   const loadFormasConocio = useCallback(async () => {
     if (formasConocioLoaded) return formasConocio;
     try {
-      const response = await GestionComercialService.consultarFormasComoNosConocio();
+      const response =
+        await GestionComercialService.consultarFormasComoNosConocio();
       setFormasConocio(response || []);
       setFormasConocioLoaded(true);
       return response || [];
@@ -353,7 +374,8 @@ const NewLeadScreen = () => {
   const loadCondicionesInmueble = useCallback(async () => {
     if (condicionesLoaded) return condicionesInmueble;
     try {
-      const response = await GestionComercialService.consultarCondicionesInmueble();
+      const response =
+        await GestionComercialService.consultarCondicionesInmueble();
       setCondicionesInmueble(response || []);
       setCondicionesLoaded(true);
       return response || [];
@@ -379,7 +401,8 @@ const NewLeadScreen = () => {
   const loadAntiguedades = useCallback(async () => {
     if (antiguedadesLoaded) return antiguedades;
     try {
-      const response = await GestionComercialService.consultarAntiguedadesInmueble();
+      const response =
+        await GestionComercialService.consultarAntiguedadesInmueble();
       setAntiguedades(response || []);
       setAntiguedadesLoaded(true);
       return response || [];
@@ -483,9 +506,10 @@ const NewLeadScreen = () => {
       return [];
     }
     try {
-      const detalles = await GestionComercialService.consultarFormasComoNosConocioDetalles(
-        formaId
-      );
+      const detalles =
+        await GestionComercialService.consultarFormasComoNosConocioDetalles(
+          formaId
+        );
       const data = detalles || [];
       setFormasConocioDetalle(data);
       return data;
@@ -504,7 +528,9 @@ const NewLeadScreen = () => {
       if (!form.OrigenPreContactoID) return;
       setLoadingConfig(true);
       try {
-        const response = await GestionComercialService.consultarCombosOrigenes(form.OrigenPreContactoID);
+        const response = await GestionComercialService.consultarCombosOrigenes(
+          form.OrigenPreContactoID
+        );
         // Web uses response.data for CamposPreContactos
         setFormConfig(response.data || []);
       } catch (error) {
@@ -522,10 +548,11 @@ const NewLeadScreen = () => {
       setLoadingInmuebles(true);
       try {
         const tipoOferta = id === 5 ? 2 : 1;
-        const data = await GestionComercialService.consultarInmueblesDisponibles({
-          TipoOfertaID: tipoOferta,
-          FullSearch: search,
-        });
+        const data =
+          await GestionComercialService.consultarInmueblesDisponibles({
+            TipoOfertaID: tipoOferta,
+            FullSearch: search,
+          });
         setInmueblesDisponibles(data || []);
       } catch (error) {
         console.error("NewLeadScreen:loadInmuebles", error);
@@ -560,8 +587,16 @@ const NewLeadScreen = () => {
 
   const renderEstratoSlot = (error) => (
     <View style={styles.inputContainer}>
-      <Text style={[styles.label, (error || staticErrors.Estrato) && styles.errorText]}>
-        Estrato {form.OrigenPreContactoID == 4 && <Text style={{ color: COLORS.danger }}>*</Text>}
+      <Text
+        style={[
+          styles.label,
+          (error || staticErrors.Estrato) && styles.errorText,
+        ]}
+      >
+        Estrato{" "}
+        {form.OrigenPreContactoID == 4 && (
+          <Text style={{ color: COLORS.danger }}>*</Text>
+        )}
       </Text>
       <View style={styles.tagsContainer}>
         {[1, 2, 3, 4, 5, 6].map((num) => (
@@ -571,7 +606,9 @@ const NewLeadScreen = () => {
             style={[
               styles.tag,
               form[`Estrato${num}`] && styles.tagSelected,
-              (error || staticErrors.Estrato) && !form[`Estrato${num}`] && styles.tagError,
+              (error || staticErrors.Estrato) &&
+                !form[`Estrato${num}`] &&
+                styles.tagError,
             ]}
           >
             <Text
@@ -591,8 +628,13 @@ const NewLeadScreen = () => {
   const renderLocalidadSlot = () => (
     <View style={styles.inputContainer}>
       <View style={styles.labelContainer}>
-        <Text style={[styles.label, staticErrors.Localidades && styles.errorText]}>
-          Localidades {form.OrigenPreContactoID == 4 && <Text style={{ color: COLORS.danger }}>*</Text>}
+        <Text
+          style={[styles.label, staticErrors.Localidades && styles.errorText]}
+        >
+          Localidades{" "}
+          {form.OrigenPreContactoID == 4 && (
+            <Text style={{ color: COLORS.danger }}>*</Text>
+          )}
         </Text>
         <Text style={styles.smallNote}> (Solo Bogotá)</Text>
       </View>
@@ -602,17 +644,17 @@ const NewLeadScreen = () => {
             key={loc.LocalidadID}
             style={[
               styles.tag,
-              selectedLocalidades[loc.LocalidadID] &&
-              styles.tagSelected,
-              staticErrors.Localidades && !selectedLocalidades[loc.LocalidadID] && styles.tagError,
+              selectedLocalidades[loc.LocalidadID] && styles.tagSelected,
+              staticErrors.Localidades &&
+                !selectedLocalidades[loc.LocalidadID] &&
+                styles.tagError,
             ]}
             onPress={() => toggleLocalidad(loc.LocalidadID)}
           >
             <Text
               style={[
                 styles.tagText,
-                selectedLocalidades[loc.LocalidadID] &&
-                styles.tagTextSelected,
+                selectedLocalidades[loc.LocalidadID] && styles.tagTextSelected,
               ]}
             >
               {loc.Nombre}
@@ -635,26 +677,33 @@ const NewLeadScreen = () => {
     if (!form.FormaComoNosConocioID) errors.FormaComoNosConocioID = true;
 
     // Validaciones específicas por Origen (Paridad Web)
-    if (form.OrigenPreContactoID == 2) { // Captaciones
+    if (form.OrigenPreContactoID == 2) {
+      // Captaciones
       if (!form.TipoOfertaID) errors.TipoOfertaID = true;
       if (!form.TipoInmuebleID) errors.TipoInmuebleID = true;
       if (!form.Direccion?.trim()) errors.Direccion = true; // Web: InmuebleDireccion
     }
 
-    if (form.OrigenPreContactoID == 4) { // Arrendatarios
+    if (form.OrigenPreContactoID == 4) {
+      // Arrendatarios
       if (!form.TipoOfertaID) errors.TipoOfertaID = true;
       if (!form.TipoInmuebleID) errors.TipoInmuebleID = true;
       // Web no valida explícitamente Estrato/Localidad en ValidarCampos, pero se mantienen si son críticos para mobile UI
-      const hasEstrato = [1, 2, 3, 4, 5, 6].some(num => form[`Estrato${num}`]);
+      const hasEstrato = [1, 2, 3, 4, 5, 6].some(
+        (num) => form[`Estrato${num}`]
+      );
       if (!hasEstrato) errors.Estrato = true;
-      if (Object.keys(selectedLocalidades).length === 0) errors.Localidades = true;
+      if (Object.keys(selectedLocalidades).length === 0)
+        errors.Localidades = true;
     }
 
-    if (form.OrigenPreContactoID == 5) { // Ventas
+    if (form.OrigenPreContactoID == 5) {
+      // Ventas
       if (!form.TipoInmuebleID) errors.TipoInmuebleID = true;
     }
 
-    if (form.OrigenPreContactoID == 7) { // Avaluos
+    if (form.OrigenPreContactoID == 7) {
+      // Avaluos
       if (!form.CiudadID) errors.CiudadID = true;
       if (!form.Direccion) errors.Direccion = true;
       if (!form.TipoAvaluoID) errors.TipoAvaluoID = true;
@@ -672,7 +721,8 @@ const NewLeadScreen = () => {
       if (!form.ClienteDocumento?.trim()) errors.ClienteDocumento = true;
       if (!form.ClienteTipoPersonaID) errors.ClienteTipoPersonaID = true;
       if (isEmpresa) {
-        if (!form.ClienteNombreRazonSocial?.trim()) errors.ClienteNombreRazonSocial = true;
+        if (!form.ClienteNombreRazonSocial?.trim())
+          errors.ClienteNombreRazonSocial = true;
       } else {
         if (!form.ClienteNombres?.trim()) errors.ClienteNombres = true;
         if (!form.ClienteApellidos?.trim()) errors.ClienteApellidos = true;
@@ -683,12 +733,17 @@ const NewLeadScreen = () => {
 
     // 2. Validar formularios dinámicos
     const isMainValid = mainFormRef.current?.validate();
-    const isFiscalValid = form.DetallarCliente ? fiscalFormRef.current?.validate() : true;
+    const isFiscalValid = form.DetallarCliente
+      ? fiscalFormRef.current?.validate()
+      : true;
 
     const hasStaticErrors = Object.keys(errors).length > 0;
 
     if (hasStaticErrors || !isMainValid || !isFiscalValid) {
-      Alert.alert("Error", "Por favor complete los campos requeridos marcados con *");
+      Alert.alert(
+        "Error",
+        "Por favor complete los campos requeridos marcados con *"
+      );
       return;
     }
 
@@ -712,7 +767,9 @@ const NewLeadScreen = () => {
         : await GestionComercialService.crearPreContacto(payload);
       const message =
         response?.rows?.[0]?.Descripcion ||
-        (isEditing ? "Contacto actualizado correctamente" : "Contacto guardado correctamente");
+        (isEditing
+          ? "Contacto actualizado correctamente"
+          : "Contacto guardado correctamente");
       Alert.alert("Éxito", message, [
         { text: "OK", onPress: () => navigation.goBack() },
       ]);
@@ -720,7 +777,9 @@ const NewLeadScreen = () => {
       console.error("NewLeadScreen:handleSave", error);
       Alert.alert(
         "Error",
-        `No pudimos ${isEditing ? 'actualizar' : 'guardar'} el contacto. Intenta nuevamente.`
+        `No pudimos ${
+          isEditing ? "actualizar" : "guardar"
+        } el contacto. Intenta nuevamente.`
       );
     } finally {
       setSaving(false);
@@ -739,9 +798,15 @@ const NewLeadScreen = () => {
       Alert.alert("Error", "Seleccione un servicio");
       return;
     }
-    const selected = tiposProductos.find(t => t.TipoProductoID === servicio.TipoProductoID || t.id === servicio.TipoProductoID);
+    const selected = tiposProductos.find(
+      (t) =>
+        t.TipoProductoID === servicio.TipoProductoID ||
+        t.id === servicio.TipoProductoID
+    );
     if (!selected) return;
-    const exists = procesosServiciosIniciales.find(s => s.TipoProductoID === servicio.TipoProductoID && !s.Eliminar);
+    const exists = procesosServiciosIniciales.find(
+      (s) => s.TipoProductoID === servicio.TipoProductoID && !s.Eliminar
+    );
     if (exists) {
       Alert.alert("Error", "El servicio ya está agregado");
       return;
@@ -751,12 +816,12 @@ const NewLeadScreen = () => {
       Nombre: selected.Nombre,
       Eliminar: false,
     };
-    setProcesosServiciosIniciales(prev => [...prev, newServicio]);
-    setServicio({ TipoProductoID: '', Nombre: '' });
+    setProcesosServiciosIniciales((prev) => [...prev, newServicio]);
+    setServicio({ TipoProductoID: "", Nombre: "" });
   };
 
   const removeServicios = (index) => {
-    setProcesosServiciosIniciales(prev => prev.filter((_, i) => i !== index));
+    setProcesosServiciosIniciales((prev) => prev.filter((_, i) => i !== index));
   };
 
   if (loading) {
@@ -820,533 +885,49 @@ const NewLeadScreen = () => {
             </View>
           ) : null}
 
-          {/* --- INFORMACIÓN GENERAL --- */}
-          <View style={styles.card}>
-            <SectionHeader
-              title="Información General"
-              icon="information-circle-outline"
-            />
+          <GeneralInfoSection
+            form={form}
+            setForm={setForm}
+            staticErrors={staticErrors}
+            setStaticErrors={setStaticErrors}
+            loadOrigenes={loadOrigenes}
+            loadCiudades={loadCiudades}
+            loadFormasContacto={loadFormasContacto}
+            loadFormasConocio={loadFormasConocio}
+            loadFormasConocioDetalle={loadFormasConocioDetalle}
+          />
 
-            <CustomModalPicker
-              label="Tipo de contacto"
-              required
-              selectedValue={form.OrigenPreContactoID}
-              onValueChange={(value) => {
-                setForm({
-                  ...form,
-                  OrigenPreContactoID: value ? Number(value) : "",
-                });
-                if (staticErrors.OrigenPreContactoID) {
-                  setStaticErrors(prev => ({ ...prev, OrigenPreContactoID: false }));
-                }
-              }}
-              onLoadData={loadOrigenes}
-              placeholder="Selecciona el origen"
-              hasSearch={false}
-              error={staticErrors.OrigenPreContactoID}
-            />
-
-            <View style={styles.row}>
-              <View style={styles.flexHalf}>
-                <CustomInput
-                  label="Nombres"
-                  required
-                  value={form.Nombres}
-                  onChangeText={(t) => {
-                    setForm({ ...form, Nombres: t });
-                    if (staticErrors.Nombres) setStaticErrors(prev => ({ ...prev, Nombres: false }));
-                  }}
-                  placeholder="Nombres"
-                  error={staticErrors.Nombres}
-                />
-              </View>
-              <View style={styles.flexHalf}>
-                <CustomInput
-                  label="Apellidos"
-                  required
-                  value={form.Apellidos}
-                  onChangeText={(t) => {
-                    setForm({ ...form, Apellidos: t });
-                    if (staticErrors.Apellidos) setStaticErrors(prev => ({ ...prev, Apellidos: false }));
-                  }}
-                  placeholder="Apellidos"
-                  error={staticErrors.Apellidos}
-                />
-              </View>
-            </View>
-
-            <CustomInput
-              label="Celular"
-              required
-              value={form.Celular}
-              onChangeText={(t) => {
-                setForm({ ...form, Celular: t });
-                if (staticErrors.Celular) setStaticErrors(prev => ({ ...prev, Celular: false }));
-              }}
-              placeholder="Celular"
-              keyboardType="phone-pad"
-              error={staticErrors.Celular}
-            />
-
-            <CustomInput
-              label="Email"
-              value={form.Email}
-              onChangeText={(t) => setForm({ ...form, Email: t })}
-              placeholder="Email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-
-            {form.OrigenPreContactoID == 7 && (
-              <>
-                <CustomModalPicker
-                  label="Ciudad"
-                  required
-                  selectedValue={form.CiudadID}
-                  onValueChange={(value) => {
-                    setForm({ ...form, CiudadID: value });
-                    if (staticErrors.CiudadID) {
-                      setStaticErrors(prev => ({ ...prev, CiudadID: false }));
-                    }
-                  }}
-                  onLoadData={loadCiudades}
-                  placeholder="Selecciona ciudad"
-                  error={staticErrors.CiudadID}
-                />
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Dirección <Text style={{ color: COLORS.danger }}>*</Text></Text>
-                  <TouchableOpacity
-                    style={[styles.selectBox, staticErrors.Direccion && styles.inputError]}
-                    onPress={() => {/* Modal dirección logic */ }}
-                  >
-                    <Text style={[styles.selectBoxText, !form.Direccion && { color: COLORS.textSecondary }]}>
-                      {form.Direccion || "Click para ingresar dirección..."}
-                    </Text>
-                    <Ionicons name="location-outline" size={20} color={COLORS.primary} />
-                  </TouchableOpacity>
-                </View>
-              </>
-            )}
-
-            <CustomModalPicker
-              label="Forma de contacto"
-              required
-              selectedValue={form.FormaContactoID}
-              onValueChange={(value) => {
-                setForm({ ...form, FormaContactoID: value });
-                if (staticErrors.FormaContactoID) {
-                  setStaticErrors(prev => ({ ...prev, FormaContactoID: false }));
-                }
-              }}
-              onLoadData={loadFormasContacto}
-              placeholder="Selecciona forma de contacto"
-              error={staticErrors.FormaContactoID}
-            />
-
-            <View style={styles.row}>
-              <View style={styles.flexHalf}>
-                <CustomModalPicker
-                  label="¿Cómo nos conoció?"
-                  required
-                  selectedValue={form.FormaComoNosConocioID}
-                  onValueChange={(value) => {
-                    setForm({
-                      ...form,
-                      FormaComoNosConocioID: value,
-                      FormaComoNosConocioDetalleID: "",
-                    });
-                    if (staticErrors.FormaComoNosConocioID) {
-                      setStaticErrors((prev) => ({
-                        ...prev,
-                        FormaComoNosConocioID: false,
-                      }));
-                    }
-                    loadFormasConocioDetalle(value);
-                  }}
-                  onLoadData={loadFormasConocio}
-                  placeholder="Seleccionar..."
-                  error={staticErrors.FormaComoNosConocioID}
-                />
-              </View>
-              <View style={styles.flexHalf}>
-                <CustomModalPicker
-                  label="Detalle"
-                  selectedValue={form.FormaComoNosConocioDetalleID}
-                  onValueChange={(value) =>
-                    setForm({ ...form, FormaComoNosConocioDetalleID: value })
-                  }
-                  onLoadData={() => loadFormasConocioDetalle(form.FormaComoNosConocioID)}
-                  placeholder="Seleccionar..."
-                  enabled={!!form.FormaComoNosConocioID}
-                />
-              </View>
-            </View>
-
-            <CustomInput
-              label="Palabra de búsqueda (Google/Social)"
-              value={form.PalabraBusqueda}
-              onChangeText={(t) => setForm({ ...form, PalabraBusqueda: t })}
-              placeholder="Ej: Apartamento en venta"
-            />
-          </View>
-
-          {/* --- DATOS DE BÚSQUEDA --- */}
-          <View style={styles.card}>
-            <SectionHeader
-              title="Datos de Búsqueda"
-              icon="search-circle-outline"
-            />
-
-            <View style={styles.row}>
-              <View style={styles.flexHalf}>
-                <CustomModalPicker
-                  label="Asesor"
-                  required
-                  selectedValue={form.AsesorID}
-                  onValueChange={(value) => {
-                    setForm({ ...form, AsesorID: value });
-                    if (staticErrors.AsesorID) {
-                      setStaticErrors(prev => ({ ...prev, AsesorID: false }));
-                    }
-                  }}
-                  onLoadData={loadAsesores}
-                  placeholder="Selecciona asesor"
-                  error={staticErrors.AsesorID}
-                />
-              </View>
-              <View style={styles.flexHalf}>
-                <CustomInput
-                  label="Teléfono"
-                  value={form.Telefono}
-                  onChangeText={(t) => setForm({ ...form, Telefono: t })}
-                  placeholder="Teléfono fijo"
-                  keyboardType="phone-pad"
-                />
-              </View>
-            </View>
-
-            {(form.OrigenPreContactoID == 4 || form.OrigenPreContactoID == 5) && (
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Inmueble de interés</Text>
-                <TouchableOpacity
-                  style={styles.selectBox}
-                  onPress={() => setShowInmuebleModal(true)}
-                >
-                  <Text style={styles.selectBoxText}>
-                    {form.InmuebleNombre || (form.InmuebleID ? `Inmueble #${form.InmuebleID}` : "Seleccionar inmueble...")}
-                  </Text>
-                  <Ionicons name="search" size={20} color={COLORS.primary} />
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {(form.OrigenPreContactoID == 2 || form.OrigenPreContactoID == 4) && (
-              <View style={styles.row}>
-                <View style={styles.flexHalf}>
-                  <CustomModalPicker
-                    label="Tipo de oferta"
-                    required
-                    selectedValue={form.TipoOfertaID}
-                    onValueChange={(v) => setForm({ ...form, TipoOfertaID: v })}
-                    onLoadData={loadTiposOferta}
-                    placeholder="Seleccionar..."
-                  />
-                </View>
-                <View style={styles.flexHalf}>
-                  <CustomModalPicker
-                    label="Condición inmueble"
-                    required={form.OrigenPreContactoID != 2}
-                    selectedValue={form.CondicionInmuebleID}
-                    onValueChange={(v) => setForm({ ...form, CondicionInmuebleID: v })}
-                    onLoadData={loadCondicionesInmueble}
-                    placeholder="Seleccionar..."
-                  />
-                </View>
-              </View>
-            )}
-
-            {(form.OrigenPreContactoID == 2 || form.OrigenPreContactoID == 4 || form.OrigenPreContactoID == 5) ? (
-              <View style={styles.row}>
-                <View style={styles.flexHalf}>
-                  <CustomModalPicker
-                    label="Tipo de inmueble"
-                    required
-                    selectedValue={form.TipoInmuebleID}
-                    onValueChange={(v) => setForm({ ...form, TipoInmuebleID: v })}
-                    onLoadData={loadTiposInmueble}
-                    placeholder="Seleccionar..."
-                  />
-                </View>
-                <View style={styles.flexHalf}>
-                  <CustomModalPicker
-                    label="Antigüedad"
-                    required={form.OrigenPreContactoID != 2}
-                    selectedValue={form.AntiguedadInmuebleID}
-                    onValueChange={(v) => setForm({ ...form, AntiguedadInmuebleID: v })}
-                    onLoadData={loadAntiguedades}
-                    placeholder="Seleccionar..."
-                  />
-                </View>
-              </View>
-            ) : form.OrigenPreContactoID == 7 ? (
-              <CustomModalPicker
-                label="Tipo de inmueble"
-                required
-                selectedValue={form.TipoInmuebleID}
-                onValueChange={(v) => setForm({ ...form, TipoInmuebleID: v })}
-                onLoadData={loadTiposInmueble}
-                placeholder="Seleccionar..."
-              />
-            ) : null}
-
-            {/* Area (Desde - Hasta) & Rooms/Parking */}
-            {form.OrigenPreContactoID == 4 && (
-              <>
-                <View style={styles.row}>
-                  <View style={styles.flexHalf}>
-                    <Text style={styles.label}>Área (m2)</Text>
-                    <View style={{ flexDirection: "row", gap: 5 }}>
-                      <View style={styles.miniInputWrapper}>
-                        <TextInput
-                          style={styles.input}
-                          placeholder="Min"
-                          placeholderTextColor={COLORS.textSecondary}
-                          keyboardType="numeric"
-                          value={form.AreaDesde}
-                          onChangeText={(t) =>
-                            setForm({ ...form, AreaDesde: t })
-                          }
-                        />
-                      </View>
-                      <View style={styles.miniInputWrapper}>
-                        <TextInput
-                          style={styles.input}
-                          placeholder="Max"
-                          placeholderTextColor={COLORS.textSecondary}
-                          keyboardType="numeric"
-                          value={form.AreaHasta}
-                          onChangeText={(t) =>
-                            setForm({ ...form, AreaHasta: t })
-                          }
-                        />
-                      </View>
-                    </View>
-                  </View>
-                  <View style={styles.flexHalf}>
-                    <View style={{ flexDirection: "row", gap: 10 }}>
-                      <View style={{ flex: 1 }}>
-                        <CustomInput
-                          label="Habita."
-                          value={form.Cantidadhabitaciones}
-                          onChangeText={(t) =>
-                            setForm({ ...form, Cantidadhabitaciones: t })
-                          }
-                          placeholder="#"
-                          keyboardType="numeric"
-                        />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <CustomInput
-                          label="Parq."
-                          value={form.CantidadGarajes}
-                          onChangeText={(t) =>
-                            setForm({ ...form, CantidadGarajes: t })
-                          }
-                          placeholder="#"
-                          keyboardType="numeric"
-                        />
-                      </View>
-                    </View>
-                  </View>
-                </View>
-
-                <View style={styles.row}>
-                  <View style={styles.flexHalf}>
-                    <Text style={styles.label}>Presupuesto</Text>
-                    <View style={{ flexDirection: "row", gap: 5 }}>
-                      <View style={styles.miniInputWrapper}>
-                        <TextInput
-                          style={styles.input}
-                          placeholder="$ Min"
-                          placeholderTextColor={COLORS.textSecondary}
-                          keyboardType="numeric"
-                          value={form.PresupuestoDesde}
-                          onChangeText={(t) =>
-                            setForm({ ...form, PresupuestoDesde: t })
-                          }
-                        />
-                      </View>
-                      <View style={styles.miniInputWrapper}>
-                        <TextInput
-                          style={styles.input}
-                          placeholder="$ Max"
-                          placeholderTextColor={COLORS.textSecondary}
-                          keyboardType="numeric"
-                          value={form.PresupuestoHasta}
-                          onChangeText={(t) =>
-                            setForm({ ...form, PresupuestoHasta: t })
-                          }
-                        />
-                      </View>
-                    </View>
-                  </View>
-                  <View style={[styles.flexHalf, { flex: 0.5 }]}>
-                    <CustomInput
-                      label="Baños"
-                      value={form.CantidadBanos}
-                      onChangeText={(t) =>
-                        setForm({ ...form, CantidadBanos: t })
-                      }
-                      placeholder="#"
-                      keyboardType="numeric"
-                    />
-                  </View>
-                </View>
-              </>
-            )}
-
-            {form.OrigenPreContactoID == 7 && (
-              <CustomModalPicker
-                label="Tipo de avalúo"
-                required
-                selectedValue={form.TipoAvaluoID}
-                onValueChange={(v) => setForm({ ...form, TipoAvaluoID: v })}
-                onLoadData={loadTiposAvaluo}
-                placeholder="Seleccionar..."
-              />
-            )}
-
-            {form.OrigenPreContactoID == 2 && (
-              <CustomModalPicker
-                label="Localidad"
-                required
-                selectedValue={form.LocalidadID}
-                onValueChange={(v) => setForm({ ...form, LocalidadID: v })}
-                onLoadData={loadLocalidades}
-                placeholder="Seleccionar..."
-              />
-            )}
-
-            {form.OrigenPreContactoID == 2 && (
-              <>
-                <CustomInput
-                  label="Dirección del inmueble"
-                  required
-                  value={form.Direccion}
-                  onChangeText={(t) => setForm({ ...form, Direccion: t })}
-                  placeholder="Dirección completa"
-                />
-
-                <CustomInput
-                  label="Área (m2)"
-                  required
-                  value={form.Area}
-                  onChangeText={(t) => setForm({ ...form, Area: t })}
-                  placeholder="Ej: 80"
-                  keyboardType="numeric"
-                />
-              </>
-            )}
-
-            {form.OrigenPreContactoID == 5 && (
-              <CustomInput
-                label="Área (m2)"
-                value={form.Area}
-                onChangeText={(t) => setForm({ ...form, Area: t })}
-                placeholder="Ej: 80"
-                keyboardType="numeric"
-              />
-            )}
-
-            {form.OrigenPreContactoID == 4 && renderEstratoSlot()}
-            {(form.OrigenPreContactoID == 4 || form.OrigenPreContactoID == 5) && renderLocalidadSlot()}
-
-            {form.OrigenPreContactoID == 4 && (
-              <CustomInput
-                label="Descripción Adicional Ubicación"
-                value={form.InteresesUbicacion}
-                onChangeText={(t) => setForm({ ...form, InteresesUbicacion: t })}
-                placeholder="Barrio, cerca de..."
-                multiline
-              />
-            )}
-
-            {(form.OrigenPreContactoID == 2 || form.OrigenPreContactoID == 4 || form.OrigenPreContactoID == 5) && (
-              <CustomInput
-                label="Descripción Adicional Inmueble"
-                value={form.DescripcionAdicional}
-                onChangeText={(t) => setForm({ ...form, DescripcionAdicional: t })}
-                placeholder="Estado, acabados..."
-                multiline
-              />
-            )}
-
-            <DynamicForm
-              ref={mainFormRef}
-              config={formConfig}
-              initialValues={form}
-              onStateChange={(newState) => setForm(prev => ({ ...prev, ...newState }))}
-              filter={(f) => f && f.NombreCampo && !f.NombreCampo.startsWith("Cliente") && !["Nombres", "Apellidos", "Celular", "Email", "Correo", "AsesorID", "FormaContactoID", "FormaComoNosConocioID", "FormaComoNosConocioDetalleID", "PalabraBusqueda", "InmuebleID", "Estrato", "LocalityID", "LocalidadID", "Localidades", "ProcesosInmobiliariaLocalidades", "TipoOfertaID", "CondicionInmuebleID", "TipoInmuebleID", "AntiguedadInmuebleID", "TipoAvaluoID", "CiudadID", "Area", "AreaDesde", "AreaHasta", "Cantidadhabitaciones", "CantidadGarajes", "PresupuestoDesde", "PresupuestoHasta", "CantidadBanos", "InteresesUbicacion", "DescripcionAdicional", "Observaciones", "DetallarCliente"].includes(f.NombreCampo)}
-              dataLoaders={{
-                AsesorID: loadAsesores,
-                TipoOfertaID: loadTiposOferta,
-                CondicionInmuebleID: loadCondicionesInmueble,
-                TipoInmuebleID: loadTiposInmueble,
-                AntiguedadInmuebleID: loadAntiguedades,
-                TipoAvaluoID: loadTiposAvaluo,
-                LocalidadID: loadLocalidades,
-                CiudadID: loadCiudades,
-                FormaContactoID: loadFormasContacto,
-                FormaComoNosConocioID: loadFormasConocio,
-                FormaComoNosConocioDetalleID: loadFormasConocioDetalle,
-                ClienteTipoDocumentoID: loadTiposDocumento,
-                ClienteTipoPersonaID: loadTiposPersona,
-                ClienteResponsabilidadTributariaID: loadResponsabilidades,
-                TipoProductoID: loadTiposProductos,
-              }}
-            />
-
-            {(form.OrigenPreContactoID == 1 || form.OrigenPreContactoID == 6) && (
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Servicios solicitados</Text>
-                <View style={styles.row}>
-                  <View style={[styles.flexHalf, { flex: 3 }]}>
-                    <CustomModalPicker
-                      selectedValue={servicio.TipoProductoID}
-                      onValueChange={(v) => {
-                        const selected = tiposProductos.find(t => t.TipoProductoID === v || t.id === v);
-                        setServicio({ TipoProductoID: v, Nombre: selected?.Nombre || '' });
-                      }}
-                      onLoadData={loadTiposProductos}
-                      placeholder="Seleccione un servicio"
-                      hasSearch={true}
-                      searchPlaceholder="Buscar servicios..."
-                    />
-                  </View>
-                  <View style={[styles.flexHalf, { flex: 1, justifyContent: 'center' }]}>
-                    <TouchableOpacity onPress={addServicios} style={styles.addButton}>
-                      <Ionicons name="add-circle" size={30} color={COLORS.primary} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-                {procesosServiciosIniciales.length > 0 && (
-                  <View style={styles.servicesList}>
-                    {procesosServiciosIniciales.map((item, index) => (
-                      <TouchableOpacity
-                        key={index}
-                        style={styles.serviceItem}
-                        onPress={() => removeServicios(index)}
-                      >
-                        <Text style={styles.serviceText}>{item.Nombre}</Text>
-                        <Ionicons name="trash" size={20} color={COLORS.danger} />
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              </View>
-            )}
-
-          </View>
+          <SearchDataSection
+            form={form}
+            setForm={setForm}
+            staticErrors={staticErrors}
+            setStaticErrors={setStaticErrors}
+            loadAsesores={loadAsesores}
+            loadTiposOferta={loadTiposOferta}
+            loadCondicionesInmueble={loadCondicionesInmueble}
+            loadTiposInmueble={loadTiposInmueble}
+            loadAntiguedades={loadAntiguedades}
+            loadTiposAvaluo={loadTiposAvaluo}
+            loadLocalidades={loadLocalidades}
+            loadCiudades={loadCiudades}
+            loadTiposProductos={loadTiposProductos}
+            loadFormasContacto={loadFormasContacto}
+            loadFormasConocio={loadFormasConocio}
+            loadFormasConocioDetalle={loadFormasConocioDetalle}
+            loadTiposDocumento={loadTiposDocumento}
+            loadTiposPersona={loadTiposPersona}
+            loadResponsabilidades={loadResponsabilidades}
+            setShowInmuebleModal={setShowInmuebleModal}
+            renderEstratoSlot={renderEstratoSlot}
+            renderLocalidadSlot={renderLocalidadSlot}
+            mainFormRef={mainFormRef}
+            formConfig={formConfig}
+            procesosServiciosIniciales={procesosServiciosIniciales}
+            addServicios={addServicios}
+            removeServicios={removeServicios}
+            servicio={servicio}
+            setServicio={setServicio}
+          />
 
           <View style={styles.card}>
             <SectionHeader
@@ -1362,211 +943,21 @@ const NewLeadScreen = () => {
             />
           </View>
 
-
-
-          <TouchableOpacity
-            style={[styles.switchRow, { marginTop: 10 }]}
-            onPress={() =>
-              setForm((p) => ({ ...p, DetallarCliente: !p.DetallarCliente }))
-            }
-          >
-            <Ionicons
-              name={form.DetallarCliente ? "checkbox" : "square-outline"}
-              size={24}
-              color={COLORS.primary}
-            />
-            <Text style={[styles.switchLabel, { marginLeft: 10 }]}>
-              Detallar {detailLabel}
-            </Text>
-          </TouchableOpacity>
-
-          {form.DetallarCliente && (
-            <View style={styles.card}>
-              <SectionHeader title={detailTitle} icon="person-circle-outline" />
-
-              <CustomModalPicker
-                label="Tipo de documento"
-                required
-                selectedValue={form.ClienteTipoDocumentoID}
-                onValueChange={(value) => {
-                  setForm({ ...form, ClienteTipoDocumentoID: value });
-                  if (staticErrors.ClienteTipoDocumentoID) {
-                    setStaticErrors(prev => ({ ...prev, ClienteTipoDocumentoID: false }));
-                  }
-                }}
-                onLoadData={loadTiposDocumento}
-                placeholder="Seleccionar..."
-                error={staticErrors.ClienteTipoDocumentoID}
-              />
-
-              <CustomInput
-                label="Número de documento"
-                required
-                value={form.ClienteDocumento}
-                onChangeText={(t) => {
-                  setForm({ ...form, ClienteDocumento: t });
-                  if (staticErrors.ClienteDocumento) {
-                    setStaticErrors(prev => ({ ...prev, ClienteDocumento: false }));
-                  }
-                }}
-                placeholder="Documento"
-                keyboardType="numeric"
-                error={staticErrors.ClienteDocumento}
-              />
-
-              <CustomModalPicker
-                label="Tipo de persona"
-                required
-                selectedValue={form.ClienteTipoPersonaID}
-                onValueChange={(value) => {
-                  handleTipoPersonaChange(value);
-                  if (staticErrors.ClienteTipoPersonaID) {
-                    setStaticErrors(prev => ({ ...prev, ClienteTipoPersonaID: false }));
-                  }
-                }}
-                onLoadData={loadTiposPersona}
-                placeholder="Seleccionar..."
-                error={staticErrors.ClienteTipoPersonaID}
-              />
-
-              {isEmpresa ? (
-                <>
-                  <CustomInput
-                    label="Razón Social"
-                    required
-                    value={form.ClienteNombreRazonSocial}
-                    onChangeText={(t) => {
-                      setForm({ ...form, ClienteNombreRazonSocial: t });
-                      if (staticErrors.ClienteNombreRazonSocial) {
-                        setStaticErrors(prev => ({ ...prev, ClienteNombreRazonSocial: false }));
-                      }
-                    }}
-                    placeholder="Nombre de la empresa"
-                    error={staticErrors.ClienteNombreRazonSocial}
-                  />
-                  <CustomModalPicker
-                    label="Responsabilidad Tributaria"
-                    selectedValue={form.ClienteResponsabilidadTributariaID}
-                    onValueChange={(value) => setForm({ ...form, ClienteResponsabilidadTributariaID: value })}
-                    onLoadData={loadResponsabilidades}
-                    placeholder="Seleccionar..."
-                  />
-                </>
-              ) : (
-                <>
-                  <View style={styles.row}>
-                    <View style={styles.flexHalf}>
-                      <CustomInput
-                        label="Primer Nombre"
-                        required
-                        value={form.ClienteNombres}
-                        onChangeText={(t) => {
-                          setForm({ ...form, ClienteNombres: t });
-                          if (staticErrors.ClienteNombres) {
-                            setStaticErrors(prev => ({ ...prev, ClienteNombres: false }));
-                          }
-                        }}
-                        placeholder="Nombre"
-                        error={staticErrors.ClienteNombres}
-                      />
-                    </View>
-                    <View style={styles.flexHalf}>
-                      <CustomInput
-                        label="Segundo Nombre"
-                        value={form.ClienteNombres2}
-                        onChangeText={(t) => setForm({ ...form, ClienteNombres2: t })}
-                        placeholder="Segundo Nombre"
-                      />
-                    </View>
-                  </View>
-                  <View style={styles.row}>
-                    <View style={styles.flexHalf}>
-                      <CustomInput
-                        label="Primer Apellido"
-                        required
-                        value={form.ClienteApellidos}
-                        onChangeText={(t) => {
-                          setForm({ ...form, ClienteApellidos: t });
-                          if (staticErrors.ClienteApellidos) {
-                            setStaticErrors(prev => ({ ...prev, ClienteApellidos: false }));
-                          }
-                        }}
-                        placeholder="Apellido"
-                        error={staticErrors.ClienteApellidos}
-                      />
-                    </View>
-                    <View style={styles.flexHalf}>
-                      <CustomInput
-                        label="Segundo Apellido"
-                        value={form.ClienteApellidos2}
-                        onChangeText={(t) => setForm({ ...form, ClienteApellidos2: t })}
-                        placeholder="Segundo Apellido"
-                      />
-                    </View>
-                  </View>
-                </>
-              )}
-
-              <View style={styles.row}>
-                <View style={styles.flexHalf}>
-                  <CustomInput
-                    label="Celular"
-                    value={form.ClienteCelular}
-                    onChangeText={(t) => setForm({ ...form, ClienteCelular: t })}
-                    placeholder="Celular"
-                    keyboardType="phone-pad"
-                  />
-                </View>
-                <View style={styles.flexHalf}>
-                  <CustomInput
-                    label="Teléfono"
-                    value={form.ClienteTelefono}
-                    onChangeText={(t) => setForm({ ...form, ClienteTelefono: t })}
-                    placeholder="Teléfono"
-                    keyboardType="phone-pad"
-                  />
-                </View>
-              </View>
-
-              <CustomInput
-                label="Dirección"
-                value={form.ClienteDireccion}
-                onChangeText={(t) => setForm({ ...form, ClienteDireccion: t })}
-                placeholder="Dirección del cliente"
-              />
-
-              <CustomInput
-                label="Email"
-                value={form.ClienteEmail}
-                onChangeText={(t) => setForm({ ...form, ClienteEmail: t })}
-                placeholder="Email principal"
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-
-              <CustomInput
-                label="Email Facturación Electrónica"
-                value={form.ClienteEmailFacturacionElectronica}
-                onChangeText={(t) => setForm({ ...form, ClienteEmailFacturacionElectronica: t })}
-                placeholder="Email facturación"
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-
-              <DynamicForm
-                ref={fiscalFormRef}
-                config={formConfig}
-                initialValues={form}
-                onStateChange={(newState) => setForm(prev => ({ ...prev, ...newState }))}
-                filter={(f) => f && f.NombreCampo && f.NombreCampo.startsWith("Cliente") && !["ClienteTipoDocumentoID", "ClienteDocumento", "ClienteTipoPersonaID", "ClienteNombres", "ClienteNombres2", "ClienteApellidos", "ClienteApellidos2", "ClienteDireccion", "ClienteTelefono", "ClienteCelular", "ClienteEmail", "ClienteEmailFacturacionElectronica", "ClienteResponsabilidadTributariaID", "ClienteNombreRazonSocial"].includes(f.NombreCampo)}
-                dataLoaders={{
-                  ClienteTipoDocumentoID: loadTiposDocumento,
-                  ClienteTipoPersonaID: loadTiposPersona,
-                  ClienteResponsabilidadTributariaID: loadResponsabilidades,
-                }}
-              />
-            </View>
-          )}
+          <ClientDetailSection
+            form={form}
+            setForm={setForm}
+            staticErrors={staticErrors}
+            setStaticErrors={setStaticErrors}
+            detailLabel={detailLabel}
+            detailTitle={detailTitle}
+            loadTiposDocumento={loadTiposDocumento}
+            loadTiposPersona={loadTiposPersona}
+            loadResponsabilidades={loadResponsabilidades}
+            handleTipoPersonaChange={handleTipoPersonaChange}
+            isEmpresa={isEmpresa}
+            fiscalFormRef={fiscalFormRef}
+            formConfig={formConfig}
+          />
 
           <TouchableOpacity
             style={[
@@ -1583,11 +974,10 @@ const NewLeadScreen = () => {
               style={styles.saveButton}
             >
               <Text style={styles.saveButtonText}>
-                {saving ? "Guardando..." : (isEditing ? "Actualizar" : "Guardar")}
+                {saving ? "Guardando..." : isEditing ? "Actualizar" : "Guardar"}
               </Text>
             </LinearGradient>
           </TouchableOpacity>
-
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
