@@ -450,29 +450,41 @@ const ContactList = ({ navigation }) => {
             </View>
           )
         ) : (
-          <View style={styles.header}>
-            <View>
-              <Text style={styles.headerSubtitle}>Centro de</Text>
-              <Text style={styles.title}>Contacto</Text>
-            </View>
-            <View style={styles.headerButtons}>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('NewChat')}
-              >
-                <LinearGradient
-                  colors={['#337ab7', '#00ACC4']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.newChatButton}
+          <LinearGradient
+            colors={['#337ab7', '#0086C8', '#00ACC4']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.headerGradient}
+          >
+            <View style={styles.patternCircle1} />
+            <View style={styles.patternCircle2} />
+            <View style={styles.headerContent}>
+              <View>
+                <Text style={styles.headerSubtitle}>Centro de</Text>
+                <Text style={styles.title}>Contacto</Text>
+              </View>
+              <View style={styles.headerButtons}>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('NewChat')}
                 >
-                  <Text style={styles.newChatButtonText}>Nuevo Chat</Text>
-                </LinearGradient>
-              </TouchableOpacity>
+                  <LinearGradient
+                    colors={['#337ab7', '#00ACC4']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.newChatButton}
+                  >
+                    <Text style={styles.newChatButtonText}>Nuevo Chat</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          </LinearGradient>
         )}
 
         <View style={styles.searchContainer}>
+          <View style={styles.inputIconContainer}>
+            <Ionicons name="search" size={20} color="#0086C8" />
+          </View>
           <TextInput
             style={styles.searchInput}
             placeholder="Buscar contactos..."
@@ -512,18 +524,35 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
-  header: {
+  headerGradient: {
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    overflow: 'hidden',
+  },
+  headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#fff',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
+  },
+  patternCircle1: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    top: -60,
+    right: -40,
+  },
+  patternCircle2: {
+    position: 'absolute',
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    bottom: -30,
+    left: -30,
   },
   headerSubtitle: {
     fontSize: 13,
@@ -606,14 +635,27 @@ const styles = StyleSheet.create({
   searchContainer: {
     padding: 16,
     backgroundColor: '#fff',
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 56,
+    borderRadius: 16,
+    marginHorizontal: 20,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    backgroundColor: '#F8FAFC',
+  },
+  inputIconContainer: {
+    width: 50,
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   searchInput: {
-    borderWidth: 1,
-    borderColor: '#ced4da',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#fff',
+    flex: 1,
+    height: '100%',
+    fontSize: 15,
+    color: '#1E293B',
+    paddingRight: 16,
   },
   statusFilter: {
     flexDirection: 'row',
@@ -652,7 +694,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     marginHorizontal: 16,
     marginVertical: 4,
-    borderRadius: 8,
+    borderRadius: 16,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
