@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -6,18 +6,18 @@ import {
   TouchableOpacity,
   Alert,
   Platform,
-  Vibration
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Audio } from 'expo-av'; // Volvemos a la librería estable
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Reanimated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withTiming, 
-  Easing 
-} from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
+  Vibration,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Audio } from "expo-av"; // Volvemos a la librería estable
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Reanimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
+import { LinearGradient } from "expo-linear-gradient";
 
 // Componente de barra individual optimizado
 const SpectrumBar = ({ level }) => {
@@ -25,7 +25,7 @@ const SpectrumBar = ({ level }) => {
 
   useEffect(() => {
     // Animación suave basada en el nivel de volumen (0 a 1)
-    animatedHeight.value = withTiming(Math.max(5, level * 35), { 
+    animatedHeight.value = withTiming(Math.max(5, level * 35), {
       duration: 100, // Debe coincidir con el intervalo de actualización
       easing: Easing.linear,
     });
@@ -35,7 +35,7 @@ const SpectrumBar = ({ level }) => {
     return {
       height: animatedHeight.value,
       // Opacidad variable para efecto visual más bonito
-      opacity: 0.5 + (level * 0.5), 
+      opacity: 0.5 + level * 0.5,
     };
   });
 
@@ -66,7 +66,7 @@ const AudioRecorder = ({ onSend, onCancel }) => {
       // 1. Permisos
       const permission = await Audio.requestPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert('Permiso requerido', 'Necesitamos acceso al micrófono.');
+        Alert.alert("Permiso requerido", "Necesitamos acceso al micrófono.");
         onCancel();
         return;
       }
@@ -87,14 +87,14 @@ const AudioRecorder = ({ onSend, onCancel }) => {
           isMeteringEnabled: true, // ¡IMPORTANTE! Esto activa la lectura de volumen real
           android: {
             ...Audio.RecordingOptionsPresets.HIGH_QUALITY.android,
-            extension: '.m4a',
+            extension: ".m4a",
             outputFormat: Audio.AndroidOutputFormat.MPEG_4,
             audioEncoder: Audio.AndroidAudioEncoder.AAC,
           },
           ios: {
             ...Audio.RecordingOptionsPresets.HIGH_QUALITY.ios,
-            extension: '.m4a',
-          }
+            extension: ".m4a",
+          },
         },
         (status) => {
           // Callback que se ejecuta cada vez que hay datos (aprox 50-100ms)
@@ -106,7 +106,7 @@ const AudioRecorder = ({ onSend, onCancel }) => {
             const level = (db - minDb) / (0 - minDb); // Resultado entre 0 y 1
 
             // Actualizamos el array de niveles (Efecto de desplazamiento)
-            setAudioLevels(prev => {
+            setAudioLevels((prev) => {
               const newLevels = [...prev.slice(1), level];
               return newLevels;
             });
@@ -122,12 +122,11 @@ const AudioRecorder = ({ onSend, onCancel }) => {
 
       // Timer solo para el contador de segundos
       timerRef.current = setInterval(() => {
-        setDuration(prev => prev + 1);
+        setDuration((prev) => prev + 1);
       }, 1000);
-
     } catch (error) {
-      console.error('Error al iniciar grabación:', error);
-      Alert.alert('Error', 'No se pudo iniciar el micrófono.');
+      console.error("Error al iniciar grabación:", error);
+      Alert.alert("Error", "No se pudo iniciar el micrófono.");
       onCancel();
     }
   };
@@ -141,7 +140,7 @@ const AudioRecorder = ({ onSend, onCancel }) => {
     if (timerRef.current) clearInterval(timerRef.current);
     if (recordingRef.current) {
       // Importante: detener y descargar para liberar memoria
-      recordingRef.current.stopAndUnloadAsync().catch(e => {
+      recordingRef.current.stopAndUnloadAsync().catch((e) => {
         // Ignorar errores si ya estaba descargado
       });
       recordingRef.current = null;
@@ -166,7 +165,7 @@ const AudioRecorder = ({ onSend, onCancel }) => {
         console.log("Audio grabado exitosamente:", uri);
         onSend(uri, finalDuration);
       } else {
-        Alert.alert('Error', 'No se generó el archivo de audio.');
+        Alert.alert("Error", "No se generó el archivo de audio.");
       }
 
       // Limpiamos estado local
@@ -174,10 +173,9 @@ const AudioRecorder = ({ onSend, onCancel }) => {
       recordingRef.current = null;
       global.currentRecording = null;
       Vibration.vibrate(50);
-
     } catch (error) {
-      console.error('Error enviando audio:', error);
-      Alert.alert('Error', 'Hubo un problema al procesar el audio.');
+      console.error("Error enviando audio:", error);
+      Alert.alert("Error", "Hubo un problema al procesar el audio.");
     }
   };
 
@@ -191,7 +189,7 @@ const AudioRecorder = ({ onSend, onCancel }) => {
   const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   return (
@@ -224,12 +222,14 @@ const AudioRecorder = ({ onSend, onCancel }) => {
         >
           <Ionicons name="trash" size={20} color="white" />
         </TouchableOpacity>
-        
+
         <LinearGradient
-            colors={duration < 5 ? ["#cccccc", "#cccccc"] : ["#337ab7", "#88E782"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[styles.bigCircleButton]}
+          colors={
+            duration < 5 ? ["#cccccc", "#cccccc"] : ["#337ab7", "#88E782"]
+          }
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.bigCircleButton]}
         >
           <TouchableOpacity
             style={styles.fullButtonTouch}
@@ -246,64 +246,82 @@ const AudioRecorder = ({ onSend, onCancel }) => {
 
 const styles = StyleSheet.create({
   wrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopWidth: 1,
-    borderTopColor: '#e9ecef',
+    borderTopColor: "#e9ecef",
   },
   leftBubble: {
     flex: 1,
-    backgroundColor: '#f0f3f1',
+    backgroundColor: "#f0f3f1",
     borderRadius: 22,
     padding: 12,
     marginRight: 12,
   },
   leftTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 8,
   },
-  recordingIndicator: { flexDirection: 'row', alignItems: 'center' },
-  recordingDot: { width: 8, height: 8, borderRadius: 4, marginRight: 8, backgroundColor: '#ccc' },
-  recordingDotActive: { backgroundColor: '#ff3b30' },
-  recordingText: { color: '#444', fontWeight: '600' },
-  durationText: { fontWeight: '700', color: '#444', fontVariant: ['tabular-nums'] },
-  
-  spectrumRow: { alignItems: 'center', justifyContent: 'center' },
-  spectrumContainer: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    height: 40, 
-    overflow: 'hidden' 
+  recordingIndicator: { flexDirection: "row", alignItems: "center" },
+  recordingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 8,
+    backgroundColor: "#ccc",
+  },
+  recordingDotActive: { backgroundColor: "#ff3b30" },
+  recordingText: { color: "#444", fontWeight: "600" },
+  durationText: {
+    fontWeight: "700",
+    color: "#444",
+    fontVariant: ["tabular-nums"],
+  },
+
+  spectrumRow: { alignItems: "center", justifyContent: "center" },
+  spectrumContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 40,
+    overflow: "hidden",
   },
   spectrumBar: {
     width: 4,
     marginHorizontal: 1,
     borderRadius: 2,
-    backgroundColor: '#25D366',
+    backgroundColor: "#25D366",
   },
 
-  controlsContainer: { flexDirection: 'row', alignItems: 'center' },
+  controlsContainer: { flexDirection: "row", alignItems: "center" },
   smallCircleButton: {
-    width: 40, height: 40, borderRadius: 20,
-    justifyContent: 'center', alignItems: 'center', marginRight: 10,
-    shadowColor: '#000', elevation: 2,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+    shadowColor: "#000",
+    elevation: 2,
   },
-  cancelButton: { backgroundColor: '#ff4444' },
+  cancelButton: { backgroundColor: "#ff4444" },
   bigCircleButton: {
-    width: 50, height: 50, borderRadius: 25,
-    shadowColor: '#000', elevation: 4,
-    overflow: 'hidden', 
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    shadowColor: "#000",
+    elevation: 4,
+    overflow: "hidden",
   },
   fullButtonTouch: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  }
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });
 
 export default AudioRecorder;
