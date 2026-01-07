@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,28 +10,48 @@ import {
   ActivityIndicator,
   FlatList,
   Modal,
-  ImageBackground,
   KeyboardAvoidingView,
   Platform,
-} from 'react-native';
+  Dimensions,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Picker } from '@react-native-picker/picker'; // Keep for now if needed, but we might replace usage
-import { Ionicons } from '@expo/vector-icons';
-import ChatApiService from '../../services/chat/chatService';
-import { useGlobal } from '../../core/global';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Picker } from "@react-native-picker/picker";
+import { Ionicons, Feather } from "@expo/vector-icons";
+import ChatApiService from "../../services/chat/chatService";
+import { useGlobal } from "../../core/global";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import FocusAwareStatusBar from "../../components/FocusAwareStatusBar";
+
+const { width } = Dimensions.get("window");
+
+const COLORS = {
+  primary: "#337ab7",
+  secondary: "#0086C8",
+  accent: "#00ACC4",
+  success: "#00CDA7",
+  highlight: "#88E782",
+  dark: "#1E293B",
+  gray: "#64748B",
+  lightGray: "#94A3B8",
+  background: "#F8FAFC",
+  white: "#FFFFFF",
+  border: "#E2E8F0",
+};
+
 const NewChat = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { user } = useGlobal();
-  const [currentView, setCurrentView] = useState('contacts'); // 'contacts' or 'template'
+  const [currentView, setCurrentView] = useState("contacts"); // 'contacts' or 'template'
 
   // Contacts State
   const [contacts, setContacts] = useState([]);
   const [loadingContacts, setLoadingContacts] = useState(false);
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState("");
   const [showManualInput, setShowManualInput] = useState(false);
-  const [manualPhone, setManualPhone] = useState('');
+  const [manualPhone, setManualPhone] = useState("");
 
   // Template/Chat State
   const [selectedContact, setSelectedContact] = useState(null);
@@ -40,69 +60,29 @@ const NewChat = ({ navigation }) => {
   const [plantillas, setPlantillas] = useState([]);
   const [plantillaSeleccionada, setPlantillaSeleccionada] = useState(null);
 
-  // UI State for Template View 
+  // UI State for Template View
   const [templateModalVisible, setTemplateModalVisible] = useState(false);
-  const [loadingTemplate, setLoadingTemplate] = useState(false); // New state
+  const [loadingTemplate, setLoadingTemplate] = useState(false);
 
   const [formData, setFormData] = useState({
     CuentaMensajeriaID: null,
     PlantillaComunicacionID: null,
-    MensajeEnvio: '',
+    MensajeEnvio: "",
     Variables: [],
   });
 
   useEffect(() => {
-    if (currentView === 'contacts') {
+    if (currentView === "contacts") {
       loadContacts();
     }
     loadCuentasMensajeria();
 
     navigation.setOptions({
-      headerTitle: () => (
-        <Text style={{ color: '#337ab7', fontSize: 18, fontWeight: 'bold' }}>
-          {currentView === 'contacts' ? 'Nuevo chat' : (selectedContact?.Nombre || 'Nuevo contacto')}
-        </Text>
-      ),
-      headerLeft: () => (
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => {
-            if (currentView === 'template') {
-              setCurrentView('contacts');
-              setSelectedContact(null);
-              setFormData({
-                CuentaMensajeriaID: null,
-                PlantillaComunicacionID: null,
-                MensajeEnvio: '',
-                Variables: [],
-              });
-              setPlantillas([]);
-              setPlantillaSeleccionada(null);
-            } else {
-              navigation.goBack();
-            }
-          }}
-        >
-          <Ionicons name="arrow-back" size={24} color="#337ab7" />
-        </TouchableOpacity>
-      ),
-      headerRight: () => {
-        if (currentView === 'contacts') {
-          return (
-            <TouchableOpacity
-              style={styles.headerButton}
-              onPress={() => setShowManualInput(true)}
-            >
-              <Ionicons name="person-add" size={24} color="#337ab7" />
-            </TouchableOpacity>
-          );
-        }
-        return null;
-      },
+      headerShown: false, // Use our custom header
     });
   }, [currentView, searchText, navigation, selectedContact]);
 
-  const loadContacts = async () => {
+  const loadContacts = useCallback(async () => {
     setLoadingContacts(true);
     try {
       const filtros = {
@@ -114,12 +94,12 @@ const NewChat = ({ navigation }) => {
       const response = await ChatApiService.consultarContactos(filtros);
       setContacts(response.data || []);
     } catch (error) {
-      console.error('Error loading contacts:', error);
-      Alert.alert('Error', 'No se pudieron cargar los contactos');
+      console.error("Error loading contacts:", error);
+      Alert.alert("Error", "No se pudieron cargar los contactos");
     } finally {
       setLoadingContacts(false);
     }
-  };
+  }, [searchText, user?.Token]);
 
   const loadCuentasMensajeria = async () => {
     try {
@@ -128,8 +108,7 @@ const NewChat = ({ navigation }) => {
         setCuentas(response.rows);
       }
     } catch (error) {
-      console.error('Error loading cuentas:', error);
-      Alert.alert('Error', 'No se pudieron cargar las cuentas de mensajería');
+      console.error("Error loading cuentas:", error);
     }
   };
 
@@ -138,55 +117,55 @@ const NewChat = ({ navigation }) => {
       setPlantillas([]);
       return;
     }
-
     try {
-      const response = await ChatApiService.consultarPlantillasComunicacion(cuentaID);
+      const response = await ChatApiService.consultarPlantillasComunicacion(
+        cuentaID
+      );
       if (response.rows) {
         setPlantillas(response.rows);
       }
     } catch (error) {
-      console.error('Error loading plantillas:', error);
-      Alert.alert('Error', 'No se pudieron cargar las plantillas');
+      console.error("Error loading plantillas:", error);
     }
   };
 
   const handleContactSelect = (contact) => {
     setSelectedContact(contact);
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       CuentaMensajeriaID: contact.CuentaMensajeriaID || null,
     }));
     if (contact.CuentaMensajeriaID) {
       loadPlantillas(contact.CuentaMensajeriaID);
     }
-    setCurrentView('template');
+    setCurrentView("template");
   };
 
   const handleManualPhoneSubmit = () => {
-    if (!manualPhone || manualPhone.trim() === '') {
-      Alert.alert('Error', 'Ingrese un número de celular');
+    if (!manualPhone || manualPhone.trim() === "") {
+      Alert.alert("Error", "Ingrese un número de celular");
       return;
     }
     const contact = {
       Telefono: manualPhone.trim(),
-      Nombre: 'Nuevo contacto',
+      Nombre: "Nuevo contacto",
     };
     setSelectedContact(contact);
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       CuentaMensajeriaID: null,
     }));
     setShowManualInput(false);
-    setManualPhone('');
-    setCurrentView('template');
+    setManualPhone("");
+    setCurrentView("template");
   };
 
   const handleCuentaChange = (cuentaID) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       CuentaMensajeriaID: cuentaID,
       PlantillaComunicacionID: null,
-      MensajeEnvio: '',
+      MensajeEnvio: "",
       Variables: [],
     }));
     setPlantillaSeleccionada(null);
@@ -200,65 +179,60 @@ const NewChat = ({ navigation }) => {
     while ((match = regex.exec(texto)) !== null) {
       coincidencias.add(match[1]);
     }
-    return Array.from(coincidencias).map(item => ({
+    return Array.from(coincidencias).map((item) => ({
       Nombre: item,
-      Valor: ''
+      Valor: "",
     }));
   };
 
   const handlePlantillaSelect = async (plantilla) => {
     setTemplateModalVisible(false);
-    setLoadingTemplate(true); // Start loading
-
+    setLoadingTemplate(true);
     const plantillaID = plantilla.PlantillaComunicacionID;
-
     try {
       const detalle = await ChatApiService.consultarPlantillaDetalle({
         PlantillaComunicacionID: plantillaID,
         Token: user?.Token,
       });
-
-      const template = detalle.data?.Template || '';
+      const template = detalle.data?.Template || "";
       const variables = extractVariablesFromTemplate(template);
       setPlantillaSeleccionada({ ...detalle.data, Template: template });
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         PlantillaComunicacionID: plantillaID,
         MensajeEnvio: template,
         Variables: variables,
       }));
-
     } catch (error) {
-      console.error('Error loading plantilla detalle:', error);
-      Alert.alert('Error', 'No se pudo cargar el detalle de la plantilla');
+      console.error("Error loading plantilla detalle:", error);
+      Alert.alert("Error", "No se pudo cargar el detalle de la plantilla");
     } finally {
-      setLoadingTemplate(false); // Stop loading regardless of success/error
+      setLoadingTemplate(false);
     }
   };
 
   const handleVariableChange = (index, value) => {
     const newVariables = [...formData.Variables];
     newVariables[index] = { ...newVariables[index], Valor: value };
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       Variables: newVariables,
     }));
-
-    // Actualizar mensaje con variables
     updateMensajeConVariables(newVariables);
   };
 
   const updateMensajeConVariables = (variables) => {
-    let mensaje = plantillaSeleccionada?.Template || '';
-
+    let mensaje = plantillaSeleccionada?.Template || "";
     variables.forEach((variable) => {
-      if (variable.Valor && variable.Valor !== '') {
-        const regex = new RegExp(variable.Nombre.replace(/[\[\]]/g, '\\$&'), 'g');
+      if (variable.Valor && variable.Valor !== "") {
+        const regex = new RegExp(
+          variable.Nombre.replace(/[\[\]]/g, "\\$&"),
+          "g"
+        );
         mensaje = mensaje.replace(regex, variable.Valor);
       }
     });
-
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       MensajeEnvio: mensaje,
     }));
@@ -266,37 +240,30 @@ const NewChat = ({ navigation }) => {
 
   const validateForm = () => {
     if (!formData.CuentaMensajeriaID) {
-      Alert.alert('Error', 'Debe seleccionar una cuenta de mensajería');
+      Alert.alert("Error", "Debe seleccionar una cuenta de mensajería");
       return false;
     }
-
     if (!selectedContact?.Telefono) {
-      Alert.alert('Error', 'No hay número de celular disponible');
+      Alert.alert("Error", "No hay número de celular disponible");
       return false;
     }
-
     if (!formData.PlantillaComunicacionID) {
-      Alert.alert('Error', 'Debe seleccionar una plantilla de comunicación');
+      Alert.alert("Error", "Debe seleccionar una plantilla de comunicación");
       return false;
     }
-
-    // Validar variables requeridas
     for (const variable of formData.Variables) {
-      if (!variable.Valor || variable.Valor.trim() === '') {
-        Alert.alert('Error', `La variable "${variable.Nombre}" es obligatoria`);
+      if (!variable.Valor || variable.Valor.trim() === "") {
+        Alert.alert("Error", `La variable "${variable.Nombre}" es obligatoria`);
         return false;
       }
     }
-
     return true;
   };
 
   const handleSubmit = async () => {
     if (!validateForm()) return;
-
     try {
       setLoading(true);
-
       const chatData = {
         CuentaMensajeriaID: formData.CuentaMensajeriaID,
         Telefono: selectedContact.Telefono,
@@ -305,18 +272,13 @@ const NewChat = ({ navigation }) => {
         Mensaje: formData.MensajeEnvio,
         Token: user?.Token,
       };
-
       await ChatApiService.iniciarNuevoChat(chatData);
-
-      Alert.alert('Éxito', 'Chat iniciado correctamente', [
-        {
-          text: 'OK',
-          onPress: () => navigation.goBack(),
-        },
+      Alert.alert("Éxito", "Chat iniciado correctamente", [
+        { text: "OK", onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
-      console.error('Error creating chat:', error);
-      Alert.alert('Error', error.message || 'No se pudo iniciar el chat');
+      console.error("Error creating chat:", error);
+      Alert.alert("Error", error.message || "No se pudo iniciar el chat");
     } finally {
       setLoading(false);
     }
@@ -324,7 +286,78 @@ const NewChat = ({ navigation }) => {
 
   // --- RENDER FUNCTIONS --- //
 
-  // 1. Template Selection Modal
+  const renderHeader = () => {
+    const title =
+      currentView === "contacts"
+        ? "Nuevo chat"
+        : selectedContact?.Nombre || "Nuevo contacto";
+    const subtitle =
+      currentView === "contacts"
+        ? "Selecciona un contacto"
+        : selectedContact?.Telefono;
+
+    return (
+      <LinearGradient
+        colors={[COLORS.primary, COLORS.secondary, COLORS.accent]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <SafeAreaView edges={["top"]}>
+          <View style={styles.headerPattern}>
+            <View style={styles.patternCircle1} />
+            <View style={styles.patternCircle2} />
+          </View>
+          <View style={styles.headerContent}>
+            <View style={styles.headerLeft}>
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => {
+                  if (currentView === "template") {
+                    setCurrentView("contacts");
+                    setSelectedContact(null);
+                    setFormData({
+                      CuentaMensajeriaID: null,
+                      PlantillaComunicacionID: null,
+                      MensajeEnvio: "",
+                      Variables: [],
+                    });
+                    setPlantillas([]);
+                    setPlantillaSeleccionada(null);
+                  } else {
+                    navigation.goBack();
+                  }
+                }}
+              >
+                <Ionicons name="arrow-back" size={24} color="#FFF" />
+              </TouchableOpacity>
+              <View style={styles.titleContainer}>
+                <Text style={styles.headerSubtitle} numberOfLines={1}>
+                  {subtitle}
+                </Text>
+                <Text style={styles.headerTitle} numberOfLines={1}>
+                  {title}
+                </Text>
+              </View>
+            </View>
+            {currentView === "contacts" && (
+              <TouchableOpacity
+                style={styles.headerRightButton}
+                onPress={() => setShowManualInput(!showManualInput)}
+              >
+                <Ionicons
+                  name={showManualInput ? "close" : "person-add"}
+                  size={22}
+                  color="#FFF"
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
+    );
+  };
+
   const renderTemplateModal = () => (
     <Modal
       animationType="slide"
@@ -333,34 +366,59 @@ const NewChat = ({ navigation }) => {
       onRequestClose={() => setTemplateModalVisible(false)}
     >
       <View style={styles.modalOverlay}>
-        <View style={[styles.modalContent, { paddingBottom: insets.bottom }]}>
+        <View
+          style={[styles.modalContent, { paddingBottom: insets.bottom + 16 }]}
+        >
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Seleccionar Plantilla</Text>
+            <Text style={styles.modalTitle}>Plantillas disponibles</Text>
             <TouchableOpacity onPress={() => setTemplateModalVisible(false)}>
-              <Ionicons name="close" size={24} color="#666" />
+              <Ionicons
+                name="close-circle"
+                size={28}
+                color={COLORS.lightGray}
+              />
             </TouchableOpacity>
           </View>
           <FlatList
             data={plantillas}
             keyExtractor={(item) => item.PlantillaComunicacionID?.toString()}
+            contentContainerStyle={{ padding: 16 }}
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.templateItem}
                 onPress={() => handlePlantillaSelect(item)}
               >
                 <View style={styles.templateIcon}>
-                  <Ionicons name="document-text-outline" size={24} color="#337ab7" />
+                  <Ionicons
+                    name="document-text-outline"
+                    size={22}
+                    color={COLORS.primary}
+                  />
                 </View>
                 <View style={styles.templateInfo}>
                   <Text style={styles.templateName}>{item.Nombre}</Text>
-                  {/* If there is a preview text available in item, show it, otherwise show generic */}
-                  <Text style={styles.templatePreview} numberOfLines={1}>Toque para seleccionar</Text>
+                  <Text style={styles.templatePreview} numberOfLines={1}>
+                    Toque para seleccionar esta plantilla
+                  </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#ccc" />
+                <Ionicons
+                  name="chevron-forward"
+                  size={18}
+                  color={COLORS.lightGray}
+                />
               </TouchableOpacity>
             )}
             ListEmptyComponent={
-              <Text style={styles.emptyText}>No hay plantillas disponibles para esta cuenta.</Text>
+              <View style={styles.emptyContainer}>
+                <Ionicons
+                  name="document-text-outline"
+                  size={48}
+                  color={COLORS.lightGray}
+                />
+                <Text style={styles.emptyText}>
+                  No hay plantillas disponibles
+                </Text>
+              </View>
             }
           />
         </View>
@@ -370,674 +428,814 @@ const NewChat = ({ navigation }) => {
 
   const renderContact = ({ item }) => (
     <TouchableOpacity
-      style={styles.contactItem}
+      style={styles.contactCard}
       onPress={() => handleContactSelect(item)}
+      activeOpacity={0.7}
     >
-      <View style={styles.contactAvatar}>
+      <LinearGradient
+        colors={[COLORS.primary, COLORS.accent]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.contactAvatar}
+      >
         <Text style={styles.avatarText}>
-          {item.Nombre?.charAt(0)?.toUpperCase() || '?'}
+          {item.Nombre?.charAt(0)?.toUpperCase() || "?"}
         </Text>
-      </View>
+      </LinearGradient>
       <View style={styles.contactInfo}>
         <Text style={styles.contactName} numberOfLines={1}>
           {item.Nombre}
         </Text>
-        <Text style={styles.contactPhone}>
-          {item.Telefono}
-        </Text>
-        <Text style={styles.contactAccount}>
-          {item.Cuenta || 'Sin cuenta'}
-        </Text>
+        <Text style={styles.contactPhone}>{item.Telefono}</Text>
+        <View style={styles.accountTag}>
+          <Ionicons
+            name="chatbubble-outline"
+            size={12}
+            color={COLORS.secondary}
+          />
+          <Text style={styles.contactAccount}>
+            {item.Cuenta || "Sin cuenta"}
+          </Text>
+        </View>
       </View>
+      <Ionicons name="chevron-forward" size={18} color={COLORS.lightGray} />
     </TouchableOpacity>
   );
 
-  if (currentView === 'contacts') {
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <View style={styles.emptyIconContainer}>
+        <Ionicons name="search-outline" size={64} color={COLORS.lightGray} />
+      </View>
+      <Text style={styles.emptyTitle}>Sin resultados</Text>
+      <Text style={styles.emptyText}>
+        No encontramos contactos que coincidan con tu búsqueda
+      </Text>
+    </View>
+  );
+
+  if (currentView === "contacts") {
     return (
-      <SafeAreaView style={[styles.container, { marginBottom: insets.bottom }]}>
-        <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Buscar contactos..."
-            placeholderTextColor="#999"
-            value={searchText}
-            onChangeText={setSearchText}
-          />
+      <View style={styles.container}>
+        <FocusAwareStatusBar
+          barStyle="light-content"
+          backgroundColor={COLORS.primary}
+        />
+        {renderHeader()}
+
+        <View style={styles.searchSection}>
+          <View style={styles.searchContainer}>
+            <View style={styles.searchIconContainer}>
+              <Ionicons name="search" size={20} color={COLORS.secondary} />
+            </View>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Buscar contactos..."
+              placeholderTextColor={COLORS.lightGray}
+              value={searchText}
+              onChangeText={setSearchText}
+            />
+            {searchText.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchText("")}>
+                <Ionicons
+                  name="close-circle"
+                  size={20}
+                  color={COLORS.lightGray}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {showManualInput && (
-          <View style={styles.manualInputContainer}>
-            <TextInput
-              style={styles.manualInput}
-              placeholder="Ingrese número de celular"
-              value={manualPhone}
-              onChangeText={setManualPhone}
-              keyboardType="phone-pad"
-              maxLength={20}
-            />
-            <View style={styles.manualButtons}>
-              <TouchableOpacity
-                style={[styles.manualButton, styles.cancelManual]}
-                onPress={() => {
-                  setShowManualInput(false);
-                  setManualPhone('');
-                }}
-              >
-                <Text style={styles.manualButtonTextCancel}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.manualButton, styles.addManual]}
-                onPress={handleManualPhoneSubmit}
-              >
-                <Text style={styles.manualButtonTextAdd}>Agregar</Text>
-              </TouchableOpacity>
+          <View style={styles.manualInputSection}>
+            <View style={styles.manualCard}>
+              <Text style={styles.manualTitle}>Número manual</Text>
+              <View style={styles.inputWrapper}>
+                <Ionicons
+                  name="phone-portrait-outline"
+                  size={20}
+                  color={COLORS.secondary}
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={styles.manualInput}
+                  placeholder="Ej: 3001234567"
+                  value={manualPhone}
+                  onChangeText={setManualPhone}
+                  keyboardType="phone-pad"
+                  maxLength={20}
+                />
+              </View>
+              <View style={styles.manualButtons}>
+                <TouchableOpacity
+                  style={[styles.manualButton, styles.cancelBtn]}
+                  onPress={() => {
+                    setShowManualInput(false);
+                    setManualPhone("");
+                  }}
+                >
+                  <Text style={styles.cancelBtnText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.manualButton, styles.addBtn]}
+                  onPress={handleManualPhoneSubmit}
+                >
+                  <Text style={styles.addBtnText}>Continuar</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         )}
 
-        {loadingContacts ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#337ab7" />
-            <Text style={styles.loadingText}>Cargando contactos...</Text>
+        {loadingContacts && !contacts.length ? (
+          <View style={styles.loadingWrapper}>
+            <ActivityIndicator size="large" color={COLORS.accent} />
+            <Text style={styles.loadingText}>Buscando...</Text>
           </View>
         ) : (
           <FlatList
             data={contacts}
             renderItem={renderContact}
-            keyExtractor={(item) => item.CuentaMensajeriaContactoID?.toString() || Math.random().toString()}
-            style={styles.contactsList}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 20 }}
-            ListEmptyComponent={
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>No hay contactos disponibles</Text>
-              </View>
+            keyExtractor={(item, index) =>
+              item.CuentaMensajeriaContactoID?.toString() || index.toString()
             }
+            style={styles.contactsList}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={renderEmptyState}
           />
         )}
-      </SafeAreaView>
+      </View>
     );
   }
 
-  // --- TEMPLATE VIEW (Modernized) ---
+  // --- TEMPLATE VIEW ---
   return (
-    <SafeAreaView style={[styles.chatContainer]}>
+    <View style={styles.container}>
+      <FocusAwareStatusBar
+        barStyle="light-content"
+        backgroundColor={COLORS.primary}
+      />
+      {renderHeader()}
+
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
-        <View
-          style={styles.chatBackground}
+        <ScrollView
+          contentContainerStyle={styles.chatContent}
+          showsVerticalScrollIndicator={false}
         >
-          <ScrollView contentContainerStyle={styles.chatContent}>
-
-            {/* 1. Account Selection */}
-            <View style={styles.selectionCard}>
+          {/* 1. Account Selection */}
+          <View style={styles.card}>
+            <View style={styles.cardHeaderSmall}>
+              <Ionicons
+                name="business-outline"
+                size={18}
+                color={COLORS.primary}
+              />
               <Text style={styles.sectionLabel}>Cuenta de envío</Text>
-              <View style={styles.pickerWrapper}>
-                <Picker
-                  selectedValue={formData.CuentaMensajeriaID}
-                  onValueChange={handleCuentaChange}
-                  style={styles.pickerStyled}
-                  dropdownIconColor="#666"
-                >
-                  <Picker.Item label="Seleccione una cuenta..." value={null} />
-                  {cuentas.map((cuenta) => (
-                    <Picker.Item
-                      key={cuenta.CuentaMensajeriaID}
-                      label={cuenta.Nombre}
-                      value={cuenta.CuentaMensajeriaID}
-                    />
-                  ))}
-                </Picker>
-              </View>
             </View>
-
-            {/* 2. Template Selection */}
-            <View style={styles.selectionCard}>
-              <Text style={styles.sectionLabel}>Plantilla</Text>
-              <TouchableOpacity
-                style={[
-                  styles.templateSelectorButton,
-                  !formData.CuentaMensajeriaID && styles.disabledButton // Removed local styles dependency for now, trusting existing ones
-                ]}
-                onPress={() => formData.CuentaMensajeriaID && !loadingTemplate && setTemplateModalVisible(true)}
-                disabled={!formData.CuentaMensajeriaID || loadingTemplate}
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={formData.CuentaMensajeriaID}
+                onValueChange={handleCuentaChange}
+                style={styles.picker}
               >
-                {loadingTemplate ? (
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <ActivityIndicator size="small" color="#337ab7" style={{ marginRight: 8 }} />
-                    <Text style={styles.templateSelectorText}>Cargando plantilla...</Text>
-                  </View>
-                ) : (
-                  <>
-                    <Text style={[
-                      styles.templateSelectorText,
-                      !plantillaSeleccionada && styles.placeholderText
-                    ]}>
-                      {plantillaSeleccionada ? plantillaSeleccionada.Nombre : 'Seleccionar plantilla...'}
-                    </Text>
-                    <Ionicons name="chevron-down" size={20} color="#666" />
-                  </>
-                )}
-              </TouchableOpacity>
+                <Picker.Item
+                  label="Seleccionar cuenta..."
+                  value={null}
+                  color={COLORS.lightGray}
+                />
+                {cuentas.map((cuenta) => (
+                  <Picker.Item
+                    key={cuenta.CuentaMensajeriaID}
+                    label={cuenta.Nombre}
+                    value={cuenta.CuentaMensajeriaID}
+                  />
+                ))}
+              </Picker>
             </View>
+          </View>
 
-            {/* 3. Message Preview (Chat Bubble) */}
-            {formData.MensajeEnvio ? (
-              <View style={styles.messageBubbleContainer}>
-                <View style={styles.messageBubble}>
-                  <Text style={styles.messageText}>{formData.MensajeEnvio}</Text>
-                  <View style={styles.messageMetadata}>
-                    <Text style={styles.messageTime}>Ahora</Text>
-                    <Ionicons name="checkmark-done" size={16} color="#337ab7" />
-                  </View>
+          {/* 2. Template Selection */}
+          <View style={styles.card}>
+            <View style={styles.cardHeaderSmall}>
+              <Ionicons
+                name="document-text-outline"
+                size={18}
+                color={COLORS.primary}
+              />
+              <Text style={styles.sectionLabel}>Plantilla</Text>
+            </View>
+            <TouchableOpacity
+              style={[
+                styles.selectorButton,
+                !formData.CuentaMensajeriaID && styles.disabled,
+              ]}
+              onPress={() =>
+                formData.CuentaMensajeriaID &&
+                !loadingTemplate &&
+                setTemplateModalVisible(true)
+              }
+              disabled={!formData.CuentaMensajeriaID || loadingTemplate}
+            >
+              {loadingTemplate ? (
+                <View style={styles.loadingInline}>
+                  <ActivityIndicator size="small" color={COLORS.primary} />
+                  <Text style={styles.selectorText}>Cargando plantilla...</Text>
+                </View>
+              ) : (
+                <>
+                  <Text
+                    style={[
+                      styles.selectorText,
+                      !plantillaSeleccionada && styles.placeholder,
+                    ]}
+                  >
+                    {plantillaSeleccionada
+                      ? plantillaSeleccionada.Nombre
+                      : "Toca para seleccionar..."}
+                  </Text>
+                  <Ionicons name="chevron-down" size={20} color={COLORS.gray} />
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* 3. Message Preview */}
+          {formData.MensajeEnvio ? (
+            <View style={styles.bubbleWrapper}>
+              <View style={styles.bubble}>
+                <Text style={styles.bubbleText}>{formData.MensajeEnvio}</Text>
+                <View style={styles.bubbleFooter}>
+                  <Text style={styles.bubbleTime}>
+                    {new Date().toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </Text>
+                  <Ionicons
+                    name="checkmark-done"
+                    size={16}
+                    color={COLORS.primary}
+                  />
                 </View>
               </View>
-            ) : (
-              <View style={styles.placeholderBubble}>
-                <Text style={styles.placeholderTextCenter}>
-                  Selecciona una plantilla para ver la vista previa del mensaje.
-                </Text>
-              </View>
-            )}
+            </View>
+          ) : (
+            <View style={styles.placeholderBubble}>
+              <Text style={styles.placeholderTextCenter}>
+                La vista previa del mensaje aparecerá aquí al seleccionar una
+                plantilla.
+              </Text>
+            </View>
+          )}
 
-            {/* 4. Variables Form */}
-            {formData.Variables.length > 0 && (
-              <View style={styles.variablesContainer}>
-                <Text style={styles.variablesTitle}>Completar Variables</Text>
-                {formData.Variables.map((variable, index) => (
-                  <View key={index} style={styles.variableRow}>
-                    <Text style={styles.variableLabel}>{variable.Nombre.replace(/[@\[\]]/g, '')}:</Text>
-                    <TextInput
-                      style={styles.variableInput}
-                      placeholder={`Escribe aquí...`}
-                      value={variable.Valor}
-                      onChangeText={(text) => handleVariableChange(index, text)}
-                    />
-                  </View>
-                ))}
-              </View>
-            )}
+          {/* 4. Variables */}
+          {formData.Variables.length > 0 && (
+            <View style={styles.variablesCard}>
+              <Text style={styles.variablesTitle}>Completar información</Text>
+              {formData.Variables.map((variable, index) => (
+                <View key={index} style={styles.varRow}>
+                  <Text style={styles.varLabel}>
+                    {variable.Nombre.replace(/[@\[\]]/g, "")}
+                  </Text>
+                  <TextInput
+                    style={styles.varInput}
+                    placeholder="Escribe el valor aquí..."
+                    value={variable.Valor}
+                    onChangeText={(text) => handleVariableChange(index, text)}
+                    placeholderTextColor={COLORS.lightGray}
+                  />
+                </View>
+              ))}
+            </View>
+          )}
 
-            {/* Spacer for FAB */}
-            <View style={{ height: 80 }} />
+          <View style={{ height: 100 }} />
+        </ScrollView>
 
-          </ScrollView>
-        </View>
-
-        {/* 5. Floating Send Button */}
-        <View style={styles.fabContainer}>
+        <View style={styles.fabWrapper}>
           <TouchableOpacity
             onPress={handleSubmit}
             disabled={loading || !formData.MensajeEnvio}
-            activeOpacity={0.8}
-            style={[
-              styles.fabButtonShadow,
-              (loading || !formData.MensajeEnvio) && styles.fabDisabled
-            ]}
+            style={styles.fabShadow}
           >
             <LinearGradient
-              colors={(loading || !formData.MensajeEnvio) ? ['#999', '#999'] : ["#337ab7", "#88E782"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.fabGradient}
+              colors={
+                loading || !formData.MensajeEnvio
+                  ? [COLORS.lightGray, COLORS.gray]
+                  : [COLORS.primary, COLORS.highlight]
+              }
+              style={styles.fab}
             >
               {loading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color="#FFF" />
               ) : (
-                <Ionicons name="send" size={20} color="#fff" style={{ marginLeft: 4 }} />
+                <Feather name="send" size={24} color="#FFF" />
               )}
             </LinearGradient>
           </TouchableOpacity>
         </View>
-
       </KeyboardAvoidingView>
 
       {renderTemplateModal()}
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  // --- Common ---
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.background,
   },
 
-  // --- Header ---
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#fff', // App Primary Blue
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 2 },
+  // Header
+  headerGradient: {
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    overflow: "hidden",
   },
-  title: {
+  headerPattern: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  patternCircle1: {
+    position: "absolute",
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    top: -80,
+    right: -50,
+  },
+  patternCircle2: {
+    position: "absolute",
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "rgba(136,231,130,0.12)",
+    bottom: -40,
+    left: 20,
+  },
+  headerContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 14,
+  },
+  titleContainer: {
+    flex: 1,
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.8)",
+    fontWeight: "500",
+  },
+  headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#337ab7',
+    fontWeight: "800",
+    color: "#FFF",
   },
-  headerButton: {
-    marginRight: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+  headerRightButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    justifyContent: "center",
+    alignItems: "center",
   },
 
-  // --- Search ---
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f1f1f1',
-    margin: 16,
-    paddingHorizontal: 12,
-    borderRadius: 24,
-    height: 44,
+  // Search
+  searchSection: {
+    padding: 16,
   },
-  searchIcon: {
-    marginRight: 8,
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.white,
+    borderRadius: 24,
+    height: 48,
+    paddingHorizontal: 16,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  searchIconContainer: {
+    marginRight: 10,
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
-    color: '#333',
+    fontSize: 15,
+    color: COLORS.dark,
   },
 
-  // --- Contacts List ---
-  contactsList: {
+  // Manual Input
+  manualInputSection: {
     paddingHorizontal: 16,
-
+    marginBottom: 16,
   },
-  contactItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+  manualCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  manualTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: COLORS.dark,
+    marginBottom: 12,
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    height: 48,
+    marginBottom: 16,
+  },
+  inputIcon: {
+    marginRight: 10,
+  },
+  manualInput: {
+    flex: 1,
+    fontSize: 15,
+    color: COLORS.dark,
+  },
+  manualButtons: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  manualButton: {
+    flex: 1,
+    height: 44,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cancelBtn: {
+    backgroundColor: "#F1F5F9",
+  },
+  cancelBtnText: {
+    color: COLORS.gray,
+    fontWeight: "600",
+  },
+  addBtn: {
+    backgroundColor: COLORS.primary,
+  },
+  addBtnText: {
+    color: "#FFF",
+    fontWeight: "600",
+  },
+
+  // List
+  contactsList: {
+    flex: 1,
+  },
+  listContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+  },
+  contactCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   contactAvatar: {
     width: 48,
     height: 48,
-    borderRadius: 24,
-    backgroundColor: '#337ab7',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 14,
   },
   avatarText: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: "bold",
+    color: "#FFF",
   },
   contactInfo: {
     flex: 1,
   },
   contactName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontSize: 15,
+    fontWeight: "700",
+    color: COLORS.dark,
     marginBottom: 2,
   },
   contactPhone: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 13,
+    color: COLORS.gray,
+    marginBottom: 4,
+  },
+  accountTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
   },
   contactAccount: {
-    fontSize: 12,
-    color: '#337ab7',
-    marginTop: 2,
+    fontSize: 11,
+    color: COLORS.secondary,
+    fontWeight: "600",
   },
 
-  // --- Manual Input ---
-  manualInputContainer: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderColor: '#eee',
+  // Empty State
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
   },
-  manualInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 12,
+  emptyIconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "rgba(51, 122, 183, 0.05)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
   },
-  manualButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  manualButton: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  cancelManual: {
-    backgroundColor: '#f1f1f1',
-  },
-  addManual: {
-    backgroundColor: '#337ab7',
-  },
-  manualButtonTextAdd: {
-    fontWeight: '600',
-    color: '#fff',
-  },
-  manualButtonTextCancel: {
-    fontWeight: '600',
-    color: '#333',
-  },
-  addManual: {
-    backgroundColor: '#337ab7'
-  },
-  cancelManual: {
-    backgroundColor: '#eee'
-  },
-
-  // --- Chat View Styles ---
-  chatContainer: {
-    flex: 1,
-    backgroundColor: '#f5f5f5'
-  },
-  chatHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-    elevation: 4,
-    height: 60,
-    backgroundColor: '#fff',
-  },
-  chatHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-  },
-  headerAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 4,
-    marginRight: 8,
-  },
-  headerAvatarText: {
-    color: '#337ab7',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  chatHeaderTitle: {
-    marginLeft: 16,
-    color: '#337ab7',
+  emptyTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
+    color: COLORS.dark,
+    marginBottom: 4,
   },
-  chatHeaderSubtitle: {
-    marginLeft: 16,
-    color: '#666',
-    fontSize: 13,
+  emptyText: {
+    fontSize: 14,
+    color: COLORS.gray,
+    textAlign: "center",
+    paddingHorizontal: 40,
   },
-  chatBackground: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
+
+  // Template View
   chatContent: {
     padding: 16,
   },
-
-  selectionCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 12,
+  card: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  cardHeaderSmall: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
     marginBottom: 12,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    shadowOffset: { width: 0, height: 1 },
   },
   sectionLabel: {
-    fontSize: 12,
-    color: '#888',
-    marginBottom: 6,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    fontSize: 13,
+    fontWeight: "700",
+    color: COLORS.dark,
   },
-  pickerWrapper: {
+  pickerContainer: {
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#eee',
-    borderRadius: 8,
-    backgroundColor: '#fafafa',
+    borderColor: COLORS.border,
+    overflow: "hidden",
   },
-  pickerStyled: {
+  picker: {
     height: 50,
-    width: '100%',
   },
-  templateSelectorButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#fafafa',
+  selectorButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#eee',
-    borderRadius: 8,
+    borderColor: COLORS.border,
     paddingHorizontal: 12,
-    paddingVertical: 14,
+    height: 50,
   },
-  disabledButton: {
-    opacity: 0.6,
-    backgroundColor: '#f5f5f5',
-  },
-  templateSelectorText: {
-    fontSize: 16,
-    color: '#333',
+  selectorText: {
+    fontSize: 14,
+    color: COLORS.dark,
     flex: 1,
   },
-  placeholderText: {
-    color: '#999',
+  placeholder: {
+    color: COLORS.lightGray,
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+  loadingInline: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
 
-  // Message Bubble
-  messageBubbleContainer: {
-    alignItems: 'flex-end',
-    marginVertical: 12,
+  // Bubble
+  bubbleWrapper: {
+    alignItems: "flex-end",
+    marginBottom: 20,
   },
-  messageBubble: {
-    backgroundColor: '#88E782',
-    borderRadius: 12,
-    borderTopRightRadius: 2,
+  bubble: {
+    backgroundColor: COLORS.highlight,
+    borderRadius: 16,
+    borderTopRightRadius: 4,
     padding: 12,
-    paddingBottom: 24,
-    maxWidth: '85%',
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 1,
-    shadowOffset: { width: 0, height: 1 },
-    position: 'relative',
+    maxWidth: "85%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  bubbleText: {
+    fontSize: 15,
+    color: COLORS.dark,
+    lineHeight: 20,
+  },
+  bubbleFooter: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 6,
+  },
+  bubbleTime: {
+    fontSize: 11,
+    color: "rgba(0,0,0,0.4)",
   },
   placeholderBubble: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(255,255,255,0.4)",
+    borderRadius: 16,
     padding: 24,
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    borderRadius: 12,
-    marginBottom: 16,
-    borderStyle: 'dashed',
+    marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#bbb',
+    borderColor: COLORS.border,
+    borderStyle: "dashed",
+    alignItems: "center",
   },
   placeholderTextCenter: {
-    color: '#777',
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
-  messageText: {
-    fontSize: 16,
-    color: '#000',
-    lineHeight: 22,
-  },
-  messageMetadata: {
-    position: 'absolute',
-    bottom: 4,
-    right: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  messageTime: {
-    fontSize: 11,
-    color: 'rgba(0,0,0,0.45)',
-    marginRight: 4,
+    color: COLORS.gray,
+    textAlign: "center",
+    fontSize: 13,
+    fontStyle: "italic",
   },
 
-  // Variables Form
-  variablesContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 8,
-    elevation: 1,
+  // Variables
+  variablesCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   variablesTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#337ab7',
-    marginBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingBottom: 8,
+    fontWeight: "800",
+    color: COLORS.primary,
+    marginBottom: 20,
   },
-  variableRow: {
+  varRow: {
     marginBottom: 16,
   },
-  variableLabel: {
-    fontSize: 14,
-    color: '#333',
-    fontWeight: '600',
+  varLabel: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: COLORS.dark,
     marginBottom: 6,
+    textTransform: "uppercase",
   },
-  variableInput: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
+  varInput: {
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: COLORS.border,
+    padding: 12,
+    fontSize: 15,
+    color: COLORS.dark,
   },
 
-  // Floating Action Button
-  fabContainer: {
-    position: 'absolute',
+  // FAB
+  fabWrapper: {
+    position: "absolute",
     bottom: 24,
     right: 24,
   },
-  fabButtonShadow: {
-    width: 50,
-    height: 50,
-    borderRadius: 30,
-    elevation: 8,
-    shadowColor: '#000',
+  fabShadow: {
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 4,
-    backgroundColor: 'transparent',
-    backgroundColor: '#fff',
+    shadowRadius: 12,
+    elevation: 8,
   },
-  fabGradient: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 30, // Match container
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-  },
-  fabDisabled: {
-    opacity: 0.7,
+  fab: {
+    width: 60,
+    height: 60,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-
+    backgroundColor: "rgba(30, 41, 59, 0.7)",
+    justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '80%',
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    maxHeight: "85%",
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: COLORS.border,
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "800",
+    color: COLORS.dark,
   },
   templateItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
+    backgroundColor: COLORS.background,
+    borderRadius: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   templateIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#e3f2fd',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: COLORS.white,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 14,
   },
   templateInfo: {
     flex: 1,
   },
   templateName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
+    fontSize: 15,
+    fontWeight: "700",
+    color: COLORS.dark,
+    marginBottom: 2,
   },
   templatePreview: {
-    fontSize: 13,
-    color: '#888',
+    fontSize: 12,
+    color: COLORS.gray,
   },
-  emptyText: {
-    padding: 32,
-    textAlign: 'center',
-    color: '#999',
-  },
-  loadingContainer: {
+  loadingWrapper: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
-    marginTop: 10,
-    color: '#666',
+    marginTop: 12,
+    color: COLORS.gray,
+    fontSize: 14,
   },
 });
 
