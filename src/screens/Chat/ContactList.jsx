@@ -11,6 +11,7 @@ import {
   ScrollView,
   Vibration,
   Dimensions,
+  RefreshControl,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Picker } from "@react-native-picker/picker";
@@ -58,6 +59,7 @@ const ContactList = ({ navigation }) => {
   const [showUserList, setShowUserList] = useState(false);
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const statusOptions = [
     { id: null, name: "Todos", icon: "apps-outline" },
@@ -85,15 +87,12 @@ const ContactList = ({ navigation }) => {
 
   const loadContacts = useCallback(async () => {
     try {
+      setContactsLoading(true);
       if (!searchText) {
         const localContacts = await ChatStorageService.getContacts();
         if (localContacts && localContacts.length > 0) {
           setContacts(localContacts);
-        } else {
-          setContactsLoading(true);
         }
-      } else {
-        setContactsLoading(true);
       }
 
       const filtros = {
@@ -120,6 +119,12 @@ const ContactList = ({ navigation }) => {
       setContactsLoading(false);
     }
   }, [searchText, selectedStatus, usuarioID, user?.Token, searchFilters]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadContacts();
+    setRefreshing(false);
+  }, [loadContacts]);
 
   const handleContactPress = (contact) => {
     setSelectedContact(contact);
@@ -672,9 +677,9 @@ const ContactList = ({ navigation }) => {
       {renderStatusFilter()}
 
       {/* Contact list */}
-      {contactsLoading && contacts.length === 0 ? (
+      {contactsLoading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <ActivityIndicator size="large" color={COLORS.accent} />
           <Text style={styles.loadingText}>Cargando contactos...</Text>
         </View>
       ) : (
@@ -687,6 +692,14 @@ const ContactList = ({ navigation }) => {
           style={styles.contactsList}
           contentContainerStyle={styles.contactsListContent}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[COLORS.accent]}
+              tintColor={COLORS.accent}
+            />
+          }
           ListEmptyComponent={renderEmptyState}
         />
       )}
