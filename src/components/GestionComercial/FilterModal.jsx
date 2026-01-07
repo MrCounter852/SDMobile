@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -7,111 +7,104 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  Alert,
   Platform,
   KeyboardAvoidingView,
-  ActivityIndicator,
-  Animated,
   Dimensions,
-  Keyboard,
+  ActivityIndicator,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import { Picker } from "@react-native-picker/picker";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import { Ionicons, Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-const GestionComercialService =
-  require("../../services/GestionComercial/gestionComercialService").default;
-import { useGlobal } from "../../core/global";
+import DateTimePicker from "@react-native-community/datetimepicker";
+
+const { width } = Dimensions.get("window");
+
+// Paleta de colores de la marca (según DESIGN_PATTERNS.md)
+const COLORS = {
+  primary: "#337ab7",
+  secondary: "#0086C8",
+  accent: "#00ACC4",
+  success: "#00CDA7",
+  highlight: "#88E782",
+  dark: "#1E293B",
+  gray: "#64748B",
+  lightGray: "#94A3B8",
+  background: "#F8FAFC",
+  white: "#FFFFFF",
+};
+
+const FilterSection = ({ title, icon, children }) => (
+  <View style={styles.section}>
+    <View style={styles.sectionHeader}>
+      <Ionicons name={icon} size={18} color={COLORS.primary} />
+      <Text style={styles.sectionTitle}>{title}</Text>
+    </View>
+    <View style={styles.sectionContent}>{children}</View>
+  </View>
+);
+
+const ChipSelector = ({
+  options,
+  selectedValue,
+  onSelect,
+  multiSelect = false,
+}) => (
+  <View style={styles.chipsContainer}>
+    {options.map((option) => {
+      const isSelected = multiSelect
+        ? selectedValue?.toString().split(",").includes(option.ID?.toString())
+        : selectedValue === option.ID;
+
+      return (
+        <TouchableOpacity
+          key={option.ID ?? "null"}
+          style={[styles.chip, isSelected && styles.chipSelected]}
+          onPress={() => onSelect(option.ID)}
+          activeOpacity={0.7}
+        >
+          <Text
+            style={[styles.chipText, isSelected && styles.chipTextSelected]}
+          >
+            {option.Nombre}
+          </Text>
+        </TouchableOpacity>
+      );
+    })}
+  </View>
+);
 
 const FilterModal = ({
   visible,
   onClose,
   onApplyFilters,
   initialFilters = {},
-  mode = 'table', // 'table', 'timeline', 'calendar'
+  mode = "table", // 'table', 'timeline', 'calendar'
   origenes = [],
   tiposCalendarioActividades = [],
   loading = false,
 }) => {
-  const { user } = useGlobal();
-  const [filters, setFilters] = useState({
-    OrigenPreContactoID: null,
-    EstadoProcesoID: "1,4",
-    FechaInicial: null,
-    FechaFinal: null,
-    FullSearch: "",
-    EstadoGeneral: null,
-    EstadoActividadID: "3,4",
-    TipoCalendarioActividadID: null,
-    ...initialFilters,
-  });
-
-  const { height } = Dimensions.get("window");
-  const animatedValue = useRef(new Animated.Value(0)).current;
+  const [filters, setFilters] = useState({});
+  const [showDatePicker, setShowDatePicker] = useState(null); // 'initial' or 'final'
   const insets = useSafeAreaInsets();
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
 
+  // Sincronizar filtros cuando se abre el modal
   useEffect(() => {
-    if (visible && initialFilters) {
+    if (visible) {
       setFilters({
         ...initialFilters,
       });
     }
   }, [visible, initialFilters]);
 
-  useEffect(() => {
-    if (visible) {
-      animatedValue.setValue(0);
-      Animated.timing(animatedValue, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [visible]);
-
-  const handleClose = () => {
-    Animated.timing(animatedValue, {
-      toValue: 0,
-      duration: 250,
-      useNativeDriver: true,
-    }).start(() => onClose());
-  };
-
-  const backdropOpacity = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 1],
-  });
-
-  const slideY = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [height, 0],
-  });
-
-  useEffect(() => {
-    const keyboardShowListener = Keyboard.addListener('keyboardDidShow', () => {
-      if (Platform.OS === 'android') {
-        setKeyboardOffset(0);
-      }
-    });
-    const keyboardHideListener = Keyboard.addListener('keyboardDidHide', () => {
-      if (Platform.OS === 'android') {
-        setKeyboardOffset(-30);
-      }
-    });
-
-    return () => {
-      keyboardShowListener.remove();
-      keyboardHideListener.remove();
-    };
-  }, [insets.bottom]);
-
-  const handleApplyFilters = () => {
+  const handleApply = () => {
     onApplyFilters(filters);
-    handleClose();
+    onClose();
   };
 
-  const handleResetFilters = () => {
+  const handleReset = () => {
     const defaultFilters = {
       OrigenPreContactoID: null,
       EstadoProcesoID: "1,4",
@@ -125,429 +118,530 @@ const FilterModal = ({
     setFilters(defaultFilters);
   };
 
-  const estados = useMemo(() => [
-    { ID: null, Nombre: "Todos" },
-    { ID: "1,4", Nombre: "Vigentes" },
-    { ID: "2", Nombre: "Finalizados" },
-    { ID: "3", Nombre: "Inviables" },
-  ], []);
+  const handleDateChange = (event, selectedDate) => {
+    setShowDatePicker(null);
+    if (selectedDate && event.type !== "dismissed") {
+      const formattedDate =
+        selectedDate.toISOString().split("T")[0] + " 00:00:00";
+      if (showDatePicker === "initial") {
+        setFilters((prev) => ({ ...prev, FechaInicial: formattedDate }));
+      } else {
+        setFilters((prev) => ({ ...prev, FechaFinal: formattedDate }));
+      }
+    }
+  };
 
-  const estadosGenerales = useMemo(() => [
-    { ID: null, Nombre: "Todos" },
-    { ID: "V", Nombre: "Vigentes" },
-    { ID: "A", Nombre: "Próximas a vencer" },
-    { ID: "R", Nombre: "Vencidas" },
-  ], []);
+  // Opciones predefinidas
+  const estados = useMemo(
+    () => [
+      { ID: null, Nombre: "Todos" },
+      { ID: "1,4", Nombre: "Vigentes" },
+      { ID: "2", Nombre: "Finalizados" },
+      { ID: "3", Nombre: "Inviables" },
+    ],
+    []
+  );
 
-  const estadosActividades = useMemo(() => [
-    { ID: null, Nombre: "Todas" },
-    { ID: "1", Nombre: "Finalizadas" },
-    { ID: "2", Nombre: "Vigentes" },
-    { ID: "3", Nombre: "Vencidas" },
-    { ID: "4", Nombre: "Pendientes o próximas a vencer" },
-    { ID: "3,4", Nombre: "Vencidas y Pendientes" },
-  ], []);
+  const estadosGenerales = useMemo(
+    () => [
+      { ID: null, Nombre: "Todos" },
+      { ID: "V", Nombre: "Vigentes" },
+      { ID: "A", Nombre: "Próximas a vencer" },
+      { ID: "R", Nombre: "Vencidas" },
+    ],
+    []
+  );
 
-  const origenesItems = useMemo(() =>
-    origenes.map((origen) => (
-      <Picker.Item
-        key={origen.OrigenPreContactoID}
-        label={origen.Nombre}
-        value={origen.OrigenPreContactoID}
-      />
-    )), [origenes]);
+  const estadosActividades = useMemo(
+    () => [
+      { ID: null, Nombre: "Todas" },
+      { ID: "1", Nombre: "Finalizadas" },
+      { ID: "2", Nombre: "Vigentes" },
+      { ID: "3", Nombre: "Vencidas" },
+      { ID: "4", Nombre: "Pendientes o próximas" },
+      { ID: "3,4", Nombre: "Vencidas y Pendientes" },
+    ],
+    []
+  );
 
-  const tiposCalendarioItems = useMemo(() =>
-    tiposCalendarioActividades.map((tipo) => (
-      <Picker.Item
-        key={tipo.TipoCalendarioActividadID}
-        label={tipo.Nombre}
-        value={tipo.TipoCalendarioActividadID}
-      />
-    )), [tiposCalendarioActividades]);
+  const origenesOptions = useMemo(
+    () => [
+      { ID: null, Nombre: "Todos" },
+      ...origenes.map((o) => ({ ID: o.OrigenPreContactoID, Nombre: o.Nombre })),
+    ],
+    [origenes]
+  );
 
-  const estadosItems = useMemo(() => estados.map((estado) => (
-    <Picker.Item key={estado.ID} label={estado.Nombre} value={estado.ID} />
-  )), [estados]);
-
-  const estadosGeneralesItems = useMemo(() => estadosGenerales.map((estado) => (
-    <Picker.Item key={estado.ID} label={estado.Nombre} value={estado.ID} />
-  )), [estadosGenerales]);
-
-  const estadosActividadesItems = useMemo(() => estadosActividades.map((estado) => (
-    <Picker.Item key={estado.ID} label={estado.Nombre} value={estado.ID} />
-  )), [estadosActividades]);
+  const tiposActividadesOptions = useMemo(
+    () => [
+      { ID: null, Nombre: "Todos" },
+      ...tiposCalendarioActividades.map((t) => ({
+        ID: t.TipoCalendarioActividadID,
+        Nombre: t.Nombre,
+      })),
+    ],
+    [tiposCalendarioActividades]
+  );
 
   return (
     <Modal
-      animationType="none"
-      transparent={true}
       visible={visible}
-      onRequestClose={handleClose}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={onClose}
     >
-      <SafeAreaView style={{ flex: 1 }}>
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : keyboardOffset}
-        >
-          <View style={styles.overlay}>
-            <Animated.View
-              style={[
-                styles.dimmer,
-                { opacity: backdropOpacity },
-              ]}
-            />
-            <TouchableOpacity
-              style={styles.dismissArea}
-              activeOpacity={1}
-              onPress={handleClose}
-            />
-            <Animated.View
-              style={[
-                styles.container,
-                { transform: [{ translateY: slideY }] }
-              ]}
-            >
-              <View style={styles.dragHandle} />
-
-              <View style={styles.header}>
-                <Text style={styles.title}>Filtros</Text>
-                <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
-                  <Ionicons name="close" size={20} color="#1C1C1E" />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView
-                style={styles.content}
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled"
-              >
-                {loading && (
-                  <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="small" color="#337ab7" />
-                    <Text style={styles.loadingText}>Cargando filtros...</Text>
-                  </View>
-                )}
-                {(mode === 'table' || mode === 'timeline') && (
-                  <>
-                    {/* Origen */}
-                    <View style={styles.filterSection}>
-                      <Text style={styles.label}>Tipo de contacto</Text>
-                      <View style={styles.pickerContainer}>
-                        <Picker
-                          selectedValue={filters.OrigenPreContactoID}
-                          onValueChange={(value) =>
-                            setFilters((prev) => ({
-                              ...prev,
-                              OrigenPreContactoID: value,
-                            }))
-                          }
-                          style={styles.picker}
-                        >
-                          <Picker.Item label="Todos" value={null} />
-                          {origenesItems}
-                        </Picker>
-                      </View>
-                    </View>
-
-                    {/* Estado Proceso */}
-                    <View style={styles.filterSection}>
-                      <Text style={styles.label}>Estado del proceso</Text>
-                      <View style={styles.pickerContainer}>
-                        <Picker
-                          selectedValue={filters.EstadoProcesoID}
-                          onValueChange={(value) =>
-                            setFilters((prev) => ({
-                              ...prev,
-                              EstadoProcesoID: value,
-                            }))
-                          }
-                          style={styles.picker}
-                        >
-                          {estadosItems}
-                        </Picker>
-                      </View>
-                    </View>
-
-                    {/* Estado General */}
-                    <View style={styles.filterSection}>
-                      <Text style={styles.label}>Estado general</Text>
-                      <View style={styles.pickerContainer}>
-                        <Picker
-                          selectedValue={filters.EstadoGeneral}
-                          onValueChange={(value) =>
-                            setFilters((prev) => ({ ...prev, EstadoGeneral: value }))
-                          }
-                          style={styles.picker}
-                        >
-                          {estadosGeneralesItems}
-                        </Picker>
-                      </View>
-                    </View>
-                  </>
-                )}
-
-                {mode === 'calendar' && (
-                  <>
-                    {/* Estados Actividad */}
-                    <View style={styles.filterSection}>
-                      <Text style={styles.label}>Estados</Text>
-                      <View style={styles.pickerContainer}>
-                        <Picker
-                          selectedValue={filters.EstadoActividadID}
-                          onValueChange={(value) =>
-                            setFilters((prev) => ({ ...prev, EstadoActividadID: value }))
-                          }
-                          style={styles.picker}
-                        >
-                          {estadosActividadesItems}
-                        </Picker>
-                      </View>
-                    </View>
-
-                    {/* Fecha Inicial */}
-                    <View style={styles.filterSection}>
-                      <Text style={styles.label}>Fecha inicial</Text>
-                      <TextInput
-                        style={styles.textInput}
-                        placeholder="DD/MM/YYYY"
-                        value={filters.FechaInicial || ''}
-                        onChangeText={(text) =>
-                          setFilters((prev) => ({ ...prev, FechaInicial: text }))
-                        }
-                      />
-                    </View>
-
-                    {/* Fecha Final */}
-                    <View style={styles.filterSection}>
-                      <Text style={styles.label}>Fecha final</Text>
-                      <TextInput
-                        style={styles.textInput}
-                        placeholder="DD/MM/YYYY"
-                        value={filters.FechaFinal || ''}
-                        onChangeText={(text) =>
-                          setFilters((prev) => ({ ...prev, FechaFinal: text }))
-                        }
-                      />
-                    </View>
-
-                    {/* Tipos Actividades */}
-                    <View style={styles.filterSection}>
-                      <Text style={styles.label}>Tipos actividades</Text>
-                      <View style={styles.pickerContainer}>
-                        <Picker
-                          selectedValue={filters.TipoCalendarioActividadID}
-                          onValueChange={(value) =>
-                            setFilters((prev) => ({ ...prev, TipoCalendarioActividadID: value }))
-                          }
-                          style={styles.picker}
-                        >
-                          <Picker.Item label="Todos" value={null} />
-                          {tiposCalendarioItems}
-                        </Picker>
-                      </View>
-                    </View>
-                  </>
-                )}
-
-
-
-                {/* Búsqueda - común */}
-                <View style={styles.filterSection}>
-                  <Text style={styles.label}>Búsqueda</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder={mode === 'calendar' ? "Buscar por asunto, contacto..." : "Buscar por nombre, email, celular..."}
-                    value={filters.FullSearch}
-                    onChangeText={(text) =>
-                      setFilters((prev) => ({ ...prev, FullSearch: text }))
-                    }
-                    maxLength={100}
-                  />
-                </View>
-
-                {/* Fechas - Para versión futura si se necesita */}
-                {/* <View style={styles.filterSection}>
-                <Text style={styles.label}>Fecha inicial</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="DD/MM/YYYY"
-                  value={filters.FechaInicial || ''}
-                  onChangeText={(text) => setFilters(prev => ({ ...prev, FechaInicial: text }))}
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.headerTitleContainer}>
+              <View style={styles.headerIconContainer}>
+                <Ionicons
+                  name="options-outline"
+                  size={20}
+                  color={COLORS.primary}
                 />
               </View>
-
-              <View style={styles.filterSection}>
-                <Text style={styles.label}>Fecha final</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="DD/MM/YYYY"
-                  value={filters.FechaFinal || ''}
-                  onChangeText={(text) => setFilters(prev => ({ ...prev, FechaFinal: text }))}
-                />
-              </View> */}
-              </ScrollView>
-
-              <View style={styles.footer}>
-                <TouchableOpacity
-                  style={[styles.button, styles.resetButton]}
-                  onPress={handleResetFilters}
-                >
-                  <Text style={styles.resetButtonText}>Limpiar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleApplyFilters}>
-                  <LinearGradient
-                    colors={["#337ab7", "#00ACC4"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={[styles.button, styles.applyButton]}
-                  >
-                    <Text style={styles.applyButtonText}>Aplicar filtros</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-              </View>
-            </Animated.View>
+              <Text style={styles.headerTitle}>Filtros de Búsqueda</Text>
+            </View>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Ionicons name="close" size={24} color={COLORS.dark} />
+            </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </Modal >
+
+          <ScrollView
+            style={styles.body}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={COLORS.primary} />
+                <Text style={styles.loadingText}>Cargando opciones...</Text>
+              </View>
+            ) : (
+              <>
+                {/* Buscador General */}
+                <FilterSection title="Búsqueda rápida" icon="search-outline">
+                  <View style={styles.searchInputContainer}>
+                    <Ionicons
+                      name="search"
+                      size={18}
+                      color={COLORS.lightGray}
+                      style={styles.searchIcon}
+                    />
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder={
+                        mode === "calendar"
+                          ? "Asunto, contacto..."
+                          : "Nombre, email, celular..."
+                      }
+                      placeholderTextColor={COLORS.lightGray}
+                      value={filters.FullSearch}
+                      onChangeText={(text) =>
+                        setFilters((prev) => ({ ...prev, FullSearch: text }))
+                      }
+                    />
+                  </View>
+                </FilterSection>
+
+                {(mode === "table" || mode === "timeline") && (
+                  <>
+                    <FilterSection
+                      title="Tipo de contacto"
+                      icon="people-outline"
+                    >
+                      <ChipSelector
+                        options={origenesOptions}
+                        selectedValue={filters.OrigenPreContactoID}
+                        onSelect={(id) =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            OrigenPreContactoID: id,
+                          }))
+                        }
+                      />
+                    </FilterSection>
+
+                    <FilterSection
+                      title="Estado del proceso"
+                      icon="stats-chart-outline"
+                    >
+                      <ChipSelector
+                        options={estados}
+                        selectedValue={filters.EstadoProcesoID}
+                        onSelect={(id) =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            EstadoProcesoID: id,
+                          }))
+                        }
+                      />
+                    </FilterSection>
+
+                    <FilterSection
+                      title="Estado general"
+                      icon="alert-circle-outline"
+                    >
+                      <ChipSelector
+                        options={estadosGenerales}
+                        selectedValue={filters.EstadoGeneral}
+                        onSelect={(id) =>
+                          setFilters((prev) => ({ ...prev, EstadoGeneral: id }))
+                        }
+                      />
+                    </FilterSection>
+                  </>
+                )}
+
+                {mode === "calendar" && (
+                  <>
+                    <FilterSection
+                      title="Estado de actividad"
+                      icon="checkmark-circle-outline"
+                    >
+                      <ChipSelector
+                        options={estadosActividades}
+                        selectedValue={filters.EstadoActividadID}
+                        onSelect={(id) =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            EstadoActividadID: id,
+                          }))
+                        }
+                      />
+                    </FilterSection>
+
+                    <FilterSection
+                      title="Tipo de actividad"
+                      icon="layers-outline"
+                    >
+                      <ChipSelector
+                        options={tiposActividadesOptions}
+                        selectedValue={filters.TipoCalendarioActividadID}
+                        onSelect={(id) =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            TipoCalendarioActividadID: id,
+                          }))
+                        }
+                      />
+                    </FilterSection>
+
+                    <FilterSection
+                      title="Rango de fechas"
+                      icon="calendar-outline"
+                    >
+                      <View style={styles.datesContainer}>
+                        <TouchableOpacity
+                          style={styles.dateButton}
+                          onPress={() => setShowDatePicker("initial")}
+                        >
+                          <Text style={styles.dateLabel}>Desde</Text>
+                          <Text style={styles.dateValue}>
+                            {filters.FechaInicial
+                              ? filters.FechaInicial.split(" ")[0]
+                              : "Seleccionar"}
+                          </Text>
+                        </TouchableOpacity>
+                        <View style={styles.dateArrow}>
+                          <Ionicons
+                            name="arrow-forward"
+                            size={16}
+                            color={COLORS.lightGray}
+                          />
+                        </View>
+                        <TouchableOpacity
+                          style={styles.dateButton}
+                          onPress={() => setShowDatePicker("final")}
+                        >
+                          <Text style={styles.dateLabel}>Hasta</Text>
+                          <Text style={styles.dateValue}>
+                            {filters.FechaFinal
+                              ? filters.FechaFinal.split(" ")[0]
+                              : "Seleccionar"}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </FilterSection>
+                  </>
+                )}
+              </>
+            )}
+
+            <View style={{ height: 40 }} />
+          </ScrollView>
+
+          {/* Footer */}
+          <View
+            style={[
+              styles.footer,
+              { paddingBottom: Math.max(20, insets.bottom) },
+            ]}
+          >
+            <TouchableOpacity
+              style={styles.resetButton}
+              onPress={handleReset}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.resetButtonText}>Limpiar</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.applyButtonContainer}
+              onPress={handleApply}
+              activeOpacity={0.9}
+            >
+              <LinearGradient
+                colors={[COLORS.primary, COLORS.accent]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.applyButton}
+              >
+                <Text style={styles.applyButtonText}>Aplicar Filtros</Text>
+                <Feather name="check" size={18} color="#FFF" />
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+
+      {showDatePicker && (
+        <DateTimePicker
+          value={
+            (
+              showDatePicker === "initial"
+                ? filters.FechaInicial
+                : filters.FechaFinal
+            )
+              ? new Date(
+                  (showDatePicker === "initial"
+                    ? filters.FechaInicial
+                    : filters.FechaFinal
+                  ).replace(" ", "T")
+                )
+              : new Date()
+          }
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={handleDateChange}
+        />
+      )}
+    </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
+  modalOverlay: {
     flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
     justifyContent: "flex-end",
   },
-  dimmer: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.4)",
-  },
-  dismissArea: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  container: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    maxHeight: "90%",
-    paddingBottom: 20,
+  modalContent: {
+    backgroundColor: COLORS.background,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    height: "85%",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -10 },
     shadowOpacity: 0.1,
     shadowRadius: 20,
     elevation: 20,
   },
-  dragHandle: {
-    width: 40,
-    height: 5,
-    backgroundColor: "#E5E5EA",
-    borderRadius: 3,
-    alignSelf: "center",
-    marginTop: 12,
-  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 24,
-    paddingTop: 8,
+    paddingTop: 24,
     paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
   },
-  title: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#1C1C1E",
-    letterSpacing: -0.5,
+  headerTitleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  headerIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "rgba(51,122,183,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: COLORS.dark,
   },
   closeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#F2F2F7",
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#F1F5F9",
     justifyContent: "center",
     alignItems: "center",
   },
-  content: {
-    flexGrow: 0,
-    paddingHorizontal: 24,
+  body: {
+    flex: 1,
+    paddingHorizontal: 20,
   },
-  filterSection: {
-    marginBottom: 20,
+  section: {
+    marginTop: 24,
   },
-  label: {
-    fontSize: 15,
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    gap: 8,
+  },
+  sectionTitle: {
+    fontSize: 14,
     fontWeight: "700",
-    color: "#3A3A3C",
-    marginBottom: 10,
-    marginLeft: 4,
+    color: COLORS.gray,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
-  pickerContainer: {
-    backgroundColor: "#F2F2F7",
+  sectionContent: {
+    paddingLeft: 4,
+  },
+  // Chips
+  chipsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  chip: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     borderRadius: 12,
-    overflow: "hidden",
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
   },
-  picker: {
-    height: 50,
-    color: "#1C1C1E",
+  chipSelected: {
+    backgroundColor: "rgba(51,122,183,0.1)",
+    borderColor: COLORS.primary,
   },
-  textInput: {
-    backgroundColor: "#F2F2F7",
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 15,
-    color: "#1C1C1E",
+  chipText: {
+    fontSize: 14,
+    color: COLORS.gray,
     fontWeight: "500",
   },
+  chipTextSelected: {
+    color: COLORS.primary,
+    fontWeight: "700",
+  },
+  // Search Input
+  searchInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    height: 54,
+    paddingHorizontal: 16,
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  textInput: {
+    flex: 1,
+    fontSize: 15,
+    color: COLORS.dark,
+    height: "100%",
+  },
+  // Dates
+  datesContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  dateButton: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  dateLabel: {
+    fontSize: 10,
+    color: COLORS.lightGray,
+    textTransform: "uppercase",
+    fontWeight: "600",
+    marginBottom: 2,
+  },
+  dateValue: {
+    fontSize: 14,
+    color: COLORS.dark,
+    fontWeight: "600",
+  },
+  dateArrow: {
+    width: 24,
+    alignItems: "center",
+  },
+  // Footer
   footer: {
     flexDirection: "row",
     paddingHorizontal: 24,
     paddingTop: 16,
     gap: 12,
+    backgroundColor: COLORS.white,
+    borderTopWidth: 1,
+    borderTopColor: "#F1F5F9",
   },
-  button: {
+  resetButton: {
     flex: 1,
-    height: 54,
+    height: 56,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-  },
-  resetButton: {
-    backgroundColor: "#fff",
-    borderWidth: 1.5,
-    borderColor: "#E5E5EA",
-  },
-  applyButton: {
-    elevation: 4,
-    shadowColor: "#337ab7",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    paddingHorizontal: 24,
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
   },
   resetButtonText: {
     fontSize: 16,
-    color: "#8E8E93",
-    fontWeight: "700",
+    color: COLORS.primary,
+    fontWeight: "600",
+  },
+  applyButtonContainer: {
+    flex: 2,
+  },
+  applyButton: {
+    height: 56,
+    borderRadius: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   applyButtonText: {
     fontSize: 16,
-    color: "#fff",
+    color: "#FFF",
     fontWeight: "700",
   },
   loadingContainer: {
-    padding: 40,
-    alignItems: 'center',
+    flex: 1,
+    height: 300,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 16,
   },
   loadingText: {
-    marginTop: 8,
-    fontSize: 14,
-    color: '#AEAEB2',
+    fontSize: 15,
+    color: COLORS.gray,
+    fontWeight: "500",
   },
 });
 
