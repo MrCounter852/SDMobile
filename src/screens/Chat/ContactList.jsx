@@ -22,22 +22,9 @@ import ChatApiService from "../../services/chat/chatService";
 import ChatStorageService from "../../services/chat/chatStorageService";
 import { useGlobal } from "../../core/global";
 import FocusAwareStatusBar from "../../components/FocusAwareStatusBar";
+import { COLORS } from "../../core/theme";
 
 const { width } = Dimensions.get("window");
-
-// Paleta de colores de la marca
-const COLORS = {
-  primary: "#337ab7",
-  secondary: "#0086C8",
-  accent: "#00ACC4",
-  success: "#00CDA7",
-  highlight: "#88E782",
-  dark: "#1E293B",
-  gray: "#64748B",
-  lightGray: "#94A3B8",
-  background: "#F8FAFC",
-  white: "#FFFFFF",
-};
 
 const ContactList = ({ navigation }) => {
   const {

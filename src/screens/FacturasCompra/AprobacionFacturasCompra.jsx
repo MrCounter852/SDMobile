@@ -19,21 +19,9 @@ import FacturaFiltersModal from "../../components/FacturasCompra/FacturaFiltersM
 import FacturaDetailModal from "../../components/FacturasCompra/FacturaDetailModal";
 import FocusAwareStatusBar from "../../components/FocusAwareStatusBar";
 
-const { width } = Dimensions.get("window");
+import { COLORS } from "../../core/theme";
 
-// Paleta de colores de la marca
-const COLORS = {
-  primary: "#337ab7",
-  secondary: "#0086C8",
-  accent: "#00ACC4",
-  success: "#00CDA7",
-  highlight: "#88E782",
-  dark: "#1E293B",
-  gray: "#64748B",
-  lightGray: "#94A3B8",
-  background: "#F8FAFC",
-  white: "#FFFFFF",
-};
+const { width } = Dimensions.get("window");
 
 const AprobacionFacturasCompra = ({ navigation }) => {
   const [invoices, setInvoices] = useState([]);

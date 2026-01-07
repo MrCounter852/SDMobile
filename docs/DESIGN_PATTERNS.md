@@ -5,7 +5,7 @@ Esta guía documenta los patrones de diseño, componentes y estilos utilizados e
 ---
 
 ## 📦 Paleta de Colores
-
+src\core\theme.js
 ```javascript
 const COLORS = {
   primary: "#337ab7", // Azul principal - headers, acciones primarias
