@@ -893,7 +893,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 10,
     gap: 6,
   },
   filterChipInactive: {
@@ -915,7 +915,7 @@ const styles = StyleSheet.create({
   filterChipTextActive: {
     fontSize: 13,
     color: "#FFF",
-    fontWeight: "600",
+    fontWeight: "500",
   },
 
   // Contact list
