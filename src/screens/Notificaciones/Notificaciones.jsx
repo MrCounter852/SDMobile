@@ -18,6 +18,7 @@ import { useChatStore } from '../../core/chatStore';
 import chatApi from '../../services/chat/chatService';
 import { useGlobal } from '../../core/global';
 import FocusAwareStatusBar from '../../components/FocusAwareStatusBar';
+import { COLORS } from '../../core/theme';
 
 const Notificaciones = ({ navigation }) => {
   const {
@@ -177,17 +178,6 @@ const Notificaciones = ({ navigation }) => {
     const fadeAnim = useRef(new Animated.Value(1)).current;
     const slideAnim = useRef(new Animated.Value(0)).current;
     const heightAnim = useRef(new Animated.Value(200)).current; // Estimated initial height? Or auto?
-    // Using a value larg enough, then measuring or max-height could work,
-    // but animating ScaleY from 1 to 0 or MaxHeight is safer for lists.
-    // Let's us LayoutAnimation for simplicity on the list removal?
-    // Re-reading plan: "Animate Exit (Row height 0)".
-    // We can animate maxHeight or scaleY.
-
-    // Better approach for smooth exit: Animate height.
-    // Since we don't know exact height, we might need onLayout.
-    // For now, let's assume valid large MaxHeight and animate to 0. Is risky.
-    // Alternative: Animate ScaleY and Margin.
-
     const isUnread = !item.Visto;
     const swipeableRef = useRef(null);
 
@@ -304,7 +294,7 @@ const Notificaciones = ({ navigation }) => {
             {isUnread && (
               <View style={styles.unreadIndicator}>
                 <LinearGradient
-                  colors={['#015CAB', '#88E782']}
+                  colors={[COLORS.primary, COLORS.highlight]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.unreadGradient}
@@ -315,7 +305,7 @@ const Notificaciones = ({ navigation }) => {
             {/* Icono de notificación */}
             <View style={styles.iconContainer}>
               <LinearGradient
-                colors={isUnread ? ['#015CAB', '#88E782'] : ['#e0e0e0', '#bdbdbd']}
+                colors={isUnread ? [COLORS.primary, COLORS.highlight] : [COLORS.lightGray, COLORS.gray]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.iconGradient}
@@ -408,7 +398,7 @@ const Notificaciones = ({ navigation }) => {
       >
         {filterVisto === false ? (
           <LinearGradient
-            colors={['#015CAB', '#88E782']}
+            colors={[COLORS.primary, COLORS.accent]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.filterGradient}
@@ -438,7 +428,7 @@ const Notificaciones = ({ navigation }) => {
       >
         {filterVisto === true ? (
           <LinearGradient
-            colors={['#015CAB', '#88E782']}
+            colors={[COLORS.primary, COLORS.accent]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.filterGradient}
@@ -469,7 +459,7 @@ const Notificaciones = ({ navigation }) => {
       >
         {filterVisto === null ? (
           <LinearGradient
-            colors={['#015CAB', '#88E782']}
+            colors={[COLORS.primary, COLORS.accent]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.filterGradient}
@@ -501,16 +491,20 @@ const Notificaciones = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <FocusAwareStatusBar barStyle="light-content" backgroundColor="#015CAB" />
+      <FocusAwareStatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
 
       {/* Header con gradiente */}
       <LinearGradient
-        colors={['#015CAB', '#88E782']}
+        colors={[COLORS.primary, COLORS.secondary, COLORS.accent]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
       >
         <SafeAreaView edges={['top']}>
+          <View style={styles.headerPattern}>
+            <View style={styles.patternCircle1} />
+            <View style={styles.patternCircle2} />
+          </View>
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <Text style={styles.headerTitle}>Notificaciones</Text>
@@ -546,8 +540,8 @@ const Notificaciones = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#015CAB"
-            colors={['#015CAB', '#88E782']}
+            tintColor={COLORS.primary}
+            colors={[COLORS.primary, COLORS.accent]}
           />
         }
         ListEmptyComponent={
@@ -568,7 +562,7 @@ const Notificaciones = ({ navigation }) => {
         }
         ListFooterComponent={
           notificationsLoading && !refreshing ? (
-            <ActivityIndicator style={styles.loadingIndicator} size="large" color="#015CAB" />
+            <ActivityIndicator style={styles.loadingIndicator} size="large" color={COLORS.accent} />
           ) : null
         }
       />
@@ -581,18 +575,44 @@ export default Notificaciones;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f7fa',
+    backgroundColor: COLORS.background,
   },
   headerGradient: {
-    paddingBottom: 20,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    overflow: "hidden",
+  },
+  headerPattern: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  patternCircle1: {
+    position: "absolute",
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    top: -80,
+    right: -50,
+  },
+  patternCircle2: {
+    position: "absolute",
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "rgba(136,231,130,0.12)",
+    bottom: -40,
+    left: 20,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 15,
-    paddingBottom: 5,
+    paddingVertical: 20,
   },
   headerLeft: {
     flex: 1,
@@ -600,7 +620,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#fff',
+    color: COLORS.white,
     letterSpacing: 0.5,
   },
   headerSubtitle: {
@@ -619,7 +639,7 @@ const styles = StyleSheet.create({
   },
   filtersContainer: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     paddingHorizontal: 16,
     paddingVertical: 16,
     gap: 10,
@@ -648,18 +668,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: '#f5f7fa',
+    backgroundColor: COLORS.background,
     borderRadius: 25,
     gap: 6,
   },
   filterText: {
     fontSize: 14,
-    color: '#616161',
+    color: COLORS.gray,
     fontWeight: '600',
   },
   filterTextActive: {
     fontSize: 14,
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: '700',
   },
   filterBadge: {
@@ -672,11 +692,11 @@ const styles = StyleSheet.create({
   },
   filterBadgeText: {
     fontSize: 12,
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: '700',
   },
   filterBadgeInactive: {
-    backgroundColor: '#015CAB',
+    backgroundColor: COLORS.primary,
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -685,7 +705,7 @@ const styles = StyleSheet.create({
   },
   filterBadgeTextInactive: {
     fontSize: 12,
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: '700',
   },
   listContainer: {
@@ -693,7 +713,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   notificationItem: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderRadius: 16,
     marginBottom: 12,
     padding: 16,
@@ -708,9 +728,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   unreadNotification: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderWidth: 1,
-    borderColor: 'rgba(1, 92, 171, 0.2)',
+    borderColor: 'rgba(51, 122, 183, 0.2)',
   },
   unreadIndicator: {
     position: 'absolute',
@@ -746,29 +766,29 @@ const styles = StyleSheet.create({
   notificationTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#212121',
+    color: COLORS.dark,
     flex: 1,
     lineHeight: 22,
   },
   unreadTitle: {
     fontWeight: '700',
-    color: '#000',
+    color: COLORS.dark,
   },
   newBadge: {
-    backgroundColor: '#015CAB',
+    backgroundColor: COLORS.primary,
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
   newBadgeText: {
     fontSize: 10,
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: '800',
     letterSpacing: 0.5,
   },
   notificationText: {
     fontSize: 14,
-    color: '#616161',
+    color: COLORS.gray,
     lineHeight: 20,
     marginBottom: 8,
   },
@@ -784,7 +804,7 @@ const styles = StyleSheet.create({
   },
   notificationDate: {
     fontSize: 12,
-    color: '#9e9e9e',
+    color: COLORS.lightGray,
     fontWeight: '500',
   },
   notificationActions: {
@@ -798,7 +818,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#f5f7fa',
+    backgroundColor: COLORS.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -817,13 +837,13 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 20,
-    color: '#616161',
+    color: COLORS.gray,
     marginTop: 20,
     fontWeight: '700',
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#9e9e9e',
+    color: COLORS.lightGray,
     marginTop: 8,
     textAlign: 'center',
     fontWeight: '500',
@@ -833,14 +853,14 @@ const styles = StyleSheet.create({
   },
   leftActionContainer: {
     flex: 1,
-    backgroundColor: '#388E3C', // Green
+    backgroundColor: COLORS.success, // Green
     justifyContent: 'center',
     marginBottom: 12,
     borderRadius: 16,
   },
   rightActionContainer: {
     flex: 1,
-    backgroundColor: '#015CAB', // Blue
+    backgroundColor: COLORS.primary, // Blue
     justifyContent: 'center',
     alignItems: 'flex-end',
     marginBottom: 12,
@@ -860,7 +880,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   actionText: {
-    color: 'white',
+    color: COLORS.white,
     fontWeight: '600',
     marginLeft: 10,
     marginRight: 10,
