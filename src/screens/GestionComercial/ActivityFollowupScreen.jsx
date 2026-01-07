@@ -11,8 +11,12 @@ import {
   Platform,
   ActivityIndicator,
   Linking,
+  Dimensions,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,26 +24,27 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePickerComponent from "@react-native-community/datetimepicker";
 import { useGlobal } from "../../core/global";
+import FocusAwareStatusBar from "../../components/FocusAwareStatusBar";
 
 const GestionComercialService =
   require("../../services/GestionComercial/gestionComercialService").default;
 
 const Tab = createMaterialTopTabNavigator();
+const { width } = Dimensions.get("window");
 
 const COLORS = {
   primary: "#337ab7",
-  secondary: "#88E782",
-  background: "#F3F4F6",
-  card: "#FFFFFF",
-  text: "#1F2937",
-  textSecondary: "#6B7280",
-  border: "#E5E7EB",
-  inputBg: "#F9FAFB",
-  focus: "#337ab7",
+  secondary: "#0086C8",
+  accent: "#00ACC4",
+  success: "#00CDA7",
+  highlight: "#88E782",
+  dark: "#1E293B",
+  gray: "#64748B",
+  lightGray: "#94A3B8",
+  background: "#F8FAFC",
   white: "#FFFFFF",
-  danger: "#DC2626",
-  success: "#10B981",
-  warning: "#F59E0B",
+  border: "#E2E8F0",
+  danger: "#FF3B30",
 };
 
 // --- Helper Components ---
@@ -66,7 +71,7 @@ const CustomInput = ({
         <Ionicons
           name={icon}
           size={18}
-          color={COLORS.textSecondary}
+          color={COLORS.secondary}
           style={styles.inputIcon}
         />
       )}
@@ -75,7 +80,7 @@ const CustomInput = ({
         value={value ? String(value) : ""}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={COLORS.textSecondary}
+        placeholderTextColor={COLORS.lightGray}
         multiline={multiline}
         keyboardType={keyboardType}
       />
@@ -101,12 +106,12 @@ const CustomPicker = ({
         selectedValue={selectedValue}
         onValueChange={onValueChange}
         style={styles.picker}
-        dropdownIconColor={COLORS.textSecondary}
+        dropdownIconColor={COLORS.dark}
       >
         <Picker.Item
           label={placeholder || "Seleccione"}
           value=""
-          color={COLORS.textSecondary}
+          color={COLORS.lightGray}
           style={{ fontSize: 14 }}
         />
         {items.map((item, index) => (
@@ -128,7 +133,7 @@ const CustomPicker = ({
               item.CausalInviabilidadID ||
               item
             }
-            color={COLORS.text}
+            color={COLORS.dark}
             style={{ fontSize: 14 }}
           />
         ))}
@@ -174,11 +179,9 @@ const DateTimePicker = ({ label, required, value, onChange, placeholder }) => {
     }
   };
 
-  // Create a Date object from the string value for the picker
   const getPickerDate = () => {
     if (!value) return new Date();
     try {
-      // Assuming value is "YYYY-MM-DD HH:MM"
       const [datePart, timePart] = value.split(" ");
       const [year, month, day] = datePart.split("-").map(Number);
       const [hours, minutes] = timePart.split(":").map(Number);
@@ -195,14 +198,10 @@ const DateTimePicker = ({ label, required, value, onChange, placeholder }) => {
         {required && <Text style={styles.required}>*</Text>}
       </View>
       <TouchableOpacity style={styles.datePickerWrapper} onPress={handlePress}>
-        <Text style={[styles.input, !value && styles.placeholderText]}>
+        <Text style={[styles.dateInput, !value && styles.placeholderText]}>
           {value || placeholder}
         </Text>
-        <Ionicons
-          name="calendar-outline"
-          size={18}
-          color={COLORS.textSecondary}
-        />
+        <Ionicons name="calendar-outline" size={20} color={COLORS.secondary} />
       </TouchableOpacity>
 
       {show && (
@@ -224,11 +223,18 @@ const ContactInfoHeader = ({ contact }) => {
   const [showInfo, setShowInfo] = useState(false);
 
   return (
-    <View style={styles.contextHeader}>
-      <View style={styles.contextRow}>
+    <View style={styles.contextCard}>
+      <View style={styles.contextSummary}>
+        <View style={styles.contextAvatar}>
+          <Text style={styles.avatarText}>
+            {contact.NombreCompleto?.charAt(0) ||
+              contact.Nombres?.charAt(0) ||
+              "C"}
+          </Text>
+        </View>
         <View style={styles.contextMain}>
-          <Text style={styles.contextLabel}>Contacto:</Text>
-          <Text style={styles.contextValue}>
+          <Text style={styles.contextLabel}>Contacto Asociado</Text>
+          <Text style={styles.contextValue} numberOfLines={1}>
             {contact.NombreCompleto || contact.Nombres}
           </Text>
         </View>
@@ -237,28 +243,37 @@ const ContactInfoHeader = ({ contact }) => {
           onPress={() => setShowInfo(!showInfo)}
         >
           <Ionicons
-            name={showInfo ? "chevron-up" : "information-circle-outline"}
-            size={22}
+            name={showInfo ? "chevron-up-circle" : "information-circle"}
+            size={28}
             color={COLORS.primary}
           />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.contextRow}>
-        <View style={styles.contextMain}>
-          <Text style={styles.contextLabel}>Celular:</Text>
-          <Text style={styles.contextValue}>{contact.Celular || "N/A"}</Text>
+      <View style={styles.contextActionsRow}>
+        <View style={styles.phoneLabel}>
+          <Ionicons name="call-outline" size={14} color={COLORS.gray} />
+          <Text style={styles.phoneValue}>{contact.Celular || "N/A"}</Text>
         </View>
         <View style={styles.actionButtons}>
           <TouchableOpacity
-            style={styles.actionIcon}
-            onPress={() => Linking.openURL(`tel:${contact.Celular}`)}
+            style={[
+              styles.actionIconBtn,
+              { backgroundColor: "rgba(51, 122, 183, 0.1)" },
+            ]}
+            onPress={() =>
+              contact.Celular && Linking.openURL(`tel:${contact.Celular}`)
+            }
           >
             <Ionicons name="call" size={18} color={COLORS.primary} />
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.actionIcon}
+            style={[
+              styles.actionIconBtn,
+              { backgroundColor: "rgba(0, 205, 167, 0.1)" },
+            ]}
             onPress={() =>
+              contact.Celular &&
               Linking.openURL(`whatsapp://send?phone=${contact.Celular}`)
             }
           >
@@ -273,11 +288,10 @@ const ContactInfoHeader = ({ contact }) => {
             <Ionicons
               name="person-outline"
               size={14}
-              color={COLORS.textSecondary}
+              color={COLORS.secondary}
             />
             <Text style={styles.infoText}>
-              Asesor:{" "}
-              {contact.AsesorNombreCompleto || contact.Asesor || "No asignado"}
+              Asesor: {contact.AsesorNombreCompleto || "No asignado"}
             </Text>
           </View>
           {contact.Email && (
@@ -285,20 +299,10 @@ const ContactInfoHeader = ({ contact }) => {
               <Ionicons
                 name="mail-outline"
                 size={14}
-                color={COLORS.textSecondary}
+                color={COLORS.secondary}
               />
-              <Text style={styles.infoText}>Email: {contact.Email}</Text>
-            </View>
-          )}
-          {contact.Fecha && (
-            <View style={styles.infoLine}>
-              <Ionicons
-                name="calendar-outline"
-                size={14}
-                color={COLORS.textSecondary}
-              />
-              <Text style={styles.infoText}>
-                Registro: {new Date(contact.Fecha).toLocaleDateString()}
+              <Text style={styles.infoText} numberOfLines={1}>
+                Email: {contact.Email}
               </Text>
             </View>
           )}
@@ -307,9 +311,11 @@ const ContactInfoHeader = ({ contact }) => {
               <Ionicons
                 name="chatbox-outline"
                 size={14}
-                color={COLORS.textSecondary}
+                color={COLORS.secondary}
               />
-              <Text style={styles.infoText}>Obs: {contact.Observaciones}</Text>
+              <Text style={styles.infoText} numberOfLines={2}>
+                Obs: {contact.Observaciones}
+              </Text>
             </View>
           )}
         </View>
@@ -322,26 +328,27 @@ const InviableAlert = ({ contact }) => {
   if (contact.EstadoProcesoID !== 7) return null;
   return (
     <View style={styles.inviableAlert}>
-      <View style={styles.alertHeader}>
-        <Ionicons name="warning" size={20} color={COLORS.danger} />
-        <Text style={styles.alertTitle}>Contacto Inviable</Text>
-      </View>
-      <Text style={styles.alertText}>
-        <Text style={styles.boldLabel}>Causa: </Text>
-        {contact.CausalInviabilidadNombre}
-      </Text>
-      {contact.FechaInviabilidad && (
-        <Text style={styles.alertText}>
-          <Text style={styles.boldLabel}>Fecha: </Text>
-          {new Date(contact.FechaInviabilidad).toLocaleDateString()}
-        </Text>
-      )}
-      {contact.ObservacionesInviabilidad && (
-        <Text style={styles.alertText}>
-          <Text style={styles.boldLabel}>Obs: </Text>
-          {contact.ObservacionesInviabilidad}
-        </Text>
-      )}
+      <LinearGradient
+        colors={["rgba(255, 59, 48, 0.1)", "rgba(255, 59, 48, 0.05)"]}
+        style={styles.alertGradient}
+      >
+        <View style={styles.alertHeader}>
+          <Ionicons name="warning" size={20} color={COLORS.danger} />
+          <Text style={styles.alertTitle}>Contacto Inviable</Text>
+        </View>
+        <View style={styles.alertContent}>
+          <Text style={styles.alertText}>
+            <Text style={styles.boldLabel}>Causa: </Text>
+            {contact.CausalInviabilidadNombre}
+          </Text>
+          {contact.ObservacionesInviabilidad && (
+            <Text style={styles.alertText}>
+              <Text style={styles.boldLabel}>Obs: </Text>
+              {contact.ObservacionesInviabilidad}
+            </Text>
+          )}
+        </View>
+      </LinearGradient>
     </View>
   );
 };
@@ -454,9 +461,19 @@ const ActivityForm = ({ contact, onRefresh }) => {
   };
 
   return (
-    <View style={styles.formSectionContainer}>
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Información de la actividad</Text>
+    <View style={styles.formContent}>
+      <View style={styles.formCard}>
+        <View style={styles.cardHeader}>
+          <View style={styles.cardHeaderIcon}>
+            <Ionicons
+              name="calendar-outline"
+              size={18}
+              color={COLORS.primary}
+            />
+          </View>
+          <Text style={styles.cardTitle}>Detalles de la Actividad</Text>
+        </View>
+
         <CustomPicker
           label="Tipo de actividad"
           required
@@ -472,32 +489,46 @@ const ActivityForm = ({ contact, onRefresh }) => {
           required
           value={form.Asunto}
           onChangeText={(v) => updateForm("Asunto", v)}
-          placeholder="Ingrese un asunto descriptivo"
+          placeholder="¿De qué trata la actividad?"
+          icon="text-outline"
         />
-        <DateTimePicker
-          label="Fecha Inicio"
-          required
-          value={form.FechaInicio}
-          onChange={(v) => updateForm("FechaInicio", v)}
-          placeholder="YYYY-MM-DD HH:MM"
-        />
-        <DateTimePicker
-          label="Fecha Vencimiento"
-          required
-          value={form.FechaVencimiento}
-          onChange={(v) => updateForm("FechaVencimiento", v)}
-          placeholder="YYYY-MM-DD HH:MM"
-        />
+        <View style={styles.row}>
+          <View style={{ flex: 1, marginRight: 8 }}>
+            <DateTimePicker
+              label="Inicio"
+              required
+              value={form.FechaInicio}
+              onChange={(v) => updateForm("FechaInicio", v)}
+              placeholder="Fecha y hora"
+            />
+          </View>
+          <View style={{ flex: 1, marginLeft: 8 }}>
+            <DateTimePicker
+              label="Vencimiento"
+              required
+              value={form.FechaVencimiento}
+              onChange={(v) => updateForm("FechaVencimiento", v)}
+              placeholder="Fecha y hora"
+            />
+          </View>
+        </View>
         <CustomInput
           label="Descripción"
           value={form.Descripcion}
           onChangeText={(v) => updateForm("Descripcion", v)}
           multiline
+          placeholder="Añade más detalles aquí..."
         />
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Seguimiento y Registro</Text>
+      <View style={styles.formCard}>
+        <View style={styles.cardHeader}>
+          <View style={styles.cardHeaderIcon}>
+            <Ionicons name="person-outline" size={18} color={COLORS.primary} />
+          </View>
+          <Text style={styles.cardTitle}>Asignación y Notificación</Text>
+        </View>
+
         <CustomPicker
           label="Responsable"
           required
@@ -508,82 +539,131 @@ const ActivityForm = ({ contact, onRefresh }) => {
             value: u.UsuarioID,
           }))}
         />
-        <View style={styles.checkboxContainer}>
-          <TouchableOpacity
-            style={styles.checkboxWrapper}
-            onPress={() => updateForm("AsignarProceso", !form.AsignarProceso)}
+
+        <TouchableOpacity
+          style={styles.checkboxLine}
+          onPress={() => updateForm("AsignarProceso", !form.AsignarProceso)}
+          activeOpacity={0.7}
+        >
+          <View
+            style={[
+              styles.checkbox,
+              form.AsignarProceso && styles.checkboxActive,
+            ]}
           >
-            <Ionicons
-              name={form.AsignarProceso ? "checkbox" : "square-outline"}
-              size={24}
-              color={COLORS.primary}
-            />
-            <Text style={styles.checkboxLabel}>
-              Asignar proceso al responsable
-            </Text>
-          </TouchableOpacity>
-        </View>
+            {form.AsignarProceso && (
+              <Ionicons name="checkmark" size={16} color="#FFF" />
+            )}
+          </View>
+          <Text style={styles.checkboxText}>
+            Asignar proceso al responsable
+          </Text>
+        </TouchableOpacity>
+
         <CustomInput
           label="Email Invitados"
           value={form.Email}
           onChangeText={(v) => updateForm("Email", v)}
-          placeholder="correos separados por ;"
+          placeholder="ejemplo1@mail.com; ejemplo2@mail.com"
+          icon="mail-outline"
         />
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Atributos ERP Web</Text>
-        {showVisitanteFields && (
-          <>
-            <CustomInput
-              label="Documento Visitante"
-              value={form.VisitanteDocumento}
-              onChangeText={(v) => updateForm("VisitanteDocumento", v)}
-              keyboardType="numeric"
+      {(showVisitanteFields ||
+        showComplejoSelector ||
+        showInmuebleSelector ||
+        form.Link) && (
+        <View style={styles.formCard}>
+          <View style={styles.cardHeader}>
+            <View style={styles.cardHeaderIcon}>
+              <Ionicons
+                name="options-outline"
+                size={18}
+                color={COLORS.primary}
+              />
+            </View>
+            <Text style={styles.cardTitle}>Información Adicional</Text>
+          </View>
+
+          {showVisitanteFields && (
+            <View style={styles.row}>
+              <View style={{ flex: 1, marginRight: 8 }}>
+                <CustomInput
+                  label="Doc. Visitante"
+                  value={form.VisitanteDocumento}
+                  onChangeText={(v) => updateForm("VisitanteDocumento", v)}
+                  keyboardType="numeric"
+                />
+              </View>
+              <View style={{ flex: 1, marginLeft: 8 }}>
+                <CustomInput
+                  label="Nombre Visitante"
+                  value={form.VisitanteNombreCompleto}
+                  onChangeText={(v) => updateForm("VisitanteNombreCompleto", v)}
+                />
+              </View>
+            </View>
+          )}
+
+          {showComplejoSelector && (
+            <CustomPicker
+              label="Complejo"
+              selectedValue={form.ComplejoID}
+              onValueChange={(v) => updateForm("ComplejoID", v)}
+              items={complejos.map((c) => ({
+                label: c.Nombre,
+                value: c.ComplejoID,
+              }))}
             />
+          )}
+
+          {showInmuebleSelector && (
             <CustomInput
-              label="Nombre Visitante"
-              value={form.VisitanteNombreCompleto}
-              onChangeText={(v) => updateForm("VisitanteNombreCompleto", v)}
+              label="ID Inmueble"
+              value={form.InmuebleID}
+              onChangeText={(v) => updateForm("InmuebleID", v)}
+              icon="home-outline"
             />
-          </>
-        )}
-        {showComplejoSelector && (
-          <CustomPicker
-            label="Complejo"
-            selectedValue={form.ComplejoID}
-            onValueChange={(v) => updateForm("ComplejoID", v)}
-            items={complejos.map((c) => ({
-              label: c.Nombre,
-              value: c.ComplejoID,
-            }))}
-          />
-        )}
-        {showInmuebleSelector && (
+          )}
+
           <CustomInput
-            label="ID Inmueble"
-            value={form.InmuebleID}
-            onChangeText={(v) => updateForm("InmuebleID", v)}
+            label="Link de Reunión"
+            value={form.Link}
+            onChangeText={(v) => updateForm("Link", v)}
+            placeholder="Enlace de Zoom, Teams, etc."
+            icon="videocam-outline"
           />
-        )}
-        <CustomInput
-          label="Link Reunión"
-          value={form.Link}
-          onChangeText={(v) => updateForm("Link", v)}
-          placeholder="Zoom, Table, etc."
-        />
-      </View>
+        </View>
+      )}
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity onPress={handleSave} disabled={loading}>
+      <View style={styles.buttonWrapper}>
+        <TouchableOpacity
+          onPress={handleSave}
+          disabled={loading}
+          activeOpacity={0.8}
+        >
           <LinearGradient
-            colors={["#337ab7", "#00ACC4"]}
-            style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+            colors={
+              loading
+                ? [COLORS.lightGray, COLORS.gray]
+                : [COLORS.primary, COLORS.secondary]
+            }
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.submitBtn}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.saveButtonText}>Guardar Actividad</Text>
+              <>
+                <Text style={styles.submitBtnText}>Guardar Actividad</Text>
+                <Ionicons
+                  name="arrow-forward"
+                  size={20}
+                  color="#FFF"
+                  style={{ marginLeft: 8 }}
+                />
+              </>
             )}
           </LinearGradient>
         </TouchableOpacity>
@@ -622,28 +702,56 @@ const FollowupForm = ({ contact, onRefresh }) => {
   };
 
   return (
-    <View style={styles.formSectionContainer}>
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Nuevo Seguimiento</Text>
+    <View style={styles.formContent}>
+      <View style={styles.formCard}>
+        <View style={styles.cardHeader}>
+          <View style={styles.cardHeaderIcon}>
+            <Ionicons
+              name="chatbubble-ellipses-outline"
+              size={18}
+              color={COLORS.primary}
+            />
+          </View>
+          <Text style={styles.cardTitle}>Nuevo Seguimiento</Text>
+        </View>
         <CustomInput
           label="Observaciones"
           required
           value={observaciones}
           onChangeText={setObservaciones}
           multiline
-          placeholder="¿Qué novedades hay con este contacto?"
+          placeholder="Escribe aquí las novedades o avances con este contacto..."
         />
       </View>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity onPress={handleSave} disabled={loading}>
+
+      <View style={styles.buttonWrapper}>
+        <TouchableOpacity
+          onPress={handleSave}
+          disabled={loading}
+          activeOpacity={0.8}
+        >
           <LinearGradient
-            colors={["#337ab7", "#00ACC4"]}
-            style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+            colors={
+              loading
+                ? [COLORS.lightGray, COLORS.gray]
+                : [COLORS.primary, COLORS.secondary]
+            }
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.submitBtn}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.saveButtonText}>Guardar Seguimiento</Text>
+              <>
+                <Text style={styles.submitBtnText}>Guardar Seguimiento</Text>
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={20}
+                  color="#FFF"
+                  style={{ marginLeft: 8 }}
+                />
+              </>
             )}
           </LinearGradient>
         </TouchableOpacity>
@@ -676,29 +784,41 @@ const FollowupList = ({ contact, refreshKey }) => {
 
   if (loading)
     return (
-      <ActivityIndicator style={{ marginTop: 20 }} color={COLORS.primary} />
+      <ActivityIndicator style={{ marginTop: 24 }} color={COLORS.primary} />
     );
 
   return (
-    <View style={styles.listSectionContainer}>
+    <View style={styles.listSection}>
+      <Text style={styles.listSectionTitle}>Historial de Seguimientos</Text>
       {items.length === 0 ? (
-        <Text style={styles.emptyText}>No hay seguimientos registrados.</Text>
+        <View style={styles.emptyContainer}>
+          <Ionicons
+            name="chatbubble-outline"
+            size={48}
+            color={COLORS.lightGray}
+          />
+          <Text style={styles.emptyText}>No hay seguimientos registrados.</Text>
+        </View>
       ) : (
         items.map((item, idx) => (
           <View key={idx} style={styles.listItem}>
             <View style={styles.listItemHeader}>
-              <Ionicons
-                name="chatbubble-ellipses-outline"
-                size={20}
-                color={COLORS.primary}
-              />
-              <Text style={styles.listItemDate}>
-                {item.FechaRegistroAmigable ||
-                  new Date(item.FechaRegistro).toLocaleString()}
-              </Text>
+              <View style={styles.listAvatar}>
+                <Text style={styles.avatarTextSmall}>
+                  {item.NombreCompleto?.charAt(0) || "U"}
+                </Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.listItemUser}>{item.NombreCompleto}</Text>
+                <Text style={styles.listItemDate}>
+                  {item.FechaRegistroAmigable ||
+                    new Date(item.FechaRegistro).toLocaleString()}
+                </Text>
+              </View>
             </View>
-            <Text style={styles.listItemContent}>{item.Comentario}</Text>
-            <Text style={styles.listItemUser}>Por: {item.NombreCompleto}</Text>
+            <View style={styles.bubbleContent}>
+              <Text style={styles.listItemContent}>{item.Comentario}</Text>
+            </View>
           </View>
         ))
       )}
@@ -732,32 +852,73 @@ const ActivityList = ({ contact, refreshKey }) => {
 
   if (loading)
     return (
-      <ActivityIndicator style={{ marginTop: 20 }} color={COLORS.primary} />
+      <ActivityIndicator style={{ marginTop: 24 }} color={COLORS.primary} />
     );
 
   return (
-    <View style={styles.listSectionContainer}>
+    <View style={styles.listSection}>
+      <Text style={styles.listSectionTitle}>Actividades Programadas</Text>
       {items.length === 0 ? (
-        <Text style={styles.emptyText}>No hay actividades registradas.</Text>
+        <View style={styles.emptyContainer}>
+          <Ionicons
+            name="calendar-outline"
+            size={48}
+            color={COLORS.lightGray}
+          />
+          <Text style={styles.emptyText}>No hay actividades registradas.</Text>
+        </View>
       ) : (
         items.map((item, idx) => (
-          <View key={idx} style={styles.listItem}>
-            <View style={styles.listItemHeader}>
-              <Ionicons
-                name={item.Completada ? "checkmark-circle" : "calendar-outline"}
-                size={20}
-                color={item.Completada ? COLORS.success : COLORS.primary}
-              />
-              <Text style={styles.listItemTitle}>{item.Asunto}</Text>
+          <View key={idx} style={styles.activityItem}>
+            <View style={styles.activityItemHeader}>
+              <View
+                style={[
+                  styles.activityStatusIcon,
+                  {
+                    backgroundColor: item.Completada
+                      ? "rgba(0, 205, 167, 0.1)"
+                      : "rgba(51, 122, 183, 0.1)",
+                  },
+                ]}
+              >
+                <Ionicons
+                  name={item.Completada ? "checkmark-circle" : "time"}
+                  size={20}
+                  color={item.Completada ? COLORS.success : COLORS.primary}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.activityItemTitle}>{item.Asunto}</Text>
+                <Text style={styles.activityItemDate}>
+                  Programado por: {item.UsuarioNombre || "N/A"}
+                </Text>
+              </View>
             </View>
-            <Text style={styles.listItemContent}>{item.Descripcion}</Text>
-            <View style={styles.activityStats}>
-              <Text style={styles.detailText}>
-                Inicio: {new Date(item.FechaInicio).toLocaleDateString()}
-              </Text>
-              <Text style={styles.detailText}>
-                Vence: {new Date(item.FechaVencimiento).toLocaleDateString()}
-              </Text>
+
+            {item.Descripcion ? (
+              <Text style={styles.activityItemText}>{item.Descripcion}</Text>
+            ) : null}
+
+            <View style={styles.activityTimeline}>
+              <View style={styles.timelinePoint}>
+                <Text style={styles.timelineLabel}>INICIO</Text>
+                <Text style={styles.timelineValue}>
+                  {new Date(item.FechaInicio).toLocaleDateString()}
+                </Text>
+              </View>
+              <View style={styles.timelineArrow}>
+                <Ionicons
+                  name="arrow-forward"
+                  size={14}
+                  color={COLORS.lightGray}
+                />
+              </View>
+              <View style={styles.timelinePoint}>
+                <Text style={styles.timelineLabel}>VENCE</Text>
+                <Text style={styles.timelineValue}>
+                  {new Date(item.FechaVencimiento).toLocaleDateString()}
+                </Text>
+              </View>
             </View>
           </View>
         ))
@@ -771,21 +932,12 @@ const ActivityList = ({ contact, refreshKey }) => {
 const ActivityFollowupScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const insets = useSafeAreaInsets();
   const { contact } = route.params || {};
 
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: "Actividades y seguimientos",
-      headerTitleStyle: { fontSize: 18, fontWeight: "bold" },
-      headerTintColor: "#337ab7",
-      headerLeft: () => (
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={{ marginRight: 16, marginLeft: 16 }}
-        >
-          <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
-        </TouchableOpacity>
-      ),
+      headerShown: false,
     });
   }, [navigation]);
 
@@ -794,12 +946,16 @@ const ActivityFollowupScreen = () => {
   const FollowupsTab = () => {
     const [refreshKey, setRefreshKey] = useState(0);
     return (
-      <ScrollView style={styles.tabContainer}>
+      <ScrollView
+        style={styles.tabContainer}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+      >
         <FollowupForm
           contact={contact}
           onRefresh={() => setRefreshKey((k) => k + 1)}
         />
-        <View style={styles.tabSeparator} />
+        <View style={styles.tabSectionDivider} />
         <FollowupList contact={contact} refreshKey={refreshKey} />
       </ScrollView>
     );
@@ -808,71 +964,233 @@ const ActivityFollowupScreen = () => {
   const ActivitiesTab = () => {
     const [refreshKey, setRefreshKey] = useState(0);
     return (
-      <ScrollView style={styles.tabContainer}>
+      <ScrollView
+        style={styles.tabContainer}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+      >
         <ActivityForm
           contact={contact}
           onRefresh={() => setRefreshKey((k) => k + 1)}
         />
-        <View style={styles.tabSeparator} />
+        <View style={styles.tabSectionDivider} />
         <ActivityList contact={contact} refreshKey={refreshKey} />
       </ScrollView>
     );
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
-      <ContactInfoHeader contact={contact} />
-      <InviableAlert contact={contact} />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
+    <View style={styles.container}>
+      <FocusAwareStatusBar
+        barStyle="light-content"
+        backgroundColor={COLORS.primary}
+      />
+
+      <LinearGradient
+        colors={[COLORS.primary, COLORS.secondary, COLORS.accent]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
       >
-        <Tab.Navigator
-          screenOptions={{
-            tabBarActiveTintColor: COLORS.primary,
-            tabBarLabelStyle: { fontSize: 13, fontWeight: "700" },
-            tabBarStyle: { elevation: 0, shadowOpacity: 0 },
-            tabBarIndicatorStyle: { backgroundColor: COLORS.primary },
-          }}
+        <SafeAreaView edges={["top"]}>
+          <View style={styles.headerPattern}>
+            <View style={styles.patternCircle1} />
+            <View style={styles.patternCircle2} />
+          </View>
+          <View style={styles.headerContent}>
+            <TouchableOpacity
+              style={styles.headerBackBtn}
+              onPress={() => navigation.goBack()}
+            >
+              <Ionicons name="arrow-back" size={24} color="#FFF" />
+            </TouchableOpacity>
+            <View style={styles.headerTitleContainer}>
+              <Text style={styles.headerSubtitle}>Gestión de Contacto</Text>
+              <Text style={styles.headerTitle}>Actividades y Seguimientos</Text>
+            </View>
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
+
+      <View style={{ flex: 1, marginTop: -20 }}>
+        <ContactInfoHeader contact={contact} />
+        <InviableAlert contact={contact} />
+
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
         >
-          <Tab.Screen name="Seguimientos" component={FollowupsTab} />
-          <Tab.Screen name="Actividades" component={ActivitiesTab} />
-        </Tab.Navigator>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          <Tab.Navigator
+            screenOptions={{
+              tabBarActiveTintColor: COLORS.primary,
+              tabBarInactiveTintColor: COLORS.gray,
+              tabBarLabelStyle: {
+                fontSize: 13,
+                fontWeight: "800",
+                textTransform: "capitalize",
+              },
+              tabBarStyle: {
+                backgroundColor: COLORS.white,
+                elevation: 0,
+                shadowOpacity: 0,
+                borderBottomWidth: 1,
+                borderBottomColor: COLORS.border,
+              },
+              tabBarIndicatorStyle: {
+                backgroundColor: COLORS.primary,
+                height: 3,
+                borderRadius: 3,
+              },
+            }}
+          >
+            <Tab.Screen name="Seguimientos" component={FollowupsTab} />
+            <Tab.Screen name="Actividades" component={ActivitiesTab} />
+          </Tab.Navigator>
+        </KeyboardAvoidingView>
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  contextHeader: {
-    backgroundColor: COLORS.white,
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+
+  // Header
+  headerGradient: {
+    paddingBottom: 40,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
   },
-  contextRow: {
+  headerPattern: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  patternCircle1: {
+    position: "absolute",
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    top: -80,
+    right: -50,
+  },
+  patternCircle2: {
+    position: "absolute",
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "rgba(136,231,130,0.12)",
+    bottom: -40,
+    left: 20,
+  },
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  headerBackBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerTitleContainer: { flex: 1, marginLeft: 16 },
+  headerSubtitle: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.8)",
+    fontWeight: "600",
+    textTransform: "uppercase",
+  },
+  headerTitle: { fontSize: 18, fontWeight: "800", color: "#FFF" },
+
+  // Context Card
+  contextCard: {
+    backgroundColor: COLORS.white,
+    marginHorizontal: 16,
+    borderRadius: 24,
+    padding: 16,
+    elevation: 10,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    marginBottom: 12,
+  },
+  contextSummary: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  contextAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: COLORS.primary,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  avatarText: { color: "#FFF", fontSize: 18, fontWeight: "800" },
+  contextMain: { flex: 1, paddingHorizontal: 12 },
+  contextLabel: {
+    fontSize: 11,
+    color: COLORS.lightGray,
+    fontWeight: "700",
+    textTransform: "uppercase",
+  },
+  contextValue: { fontSize: 16, fontWeight: "800", color: COLORS.dark },
+  infoToggleButton: { padding: 4 },
+  contextActionsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
   },
-  contextMain: { flex: 1 },
-  contextLabel: { fontSize: 12, color: COLORS.textSecondary, marginBottom: 2 },
-  contextValue: { fontSize: 16, fontWeight: "700", color: COLORS.text },
-  infoToggleButton: { padding: 4 },
-  actionButtons: { flexDirection: "row" },
-  actionIcon: { marginLeft: 16, padding: 4 },
+  phoneLabel: { flexDirection: "row", alignItems: "center" },
+  phoneValue: {
+    marginLeft: 6,
+    fontSize: 14,
+    color: COLORS.gray,
+    fontWeight: "600",
+  },
+  actionButtons: { flexDirection: "row", gap: 10 },
+  actionIconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   extraInfoContainer: {
-    marginTop: 8,
+    marginTop: 12,
     padding: 12,
-    backgroundColor: COLORS.inputBg,
-    borderRadius: 8,
+    backgroundColor: COLORS.background,
+    borderRadius: 16,
+    gap: 8,
   },
-  infoLine: { flexDirection: "row", alignItems: "center", marginBottom: 6 },
-  infoText: { fontSize: 13, color: COLORS.textSecondary, marginLeft: 8 },
+  infoLine: { flexDirection: "row", alignItems: "center" },
+  infoText: {
+    fontSize: 13,
+    color: COLORS.gray,
+    marginLeft: 8,
+    fontWeight: "500",
+  },
+
+  // Alerts
   inviableAlert: {
-    backgroundColor: "#FEF2F2",
+    marginHorizontal: 16,
+    marginBottom: 12,
+    borderRadius: 16,
+    overflow: "hidden",
+  },
+  alertGradient: {
     padding: 16,
     borderLeftWidth: 4,
     borderLeftColor: COLORS.danger,
@@ -880,123 +1198,250 @@ const styles = StyleSheet.create({
   alertHeader: { flexDirection: "row", alignItems: "center", marginBottom: 8 },
   alertTitle: {
     fontSize: 15,
-    fontWeight: "700",
-    color: COLORS.danger,
-    marginLeft: 8,
-  },
-  alertText: { fontSize: 14, color: COLORS.textSecondary, marginBottom: 4 },
-  boldLabel: { fontWeight: "700", color: COLORS.text },
-  tabContainer: { flex: 1 },
-  formSectionContainer: { padding: 16 },
-  section: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    elevation: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  sectionTitle: {
-    fontSize: 14,
     fontWeight: "800",
-    color: COLORS.primary,
-    textTransform: "uppercase",
+    color: COLORS.danger,
+    marginLeft: 10,
+  },
+  alertContent: { paddingLeft: 30 },
+  alertText: { fontSize: 13, color: COLORS.gray, marginBottom: 4 },
+  boldLabel: { fontWeight: "800", color: COLORS.dark },
+
+  // Tabs
+  tabContainer: { flex: 1, backgroundColor: COLORS.background },
+  tabSectionDivider: { height: 12, backgroundColor: "rgba(0,0,0,0.02)" },
+
+  // Forms
+  formContent: { padding: 16 },
+  formCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 20,
+    padding: 20,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+    gap: 12,
+  },
+  cardHeaderIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: "rgba(51, 122, 183, 0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cardTitle: { fontSize: 15, fontWeight: "800", color: COLORS.dark },
+
+  // Inputs
+  inputContainer: { marginBottom: 16 },
+  labelContainer: { flexDirection: "row", marginBottom: 6, paddingLeft: 4 },
+  label: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: COLORS.gray,
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
-  inputContainer: { marginBottom: 14 },
-  labelContainer: { flexDirection: "row", marginBottom: 6 },
-  label: { fontSize: 13, fontWeight: "600", color: COLORS.textSecondary },
   required: { color: COLORS.danger, marginLeft: 2 },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.inputBg,
-    borderRadius: 8,
+    backgroundColor: COLORS.background,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: COLORS.border,
     paddingHorizontal: 12,
-    height: 45,
+    height: 48,
   },
   inputWrapperMultiline: {
-    height: 80,
+    height: 100,
     alignItems: "flex-start",
-    paddingTop: 8,
+    paddingTop: 10,
   },
-  input: { flex: 1, fontSize: 14, color: COLORS.text },
+  input: { flex: 1, fontSize: 14, color: COLORS.dark, fontWeight: "500" },
   inputMultiline: { textAlignVertical: "top" },
-  inputIcon: { marginRight: 8 },
+  inputIcon: { marginRight: 10 },
+
   pickerWrapper: {
-    backgroundColor: COLORS.inputBg,
-    borderRadius: 8,
+    backgroundColor: COLORS.background,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: COLORS.border,
-    height: 45,
+    height: 48,
     justifyContent: "center",
+    paddingHorizontal: 4,
   },
-  picker: { width: "100%", color: COLORS.text },
+  picker: { width: "100%", color: COLORS.dark },
+
   datePickerWrapper: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: COLORS.inputBg,
-    borderRadius: 8,
+    backgroundColor: COLORS.background,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: COLORS.border,
     paddingHorizontal: 12,
-    height: 45,
+    height: 48,
   },
-  placeholderText: { color: COLORS.textSecondary },
-  checkboxContainer: { marginBottom: 14 },
-  checkboxWrapper: { flexDirection: "row", alignItems: "center" },
-  checkboxLabel: { marginLeft: 8, fontSize: 14, color: COLORS.textSecondary },
-  buttonContainer: { marginTop: 8 },
-  saveButton: { paddingVertical: 14, borderRadius: 8, alignItems: "center" },
-  saveButtonText: { color: COLORS.white, fontSize: 15, fontWeight: "700" },
-  saveButtonDisabled: { opacity: 0.5 },
-  listSectionContainer: { padding: 16 },
+  dateInput: { fontSize: 14, color: COLORS.dark, fontWeight: "600" },
+  placeholderText: { color: COLORS.lightGray, fontWeight: "400" },
+
+  row: { flexDirection: "row" },
+
+  // Checkbox
+  checkboxLine: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+    paddingLeft: 4,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  checkboxActive: { backgroundColor: COLORS.primary },
+  checkboxText: { fontSize: 14, color: COLORS.gray, fontWeight: "600" },
+
+  // Buttons
+  buttonWrapper: { marginTop: 8 },
+  submitBtn: {
+    height: 54,
+    borderRadius: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  submitBtnText: { color: COLORS.white, fontSize: 16, fontWeight: "800" },
+
+  // Lists
+  listSection: { padding: 16 },
+  listSectionTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: COLORS.dark,
+    marginBottom: 16,
+    paddingLeft: 4,
+  },
   listItem: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
+    backgroundColor: COLORS.white,
+    borderRadius: 20,
     padding: 16,
     marginBottom: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.primary,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   listItemHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 12,
+    gap: 12,
   },
-  listItemTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: COLORS.text,
-    marginLeft: 8,
+  listAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: COLORS.secondary,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  listItemDate: { fontSize: 12, color: COLORS.textSecondary, marginLeft: 8 },
-  listItemContent: { fontSize: 14, color: COLORS.text, lineHeight: 20 },
-  listItemUser: {
+  avatarTextSmall: { color: "#FFF", fontSize: 14, fontWeight: "700" },
+  listItemUser: { fontSize: 14, fontWeight: "800", color: COLORS.dark },
+  listItemDate: { fontSize: 11, color: COLORS.lightGray, fontWeight: "600" },
+  bubbleContent: {
+    backgroundColor: COLORS.background,
+    padding: 12,
+    borderRadius: 14,
+  },
+  listItemContent: {
+    fontSize: 14,
+    color: COLORS.gray,
+    lineHeight: 20,
+    fontWeight: "500",
+  },
+
+  // Activity Item
+  activityItem: {
+    backgroundColor: COLORS.white,
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  activityItemHeader: { flexDirection: "row", gap: 12, marginBottom: 12 },
+  activityStatusIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  activityItemTitle: { fontSize: 15, fontWeight: "800", color: COLORS.dark },
+  activityItemDate: {
     fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 8,
-    fontStyle: "italic",
+    color: COLORS.lightGray,
+    fontWeight: "600",
   },
-  activityStats: {
+  activityItemText: {
+    fontSize: 13,
+    color: COLORS.gray,
+    lineHeight: 18,
+    marginBottom: 16,
+    backgroundColor: COLORS.background,
+    padding: 10,
+    borderRadius: 12,
+  },
+  activityTimeline: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 8,
+    backgroundColor: "#F1F5F9",
+    padding: 10,
+    borderRadius: 12,
   },
-  detailText: { fontSize: 11, color: COLORS.textSecondary },
+  timelinePoint: { flex: 1, alignItems: "center" },
+  timelineLabel: {
+    fontSize: 9,
+    fontWeight: "800",
+    color: COLORS.lightGray,
+    marginBottom: 2,
+  },
+  timelineValue: { fontSize: 12, fontWeight: "800", color: COLORS.secondary },
+  timelineArrow: { paddingHorizontal: 10 },
+
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+  },
   emptyText: {
     textAlign: "center",
-    color: COLORS.textSecondary,
-    marginTop: 32,
+    color: COLORS.lightGray,
+    marginTop: 12,
+    fontSize: 14,
+    fontWeight: "500",
   },
-  tabSeparator: { height: 8, backgroundColor: COLORS.background },
 });
 
 export default ActivityFollowupScreen;
