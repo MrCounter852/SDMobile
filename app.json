@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "SediMobile",
-    "slug": "SediMobile",
+    "name": "Sedi ERP",
+    "slug": "sedi-erp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
