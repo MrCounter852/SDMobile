@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,14 +8,32 @@ import {
   RefreshControl,
   ActivityIndicator,
   Alert,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, Feather } from "@expo/vector-icons";
 import facturasCompraService from "../../services/facturasCompra/facturasCompraService";
 import FacturaItem from "../../components/FacturasCompra/FacturaItem";
 import FacturaFiltersModal from "../../components/FacturasCompra/FacturaFiltersModal";
 import FacturaDetailModal from "../../components/FacturasCompra/FacturaDetailModal";
+import FocusAwareStatusBar from "../../components/FocusAwareStatusBar";
+
+const { width } = Dimensions.get("window");
+
+// Paleta de colores de la marca
+const COLORS = {
+  primary: "#337ab7",
+  secondary: "#0086C8",
+  accent: "#00ACC4",
+  success: "#00CDA7",
+  highlight: "#88E782",
+  dark: "#1E293B",
+  gray: "#64748B",
+  lightGray: "#94A3B8",
+  background: "#F8FAFC",
+  white: "#FFFFFF",
+};
 
 const AprobacionFacturasCompra = ({ navigation }) => {
   const [invoices, setInvoices] = useState([]);
@@ -89,52 +107,110 @@ const AprobacionFacturasCompra = ({ navigation }) => {
     loadInvoices(1, true);
   };
 
+  const hasActiveFilters =
+    filters.FullSearch !== "" || filters.TerceroID !== null;
+
+  const activeFiltersCount = [
+    filters.FullSearch !== "",
+    filters.TerceroID !== null,
+  ].filter(Boolean).length;
+
+  const renderHeader = () => (
+    <LinearGradient
+      colors={[COLORS.primary, COLORS.secondary, COLORS.accent]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.headerGradient}
+    >
+      <SafeAreaView edges={["top"]}>
+        <View style={styles.headerPattern}>
+          <View style={styles.patternCircle1} />
+          <View style={styles.patternCircle2} />
+        </View>
+        <View style={styles.headerContent}>
+          <View>
+            <Text style={styles.headerSubtitle}>Facturas de compra</Text>
+            <Text style={styles.headerTitle}>Aprobación</Text>
+          </View>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity
+              style={[
+                styles.headerButton,
+                hasActiveFilters && styles.headerButtonActive,
+              ]}
+              onPress={() => setFilterModalVisible(true)}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name={hasActiveFilters ? "filter" : "filter-outline"}
+                size={20}
+                color="#FFF"
+              />
+              {activeFiltersCount > 0 && (
+                <View style={styles.filterBadge}>
+                  <Text style={styles.filterBadgeText}>
+                    {activeFiltersCount}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
+  );
+
   const renderFooter = () => {
     if (!loading || refreshing) return null;
     return (
       <View style={styles.loadingFooter}>
-        <ActivityIndicator size="small" color="#337ab7" />
-        <Text style={styles.loadingText}>Cargando más...</Text>
+        <ActivityIndicator size="small" color={COLORS.primary} />
+        <Text style={styles.loadingText}>Cargando más facturas...</Text>
       </View>
     );
   };
 
-  const hasActiveFilters =
-    filters.FullSearch !== "" || filters.TerceroID !== null;
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <View style={styles.emptyIconContainer}>
+        <Ionicons
+          name="document-text-outline"
+          size={64}
+          color={COLORS.lightGray}
+        />
+      </View>
+      <Text style={styles.emptyTitle}>Sin facturas pendientes</Text>
+      <Text style={styles.emptyText}>
+        No hay facturas pendientes de aprobación con los filtros seleccionados
+      </Text>
+      {hasActiveFilters && (
+        <TouchableOpacity
+          style={styles.clearFiltersButton}
+          onPress={() =>
+            setFilters({
+              FullSearch: "",
+              TerceroID: null,
+              TerceroNombre: "",
+              EstadoAprobacionFacturaCompraID: 1,
+            })
+          }
+          activeOpacity={0.8}
+        >
+          <Feather name="x-circle" size={18} color={COLORS.primary} />
+          <Text style={styles.clearFiltersText}>Limpiar filtros</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
 
   return (
-    <SafeAreaView style={styles.mainContainer} edges={["top", "left", "right"]}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerSubtitle}>Facturas de compra</Text>
-          <Text style={styles.title}>Aprobación</Text>
-        </View>
-        <View style={styles.headerButtons}>
-          <TouchableOpacity
-            style={[
-              styles.headerButton,
-              hasActiveFilters && styles.headerButtonActive,
-            ]}
-            onPress={() => setFilterModalVisible(true)}
-          >
-            <Ionicons
-              name={hasActiveFilters ? "filter" : "filter-outline"}
-              size={22}
-              color={hasActiveFilters ? "#337ab7" : "#3A3A3C"}
-            />
-          </TouchableOpacity>
-          {/*<TouchableOpacity onPress={handleRefresh}>
-            <LinearGradient
-              colors={["#337ab7", "#00ACC4"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.addButton}
-            >
-              <Ionicons name="refresh" size={24} color="#fff" />
-            </LinearGradient>
-          </TouchableOpacity>*/}
-        </View>
-      </View>
+    <View style={styles.container}>
+      <FocusAwareStatusBar
+        barStyle="light-content"
+        backgroundColor={COLORS.primary}
+      />
+
+      {renderHeader()}
 
       <FlatList
         data={invoices}
@@ -149,22 +225,15 @@ const AprobacionFacturasCompra = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={["#337ab7"]}
+            colors={[COLORS.primary, COLORS.accent]}
+            tintColor={COLORS.primary}
           />
         }
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
         ListFooterComponent={renderFooter}
-        ListEmptyComponent={
-          !loading && (
-            <View style={styles.emptyContainer}>
-              <Ionicons name="document-text-outline" size={64} color="#ccc" />
-              <Text style={styles.emptyText}>
-                No hay facturas pendientes de aprobación
-              </Text>
-            </View>
-          )
-        }
+        ListEmptyComponent={!loading && renderEmptyState}
+        showsVerticalScrollIndicator={false}
       />
 
       <FacturaFiltersModal
@@ -182,38 +251,64 @@ const AprobacionFacturasCompra = ({ navigation }) => {
         item={selectedInvoice}
         onActionSuccess={handleActionSuccess}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  mainContainer: {
+  container: {
     flex: 1,
-    backgroundColor: "#F2F2F7",
+    backgroundColor: COLORS.background,
   },
-  header: {
+
+  // Header
+  headerGradient: {
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    overflow: "hidden",
+  },
+  headerPattern: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  patternCircle1: {
+    position: "absolute",
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    top: -80,
+    right: -50,
+  },
+  patternCircle2: {
+    position: "absolute",
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "rgba(136,231,130,0.12)",
+    bottom: -40,
+    left: -30,
+  },
+  headerContent: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: "#fff",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
   },
   headerSubtitle: {
-    fontSize: 13,
-    color: "#8E8E93",
+    fontSize: 14,
+    color: "rgba(255,255,255,0.75)",
     fontWeight: "500",
     marginBottom: 2,
   },
-  title: {
-    fontSize: 24,
+  headerTitle: {
+    fontSize: 26,
     fontWeight: "800",
-    color: "#337ab7",
+    color: "#FFF",
     letterSpacing: -0.5,
   },
   headerButtons: {
@@ -222,54 +317,99 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   headerButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#F2F2F7",
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.2)",
     justifyContent: "center",
     alignItems: "center",
   },
   headerButtonActive: {
-    backgroundColor: "#E5F1FF",
+    backgroundColor: "rgba(255,255,255,0.3)",
   },
-  addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  filterBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: COLORS.highlight,
     justifyContent: "center",
     alignItems: "center",
-    elevation: 4,
-    shadowColor: "#337ab7",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    borderWidth: 2,
+    borderColor: "#FFF",
   },
+  filterBadgeText: {
+    fontSize: 10,
+    color: "#FFF",
+    fontWeight: "700",
+  },
+
+  // List
   listContainer: {
-    paddingVertical: 10,
+    paddingTop: 12,
+    paddingBottom: 20,
     flexGrow: 1,
   },
+
+  // Loading footer
   loadingFooter: {
+    flexDirection: "row",
     padding: 20,
     alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
   },
   loadingText: {
-    marginTop: 8,
-    color: "#8E8E93",
+    color: COLORS.gray,
     fontSize: 14,
+    fontWeight: "500",
   },
+
+  // Empty state
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 40,
-    marginTop: 100,
+    marginTop: 40,
+  },
+  emptyIconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: COLORS.dark,
+    marginBottom: 8,
   },
   emptyText: {
-    fontSize: 16,
-    color: "#AEAEB2",
+    fontSize: 14,
+    color: COLORS.gray,
     textAlign: "center",
-    marginTop: 16,
-    fontWeight: "500",
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  clearFiltersButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: "#E0F2FE",
+    borderRadius: 10,
+    gap: 6,
+  },
+  clearFiltersText: {
+    fontSize: 14,
+    color: COLORS.primary,
+    fontWeight: "600",
   },
 });
 
