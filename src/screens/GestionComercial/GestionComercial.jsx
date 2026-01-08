@@ -23,6 +23,7 @@ import ColorPickerModal from "../../components/GestionComercial/ColorPickerModal
 import TableView from "../../components/GestionComercial/TableView";
 import TimelineView from "../../components/GestionComercial/TimelineView";
 import CalendarView from "../../components/GestionComercial/CalendarView";
+import { FILTER_OPTIONS } from "../../components/GestionComercial/FilterConstants";
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -217,14 +218,36 @@ const GestionComercial = ({ navigation }) => {
         searchFilters.EstadoProcesoID &&
         searchFilters.EstadoProcesoID !== "1,4"
       ) {
-        tags.push({ key: "EstadoProcesoID", label: "Estados" });
+        const estado = FILTER_OPTIONS.estados.find(
+          (e) => e.ID === searchFilters.EstadoProcesoID
+        );
+        tags.push({
+          key: "EstadoProcesoID",
+          label: estado ? estado.Nombre : "Estados",
+        });
+      }
+
+      if (searchFilters.EstadoGeneral) {
+        const estadoG = FILTER_OPTIONS.estadosGenerales.find(
+          (e) => e.ID === searchFilters.EstadoGeneral
+        );
+        tags.push({
+          key: "EstadoGeneral",
+          label: estadoG ? estadoG.Nombre : searchFilters.EstadoGeneral,
+        });
       }
     } else if (mode === "calendar") {
       if (
         searchFilters.EstadoActividadID &&
         searchFilters.EstadoActividadID !== "3,4"
       ) {
-        tags.push({ key: "EstadoActividadID", label: "Estados Act." });
+        const estadoA = FILTER_OPTIONS.estadosActividades.find(
+          (e) => e.ID === searchFilters.EstadoActividadID
+        );
+        tags.push({
+          key: "EstadoActividadID",
+          label: estadoA ? estadoA.Nombre : "Estados Act.",
+        });
       }
     }
 

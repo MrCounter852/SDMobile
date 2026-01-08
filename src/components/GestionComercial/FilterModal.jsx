@@ -19,6 +19,7 @@ import {
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { FILTER_OPTIONS } from "./FilterConstants";
 
 const { width } = Dimensions.get("window");
 
@@ -130,35 +131,10 @@ const FilterModal = ({
   };
 
   // Opciones predefinidas
-  const estados = useMemo(
-    () => [
-      { ID: null, Nombre: "Todos" },
-      { ID: "1,4", Nombre: "Vigentes" },
-      { ID: "2", Nombre: "Finalizados" },
-      { ID: "3", Nombre: "Inviables" },
-    ],
-    []
-  );
-
-  const estadosGenerales = useMemo(
-    () => [
-      { ID: null, Nombre: "Todos" },
-      { ID: "V", Nombre: "Vigentes" },
-      { ID: "A", Nombre: "Próximas a vencer" },
-      { ID: "R", Nombre: "Vencidas" },
-    ],
-    []
-  );
-
+  const estados = useMemo(() => FILTER_OPTIONS.estados, []);
+  const estadosGenerales = useMemo(() => FILTER_OPTIONS.estadosGenerales, []);
   const estadosActividades = useMemo(
-    () => [
-      { ID: null, Nombre: "Todas" },
-      { ID: "1", Nombre: "Finalizadas" },
-      { ID: "2", Nombre: "Vigentes" },
-      { ID: "3", Nombre: "Vencidas" },
-      { ID: "4", Nombre: "Pendientes o próximas" },
-      { ID: "3,4", Nombre: "Vencidas y Pendientes" },
-    ],
+    () => FILTER_OPTIONS.estadosActividades,
     []
   );
 
