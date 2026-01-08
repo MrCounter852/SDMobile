@@ -19,6 +19,7 @@ import {
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import SearchableModal from "../SearchableModal";
 import { FILTER_OPTIONS } from "./FilterConstants";
 
 const { width } = Dimensions.get("window");
@@ -61,7 +62,7 @@ const ChipSelector = ({
 
       return (
         <TouchableOpacity
-          key={option.ID ?? "null"}
+          key={`${option.ID ?? "null"}-${option.Nombre}`}
           style={[styles.chip, isSelected && styles.chipSelected]}
           onPress={() => onSelect(option.ID)}
           activeOpacity={0.7}
@@ -88,10 +89,15 @@ const FilterModal = ({
   asesores = [],
   sucursales = [],
   formasContacto = [],
+  estadosProcesos = [],
+  estadosActividades = [],
   loading = false,
 }) => {
   const [filters, setFilters] = useState(initialFilters || {});
-  const [showDatePicker, setShowDatePicker] = useState(null); // 'initial' or 'final'
+  const [showDatePicker, setShowDatePicker] = useState(null); // 'FechaInicial', 'FechaFinal', etc.
+
+  const [advisorModalVisible, setAdvisorModalVisible] = useState(false);
+  const [advisorSearch, setAdvisorSearch] = useState("");
   const insets = useSafeAreaInsets();
 
   // Sincronizar filtros cuando cambian los filtros iniciales
@@ -143,11 +149,30 @@ const FilterModal = ({
   };
 
   // Opciones predefinidas
-  const estados = useMemo(() => FILTER_OPTIONS.estados, []);
+  const estadosOptions = useMemo(
+    () => [
+      { ID: "1,4", Nombre: "Nuevo y En gestión" },
+      ...estadosProcesos.map((e) => ({
+        ID: e.ProcesoEstadoID?.toString(),
+        Nombre: e.Nombre,
+      })),
+      { ID: null, Nombre: "Todos" },
+    ],
+    [estadosProcesos]
+  );
+
   const estadosGenerales = useMemo(() => FILTER_OPTIONS.estadosGenerales, []);
-  const estadosActividades = useMemo(
-    () => FILTER_OPTIONS.estadosActividades,
-    []
+
+  const estadosActividadesOptions = useMemo(
+    () => [
+      { ID: "3,4", Nombre: "Pendientes y Vencidas" },
+      ...estadosActividades.map((e) => ({
+        ID: e.EstadoActividadID?.toString(),
+        Nombre: e.Nombre,
+      })),
+      { ID: null, Nombre: "Todas" },
+    ],
+    [estadosActividades]
   );
 
   const origenesOptions = useMemo(
@@ -196,6 +221,25 @@ const FilterModal = ({
     [formasContacto]
   );
 
+  const filteredAsesores = useMemo(() => {
+    const list = asesores.map((a) => ({
+      ID: a.AsesorID,
+      Nombre: a.NombreCompleto,
+    }));
+    if (!advisorSearch) return [{ ID: null, Nombre: "Todos" }, ...list];
+
+    const filtered = list.filter((a) =>
+      a.Nombre.toLowerCase().includes(advisorSearch.toLowerCase())
+    );
+    return [{ ID: null, Nombre: "Todos" }, ...filtered];
+  }, [asesores, advisorSearch]);
+
+  const selectedAdvisorName = useMemo(() => {
+    if (filters.AsesorID === null) return "Todos";
+    const advisor = asesores.find((a) => a.AsesorID === filters.AsesorID);
+    return advisor ? advisor.NombreCompleto : "Seleccionar asesor";
+  }, [filters.AsesorID, asesores]);
+
   return (
     <Modal
       visible={visible}
@@ -236,15 +280,15 @@ const FilterModal = ({
               <>
                 {/* Buscador General */}
                 <FilterSection title="Búsqueda rápida" icon="search-outline">
-                  <View style={styles.searchInputContainer}>
+                  <View style={styles.inputWithIcon}>
                     <Ionicons
                       name="search"
                       size={18}
                       color={COLORS.lightGray}
-                      style={styles.searchIcon}
+                      style={styles.inputIcon}
                     />
                     <TextInput
-                      style={styles.textInput}
+                      style={styles.flexInput}
                       placeholder={
                         mode === "calendar"
                           ? "Asunto, contacto..."
@@ -282,7 +326,7 @@ const FilterModal = ({
                       icon="stats-chart-outline"
                     >
                       <ChipSelector
-                        options={estados}
+                        options={estadosOptions}
                         selectedValue={filters.EstadoProcesoID}
                         onSelect={(id) =>
                           setFilters((prev) => ({
@@ -315,7 +359,7 @@ const FilterModal = ({
                       icon="checkmark-circle-outline"
                     >
                       <ChipSelector
-                        options={estadosActividades}
+                        options={estadosActividadesOptions}
                         selectedValue={filters.EstadoActividadID}
                         onSelect={(id) =>
                           setFilters((prev) => ({
@@ -396,13 +440,31 @@ const FilterModal = ({
 
                   <View style={{ height: 16 }} />
                   <Text style={styles.subSectionTitle}>Asesor</Text>
-                  <ChipSelector
-                    options={asesoresOptions}
-                    selectedValue={filters.AsesorID}
-                    onSelect={(id) =>
-                      setFilters((prev) => ({ ...prev, AsesorID: id }))
-                    }
-                  />
+                  <TouchableOpacity
+                    style={styles.searchableSelector}
+                    onPress={() => setAdvisorModalVisible(true)}
+                  >
+                    <Ionicons
+                      name="person-outline"
+                      size={18}
+                      color={COLORS.gray}
+                    />
+                    <Text
+                      style={[
+                        styles.searchableSelectorText,
+                        filters.AsesorID === null && {
+                          color: COLORS.lightGray,
+                        },
+                      ]}
+                    >
+                      {selectedAdvisorName}
+                    </Text>
+                    <Ionicons
+                      name="chevron-down"
+                      size={18}
+                      color={COLORS.lightGray}
+                    />
+                  </TouchableOpacity>
                 </FilterSection>
 
                 {/* Información de Contacto Section */}
@@ -412,45 +474,72 @@ const FilterModal = ({
                 >
                   <View style={styles.inputGroup}>
                     <Text style={styles.inputLabel}>Nombre Contacto</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      placeholder="Nombre completo"
-                      value={filters.NombreCompleto}
-                      onChangeText={(text) =>
-                        setFilters((prev) => ({
-                          ...prev,
-                          NombreCompleto: text,
-                        }))
-                      }
-                    />
+                    <View style={styles.inputWithIcon}>
+                      <Ionicons
+                        name="person-outline"
+                        size={18}
+                        color={COLORS.lightGray}
+                        style={styles.inputIcon}
+                      />
+                      <TextInput
+                        style={styles.flexInput}
+                        placeholder="Nombre completo"
+                        placeholderTextColor={COLORS.lightGray}
+                        value={filters.NombreCompleto}
+                        onChangeText={(text) =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            NombreCompleto: text,
+                          }))
+                        }
+                      />
+                    </View>
                   </View>
 
                   <View style={styles.inputGroup}>
                     <Text style={styles.inputLabel}>Cliente</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      placeholder="Nombre del cliente"
-                      value={filters.ClienteNombreCompleto}
-                      onChangeText={(text) =>
-                        setFilters((prev) => ({
-                          ...prev,
-                          ClienteNombreCompleto: text,
-                        }))
-                      }
-                    />
+                    <View style={styles.inputWithIcon}>
+                      <Ionicons
+                        name="business-outline"
+                        size={18}
+                        color={COLORS.lightGray}
+                        style={styles.inputIcon}
+                      />
+                      <TextInput
+                        style={styles.flexInput}
+                        placeholder="Nombre del cliente"
+                        placeholderTextColor={COLORS.lightGray}
+                        value={filters.ClienteNombreCompleto}
+                        onChangeText={(text) =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            ClienteNombreCompleto: text,
+                          }))
+                        }
+                      />
+                    </View>
                   </View>
 
                   <View style={styles.inputGroup}>
                     <Text style={styles.inputLabel}>Documento</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      placeholder="Documento de identidad"
-                      keyboardType="numeric"
-                      value={filters.Documento}
-                      onChangeText={(text) =>
-                        setFilters((prev) => ({ ...prev, Documento: text }))
-                      }
-                    />
+                    <View style={styles.inputWithIcon}>
+                      <Ionicons
+                        name="card-outline"
+                        size={18}
+                        color={COLORS.lightGray}
+                        style={styles.inputIcon}
+                      />
+                      <TextInput
+                        style={styles.flexInput}
+                        placeholder="Documento de identidad"
+                        placeholderTextColor={COLORS.lightGray}
+                        keyboardType="numeric"
+                        value={filters.Documento}
+                        onChangeText={(text) =>
+                          setFilters((prev) => ({ ...prev, Documento: text }))
+                        }
+                      />
+                    </View>
                   </View>
 
                   <View style={styles.row}>
@@ -458,42 +547,69 @@ const FilterModal = ({
                       style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}
                     >
                       <Text style={styles.inputLabel}>Teléfono</Text>
-                      <TextInput
-                        style={styles.textInput}
-                        placeholder="Teléfono fijo"
-                        keyboardType="phone-pad"
-                        value={filters.Telefono}
-                        onChangeText={(text) =>
-                          setFilters((prev) => ({ ...prev, Telefono: text }))
-                        }
-                      />
+                      <View style={styles.inputWithIcon}>
+                        <Ionicons
+                          name="call-outline"
+                          size={18}
+                          color={COLORS.lightGray}
+                          style={styles.inputIcon}
+                        />
+                        <TextInput
+                          style={styles.flexInput}
+                          placeholder="Fijo"
+                          placeholderTextColor={COLORS.lightGray}
+                          keyboardType="phone-pad"
+                          value={filters.Telefono}
+                          onChangeText={(text) =>
+                            setFilters((prev) => ({ ...prev, Telefono: text }))
+                          }
+                        />
+                      </View>
                     </View>
                     <View style={[styles.inputGroup, { flex: 1 }]}>
                       <Text style={styles.inputLabel}>Celular</Text>
-                      <TextInput
-                        style={styles.textInput}
-                        placeholder="Celular"
-                        keyboardType="phone-pad"
-                        value={filters.Celular}
-                        onChangeText={(text) =>
-                          setFilters((prev) => ({ ...prev, Celular: text }))
-                        }
-                      />
+                      <View style={styles.inputWithIcon}>
+                        <Ionicons
+                          name="phone-portrait-sharp"
+                          size={18}
+                          color={COLORS.lightGray}
+                          style={styles.inputIcon}
+                        />
+                        <TextInput
+                          style={styles.flexInput}
+                          placeholder="Móvil"
+                          placeholderTextColor={COLORS.lightGray}
+                          keyboardType="phone-pad"
+                          value={filters.Celular}
+                          onChangeText={(text) =>
+                            setFilters((prev) => ({ ...prev, Celular: text }))
+                          }
+                        />
+                      </View>
                     </View>
                   </View>
 
                   <View style={styles.inputGroup}>
                     <Text style={styles.inputLabel}>Email</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      placeholder="Correo electrónico"
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      value={filters.Email}
-                      onChangeText={(text) =>
-                        setFilters((prev) => ({ ...prev, Email: text }))
-                      }
-                    />
+                    <View style={styles.inputWithIcon}>
+                      <Ionicons
+                        name="mail-outline"
+                        size={18}
+                        color={COLORS.lightGray}
+                        style={styles.inputIcon}
+                      />
+                      <TextInput
+                        style={styles.flexInput}
+                        placeholder="Correo electrónico"
+                        placeholderTextColor={COLORS.lightGray}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        value={filters.Email}
+                        onChangeText={(text) =>
+                          setFilters((prev) => ({ ...prev, Email: text }))
+                        }
+                      />
+                    </View>
                   </View>
 
                   <View style={{ height: 8 }} />
@@ -677,6 +793,46 @@ const FilterModal = ({
           onChange={handleDateChange}
         />
       )}
+
+      <SearchableModal
+        visible={advisorModalVisible}
+        onClose={() => setAdvisorModalVisible(false)}
+        title="Seleccionar Asesor"
+        searchPlaceholder="Buscar por nombre..."
+        data={filteredAsesores}
+        searchTerm={advisorSearch}
+        onSearchChange={setAdvisorSearch}
+        selectedItemId={filters.AsesorID}
+        renderItem={(item, selectedId) => (
+          <TouchableOpacity
+            style={[
+              styles.modalItem,
+              item.ID === selectedId && styles.modalItemSelected,
+            ]}
+            onPress={() => {
+              setFilters((prev) => ({ ...prev, AsesorID: item.ID }));
+              setAdvisorModalVisible(false);
+              setAdvisorSearch("");
+            }}
+          >
+            <Text
+              style={[
+                styles.modalItemText,
+                item.ID === selectedId && styles.modalItemTextSelected,
+              ]}
+            >
+              {item.Nombre}
+            </Text>
+            {item.ID === selectedId && (
+              <Ionicons
+                name="checkmark-circle"
+                size={20}
+                color={COLORS.white}
+              />
+            )}
+          </TouchableOpacity>
+        )}
+      />
     </Modal>
   );
 };
@@ -785,24 +941,25 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   // Search Input
-  searchInputContainer: {
+  inputWithIcon: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: COLORS.white,
-    borderRadius: 16,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    height: 54,
+    height: 52,
     paddingHorizontal: 16,
   },
-  searchIcon: {
-    marginRight: 10,
+  inputIcon: {
+    marginRight: 12,
   },
-  textInput: {
+  flexInput: {
     flex: 1,
     fontSize: 15,
     color: COLORS.dark,
     height: "100%",
+    paddingVertical: 0,
   },
   // Dates
   datesContainer: {
@@ -912,15 +1069,43 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  textInput: {
+  searchableSelector: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: COLORS.white,
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    height: 48,
+    height: 52,
     paddingHorizontal: 16,
+  },
+  searchableSelectorText: {
+    flex: 1,
+    marginLeft: 12,
     fontSize: 15,
     color: COLORS.dark,
+  },
+  modalItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+    backgroundColor: "#F8FAFC",
+  },
+  modalItemSelected: {
+    backgroundColor: COLORS.primary,
+  },
+  modalItemText: {
+    fontSize: 15,
+    color: COLORS.dark,
+    fontWeight: "500",
+  },
+  modalItemTextSelected: {
+    color: COLORS.white,
+    fontWeight: "600",
   },
 });
 

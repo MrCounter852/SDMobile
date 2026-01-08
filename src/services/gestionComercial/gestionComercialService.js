@@ -849,6 +849,31 @@ class GestionComercialService {
       }),
     }, false, true); // useSIS
   }
+
+  // Consultar estados de procesos
+  async consultarEstadosProcesos(filtros = {}) {
+    const endpoint = '/PreContactos/EstadosProcesosConsultar';
+    return this.makeRequest(endpoint, {
+      method: 'POST',
+      body: JSON.stringify({
+        Token: this.global.user?.Token,
+        ...filtros
+      }),
+    });
+  }
+
+  // Consultar estados de actividades
+  async consultarEstadosActividades(filtros = {}) {
+    // Assuming SIS endpoint for activity statuses if CRM doesn't have it
+    const endpoint = '/CalendarioActividades/EstadosActividadesConsultar';
+    return this.makeRequest(endpoint, {
+      method: 'POST',
+      body: JSON.stringify({
+        Token: this.global.user?.Token,
+        ...filtros
+      }),
+    }, false, true); // useSIS
+  }
 }
 
 export default new GestionComercialService();

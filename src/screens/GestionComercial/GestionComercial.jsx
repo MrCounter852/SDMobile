@@ -23,6 +23,7 @@ import ColorPickerModal from "../../components/GestionComercial/ColorPickerModal
 import TableView from "../../components/GestionComercial/TableView";
 import TimelineView from "../../components/GestionComercial/TimelineView";
 import CalendarView from "../../components/GestionComercial/CalendarView";
+import ActiveFilterTags from "../../components/GestionComercial/ActiveFilterTags";
 import { FILTER_OPTIONS } from "../../components/GestionComercial/FilterConstants";
 
 const Tab = createMaterialTopTabNavigator();
@@ -64,6 +65,8 @@ const GestionComercial = ({ navigation }) => {
   const [asesores, setAsesores] = useState([]);
   const [sucursales, setSucursales] = useState([]);
   const [formasContacto, setFormasContacto] = useState([]);
+  const [estadosProcesos, setEstadosProcesos] = useState([]);
+  const [estadosActividades, setEstadosActividades] = useState([]);
   const [filterDataLoading, setFilterDataLoading] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -119,6 +122,18 @@ const GestionComercial = ({ navigation }) => {
             Rows: 0,
           });
         setFormasContacto(formasResponse.rows || []);
+
+        const estadosProcesosResponse =
+          await GestionComercialService.consultarEstadosProcesos();
+        setEstadosProcesos(
+          estadosProcesosResponse.rows || estadosProcesosResponse || []
+        );
+
+        const estadosActividadesResponse =
+          await GestionComercialService.consultarEstadosActividades();
+        setEstadosActividades(
+          estadosActividadesResponse.rows || estadosActividadesResponse || []
+        );
       } catch (error) {
         console.error("Error loading filter data:", error);
       } finally {
@@ -240,6 +255,65 @@ const GestionComercial = ({ navigation }) => {
       }
     }
 
+    if (searchFilters.AsesorID) {
+      const asesor = asesores.find(
+        (a) => a.AsesorID === searchFilters.AsesorID
+      );
+      if (asesor) {
+        tags.push({
+          key: "AsesorID",
+          label: `Asesor: ${asesor.NombreCompleto}`,
+        });
+      }
+    }
+
+    if (searchFilters.SucursalID) {
+      const sucursal = sucursales.find(
+        (s) => s.SucursalID === searchFilters.SucursalID
+      );
+      if (sucursal) {
+        tags.push({ key: "SucursalID", label: `Sucursal: ${sucursal.Nombre}` });
+      }
+    }
+
+    if (searchFilters.FormaContactoID) {
+      const forma = formasContacto.find(
+        (f) => f.FormaContactoID === searchFilters.FormaContactoID
+      );
+      if (forma) {
+        tags.push({ key: "FormaContactoID", label: forma.Nombre });
+      }
+    }
+
+    if (searchFilters.NombreCompleto) {
+      tags.push({
+        key: "NombreCompleto",
+        label: `Contacto: ${searchFilters.NombreCompleto}`,
+      });
+    }
+
+    if (searchFilters.ClienteNombreCompleto) {
+      tags.push({
+        key: "ClienteNombreCompleto",
+        label: `Cliente: ${searchFilters.ClienteNombreCompleto}`,
+      });
+    }
+
+    if (searchFilters.Documento) {
+      tags.push({ key: "Documento", label: `Doc: ${searchFilters.Documento}` });
+    }
+
+    if (searchFilters.Telefono || searchFilters.Celular) {
+      tags.push({
+        key: "Phones",
+        label: `Tel: ${searchFilters.Celular || searchFilters.Telefono}`,
+      });
+    }
+
+    if (searchFilters.Email) {
+      tags.push({ key: "Email", label: searchFilters.Email });
+    }
+
     if (searchFilters.FechaInicial || searchFilters.FechaFinal) {
       const start = searchFilters.FechaInicial
         ? searchFilters.FechaInicial.split(" ")[0]
@@ -247,7 +321,30 @@ const GestionComercial = ({ navigation }) => {
       const end = searchFilters.FechaFinal
         ? searchFilters.FechaFinal.split(" ")[0]
         : "...";
-      tags.push({ key: "Dates", label: `${start} a ${end}` });
+      tags.push({ key: "Dates", label: `Fecha: ${start} a ${end}` });
+    }
+
+    if (searchFilters.FechaInicialCierre || searchFilters.FechaFinalCierre) {
+      const start = searchFilters.FechaInicialCierre
+        ? searchFilters.FechaInicialCierre.split(" ")[0]
+        : "...";
+      const end = searchFilters.FechaFinalCierre
+        ? searchFilters.FechaFinalCierre.split(" ")[0]
+        : "...";
+      tags.push({ key: "DatesCierre", label: `Cierre: ${start} a ${end}` });
+    }
+
+    if (
+      searchFilters.FechaInicialPosibleServicio ||
+      searchFilters.FechaFinalPosibleServicio
+    ) {
+      const start = searchFilters.FechaInicialPosibleServicio
+        ? searchFilters.FechaInicialPosibleServicio.split(" ")[0]
+        : "...";
+      const end = searchFilters.FechaFinalPosibleServicio
+        ? searchFilters.FechaFinalPosibleServicio.split(" ")[0]
+        : "...";
+      tags.push({ key: "DatesServicio", label: `Servicio: ${start} a ${end}` });
     }
 
     if (mode === "table" || mode === "timeline") {
@@ -304,12 +401,28 @@ const GestionComercial = ({ navigation }) => {
       if (key === "Dates") {
         newFilters.FechaInicial = null;
         newFilters.FechaFinal = null;
+      } else if (key === "DatesCierre") {
+        newFilters.FechaInicialCierre = null;
+        newFilters.FechaFinalCierre = null;
+      } else if (key === "DatesServicio") {
+        newFilters.FechaInicialPosibleServicio = null;
+        newFilters.FechaFinalPosibleServicio = null;
+      } else if (key === "Phones") {
+        newFilters.Telefono = "";
+        newFilters.Celular = "";
       } else if (key === "EstadoProcesoID") {
         newFilters.EstadoProcesoID = "1,4";
       } else if (key === "EstadoActividadID") {
         newFilters.EstadoActividadID = "3,4";
       } else if (key === "FullSearch") {
         newFilters.FullSearch = "";
+      } else if (
+        key === "NombreCompleto" ||
+        key === "ClienteNombreCompleto" ||
+        key === "Documento" ||
+        key === "Email"
+      ) {
+        newFilters[key] = "";
       } else {
         newFilters[key] = null;
       }
@@ -453,6 +566,10 @@ const GestionComercial = ({ navigation }) => {
         </View>
       )}
 
+      {!isSelectionMode && activeTags.length > 0 && (
+        <ActiveFilterTags tags={activeTags} onClear={clearFilter} />
+      )}
+
       <Tab.Navigator
         screenOptions={{
           tabBarActiveTintColor: "#337ab7",
@@ -513,6 +630,8 @@ const GestionComercial = ({ navigation }) => {
         asesores={asesores}
         sucursales={sucursales}
         formasContacto={formasContacto}
+        estadosProcesos={estadosProcesos}
+        estadosActividades={estadosActividades}
         loading={filterDataLoading}
       />
 

@@ -124,31 +124,6 @@ const TimelineView = React.memo(
 
     return (
       <View style={{ flex: 1 }}>
-        {searchFilters.tags && searchFilters.tags.length > 0 && (
-          <View style={styles.tagsOuterContainer}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.tagsScrollContent}
-            >
-              {searchFilters.tags.map((tag) => (
-                <TouchableOpacity
-                  key={tag.key}
-                  style={styles.tagItem}
-                  onPress={() => searchFilters.onClear(tag.key)}
-                >
-                  <Text style={styles.tagLabel}>{tag.label}</Text>
-                  <Ionicons
-                    name="close-circle"
-                    size={16}
-                    color="#337ab7"
-                    style={{ marginLeft: 4 }}
-                  />
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        )}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
