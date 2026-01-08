@@ -471,100 +471,167 @@ const ContactList = ({ navigation }) => {
     </SafeAreaView>
   );
 
-  const renderSelectedHeader = () => (
-    <SafeAreaView edges={["top"]} style={styles.selectionHeaderContainer}>
-      <View style={styles.selectedHeader}>
-        <TouchableOpacity
-          style={styles.actionBtn}
-          onPress={() => setSelectedContactItem(null)}
-        >
-          <View style={styles.actionBtnIcon}>
-            <Ionicons name="arrow-back" size={20} color={COLORS.primary} />
-          </View>
-        </TouchableOpacity>
+  const renderSelectedHeader = () => {
+    const currentStatus = selectedContactItem.EstadoGestionContactoID;
 
-        <TouchableOpacity
-          style={styles.actionBtn}
-          onPress={() => {
-            setNewName(selectedContactItem.Nombre);
-            setShowNameInput(true);
-          }}
-        >
-          <View style={styles.actionBtnIcon}>
-            <Ionicons
-              name="create-outline"
-              size={20}
-              color={COLORS.secondary}
-            />
-          </View>
-          <Text style={styles.actionBtnLabel}>Editar</Text>
-        </TouchableOpacity>
-
-        {selectedContactItem.UsuarioID != usuarioID && (
+    return (
+      <SafeAreaView edges={["top"]} style={styles.selectionHeaderContainer}>
+        <View style={styles.selectedHeader}>
           <TouchableOpacity
             style={styles.actionBtn}
-            onPress={() =>
-              Alert.alert(
-                "Confirmar",
-                `¿Desea asignarse el contacto ${selectedContactItem.Nombre}?`,
-                [
-                  { text: "Cancelar" },
-                  { text: "Aceptar", onPress: handleSelfAssign },
-                ]
-              )
-            }
+            onPress={() => setSelectedContactItem(null)}
           >
             <View style={styles.actionBtnIcon}>
-              <Ionicons name="person-outline" size={20} color={COLORS.accent} />
+              <Ionicons name="arrow-back" size={20} color={COLORS.primary} />
             </View>
-            <Text style={styles.actionBtnLabel}>Asignarme</Text>
           </TouchableOpacity>
-        )}
 
-        <TouchableOpacity
-          style={styles.actionBtn}
-          onPress={async () => {
-            setShowUserList(true);
-            setSelectedUser(null);
-            try {
-              const response = await ChatApiService.consultarUsuarios({});
-              setUsers(response.rows || []);
-            } catch (error) {
-              Alert.alert("Error", "No se pudieron cargar los usuarios");
-            }
-          }}
-        >
-          <View style={styles.actionBtnIcon}>
-            <Ionicons
-              name="person-add-outline"
-              size={20}
-              color={COLORS.success}
-            />
-          </View>
-          <Text style={styles.actionBtnLabel}>Asignar</Text>
-        </TouchableOpacity>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.selectionActionsScroll}
+          >
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={() => {
+                setNewName(selectedContactItem.Nombre);
+                setShowNameInput(true);
+              }}
+            >
+              <View style={styles.actionBtnIcon}>
+                <Ionicons
+                  name="create-outline"
+                  size={20}
+                  color={COLORS.secondary}
+                />
+              </View>
+              <Text style={styles.actionBtnLabel}>Editar</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.actionBtn}
-          onPress={() =>
-            Alert.alert("Confirmar", "¿Desea marcar como mensaje no leído?", [
-              { text: "Cancelar" },
-              { text: "Aceptar", onPress: handleMarkUnread },
-            ])
-          }
-        >
-          <View style={styles.actionBtnIcon}>
-            <Ionicons
-              name="mail-unread-outline"
-              size={20}
-              color={COLORS.highlight}
-            />
-          </View>
-          <Text style={styles.actionBtnLabel}>No leído</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
-  );
+            {selectedContactItem.UsuarioID != usuarioID && (
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() =>
+                  Alert.alert(
+                    "Confirmar",
+                    `¿Desea asignarse el contacto ${selectedContactItem.Nombre}?`,
+                    [
+                      { text: "Cancelar" },
+                      { text: "Aceptar", onPress: handleSelfAssign },
+                    ]
+                  )
+                }
+              >
+                <View style={styles.actionBtnIcon}>
+                  <Ionicons
+                    name="person-outline"
+                    size={20}
+                    color={COLORS.accent}
+                  />
+                </View>
+                <Text style={styles.actionBtnLabel}>Asignarme</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={async () => {
+                setShowUserList(true);
+                setSelectedUser(null);
+                try {
+                  const response = await ChatApiService.consultarUsuarios({});
+                  setUsers(response.rows || []);
+                } catch (error) {
+                  Alert.alert("Error", "No se pudieron cargar los usuarios");
+                }
+              }}
+            >
+              <View style={styles.actionBtnIcon}>
+                <Ionicons
+                  name="person-add-outline"
+                  size={20}
+                  color={COLORS.success}
+                />
+              </View>
+              <Text style={styles.actionBtnLabel}>Asignar</Text>
+            </TouchableOpacity>
+
+            {/* Status Actions */}
+            {currentStatus !== 1 && (
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => handleChangeStatus(1)}
+              >
+                <View style={styles.actionBtnIcon}>
+                  <Ionicons
+                    name="checkmark-circle-outline"
+                    size={20}
+                    color={COLORS.success}
+                  />
+                </View>
+                <Text style={styles.actionBtnLabel}>Abrir</Text>
+              </TouchableOpacity>
+            )}
+
+            {currentStatus !== 2 && (
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => handleChangeStatus(2)}
+              >
+                <View style={styles.actionBtnIcon}>
+                  <Ionicons
+                    name="hourglass-outline"
+                    size={20}
+                    color="#F59E0B"
+                  />
+                </View>
+                <Text style={styles.actionBtnLabel}>Pendiente</Text>
+              </TouchableOpacity>
+            )}
+
+            {currentStatus !== 3 && (
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => handleChangeStatus(3)}
+              >
+                <View style={styles.actionBtnIcon}>
+                  <Ionicons
+                    name="close-circle-outline"
+                    size={20}
+                    color="#EF4444"
+                  />
+                </View>
+                <Text style={styles.actionBtnLabel}>Cerrar</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={() =>
+                Alert.alert(
+                  "Confirmar",
+                  "¿Desea marcar como mensaje no leído?",
+                  [
+                    { text: "Cancelar" },
+                    { text: "Aceptar", onPress: handleMarkUnread },
+                  ]
+                )
+              }
+            >
+              <View style={styles.actionBtnIcon}>
+                <Ionicons
+                  name="mail-unread-outline"
+                  size={20}
+                  color={COLORS.highlight}
+                />
+              </View>
+              <Text style={styles.actionBtnLabel}>No leído</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      </SafeAreaView>
+    );
+  };
 
   const renderMainHeader = () => (
     <LinearGradient
@@ -821,8 +888,13 @@ const styles = StyleSheet.create({
   selectedHeader: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-around",
     padding: 16,
+    gap: 12,
+  },
+  selectionActionsScroll: {
+    paddingRight: 20,
+    gap: 16,
+    alignItems: "center",
   },
   actionBtn: {
     alignItems: "center",
