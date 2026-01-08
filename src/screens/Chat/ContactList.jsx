@@ -1080,7 +1080,7 @@ const styles = StyleSheet.create({
   },
   contactAccount: {
     fontSize: 12,
-    color: COLORS.secondary,
+    color: 'COLORS.secondary',
     fontWeight: "500",
   },
   statusBadge: {
@@ -1113,7 +1113,7 @@ const styles = StyleSheet.create({
   },
   unreadBadge: {
     position: "absolute",
-    top: 16,
+    top: 40,
     right: 16,
     backgroundColor: COLORS.highlight,
     borderRadius: 12,
