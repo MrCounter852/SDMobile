@@ -66,7 +66,6 @@ const GestionComercial = ({ navigation }) => {
   const [sucursales, setSucursales] = useState([]);
   const [formasContacto, setFormasContacto] = useState([]);
   const [estadosProcesos, setEstadosProcesos] = useState([]);
-  const [estadosActividades, setEstadosActividades] = useState([]);
   const [filterDataLoading, setFilterDataLoading] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -127,12 +126,6 @@ const GestionComercial = ({ navigation }) => {
           await GestionComercialService.consultarEstadosProcesos();
         setEstadosProcesos(
           estadosProcesosResponse.rows || estadosProcesosResponse || []
-        );
-
-        const estadosActividadesResponse =
-          await GestionComercialService.consultarEstadosActividades();
-        setEstadosActividades(
-          estadosActividadesResponse.rows || estadosActividadesResponse || []
         );
       } catch (error) {
         console.error("Error loading filter data:", error);
@@ -631,7 +624,6 @@ const GestionComercial = ({ navigation }) => {
         sucursales={sucursales}
         formasContacto={formasContacto}
         estadosProcesos={estadosProcesos}
-        estadosActividades={estadosActividades}
         loading={filterDataLoading}
       />
 

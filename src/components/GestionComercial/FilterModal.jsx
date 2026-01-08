@@ -90,7 +90,6 @@ const FilterModal = ({
   sucursales = [],
   formasContacto = [],
   estadosProcesos = [],
-  estadosActividades = [],
   loading = false,
 }) => {
   const [filters, setFilters] = useState(initialFilters || {});
@@ -166,13 +165,13 @@ const FilterModal = ({
   const estadosActividadesOptions = useMemo(
     () => [
       { ID: "3,4", Nombre: "Pendientes y Vencidas" },
-      ...estadosActividades.map((e) => ({
-        ID: e.EstadoActividadID?.toString(),
-        Nombre: e.Nombre,
-      })),
+      { ID: "1", Nombre: "Finalizadas" },
+      { ID: "2", Nombre: "Vigentes" },
+      { ID: "3", Nombre: "Vencidas" },
+      { ID: "4", Nombre: "Pendientes o próximas" },
       { ID: null, Nombre: "Todas" },
     ],
-    [estadosActividades]
+    []
   );
 
   const origenesOptions = useMemo(
@@ -570,7 +569,7 @@ const FilterModal = ({
                       <Text style={styles.inputLabel}>Celular</Text>
                       <View style={styles.inputWithIcon}>
                         <Ionicons
-                          name="phone-portrait-sharp"
+                          name="phone-portrait-outline"
                           size={18}
                           color={COLORS.lightGray}
                           style={styles.inputIcon}

@@ -9,6 +9,7 @@ import {
   RefreshControl,
   Alert,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -60,14 +61,24 @@ const TableView = React.memo(
           filters
         );
         const newContacts = response.rows || [];
+        const total = response.total || 0;
 
         if (pageNum === 1) {
           setContacts(newContacts);
+          setHasMore(newContacts.length < total);
         } else {
-          setContacts((prev) => [...prev, ...newContacts]);
+          setContacts((prev) => {
+            // Prevent duplicates using a Set of current IDs
+            const existingIds = new Set(prev.map((c) => c.ProcesoID));
+            const uniqueNewContacts = newContacts.filter(
+              (c) => !existingIds.has(c.ProcesoID)
+            );
+            const combined = [...prev, ...uniqueNewContacts];
+            setHasMore(combined.length < total);
+            return combined;
+          });
         }
 
-        setHasMore(newContacts.length === 30);
         setPage(pageNum);
       } catch (error) {
         console.error("Error loading contacts:", error);
@@ -93,7 +104,7 @@ const TableView = React.memo(
     };
 
     const handleLoadMore = () => {
-      if (hasMore && !loading) {
+      if (hasMore && !loading && !refreshing) {
         loadContacts(page + 1);
       }
     };
@@ -115,7 +126,7 @@ const TableView = React.memo(
     };
 
     const renderFooter = () => {
-      if (!loading || refreshing) return null;
+      if (!loading || refreshing || !hasMore) return null;
       return (
         <View style={styles.loadingFooter}>
           <ActivityIndicator size="small" color="#337ab7" />
@@ -156,6 +167,11 @@ const TableView = React.memo(
           contentContainerStyle={
             contacts.length === 0 ? styles.emptyList : null
           }
+          // Performance Optimizations
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          removeClippedSubviews={Platform.OS === "android"}
         />
       </View>
     );
