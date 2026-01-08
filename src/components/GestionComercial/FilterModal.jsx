@@ -86,18 +86,16 @@ const FilterModal = ({
   tiposCalendarioActividades = [],
   loading = false,
 }) => {
-  const [filters, setFilters] = useState({});
+  const [filters, setFilters] = useState(initialFilters || {});
   const [showDatePicker, setShowDatePicker] = useState(null); // 'initial' or 'final'
   const insets = useSafeAreaInsets();
 
-  // Sincronizar filtros cuando se abre el modal
+  // Sincronizar filtros cuando cambian los filtros iniciales
   useEffect(() => {
-    if (visible) {
-      setFilters({
-        ...initialFilters,
-      });
-    }
-  }, [visible, initialFilters]);
+    setFilters({
+      ...initialFilters,
+    });
+  }, [initialFilters]);
 
   const handleApply = () => {
     onApplyFilters(filters);

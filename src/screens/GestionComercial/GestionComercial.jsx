@@ -1,384 +1,30 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  FlatList,
-  ScrollView,
-  RefreshControl,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useGlobal } from "../../core/global";
+
+// Services
 const GestionComercialService =
   require("../../services/GestionComercial/gestionComercialService").default;
-import ContactItem from "../../components/GestionComercial/ContactItem";
+
+// Components
 import FilterModal from "../../components/GestionComercial/FilterModal";
-import TimelineColumn from "../../components/GestionComercial/TimelineColumn";
-import CalendarEvent from "../../components/GestionComercial/CalendarEvent";
 import ColorPickerModal from "../../components/GestionComercial/ColorPickerModal";
-import GestionComercialCalendar from "../../components/GestionComercial/GestionComercialCalendar";
+import TableView from "../../components/GestionComercial/TableView";
+import TimelineView from "../../components/GestionComercial/TimelineView";
+import CalendarView from "../../components/GestionComercial/CalendarView";
 
 const Tab = createMaterialTopTabNavigator();
-
-// Table View Component
-const TableView = ({
-  navigation,
-  searchFilters,
-  refreshTrigger,
-  selectedContact,
-  onSelectContact,
-  onDeselectContact,
-}) => {
-  const { user } = useGlobal();
-  const [contacts, setContacts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-
-  const loadContacts = async (pageNum = 1, isRefresh = false) => {
-    if (loading && !isRefresh) return;
-
-    try {
-      if (isRefresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-
-      const filters = {
-        ...searchFilters,
-        Page: pageNum,
-        Rows: 30,
-        SucursalID: user?.SucursalID,
-      };
-
-      // Remove OrigenPreContactoID if it's null to allow loading all contacts
-      if (filters.OrigenPreContactoID === null) {
-        delete filters.OrigenPreContactoID;
-      }
-
-      const response = await GestionComercialService.consultarPreContactos(
-        filters
-      );
-      const newContacts = response.rows || [];
-
-      if (pageNum === 1) {
-        setContacts(newContacts);
-      } else {
-        setContacts((prev) => [...prev, ...newContacts]);
-      }
-
-      setHasMore(newContacts.length === 30);
-      setPage(pageNum);
-    } catch (error) {
-      console.error("Error loading contacts:", error);
-      Alert.alert("Error", "No se pudieron cargar los contactos");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    loadContacts(1, true);
-  }, [searchFilters, refreshTrigger]);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadContacts(1, true);
-    }, [searchFilters, refreshTrigger])
-  );
-
-  const handleRefresh = () => {
-    loadContacts(1, true);
-  };
-
-  const handleLoadMore = () => {
-    if (hasMore && !loading) {
-      loadContacts(page + 1);
-    }
-  };
-
-  const handleContactPress = (contact) => {
-    navigation.navigate("ContactDetail", { contact });
-  };
-
-  const renderContact = ({ item }) => {
-    const isSelected = selectedContact?.ProcesoID === item.ProcesoID;
-    return (
-      <ContactItem
-        item={item}
-        onPress={handleContactPress}
-        onLongPress={(contact) => onSelectContact(contact)}
-        isSelected={isSelected}
-      />
-    );
-  };
-
-  const renderFooter = () => {
-    if (!loading || refreshing) return null;
-    return (
-      <View style={styles.loadingFooter}>
-        <ActivityIndicator size="small" color="#337ab7" />
-        <Text style={styles.loadingText}>Cargando más...</Text>
-      </View>
-    );
-  };
-
-  return (
-    <View style={styles.container}>
-      {searchFilters.tags && searchFilters.tags.length > 0 && (
-        <View style={styles.tagsOuterContainer}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.tagsScrollContent}
-          >
-            {searchFilters.tags.map((tag) => (
-              <TouchableOpacity
-                key={tag.key}
-                style={styles.tagItem}
-                onPress={() => searchFilters.onClear(tag.key)}
-              >
-                <Text style={styles.tagLabel}>{tag.label}</Text>
-                <Ionicons
-                  name="close-circle"
-                  size={16}
-                  color="#337ab7"
-                  style={{ marginLeft: 4 }}
-                />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      )}
-      <FlatList
-        data={contacts}
-        renderItem={renderContact}
-        keyExtractor={(item) =>
-          item.ProcesoID?.toString() || Math.random().toString()
-        }
-        key={refreshTrigger}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            colors={["#337ab7"]}
-          />
-        }
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={renderFooter}
-        ListEmptyComponent={
-          !loading && (
-            <View style={styles.emptyContainer}>
-              <Ionicons name="people-outline" size={64} color="#ccc" />
-              <Text style={styles.emptyText}>No hay contactos disponibles</Text>
-            </View>
-          )
-        }
-        contentContainerStyle={contacts.length === 0 ? styles.emptyList : null}
-      />
-    </View>
-  );
-};
-
-// Timeline View Component
-const TimelineView = ({
-  navigation,
-  searchFilters,
-  refreshTrigger,
-  onSelectContact,
-}) => {
-  const { user } = useGlobal();
-  const [timelineData, setTimelineData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const loadTimeline = async (isRefresh = false) => {
-    if (!searchFilters.OrigenPreContactoID) {
-      setTimelineData([]);
-      return;
-    }
-    try {
-      if (isRefresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-
-      const filters = {
-        ...searchFilters,
-        SucursalID: user?.SucursalID,
-      };
-
-      const response = await GestionComercialService.consultarLineasTiempo(
-        filters
-      );
-      setTimelineData(response.data || []);
-    } catch (error) {
-      console.error("Error loading timeline:", error);
-      setTimelineData([]);
-      // Alert.alert('Error', 'No se pudo cargar la línea de tiempo');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    loadTimeline();
-  }, [searchFilters, refreshTrigger]);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadTimeline(true);
-    }, [searchFilters, refreshTrigger])
-  );
-
-  const handleRefresh = () => {
-    loadTimeline(true);
-  };
-
-  const handleContactPress = (contact) => {
-    navigation.navigate("ContactDetail", { contact });
-  };
-
-  const handleLongPress = (contact) => {
-    onSelectContact(contact);
-  };
-
-  const handleMoveContact = async (contact, direction) => {
-    // Simplified move logic for mobile
-    Alert.alert(
-      "Mover contacto",
-      `¿Mover "${contact.NombreCompleto}" ${
-        direction === "left" ? "a la izquierda" : "a la derecha"
-      }?`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Mover",
-          onPress: async () => {
-            try {
-              // Find target column
-              const currentIndex = timelineData.findIndex((linea) =>
-                linea.Procesos?.some((p) => p.ProcesoID === contact.ProcesoID)
-              );
-
-              if (currentIndex === -1) return;
-
-              const targetIndex =
-                direction === "left"
-                  ? Math.max(0, currentIndex - 1)
-                  : Math.min(timelineData.length - 1, currentIndex + 1);
-
-              if (targetIndex === currentIndex) return;
-
-              await GestionComercialService.moverLineaTiempo({
-                ProcesoID: contact.ProcesoID,
-                ProcesoLineaTiempoID:
-                  timelineData[targetIndex].ProcesoLineaTiempoID,
-              });
-
-              loadTimeline(true);
-            } catch (error) {
-              console.error("Error moving contact:", error);
-              Alert.alert("Error", "No se pudo mover el contacto");
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  if (loading && !refreshing) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#337ab7" />
-        <Text style={styles.loadingText}>Cargando línea de tiempo...</Text>
-      </View>
-    );
-  }
-
-  return (
-    <View style={{ flex: 1 }}>
-      {searchFilters.tags && searchFilters.tags.length > 0 && (
-        <View style={styles.tagsOuterContainer}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.tagsScrollContent}
-          >
-            {searchFilters.tags.map((tag) => (
-              <TouchableOpacity
-                key={tag.key}
-                style={styles.tagItem}
-                onPress={() => searchFilters.onClear(tag.key)}
-              >
-                <Text style={styles.tagLabel}>{tag.label}</Text>
-                <Ionicons
-                  name="close-circle"
-                  size={16}
-                  color="#337ab7"
-                  style={{ marginLeft: 4 }}
-                />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      )}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.timelineContainer}
-      >
-        {timelineData.map((linea) => (
-          <TimelineColumn
-            key={linea.ProcesoLineaTiempoID}
-            linea={linea}
-            onContactPress={handleContactPress}
-            onMoveContact={handleMoveContact}
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-          />
-        ))}
-
-        {timelineData.length === 0 && (
-          <View style={styles.emptyTimeline}>
-            <Ionicons name="git-branch-outline" size={64} color="#ccc" />
-            <Text style={styles.emptyText}>
-              No hay línea de tiempo configurada
-            </Text>
-          </View>
-        )}
-      </ScrollView>
-    </View>
-  );
-};
-
-// Calendar View Component
-const CalendarView = ({
-  navigation,
-  searchFilters,
-  refreshTrigger,
-}) => {
-  return (
-    <GestionComercialCalendar
-      navigation={navigation}
-      searchFilters={searchFilters}
-      refreshTrigger={refreshTrigger}
-    />
-  );
-};
 
 // Main Component
 const GestionComercial = ({ navigation }) => {
@@ -404,9 +50,10 @@ const GestionComercial = ({ navigation }) => {
   const [selectedContact, setSelectedContact] = useState(null);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [colorPickerVisible, setColorPickerVisible] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const isInitialMount = useRef(true);
 
-  const getCurrentMode = () => {
+  const getCurrentMode = useCallback(() => {
     switch (currentTab) {
       case "Tabla":
         return "table";
@@ -417,13 +64,12 @@ const GestionComercial = ({ navigation }) => {
       default:
         return "table";
     }
-  };
+  }, [currentTab]);
 
   useEffect(() => {
     const loadFilterData = async () => {
       setFilterDataLoading(true);
       try {
-        // Load origenes
         const origenesResponse =
           await GestionComercialService.consultarOrigenesPreContactosSucursales(
             {
@@ -432,7 +78,6 @@ const GestionComercial = ({ navigation }) => {
           );
         setOrigenes(origenesResponse.rows || []);
 
-        // Load tipos calendario actividades
         const tiposResponse =
           await GestionComercialService.consultarTiposCalendarioActividades();
         setTiposCalendarioActividades(tiposResponse.rows || []);
@@ -448,12 +93,14 @@ const GestionComercial = ({ navigation }) => {
     }
   }, [user?.SucursalID]);
 
-
+  const handleDeselectContact = useCallback(() => {
+    setSelectedContact(null);
+    setIsSelectionMode(false);
+  }, []);
 
   // Salir automáticamente del modo selección cuando se regresa a esta pantalla
   useFocusEffect(
     useCallback(() => {
-      // Solo actuar si no es el montaje inicial y hay algo seleccionado
       if (!isInitialMount.current) {
         handleDeselectContact();
       } else {
@@ -462,39 +109,35 @@ const GestionComercial = ({ navigation }) => {
     }, [handleDeselectContact])
   );
 
-  const handleApplyFilters = (filters) => {
-    setSearchFilters(filters);
-    const mode = getCurrentMode();
-    let defaultValues = {};
-    if (mode === "table" || mode === "timeline") {
-      defaultValues = { EstadoProcesoID: "1,4" };
-    } else if (mode === "calendar") {
-      defaultValues = { EstadoActividadID: "3,4" };
-    }
-    setHasFilters(
-      Object.keys(filters).some(
-        (key) =>
-          filters[key] !== null &&
-          filters[key] !== "" &&
-          filters[key] !== defaultValues[key]
-      )
-    );
-  };
+  const handleApplyFilters = useCallback(
+    (filters) => {
+      setSearchFilters(filters);
+      const mode = getCurrentMode();
+      let defaultValues = {};
+      if (mode === "table" || mode === "timeline") {
+        defaultValues = { EstadoProcesoID: "1,4" };
+      } else if (mode === "calendar") {
+        defaultValues = { EstadoActividadID: "3,4" };
+      }
+      setHasFilters(
+        Object.keys(filters).some(
+          (key) =>
+            filters[key] !== null &&
+            filters[key] !== "" &&
+            filters[key] !== defaultValues[key]
+        )
+      );
+    },
+    [getCurrentMode]
+  );
 
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     setRefreshTrigger((prev) => prev + 1);
-  };
+  }, []);
 
-  const handleSelectContact = (contact) => {
+  const handleSelectContact = useCallback((contact) => {
     setSelectedContact(contact);
     setIsSelectionMode(true);
-  };
-
-  const handleDeselectContact = useCallback(() => {
-    setSelectedContact(null);
-    setIsSelectionMode(false);
   }, []);
 
   const handleColorSelect = async (colorId) => {
@@ -507,8 +150,6 @@ const GestionComercial = ({ navigation }) => {
       });
 
       Alert.alert("Éxito", "Color aplicado correctamente");
-
-      // Recargar datos después del éxito de la API
       handleRefresh();
     } catch (error) {
       console.error("Error changing color:", error);
@@ -518,21 +159,21 @@ const GestionComercial = ({ navigation }) => {
 
   const handleViewDetails = () => {
     if (selectedContact) {
-      handleDeselectContact(); // Salir del modo selección antes de navegar
+      handleDeselectContact();
       navigation.navigate("ContactDetail", { contact: selectedContact });
     }
   };
 
   const handleViewActivities = () => {
     if (selectedContact) {
-      handleDeselectContact(); // Salir del modo selección antes de navegar
+      handleDeselectContact();
       navigation.navigate("ActivityFollowupScreen", {
         contact: selectedContact,
       });
     }
   };
 
-  const getActiveFilterTags = () => {
+  const getActiveFilterTags = useCallback(() => {
     if (filterDataLoading) return [];
     const tags = [];
     const mode = getCurrentMode();
@@ -588,29 +229,93 @@ const GestionComercial = ({ navigation }) => {
     }
 
     return tags;
-  };
+  }, [
+    filterDataLoading,
+    getCurrentMode,
+    searchFilters,
+    origenes,
+    tiposCalendarioActividades,
+  ]);
 
-  const clearFilter = (key) => {
-    const mode = getCurrentMode();
-    const newFilters = { ...searchFilters };
+  const clearFilter = useCallback(
+    (key) => {
+      const newFilters = { ...searchFilters };
 
-    if (key === "Dates") {
-      newFilters.FechaInicial = null;
-      newFilters.FechaFinal = null;
-    } else if (key === "EstadoProcesoID") {
-      newFilters.EstadoProcesoID = "1,4";
-    } else if (key === "EstadoActividadID") {
-      newFilters.EstadoActividadID = "3,4";
-    } else if (key === "FullSearch") {
-      newFilters.FullSearch = "";
-    } else {
-      newFilters[key] = null;
-    }
+      if (key === "Dates") {
+        newFilters.FechaInicial = null;
+        newFilters.FechaFinal = null;
+      } else if (key === "EstadoProcesoID") {
+        newFilters.EstadoProcesoID = "1,4";
+      } else if (key === "EstadoActividadID") {
+        newFilters.EstadoActividadID = "3,4";
+      } else if (key === "FullSearch") {
+        newFilters.FullSearch = "";
+      } else {
+        newFilters[key] = null;
+      }
 
-    handleApplyFilters(newFilters);
-  };
+      handleApplyFilters(newFilters);
+    },
+    [searchFilters, handleApplyFilters]
+  );
 
-  const activeTags = getActiveFilterTags();
+  const activeTags = useMemo(
+    () => getActiveFilterTags(),
+    [getActiveFilterTags]
+  );
+
+  const sharedFilters = useMemo(
+    () => ({
+      ...searchFilters,
+      tags: activeTags,
+      onClear: clearFilter,
+    }),
+    [searchFilters, activeTags, clearFilter]
+  );
+
+  // Render stable components for tabs to prevent remounting
+  const renderTableView = useCallback(
+    (props) => (
+      <TableView
+        {...props}
+        searchFilters={sharedFilters}
+        refreshTrigger={refreshTrigger}
+        selectedContact={selectedContact}
+        onSelectContact={handleSelectContact}
+        onDeselectContact={handleDeselectContact}
+      />
+    ),
+    [
+      sharedFilters,
+      refreshTrigger,
+      selectedContact,
+      handleSelectContact,
+      handleDeselectContact,
+    ]
+  );
+
+  const renderTimelineView = useCallback(
+    (props) => (
+      <TimelineView
+        {...props}
+        searchFilters={sharedFilters}
+        refreshTrigger={refreshTrigger}
+        onSelectContact={handleSelectContact}
+      />
+    ),
+    [sharedFilters, refreshTrigger, handleSelectContact]
+  );
+
+  const renderCalendarView = useCallback(
+    (props) => (
+      <CalendarView
+        {...props}
+        searchFilters={sharedFilters}
+        refreshTrigger={refreshTrigger}
+      />
+    ),
+    [sharedFilters, refreshTrigger]
+  );
 
   return (
     <SafeAreaView style={styles.mainContainer} edges={["top", "left", "right"]}>
@@ -689,7 +394,7 @@ const GestionComercial = ({ navigation }) => {
       )}
 
       <Tab.Navigator
-        screenOptions={({ route }) => ({
+        screenOptions={{
           tabBarActiveTintColor: "#337ab7",
           tabBarInactiveTintColor: "#8E8E93",
           tabBarIndicatorStyle: {
@@ -709,66 +414,31 @@ const GestionComercial = ({ navigation }) => {
             borderBottomWidth: 1,
             borderBottomColor: "#F2F2F7",
           },
-          swipeEnabled: false, // Fix navigation conflict with horizontal timeline
-          tabBarOnPress: () => {
-            setCurrentTab(route.name);
+          swipeEnabled: false,
+        }}
+        screenListeners={{
+          state: (e) => {
+            const routeName = e.data.state.routes[e.data.state.index].name;
+            if (routeName !== currentTab) {
+              setCurrentTab(routeName);
+            }
           },
-        })}
+        }}
       >
         <Tab.Screen
           name="Tabla"
-          children={() => (
-            <TableView
-              navigation={navigation}
-              searchFilters={{
-                ...searchFilters,
-                tags: activeTags,
-                onClear: clearFilter,
-              }}
-              refreshTrigger={refreshTrigger}
-              selectedContact={selectedContact}
-              onSelectContact={handleSelectContact}
-              onDeselectContact={handleDeselectContact}
-            />
-          )}
-          options={{
-            tabBarLabel: "Tabla",
-          }}
+          component={renderTableView}
+          options={{ tabBarLabel: "Tabla" }}
         />
         <Tab.Screen
           name="LineaTiempo"
-          children={() => (
-            <TimelineView
-              navigation={navigation}
-              searchFilters={{
-                ...searchFilters,
-                tags: activeTags,
-                onClear: clearFilter,
-              }}
-              refreshTrigger={refreshTrigger}
-              onSelectContact={handleSelectContact}
-            />
-          )}
-          options={{
-            tabBarLabel: "Línea Tiempo",
-          }}
+          component={renderTimelineView}
+          options={{ tabBarLabel: "Línea Tiempo" }}
         />
         <Tab.Screen
           name="Calendario"
-          children={() => (
-            <CalendarView
-              navigation={navigation}
-              searchFilters={{
-                ...searchFilters,
-                tags: activeTags,
-                onClear: clearFilter,
-              }}
-              refreshTrigger={refreshTrigger}
-            />
-          )}
-          options={{
-            tabBarLabel: "Calendario",
-          }}
+          component={renderCalendarView}
+          options={{ tabBarLabel: "Calendario" }}
         />
       </Tab.Navigator>
 
@@ -861,80 +531,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#e9ecef",
     height: 75,
-  },
-  headerButton: {
-    padding: 8,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#F2F2F7",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#fff",
-  },
-  loadingFooter: {
-    padding: 24,
-    alignItems: "center",
-  },
-  loadingText: {
-    marginTop: 8,
-    color: "#8E8E93",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 40,
-  },
-  emptyList: {
-    flexGrow: 1,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: "#AEAEB2",
-    textAlign: "center",
-    marginTop: 16,
-    fontWeight: "500",
-  },
-  timelineContainer: {
-    padding: 16,
-    backgroundColor: "#F2F2F7",
-  },
-  emptyTimeline: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 64,
-  },
-  tagsOuterContainer: {
-    backgroundColor: "#fff",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F2F2F7",
-  },
-  tagsScrollContent: {
-    paddingHorizontal: 20,
-    gap: 8,
-  },
-  tagItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#E5F1FF",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#337ab720",
-  },
-  tagLabel: {
-    fontSize: 13,
-    color: "#337ab7",
-    fontWeight: "600",
   },
 });
 
