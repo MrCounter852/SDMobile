@@ -41,12 +41,29 @@ const GestionComercial = ({ navigation }) => {
     EstadoGeneral: null,
     EstadoActividadID: "3,4",
     TipoCalendarioActividadID: null,
+    // New fields from web modal
+    AsesorID: user?.AsesorID || null,
+    NombreCompleto: "",
+    FormaContactoID: null,
+    FechaInicialCierre: null,
+    FechaFinalCierre: null,
+    ClienteNombreCompleto: "",
+    Documento: "",
+    Telefono: "",
+    Celular: "",
+    Email: "",
+    SucursalID: user?.SucursalID || null,
+    FechaInicialPosibleServicio: null,
+    FechaFinalPosibleServicio: null,
   });
   const [hasFilters, setHasFilters] = useState(false);
   const [origenes, setOrigenes] = useState([]);
   const [tiposCalendarioActividades, setTiposCalendarioActividades] = useState(
     []
   );
+  const [asesores, setAsesores] = useState([]);
+  const [sucursales, setSucursales] = useState([]);
+  const [formasContacto, setFormasContacto] = useState([]);
   const [filterDataLoading, setFilterDataLoading] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -82,6 +99,26 @@ const GestionComercial = ({ navigation }) => {
         const tiposResponse =
           await GestionComercialService.consultarTiposCalendarioActividades();
         setTiposCalendarioActividades(tiposResponse.rows || []);
+
+        const asesoresResponse =
+          await GestionComercialService.consultarAsesores({
+            SucursalID: user?.SucursalID,
+            Rows: 0,
+          });
+        setAsesores(asesoresResponse.rows || []);
+
+        const sucursalesResponse =
+          await GestionComercialService.consultarSucursalesUsuarios({
+            UsuarioID: user?.UsuarioID,
+          });
+        setSucursales(sucursalesResponse.rows || []);
+
+        const formasResponse =
+          await GestionComercialService.consultarFormasContacto({
+            SucursalID: user?.SucursalID,
+            Rows: 0,
+          });
+        setFormasContacto(formasResponse.rows || []);
       } catch (error) {
         console.error("Error loading filter data:", error);
       } finally {
@@ -473,6 +510,9 @@ const GestionComercial = ({ navigation }) => {
         mode={getCurrentMode()}
         origenes={origenes}
         tiposCalendarioActividades={tiposCalendarioActividades}
+        asesores={asesores}
+        sucursales={sucursales}
+        formasContacto={formasContacto}
         loading={filterDataLoading}
       />
 

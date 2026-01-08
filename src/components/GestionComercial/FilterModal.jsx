@@ -85,6 +85,9 @@ const FilterModal = ({
   mode = "table", // 'table', 'timeline', 'calendar'
   origenes = [],
   tiposCalendarioActividades = [],
+  asesores = [],
+  sucursales = [],
+  formasContacto = [],
   loading = false,
 }) => {
   const [filters, setFilters] = useState(initialFilters || {});
@@ -113,6 +116,19 @@ const FilterModal = ({
       EstadoGeneral: null,
       EstadoActividadID: "3,4",
       TipoCalendarioActividadID: null,
+      AsesorID: null,
+      NombreCompleto: "",
+      FormaContactoID: null,
+      FechaInicialCierre: null,
+      FechaFinalCierre: null,
+      ClienteNombreCompleto: "",
+      Documento: "",
+      Telefono: "",
+      Celular: "",
+      Email: "",
+      SucursalID: null,
+      FechaInicialPosibleServicio: null,
+      FechaFinalPosibleServicio: null,
     };
     setFilters(defaultFilters);
   };
@@ -122,11 +138,7 @@ const FilterModal = ({
     if (selectedDate && event.type !== "dismissed") {
       const formattedDate =
         selectedDate.toISOString().split("T")[0] + " 00:00:00";
-      if (showDatePicker === "initial") {
-        setFilters((prev) => ({ ...prev, FechaInicial: formattedDate }));
-      } else {
-        setFilters((prev) => ({ ...prev, FechaFinal: formattedDate }));
-      }
+      setFilters((prev) => ({ ...prev, [showDatePicker]: formattedDate }));
     }
   };
 
@@ -155,6 +167,33 @@ const FilterModal = ({
       })),
     ],
     [tiposCalendarioActividades]
+  );
+
+  const asesoresOptions = useMemo(
+    () => [
+      { ID: null, Nombre: "Todos" },
+      ...asesores.map((a) => ({ ID: a.AsesorID, Nombre: a.NombreCompleto })),
+    ],
+    [asesores]
+  );
+
+  const sucursalesOptions = useMemo(
+    () => [
+      { ID: null, Nombre: "Todas" },
+      ...sucursales.map((s) => ({ ID: s.SucursalID, Nombre: s.Nombre })),
+    ],
+    [sucursales]
+  );
+
+  const formasContactoOptions = useMemo(
+    () => [
+      { ID: null, Nombre: "Todas" },
+      ...formasContacto.map((f) => ({
+        ID: f.FormaContactoID,
+        Nombre: f.Nombre,
+      })),
+    ],
+    [formasContacto]
   );
 
   return (
@@ -310,7 +349,7 @@ const FilterModal = ({
                       <View style={styles.datesContainer}>
                         <TouchableOpacity
                           style={styles.dateButton}
-                          onPress={() => setShowDatePicker("initial")}
+                          onPress={() => setShowDatePicker("FechaInicial")}
                         >
                           <Text style={styles.dateLabel}>Desde</Text>
                           <Text style={styles.dateValue}>
@@ -328,7 +367,7 @@ const FilterModal = ({
                         </View>
                         <TouchableOpacity
                           style={styles.dateButton}
-                          onPress={() => setShowDatePicker("final")}
+                          onPress={() => setShowDatePicker("FechaFinal")}
                         >
                           <Text style={styles.dateLabel}>Hasta</Text>
                           <Text style={styles.dateValue}>
@@ -340,6 +379,251 @@ const FilterModal = ({
                       </View>
                     </FilterSection>
                   </>
+                )}
+
+                {/* --- WEB ADAPTATION FIELDS --- */}
+
+                {/* Organización Section */}
+                <FilterSection title="Organización" icon="business-outline">
+                  <Text style={styles.subSectionTitle}>Sucursal</Text>
+                  <ChipSelector
+                    options={sucursalesOptions}
+                    selectedValue={filters.SucursalID}
+                    onSelect={(id) =>
+                      setFilters((prev) => ({ ...prev, SucursalID: id }))
+                    }
+                  />
+
+                  <View style={{ height: 16 }} />
+                  <Text style={styles.subSectionTitle}>Asesor</Text>
+                  <ChipSelector
+                    options={asesoresOptions}
+                    selectedValue={filters.AsesorID}
+                    onSelect={(id) =>
+                      setFilters((prev) => ({ ...prev, AsesorID: id }))
+                    }
+                  />
+                </FilterSection>
+
+                {/* Información de Contacto Section */}
+                <FilterSection
+                  title="Información de Contacto"
+                  icon="person-outline"
+                >
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Nombre Contacto</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="Nombre completo"
+                      value={filters.NombreCompleto}
+                      onChangeText={(text) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          NombreCompleto: text,
+                        }))
+                      }
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Cliente</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="Nombre del cliente"
+                      value={filters.ClienteNombreCompleto}
+                      onChangeText={(text) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          ClienteNombreCompleto: text,
+                        }))
+                      }
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Documento</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="Documento de identidad"
+                      keyboardType="numeric"
+                      value={filters.Documento}
+                      onChangeText={(text) =>
+                        setFilters((prev) => ({ ...prev, Documento: text }))
+                      }
+                    />
+                  </View>
+
+                  <View style={styles.row}>
+                    <View
+                      style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}
+                    >
+                      <Text style={styles.inputLabel}>Teléfono</Text>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder="Teléfono fijo"
+                        keyboardType="phone-pad"
+                        value={filters.Telefono}
+                        onChangeText={(text) =>
+                          setFilters((prev) => ({ ...prev, Telefono: text }))
+                        }
+                      />
+                    </View>
+                    <View style={[styles.inputGroup, { flex: 1 }]}>
+                      <Text style={styles.inputLabel}>Celular</Text>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder="Celular"
+                        keyboardType="phone-pad"
+                        value={filters.Celular}
+                        onChangeText={(text) =>
+                          setFilters((prev) => ({ ...prev, Celular: text }))
+                        }
+                      />
+                    </View>
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Email</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="Correo electrónico"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      value={filters.Email}
+                      onChangeText={(text) =>
+                        setFilters((prev) => ({ ...prev, Email: text }))
+                      }
+                    />
+                  </View>
+
+                  <View style={{ height: 8 }} />
+                  <Text style={styles.subSectionTitle}>
+                    ¿Cómo se contactaron?
+                  </Text>
+                  <ChipSelector
+                    options={formasContactoOptions}
+                    selectedValue={filters.FormaContactoID}
+                    onSelect={(id) =>
+                      setFilters((prev) => ({ ...prev, FormaContactoID: id }))
+                    }
+                  />
+                </FilterSection>
+
+                {/* Fechas de Cierre Section */}
+                <FilterSection title="Fechas de Cierre" icon="calendar-outline">
+                  <View style={styles.datesContainer}>
+                    <TouchableOpacity
+                      style={styles.dateButton}
+                      onPress={() => setShowDatePicker("FechaInicialCierre")}
+                    >
+                      <Text style={styles.dateLabel}>Inicial Cierre</Text>
+                      <Text style={styles.dateValue}>
+                        {filters.FechaInicialCierre
+                          ? filters.FechaInicialCierre.split(" ")[0]
+                          : "Seleccionar"}
+                      </Text>
+                    </TouchableOpacity>
+                    <View style={styles.dateArrow}>
+                      <Ionicons
+                        name="arrow-forward"
+                        size={16}
+                        color={COLORS.lightGray}
+                      />
+                    </View>
+                    <TouchableOpacity
+                      style={styles.dateButton}
+                      onPress={() => setShowDatePicker("FechaFinalCierre")}
+                    >
+                      <Text style={styles.dateLabel}>Final Cierre</Text>
+                      <Text style={styles.dateValue}>
+                        {filters.FechaFinalCierre
+                          ? filters.FechaFinalCierre.split(" ")[0]
+                          : "Seleccionar"}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </FilterSection>
+
+                {/* Fechas de Servicio Section */}
+                <FilterSection
+                  title="Fechas de Servicio"
+                  icon="briefcase-outline"
+                >
+                  <View style={styles.datesContainer}>
+                    <TouchableOpacity
+                      style={styles.dateButton}
+                      onPress={() =>
+                        setShowDatePicker("FechaInicialPosibleServicio")
+                      }
+                    >
+                      <Text style={styles.dateLabel}>Inicial Servicio</Text>
+                      <Text style={styles.dateValue}>
+                        {filters.FechaInicialPosibleServicio
+                          ? filters.FechaInicialPosibleServicio.split(" ")[0]
+                          : "Seleccionar"}
+                      </Text>
+                    </TouchableOpacity>
+                    <View style={styles.dateArrow}>
+                      <Ionicons
+                        name="arrow-forward"
+                        size={16}
+                        color={COLORS.lightGray}
+                      />
+                    </View>
+                    <TouchableOpacity
+                      style={styles.dateButton}
+                      onPress={() =>
+                        setShowDatePicker("FechaFinalPosibleServicio")
+                      }
+                    >
+                      <Text style={styles.dateLabel}>Final Servicio</Text>
+                      <Text style={styles.dateValue}>
+                        {filters.FechaFinalPosibleServicio
+                          ? filters.FechaFinalPosibleServicio.split(" ")[0]
+                          : "Seleccionar"}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </FilterSection>
+
+                {/* Original Date Ranges (Now always visible if not calendar mode) */}
+                {mode !== "calendar" && (
+                  <FilterSection
+                    title="Rango de Fechas"
+                    icon="calendar-outline"
+                  >
+                    <View style={styles.datesContainer}>
+                      <TouchableOpacity
+                        style={styles.dateButton}
+                        onPress={() => setShowDatePicker("FechaInicial")}
+                      >
+                        <Text style={styles.dateLabel}>Desde</Text>
+                        <Text style={styles.dateValue}>
+                          {filters.FechaInicial
+                            ? filters.FechaInicial.split(" ")[0]
+                            : "Seleccionar"}
+                        </Text>
+                      </TouchableOpacity>
+                      <View style={styles.dateArrow}>
+                        <Ionicons
+                          name="arrow-forward"
+                          size={16}
+                          color={COLORS.lightGray}
+                        />
+                      </View>
+                      <TouchableOpacity
+                        style={styles.dateButton}
+                        onPress={() => setShowDatePicker("FechaFinal")}
+                      >
+                        <Text style={styles.dateLabel}>Hasta</Text>
+                        <Text style={styles.dateValue}>
+                          {filters.FechaFinal
+                            ? filters.FechaFinal.split(" ")[0]
+                            : "Seleccionar"}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </FilterSection>
                 )}
               </>
             )}
@@ -384,17 +668,8 @@ const FilterModal = ({
       {showDatePicker && (
         <DateTimePicker
           value={
-            (
-              showDatePicker === "initial"
-                ? filters.FechaInicial
-                : filters.FechaFinal
-            )
-              ? new Date(
-                  (showDatePicker === "initial"
-                    ? filters.FechaInicial
-                    : filters.FechaFinal
-                  ).replace(" ", "T")
-                )
+            filters[showDatePicker]
+              ? new Date(filters[showDatePicker].replace(" ", "T"))
               : new Date()
           }
           mode="date"
@@ -616,6 +891,36 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: COLORS.gray,
     fontWeight: "500",
+  },
+  subSectionTitle: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: COLORS.lightGray,
+    marginBottom: 8,
+    textTransform: "uppercase",
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: COLORS.gray,
+    marginBottom: 8,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  textInput: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    height: 48,
+    paddingHorizontal: 16,
+    fontSize: 15,
+    color: COLORS.dark,
   },
 });
 
