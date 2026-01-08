@@ -49,17 +49,31 @@ const ContactDetail = ({ navigation, route }) => {
   const [customFieldsConfig, setCustomFieldsConfig] = useState([]);
 
   useEffect(() => {
-    loadContactDetail();
-    loadActivities();
-    loadFollowups();
-    loadCustomFieldsConfig();
-  }, []);
-
-  useEffect(() => {
+    loadAllData();
     navigation.setOptions({
-      headerShown: false, // Custom header
+      headerShown: false,
     });
-  }, [navigation]);
+  }, [contact.ProcesoID]);
+
+  const loadAllData = async () => {
+    setLoading(true);
+    // Limpiar datos previos para evitar "ghosting"
+    setActivities([]);
+    setFollowups([]);
+
+    try {
+      await Promise.all([
+        loadContactDetail(),
+        loadActivities(),
+        loadFollowups(),
+        loadCustomFieldsConfig(),
+      ]);
+    } catch (error) {
+      console.error("Error loading all data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadContactDetail = async () => {
     if (!contact.ProcesoID) return;
@@ -1029,7 +1043,7 @@ const styles = StyleSheet.create({
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    backgroundColor: "rgba(255, 255, 255, 0.9)", // Más opaco para ocultar el contenido anterior
     justifyContent: "center",
     alignItems: "center",
     zIndex: 1000,
