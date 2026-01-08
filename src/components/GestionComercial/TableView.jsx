@@ -57,9 +57,21 @@ const TableView = React.memo(
           delete filters.OrigenPreContactoID;
         }
 
+        console.log(
+          "[TableView] Request Filters:",
+          JSON.stringify(filters, null, 2)
+        );
+
         const response = await GestionComercialService.consultarPreContactos(
           filters
         );
+
+        console.log("[TableView] Response:", {
+          total: response.total,
+          rowsCount: response.rows?.length,
+          page: pageNum,
+        });
+
         const newContacts = response.rows || [];
         const total = response.total || 0;
 

@@ -22,10 +22,8 @@ const TimelineView = React.memo(
     const [timelineData, setTimelineData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
-    const [page, setPage] = useState(1);
-    const [hasMore, setHasMore] = useState(true);
 
-    const loadTimeline = async (pageNum = 1, isRefresh = false) => {
+    const loadTimeline = async (isRefresh = false) => {
       if (!searchFilters.OrigenPreContactoID) {
         setTimelineData([]);
         return;
@@ -39,69 +37,30 @@ const TimelineView = React.memo(
 
         const filters = {
           ...searchFilters,
-          Page: pageNum,
-          Rows: 20,
+          Rows: 0, // Fetch all records for timeline
           SucursalID: user?.SucursalID,
         };
+
+        console.log(
+          "[TimelineView] Request Filters:",
+          JSON.stringify(filters, null, 2)
+        );
 
         const response = await GestionComercialService.consultarLineasTiempo(
           filters
         );
 
-        // El SP devuelve directamente el array de columnas o un objeto con el array
-        const newColumns = Array.isArray(response)
-          ? response
-          : response.data || response.rows || [];
+        console.log("[TimelineView] Response:", {
+          columnsCount: Array.isArray(response)
+            ? response.length
+            : response.data?.length || 0,
+        });
 
-        if (pageNum === 1) {
-          setTimelineData(newColumns);
-          // Verificar si alguna columna tiene más datos
-          const stillHasMore = newColumns.some(
-            (col) => (col.Procesos?.length || 0) < (col.TotalProcesos || 0)
-          );
-          setHasMore(stillHasMore);
-        } else {
-          setTimelineData((prevData) => {
-            const merged = prevData.map((existingCol) => {
-              const incomingCol = newColumns.find(
-                (nc) =>
-                  nc.ProcesoLineaTiempoID === existingCol.ProcesoLineaTiempoID
-              );
-              if (
-                incomingCol &&
-                incomingCol.Procesos &&
-                incomingCol.Procesos.length > 0
-              ) {
-                // Evitar duplicados por ProcesoID
-                const existingIds = new Set(
-                  existingCol.Procesos.map((p) => p.ProcesoID)
-                );
-                const uniqueNewProcesos = incomingCol.Procesos.filter(
-                  (p) => !existingIds.has(p.ProcesoID)
-                );
-
-                return {
-                  ...existingCol,
-                  Procesos: [...existingCol.Procesos, ...uniqueNewProcesos],
-                  // Actualizar totales si el API los devuelve actualizados
-                  TotalProcesos:
-                    incomingCol.TotalProcesos ?? existingCol.TotalProcesos,
-                  TotalValorNegocio:
-                    incomingCol.TotalValorNegocio ??
-                    existingCol.TotalValorNegocio,
-                };
-              }
-              return existingCol;
-            });
-
-            const stillHasMore = merged.some(
-              (col) => (col.Procesos?.length || 0) < (col.TotalProcesos || 0)
-            );
-            setHasMore(stillHasMore);
-            return merged;
-          });
-        }
-        setPage(pageNum);
+        setTimelineData(
+          Array.isArray(response)
+            ? response
+            : response.data || response.rows || []
+        );
       } catch (error) {
         console.error("Error loading timeline:", error);
         setTimelineData([]);
@@ -112,23 +71,17 @@ const TimelineView = React.memo(
     };
 
     useEffect(() => {
-      loadTimeline(1, true);
+      loadTimeline(true);
     }, [searchFilters, refreshTrigger]);
 
     useFocusEffect(
       useCallback(() => {
-        loadTimeline(1, true);
+        loadTimeline(true);
       }, [searchFilters, refreshTrigger])
     );
 
     const handleRefresh = () => {
-      loadTimeline(1, true);
-    };
-
-    const handleLoadMore = () => {
-      if (hasMore && !loading && !refreshing) {
-        loadTimeline(page + 1);
-      }
+      loadTimeline(true);
     };
 
     const handleContactPress = (contact) => {
@@ -201,9 +154,6 @@ const TimelineView = React.memo(
               onMoveContact={handleMoveContact}
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              onLoadMore={handleLoadMore}
-              hasMore={hasMore}
-              loadingMore={loading && page > 1}
             />
           ))}
 

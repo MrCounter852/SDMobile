@@ -4,9 +4,8 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
+  ScrollView,
   RefreshControl,
-  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ContactItem from "./ContactItem";
@@ -17,9 +16,6 @@ const TimelineColumn = ({
   onMoveContact,
   refreshing,
   onRefresh,
-  onLoadMore,
-  hasMore,
-  loadingMore,
 }) => {
   const formatCurrency = (value) => {
     if (!value) return "0";
@@ -30,35 +26,6 @@ const TimelineColumn = ({
     }).format(value);
   };
 
-  const renderContact = ({ item, index }) => (
-    <View style={styles.contactWrapper}>
-      <ContactItem item={item} onPress={() => onContactPress?.(item)} />
-      <View style={styles.moveButtons}>
-        <TouchableOpacity
-          style={[styles.moveButton, styles.moveLeft]}
-          onPress={() => onMoveContact?.(item, "left")}
-        >
-          <Ionicons name="chevron-back" size={14} color="#337ab7" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.moveButton, styles.moveRight]}
-          onPress={() => onMoveContact?.(item, "right")}
-        >
-          <Ionicons name="chevron-forward" size={14} color="#337ab7" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
-  const renderFooter = () => {
-    if (!loadingMore || !hasMore) return null;
-    return (
-      <View style={styles.columnFooterLoading}>
-        <ActivityIndicator size="small" color="#337ab7" />
-      </View>
-    );
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -67,9 +34,7 @@ const TimelineColumn = ({
             {linea.Nombre}
           </Text>
           <View style={styles.countBadge}>
-            <Text style={styles.countText}>
-              {linea.TotalProcesos || linea.Procesos?.length || 0}
-            </Text>
+            <Text style={styles.countText}>{linea.TotalProcesos || 0}</Text>
           </View>
         </View>
         <TouchableOpacity style={styles.filterButton}>
@@ -77,18 +42,10 @@ const TimelineColumn = ({
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={linea.Procesos || []}
-        keyExtractor={(item, index) =>
-          item.ProcesoID?.toString() || index.toString()
-        }
-        renderItem={renderContact}
+      <ScrollView
         style={styles.scrollContainer}
-        contentContainerStyle={styles.contactsContainer}
         showsVerticalScrollIndicator={false}
-        onEndReached={onLoadMore}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={renderFooter}
+        contentContainerStyle={styles.contactsContainer}
         refreshControl={
           <RefreshControl
             refreshing={refreshing || false}
@@ -96,7 +53,40 @@ const TimelineColumn = ({
             colors={["#337ab7"]}
           />
         }
-        ListEmptyComponent={
+      >
+        {!!linea.Procesos &&
+          linea.Procesos.map((contacto, index) => (
+            <View
+              key={contacto.ProcesoID || index}
+              style={styles.contactWrapper}
+            >
+              <ContactItem
+                item={contacto}
+                onPress={() => onContactPress && onContactPress(contacto)}
+              />
+              {/* Minimalist Move buttons */}
+              <View style={styles.moveButtons}>
+                <TouchableOpacity
+                  style={[styles.moveButton, styles.moveLeft]}
+                  onPress={() =>
+                    onMoveContact && onMoveContact(contacto, "left")
+                  }
+                >
+                  <Ionicons name="chevron-back" size={14} color="#337ab7" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.moveButton, styles.moveRight]}
+                  onPress={() =>
+                    onMoveContact && onMoveContact(contacto, "right")
+                  }
+                >
+                  <Ionicons name="chevron-forward" size={14} color="#337ab7" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+
+        {(!linea.Procesos || linea.Procesos.length === 0) && (
           <View style={styles.emptyContainer}>
             <View style={styles.emptyIconCircle}>
               <Ionicons
@@ -107,8 +97,8 @@ const TimelineColumn = ({
             </View>
             <Text style={styles.emptyText}>Lista vacía</Text>
           </View>
-        }
-      />
+        )}
+      </ScrollView>
 
       <View style={styles.footer}>
         <View style={styles.footerItem}>
@@ -250,10 +240,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#1C1C1E",
     fontWeight: "700",
-  },
-  columnFooterLoading: {
-    paddingVertical: 12,
-    alignItems: "center",
   },
 });
 
