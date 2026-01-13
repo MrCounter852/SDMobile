@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -22,27 +22,42 @@ const TimelineView = React.memo(
     const [timelineData, setTimelineData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const lastPageLoaded = useRef(0);
 
-    const loadTimeline = async (isRefresh = false) => {
+    const ROWS_PER_PAGE = 15;
+
+    const loadTimeline = async (pageNum = 1, isRefresh = false) => {
       if (!searchFilters.OrigenPreContactoID) {
         setTimelineData([]);
         return;
       }
+
+      if (loadingMore && !isRefresh) return;
+      if (pageNum <= lastPageLoaded.current && !isRefresh && pageNum !== 1)
+        return;
+
       try {
-        if (isRefresh) {
-          setRefreshing(true);
-        } else {
-          setLoading(true);
+        if (isRefresh || pageNum === 1) {
+          setRefreshing(isRefresh);
+          if (!isRefresh) setLoading(true);
+          lastPageLoaded.current = 0;
+        } else if (pageNum > 1) {
+          setLoadingMore(true);
         }
 
         const filters = {
           ...searchFilters,
-          Rows: 0, // Fetch all records for timeline
+          EstadoProcesoID: null, // Critical: Web version clears this for timeline
+          Page: pageNum,
+          Rows: ROWS_PER_PAGE,
           SucursalID: user?.SucursalID,
         };
 
         console.log(
-          "[TimelineView] Request Filters:",
+          `[TimelineView] Request Filters (Page ${pageNum}):`,
           JSON.stringify(filters, null, 2)
         );
 
@@ -50,36 +65,72 @@ const TimelineView = React.memo(
           filters
         );
 
-        console.log("[TimelineView] Response:", {
-          columnsCount: Array.isArray(response)
-            ? response.length
-            : response.data?.length || 0,
-        });
+        const newColumns = Array.isArray(response)
+          ? response
+          : response.data || response.rows || [];
 
-        setTimelineData(
-          Array.isArray(response)
-            ? response
-            : response.data || response.rows || []
+        const totalProcessesReceived = newColumns.reduce(
+          (acc, col) => acc + (col.Procesos?.length || 0),
+          0
         );
+
+        if (pageNum === 1) {
+          setTimelineData(newColumns);
+          setPage(1);
+          lastPageLoaded.current = 1;
+          setHasMore(totalProcessesReceived === ROWS_PER_PAGE);
+        } else {
+          setTimelineData((prev) => {
+            return prev.map((oldCol) => {
+              const matchingNewCol = newColumns.find(
+                (nc) => nc.ProcesoLineaTiempoID === oldCol.ProcesoLineaTiempoID
+              );
+              if (matchingNewCol) {
+                const existingIds = new Set(
+                  oldCol.Procesos?.map((p) => p.ProcesoID)
+                );
+                const uniqueNewProcesos = (
+                  matchingNewCol.Procesos || []
+                ).filter((p) => !existingIds.has(p.ProcesoID));
+
+                return {
+                  ...oldCol,
+                  Procesos: [...(oldCol.Procesos || []), ...uniqueNewProcesos],
+                };
+              }
+              return oldCol;
+            });
+          });
+          setPage(pageNum);
+          lastPageLoaded.current = pageNum;
+          setHasMore(totalProcessesReceived === ROWS_PER_PAGE);
+        }
       } catch (error) {
         console.error("Error loading timeline:", error);
-        setTimelineData([]);
+        if (pageNum === 1) setTimelineData([]);
       } finally {
         setLoading(false);
         setRefreshing(false);
+        setLoadingMore(false);
       }
     };
 
     useFocusEffect(
       useCallback(() => {
         if (user?.SucursalID) {
-          loadTimeline(true);
+          loadTimeline(1, true);
         }
       }, [searchFilters, refreshTrigger, user?.SucursalID])
     );
 
     const handleRefresh = () => {
-      loadTimeline(true);
+      loadTimeline(1, true);
+    };
+
+    const handleLoadMore = () => {
+      if (hasMore && !loading && !refreshing && !loadingMore) {
+        loadTimeline(page + 1);
+      }
     };
 
     const handleContactPress = (contact) => {
@@ -117,7 +168,7 @@ const TimelineView = React.memo(
                     timelineData[targetIndex].ProcesoLineaTiempoID,
                 });
 
-                loadTimeline(true);
+                loadTimeline(1, true);
               } catch (error) {
                 console.error("Error moving contact:", error);
                 Alert.alert("Error", "No se pudo mover el contacto");
@@ -155,6 +206,9 @@ const TimelineView = React.memo(
               onMoveContact={handleMoveContact}
               refreshing={refreshing}
               onRefresh={handleRefresh}
+              onLoadMore={handleLoadMore}
+              hasMore={hasMore}
+              loadingMore={loadingMore}
             />
           ))}
 

@@ -4,8 +4,9 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   RefreshControl,
+  FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ContactItem from "./ContactItem";
@@ -16,6 +17,9 @@ const TimelineColumn = ({
   onMoveContact,
   refreshing,
   onRefresh,
+  onLoadMore,
+  hasMore,
+  loadingMore,
 }) => {
   const formatCurrency = (value) => {
     if (!value) return "0";
@@ -24,6 +28,39 @@ const TimelineColumn = ({
       currency: "COP",
       minimumFractionDigits: 0,
     }).format(value);
+  };
+
+  const renderContact = ({ item }) => (
+    <View style={styles.contactWrapper}>
+      <ContactItem
+        item={item}
+        onPress={() => onContactPress && onContactPress(item)}
+      />
+      {/* Minimalist Move buttons */}
+      <View style={styles.moveButtons}>
+        <TouchableOpacity
+          style={[styles.moveButton, styles.moveLeft]}
+          onPress={() => onMoveContact && onMoveContact(item, "left")}
+        >
+          <Ionicons name="chevron-back" size={14} color="#337ab7" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.moveButton, styles.moveRight]}
+          onPress={() => onMoveContact && onMoveContact(item, "right")}
+        >
+          <Ionicons name="chevron-forward" size={14} color="#337ab7" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const renderFooter = () => {
+    if (!loadingMore) return <View style={{ height: 20 }} />;
+    return (
+      <View style={styles.loadingMoreFooter}>
+        <ActivityIndicator size="small" color="#337ab7" />
+      </View>
+    );
   };
 
   return (
@@ -42,10 +79,15 @@ const TimelineColumn = ({
         </TouchableOpacity>
       </View>
 
-      <ScrollView
+      <FlatList
+        data={linea.Procesos || []}
+        renderItem={renderContact}
+        keyExtractor={(item, index) =>
+          item.ProcesoID?.toString() || index.toString()
+        }
         style={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contactsContainer}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing || false}
@@ -53,40 +95,10 @@ const TimelineColumn = ({
             colors={["#337ab7"]}
           />
         }
-      >
-        {!!linea.Procesos &&
-          linea.Procesos.map((contacto, index) => (
-            <View
-              key={contacto.ProcesoID || index}
-              style={styles.contactWrapper}
-            >
-              <ContactItem
-                item={contacto}
-                onPress={() => onContactPress && onContactPress(contacto)}
-              />
-              {/* Minimalist Move buttons */}
-              <View style={styles.moveButtons}>
-                <TouchableOpacity
-                  style={[styles.moveButton, styles.moveLeft]}
-                  onPress={() =>
-                    onMoveContact && onMoveContact(contacto, "left")
-                  }
-                >
-                  <Ionicons name="chevron-back" size={14} color="#337ab7" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.moveButton, styles.moveRight]}
-                  onPress={() =>
-                    onMoveContact && onMoveContact(contacto, "right")
-                  }
-                >
-                  <Ionicons name="chevron-forward" size={14} color="#337ab7" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
-
-        {(!linea.Procesos || linea.Procesos.length === 0) && (
+        onEndReached={onLoadMore}
+        onEndReachedThreshold={0.3}
+        ListFooterComponent={renderFooter}
+        ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <View style={styles.emptyIconCircle}>
               <Ionicons
@@ -97,8 +109,8 @@ const TimelineColumn = ({
             </View>
             <Text style={styles.emptyText}>Lista vacía</Text>
           </View>
-        )}
-      </ScrollView>
+        }
+      />
 
       <View style={styles.footer}>
         <View style={styles.footerItem}>
@@ -240,6 +252,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#1C1C1E",
     fontWeight: "700",
+  },
+  loadingMoreFooter: {
+    paddingVertical: 20,
+    alignItems: "center",
   },
 });
 
