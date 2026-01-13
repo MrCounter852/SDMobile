@@ -56,7 +56,6 @@ const CancelDropZone = ({ visible, isHovering }) => {
           color="#fff"
           style={styles.icon}
         />
-        <Text style={styles.text}>Soltar para cancelar</Text>
       </Animated.View>
     </Animated.View>
   );
@@ -87,12 +86,6 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginRight: 8,
-  },
-  text: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#fff",
-    letterSpacing: 0.3,
   },
 });
 
