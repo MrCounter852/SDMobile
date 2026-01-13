@@ -128,7 +128,10 @@ const TimelineView = React.memo(
       );
     };
 
-    if (loading && !refreshing) {
+    const isInitialLoading =
+      (loading || refreshing) && timelineData.length === 0;
+
+    if (isInitialLoading) {
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#337ab7" />
