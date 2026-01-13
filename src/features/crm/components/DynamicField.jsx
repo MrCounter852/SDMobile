@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, Switch, StyleSheet } from "react-native";
 import { CustomInput, COLORS } from "./FormComponents";
-import CustomModalPicker from "../../../assets/common/CustomModalPicker";
+import CustomModalPicker from "../../../components/shared/CustomModalPicker";
 
 const DynamicField = ({ config, value, onChange, onLoadData, error }) => {
   if (!config) return null;

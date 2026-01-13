@@ -4,7 +4,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useEffect } from "react";
-import Login from "./src/screens/Login/Login";
+import Login from "./src/features/auth/screens/Login";
 import SplashScreen from "./src/screens/SplashScreen/SplashScreen";
 import Home from "./src/screens/Home/Home";
 import useGlobal from "./src/core/global";

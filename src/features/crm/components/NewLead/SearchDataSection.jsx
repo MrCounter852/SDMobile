@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, CustomInput, SectionHeader } from "../FormComponents";
-import CustomModalPicker from "../../../../assets/common/CustomModalPicker";
+import CustomModalPicker from "../../../../components/shared/CustomModalPicker";
 import DynamicForm from "../DynamicForm";
 
 const SearchDataSection = ({

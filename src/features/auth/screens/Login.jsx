@@ -18,15 +18,15 @@ import { Ionicons, Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as SecureStore from "expo-secure-store";
-import useGlobal from "../../core/global";
-import ExpandableDropdown from "../../assets/common/SearchableDropdownModal";
-import FocusAwareStatusBar from "../../components/FocusAwareStatusBar";
+import useGlobal from "../../../core/global";
+import ExpandableDropdown from "../../../components/shared/SearchableDropdownModal";
+import FocusAwareStatusBar from "../../../components/FocusAwareStatusBar";
 import {
   loginUser,
   fetchEmpresas,
   getOauthToken,
   getSessionData,
-} from "../../services/auth/authService";
+} from "../services/authService";
 
 const { width } = Dimensions.get("window");
 
@@ -169,7 +169,7 @@ const Login = () => {
 
       <View style={styles.formContent}>
         <Image
-          source={require("../../assets/images/logos/SEDI_ERP.png")}
+          source={require("../../../assets/images/logos/SEDI_ERP.png")}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -273,7 +273,7 @@ const Login = () => {
           source={
             selectedEmpresa
               ? { uri: selectedEmpresa.Logo }
-              : require("../../assets/images/logos/SEDI_ERP.png")
+              : require("../../../assets/images/logos/SEDI_ERP.png")
           }
           style={styles.logo}
           resizeMode="contain"

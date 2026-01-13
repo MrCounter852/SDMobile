@@ -1,4 +1,4 @@
-import getEnvironmentConfig from '../../config/environments';
+import getEnvironmentConfig from '../../../config/environments';
 
 export const loginUser = async (email, password) => {
   const response = await fetch(`${getEnvironmentConfig().BASE_URL_SIS}/API_SIS/api/Login/ERPLogin/`, {

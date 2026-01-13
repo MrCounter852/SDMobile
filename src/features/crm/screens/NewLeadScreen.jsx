@@ -29,7 +29,7 @@ import { LinearGradient } from "expo-linear-gradient";
 // Usamos require().default para asegurar la compatibilidad con el sistema de exportación
 const GestionComercialService = require("../services/leadService").default;
 import PropertySelectionModal from "../../../components/PropertySelectionModal";
-import CustomModalPicker from "../../../assets/common/CustomModalPicker";
+import CustomModalPicker from "../../../components/shared/CustomModalPicker";
 
 import {
   COLORS,
