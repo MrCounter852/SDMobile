@@ -20,7 +20,7 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import facturasCompraService from "../../services/facturasCompra/facturasCompraService";
+import facturasCompraService from "../services/invoiceService";
 
 const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -173,7 +173,9 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
 
   const handleViewAttachment = async (adj) => {
     try {
-      const url = facturasCompraService.getAttachmentUrl(adj.FacturaCompraAdjuntoID);
+      const url = facturasCompraService.getAttachmentUrl(
+        adj.FacturaCompraAdjuntoID
+      );
       await Linking.openURL(url);
     } catch (error) {
       console.error("Error opening attachment:", error);
@@ -353,7 +355,11 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
             <Section title="Adjuntos">
               {(invoiceData.FacturasCompraAdjuntos || []).length > 0 ? (
                 invoiceData.FacturasCompraAdjuntos.map((adj, idx) => (
-                  <TouchableOpacity key={idx} style={styles.attachmentRow} onPress={() => handleViewAttachment(adj)}>
+                  <TouchableOpacity
+                    key={idx}
+                    style={styles.attachmentRow}
+                    onPress={() => handleViewAttachment(adj)}
+                  >
                     <Ionicons name="attach" size={20} color="#337ab7" />
                     <Text style={styles.attachmentName} numberOfLines={1}>
                       {adj.Nombre || adj.NombreOriginal}

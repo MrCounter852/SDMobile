@@ -11,9 +11,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, Feather } from "@expo/vector-icons";
-import { useGlobal } from "../../core/global";
-import getEnvironmentConfig from "../../config/environments";
-import FocusAwareStatusBar from "../../components/FocusAwareStatusBar";
+import { useGlobal } from "../../../core/global";
+import getEnvironmentConfig from "../../../config/environments";
+import FocusAwareStatusBar from "../../../components/FocusAwareStatusBar";
 
 const { width } = Dimensions.get("window");
 

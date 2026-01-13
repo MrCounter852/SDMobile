@@ -20,11 +20,11 @@ import { Swipeable } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useChatStore } from "../../features/chat/store/chatStore";
-import chatApi from "../../features/chat/services/chatService";
-import { useGlobal } from "../../core/global";
-import FocusAwareStatusBar from "../../components/FocusAwareStatusBar";
-import { COLORS } from "../../core/theme";
+import { useChatStore } from "../../chat/store/chatStore";
+import chatApi from "../../chat/services/chatService";
+import { useGlobal } from "../../../core/global";
+import FocusAwareStatusBar from "../../../components/FocusAwareStatusBar";
+import { COLORS } from "../../../core/theme";
 
 const Notificaciones = ({ navigation }) => {
   const {

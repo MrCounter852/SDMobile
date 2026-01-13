@@ -13,13 +13,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, Feather } from "@expo/vector-icons";
-import facturasCompraService from "../../services/facturasCompra/facturasCompraService";
-import FacturaItem from "../../components/FacturasCompra/FacturaItem";
-import FacturaFiltersModal from "../../components/FacturasCompra/FacturaFiltersModal";
-import FacturaDetailModal from "../../components/FacturasCompra/FacturaDetailModal";
-import FocusAwareStatusBar from "../../components/FocusAwareStatusBar";
+import facturasCompraService from "../services/invoiceService";
+import FacturaItem from "../components/FacturaItem";
+import FacturaFiltersModal from "../components/FacturaFiltersModal";
+import FacturaDetailModal from "../components/FacturaDetailModal";
+import FocusAwareStatusBar from "../../../components/FocusAwareStatusBar";
 
-import { COLORS } from "../../core/theme";
+import { COLORS } from "../../../core/theme";
 
 const { width } = Dimensions.get("window");
 

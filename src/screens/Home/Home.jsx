@@ -15,13 +15,13 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 // import Menu from "../Menu/Menu";
-import Perfil from "../Perfil/Perfil";
+import Perfil from "../../features/profile/screens/Profile";
 import GestionComercial from "../../features/crm/screens/GestionComercial";
-import Notificaciones from "../Notificaciones/Notificaciones";
+import Notificaciones from "../../features/notifications/screens/Notifications";
 import Favoritos from "../Favoritos/Favoritos";
 import useGlobal from "../../core/global";
 // import MenuPanel from "../../components/MenuPanel";
-import AprobacionFacturasCompra from "../FacturasCompra/AprobacionFacturasCompra";
+import AprobacionFacturasCompra from "../../features/invoices/screens/AprobacionFacturasCompra";
 import { ContactList } from "../../features/chat/screens";
 import { useChatStore } from "../../features/chat/store/chatStore";
 import getEnvironmentConfig from "../../config/environments";
