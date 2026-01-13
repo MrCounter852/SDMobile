@@ -15,16 +15,16 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 // import Menu from "../Menu/Menu";
-import Perfil from "../../features/profile/screens/Profile";
-import GestionComercial from "../../features/crm/screens/GestionComercial";
-import Notificaciones from "../../features/notifications/screens/Notifications";
-import Favoritos from "../Favoritos/Favoritos";
-import useGlobal from "../../core/global";
-// import MenuPanel from "../../components/MenuPanel";
-import AprobacionFacturasCompra from "../../features/invoices/screens/AprobacionFacturasCompra";
-import { ContactList } from "../../features/chat/screens";
-import { useChatStore } from "../../features/chat/store/chatStore";
-import getEnvironmentConfig from "../../config/environments";
+import Perfil from "../../profile/screens/Profile";
+import GestionComercial from "../../crm/screens/GestionComercial";
+import Notificaciones from "../../notifications/screens/Notifications";
+import Favoritos from "../../favorites/screens/Favoritos";
+import useGlobal from "../../../core/global";
+// import MenuPanel from "../../../components/MenuPanel";
+import AprobacionFacturasCompra from "../../invoices/screens/AprobacionFacturasCompra";
+import { ContactList } from "../../chat/screens";
+import { useChatStore } from "../../chat/store/chatStore";
+import getEnvironmentConfig from "../../../config/environments";
 const Tab = createBottomTabNavigator();
 
 const Home = () => {

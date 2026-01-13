@@ -14,8 +14,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
-import { useGlobal } from "../../core/global";
-import leadService from "../../features/crm/services/leadService";
+import { useGlobal } from "../../../core/global";
+import leadService from "../services/leadService";
 
 const COLORS = {
   primary: "#337ab7",

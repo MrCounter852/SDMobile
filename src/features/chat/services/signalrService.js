@@ -1,9 +1,9 @@
-import './signalr-shim.js';
+import '../../../core/signalr-shim.js';
 import { hubConnection } from 'signalr-no-jquery';
-import useGlobal from './global';
-import getEnvironmentConfig from '../config/environments.js';
+import useGlobal from '../../../core/global';
+import getEnvironmentConfig from '../../../config/environments.js';
 import * as Notifications from 'expo-notifications';
-import { getCurrentRouteName } from './navigationRef';
+import { getCurrentRouteName } from '../../../core/navigationRef';
 class SignalRService {
     constructor() {
         this.connection = null;
@@ -77,7 +77,7 @@ class SignalRService {
         // Notificaciones push
         // Firma exacta web: function (Notificaciones, IfPush)
         this.hubProxy.on('NotificacionPush', async (data, IfPush) => {
-            const chatStore = require('../features/chat/store/chatStore').default;
+            const chatStore = require('../store/chatStore').default;
             if (data && Array.isArray(data)) {
 
                 // NOTA: La web hace un filtro complejo para unificar filas y actualizar "TotalRows".
@@ -123,7 +123,7 @@ class SignalRService {
 
         // Sincronización de opción de menú
         this.hubProxy.on('SincronizarOpcionMenuEmpresa', (data) => {
-            const chatStore = require('../features/chat/store/chatStore').default;
+            const chatStore = require('../store/chatStore').default;
             chatStore.getState().handleSignalRUpdate(data);
         });
 

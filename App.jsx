@@ -5,20 +5,20 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useEffect } from "react";
 import Login from "./src/features/auth/screens/Login";
-import SplashScreen from "./src/screens/SplashScreen/SplashScreen";
-import Home from "./src/screens/Home/Home";
+import SplashScreen from "./src/features/auth/screens/SplashScreen";
+import Home from "./src/features/home/screens/Home";
 import useGlobal from "./src/core/global";
 import { ChatScreen, NewChat } from "./src/features/chat/screens";
-import SettingsScreen from "./src/screens/Settings/SettingsScreen";
+import SettingsScreen from "./src/features/settings/screens/SettingsScreen";
 import NewLeadScreen from "./src/features/crm/screens/NewLeadScreen";
-import ContactInfoScreen from "./src/screens/ContactInfo/ContactInfoScreen";
+import ContactInfoScreen from "./src/features/crm/screens/ContactInfoScreen";
 import GestionComercial from "./src/features/crm/screens/GestionComercial";
 import ContactDetail from "./src/features/crm/screens/ContactDetail";
 import ActivityFollowupScreen from "./src/features/crm/screens/ActivityFollowupScreen";
 import { navigationRef, navigate } from "./src/core/navigationRef";
-import { registerForPushNotificationsAsync } from "./src/core/notificationConfig";
+import { registerForPushNotificationsAsync } from "./src/features/notifications/services/notificationConfig";
 import * as Notifications from "expo-notifications";
-import signalrService from "./src/core/signalrService";
+import signalrService from "./src/features/chat/services/signalrService";
 
 const Stack = createNativeStackNavigator();
 

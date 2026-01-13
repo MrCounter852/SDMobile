@@ -1,14 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 import {
   View,
   Image,
   ActivityIndicator,
   StyleSheet,
   Dimensions,
-} from 'react-native';
-import useGlobal from '../../core/global';
+} from "react-native";
+import useGlobal from "../../../core/global";
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
 const SplashScreen = () => {
   const init = useGlobal((state) => state.init);
@@ -23,7 +23,7 @@ const SplashScreen = () => {
     <View style={styles.container}>
       <View style={styles.logoContainer}>
         <Image
-          source={require('../../assets/images/logos/SEDI_ERP.png')}
+          source={require("../../../assets/images/logos/SEDI_ERP.png")}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -36,9 +36,9 @@ const SplashScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
   },
   logoContainer: {
     marginBottom: 50,
