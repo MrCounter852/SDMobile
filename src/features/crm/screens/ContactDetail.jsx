@@ -83,6 +83,7 @@ const ContactDetail = ({ navigation, route }) => {
         });
       if (response.data) {
         setContactDetail({ ...contact, ...response.data });
+        console.log("Contact detail loaded:", response.data);
       }
     } catch (error) {
       console.error("Error loading contact detail:", error);
@@ -175,14 +176,14 @@ const ContactDetail = ({ navigation, route }) => {
     for (let i = 1; i <= 6; i++) {
       if (item[`Estrato${i}`]) estratos.push(i);
     }
-    return estratos.length > 0 ? estratos.join(", ") : "N/A";
+    return estratos.length > 0 ? estratos.join(", ") : null;
   };
 
   const formatDate = (dateString, withTime = true) => {
-    if (!dateString) return "N/A";
+    if (!dateString) return null;
     try {
       const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "N/A";
+      if (isNaN(date.getTime())) return null;
       const options = {
         day: "2-digit",
         month: "2-digit",
@@ -224,6 +225,18 @@ const ContactDetail = ({ navigation, route }) => {
       }
     }
     return [];
+  };
+
+  const getDynamicFields = () => {
+    const fields = [];
+    for (let i = 1; i <= 20; i++) {
+      const label = contactDetail[`LabelCampo${i}`];
+      const value = contactDetail[`ValorCampo${i}`];
+      if (label && value) {
+        fields.push({ label, value });
+      }
+    }
+    return fields;
   };
 
   // --- RENDER FUNCTIONS --- //
@@ -306,14 +319,24 @@ const ContactDetail = ({ navigation, route }) => {
     value,
     fullWidth = false,
     isCurrency = false,
-  }) => (
-    <View style={[styles.dataItem, fullWidth && styles.fullWidth]}>
-      <Text style={styles.dataLabel}>{label}</Text>
-      <Text style={[styles.dataValue, isCurrency && styles.currencyValue]}>
-        {isCurrency ? formatCurrency(value) : value || "N/A"}
-      </Text>
-    </View>
-  );
+  }) => {
+    if (
+      value === undefined ||
+      value === null ||
+      value === "" ||
+      value === "N/A"
+    )
+      return null;
+
+    return (
+      <View style={[styles.dataItem, fullWidth && styles.fullWidth]}>
+        <Text style={styles.dataLabel}>{label}</Text>
+        <Text style={[styles.dataValue, isCurrency && styles.currencyValue]}>
+          {isCurrency ? formatCurrency(value) : value}
+        </Text>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -363,6 +386,7 @@ const ContactDetail = ({ navigation, route }) => {
           <View style={styles.dataGrid}>
             <DataItem label="Email" value={contactDetail.Email} />
             <DataItem label="Celular" value={contactDetail.Celular} />
+            <DataItem label="Sucursal" value={contactDetail.SucursalNombre} />
             <DataItem
               label="Origen"
               value={contactDetail.OrigenPreContactoNombre}
@@ -370,6 +394,18 @@ const ContactDetail = ({ navigation, route }) => {
             <DataItem
               label="Forma Contacto"
               value={contactDetail.FormaContactoNombre}
+            />
+            <DataItem
+              label="Forma Conocido"
+              value={contactDetail.FormaComoNosConocioNombre}
+            />
+            <DataItem
+              label="Detalle Forma"
+              value={contactDetail.FormaComoNosConocioDetalleNombre}
+            />
+            <DataItem
+              label="Registrado por"
+              value={contactDetail.UsuarioRegistroNombreCompleto}
             />
             <DataItem
               label="Fecha Registro"
@@ -384,18 +420,63 @@ const ContactDetail = ({ navigation, route }) => {
               value={formatDate(contactDetail.FechaPosibleServicio, false)}
             />
             <DataItem
-              label="Estado General"
-              value={
-                contactDetail.EstadoGeneral === "R"
-                  ? "Regular"
-                  : contactDetail.EstadoGeneral === "V"
-                  ? "Verde"
-                  : contactDetail.EstadoGeneral === "A"
-                  ? "Amarillo"
-                  : contactDetail.EstadoGeneral
-              }
+              label="Palabra Búsqueda"
+              value={contactDetail.PalabraBusqueda}
+              fullWidth
             />
           </View>
+
+          {/* Binding Form (Formato Vinculacion) & Initial Services moved here */}
+          {(contactDetail.FormatoVinculacion?.Consecutivo ||
+            contactDetail.FormatoSeguro?.Consecutivo) && (
+            <View style={styles.observationBox}>
+              <Text style={styles.dataLabel}>Formatos y Seguros</Text>
+              {contactDetail.FormatoVinculacion?.Consecutivo && (
+                <View style={styles.formItem}>
+                  <Ionicons
+                    name="create-outline"
+                    size={14}
+                    color={COLORS.primary}
+                  />
+                  <Text style={styles.formText}>
+                    Vinc. #{contactDetail.FormatoVinculacion.Consecutivo} -{" "}
+                    {contactDetail.FormatoVinculacion.EstadoFirmasSignio ||
+                      "Pendiente"}
+                  </Text>
+                </View>
+              )}
+              {contactDetail.FormatoSeguro?.Consecutivo && (
+                <View style={[styles.formItem, { marginTop: 4 }]}>
+                  <Ionicons
+                    name="shield-checkmark-outline"
+                    size={14}
+                    color={COLORS.success}
+                  />
+                  <Text style={styles.formText}>
+                    Seguro #{contactDetail.FormatoSeguro.Consecutivo} (
+                    {contactDetail.FormatoSeguro.TipoFormatoSeguroNombre})
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {safeParseArray(contactDetail.ProcesosServiciosIniciales).length >
+            0 && (
+            <View style={[styles.observationBox, { marginTop: 12 }]}>
+              <Text style={styles.dataLabel}>Servicios Iniciales</Text>
+              <View style={styles.servicesRow}>
+                {safeParseArray(contactDetail.ProcesosServiciosIniciales).map(
+                  (s, idx) => (
+                    <View key={idx} style={styles.serviceBadge}>
+                      <Text style={styles.serviceText}>{s.Nombre}</Text>
+                    </View>
+                  )
+                )}
+              </View>
+            </View>
+          )}
+
           {contactDetail.Observaciones && (
             <View style={styles.observationBox}>
               <Text style={styles.dataLabel}>Observaciones</Text>
@@ -406,10 +487,47 @@ const ContactDetail = ({ navigation, route }) => {
           )}
         </InfoSection>
 
-        {/* 3. Property Search Preferences */}
+        {/* 3. Client Information (If applicable) */}
+        {contactDetail.ClienteNombreCompleto && (
+          <InfoSection title="Información del Cliente" icon="person-outline">
+            <View style={styles.dataGrid}>
+              <DataItem
+                label="Nombre"
+                value={contactDetail.ClienteNombreCompleto}
+                fullWidth
+              />
+              <DataItem
+                label="Documento"
+                value={`${contactDetail.ClienteDocumento || ""} (${
+                  contactDetail.ClienteTipoDocumentoID || ""
+                })`}
+              />
+              <DataItem
+                label="Celular"
+                value={
+                  contactDetail.ClienteCelular || contactDetail.ClienteTelefono
+                }
+              />
+              <DataItem
+                label="Email"
+                value={contactDetail.ClienteEmail}
+                fullWidth
+              />
+              <DataItem
+                label="Dirección"
+                value={contactDetail.ClienteDireccion}
+                fullWidth
+              />
+            </View>
+          </InfoSection>
+        )}
+
+        {/* 4. Property Search Preferences */}
         {(contactDetail.PresupuestoDesde ||
           contactDetail.AreaDesde ||
-          contactDetail.CondicionInmuebleNombre) && (
+          contactDetail.CondicionInmuebleNombre ||
+          safeParseArray(contactDetail.ProcesosInmobiliariaLocalidades).length >
+            0) && (
           <InfoSection title="Búsqueda y Preferencias" icon="search-outline">
             <View style={styles.dataGrid}>
               <DataItem
@@ -439,11 +557,31 @@ const ContactDetail = ({ navigation, route }) => {
                 label="Antigüedad"
                 value={contactDetail.AntiguedadInmuebleNombre}
               />
+              {safeParseArray(contactDetail.ProcesosInmobiliariaLocalidades)
+                .length > 0 && (
+                <DataItem
+                  label="Localidades Interés"
+                  value={safeParseArray(
+                    contactDetail.ProcesosInmobiliariaLocalidades
+                  )
+                    .map((l) => l.LocalidadNombre)
+                    .join(", ")}
+                  fullWidth
+                />
+              )}
             </View>
+            {contactDetail.InteresesUbicacion && (
+              <View style={styles.observationBox}>
+                <Text style={styles.dataLabel}>Intereses Ubicación</Text>
+                <Text style={styles.observationText}>
+                  {contactDetail.InteresesUbicacion}
+                </Text>
+              </View>
+            )}
           </InfoSection>
         )}
 
-        {/* 4. Property Details (If applicable) */}
+        {/* 5. Property Details (If applicable) */}
         {(contactDetail.OrigenPreContactoID == 2 ||
           contactDetail.OrigenPreContactoID == 4 ||
           contactDetail.OrigenPreContactoID == 5) && (
@@ -501,6 +639,25 @@ const ContactDetail = ({ navigation, route }) => {
                 />
               )}
             </View>
+            {contactDetail.DescripcionAdicional && (
+              <View style={styles.observationBox}>
+                <Text style={styles.dataLabel}>Descripción Adicional</Text>
+                <Text style={styles.observationText}>
+                  {contactDetail.DescripcionAdicional}
+                </Text>
+              </View>
+            )}
+          </InfoSection>
+        )}
+
+        {/* 6. Dynamic Custom Fields */}
+        {getDynamicFields().length > 0 && (
+          <InfoSection title="Información Adicional" icon="list-outline">
+            <View style={styles.dataGrid}>
+              {getDynamicFields().map((field, idx) => (
+                <DataItem key={idx} label={field.label} value={field.value} />
+              ))}
+            </View>
           </InfoSection>
         )}
 
@@ -514,22 +671,86 @@ const ContactDetail = ({ navigation, route }) => {
           >
             {safeParseArray(contactDetail.InmueblesProcesos).map((inm, idx) => (
               <View key={idx} style={styles.associatedCard}>
-                <View
-                  style={[
-                    styles.asocHeader,
-                    { borderLeftColor: COLORS.secondary },
-                  ]}
-                >
-                  <Text style={styles.asocTitle}>
-                    {inm.TipoInmueble} - #{inm.InmuebleConsecutivo}
-                  </Text>
-                  <View style={styles.asocBadge}>
-                    <Text style={styles.asocBadgeText}>
-                      {inm.EstadoProcesoInmuebleNombre}
-                    </Text>
+                <View style={styles.asocHeader}>
+                  <View style={styles.asocTitleGroup}>
+                    {inm.Principal && (
+                      <Ionicons
+                        name="star"
+                        size={18}
+                        color="#FFD700"
+                        style={{ marginRight: 6 }}
+                      />
+                    )}
+                    <Text style={styles.asocTitle}>{inm.TipoInmueble}</Text>
+                  </View>
+                  <View style={styles.asocBadgeGroup}>
+                    {inm.Interesado && (
+                      <View
+                        style={[
+                          styles.asocBadge,
+                          { backgroundColor: "rgba(51, 122, 183, 0.1)" },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.asocBadgeText,
+                            { color: COLORS.primary },
+                          ]}
+                        >
+                          Interesado
+                        </Text>
+                      </View>
+                    )}
+                    <View style={styles.asocBadge}>
+                      <Text style={styles.asocBadgeText}>
+                        {inm.EstadoProcesoInmuebleNombre}
+                      </Text>
+                    </View>
                   </View>
                 </View>
-                <Text style={styles.asocAddress}>{inm.InmuebleDireccion}</Text>
+
+                <View style={styles.asocAddressRow}>
+                  <View style={styles.asocIdBadge}>
+                    <Text style={styles.asocIdText}>
+                      #{inm.InmuebleConsecutivo}
+                    </Text>
+                  </View>
+                  <Text style={styles.asocAddress} numberOfLines={1}>
+                    {inm.InmuebleDireccion}
+                  </Text>
+                </View>
+
+                {(inm.Barrio || inm.Localidad) && (
+                  <View style={styles.asocLocationRow}>
+                    <Ionicons
+                      name="location-outline"
+                      size={12}
+                      color={COLORS.gray}
+                    />
+                    <Text style={styles.asocLocationText}>
+                      {inm.Barrio}
+                      {inm.Barrio && inm.Localidad ? " - " : ""}
+                      {inm.Localidad}
+                    </Text>
+                  </View>
+                )}
+
+                {inm.CountPreFacturas > 0 && (
+                  <View style={styles.asocCountsRow}>
+                    {inm.CountPreFacturas > 0 && (
+                      <View style={styles.countBadge}>
+                        <Ionicons
+                          name="receipt-outline"
+                          size={10}
+                          color={COLORS.success}
+                        />
+                        <Text style={styles.countText}>
+                          {inm.CountPreFacturas} Pre-Fact.
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                )}
                 <View style={styles.asocStats}>
                   <View style={styles.asocStat}>
                     <Text style={styles.asocStatLabel}>CANON</Text>
@@ -604,7 +825,7 @@ const ContactDetail = ({ navigation, route }) => {
           )}
         </InfoSection>
 
-        {/* 7. Follow-ups */}
+        {/* 8. Follow-ups */}
         <InfoSection
           title={`Seguimientos (${followups.length})`}
           icon="chatbubble-ellipses-outline"
@@ -640,6 +861,131 @@ const ContactDetail = ({ navigation, route }) => {
             </Text>
           )}
         </InfoSection>
+
+        {/* 11. Transactional History & Documents */}
+        {(safeParseArray(contactDetail.Cotizaciones).length > 0 ||
+          safeParseArray(contactDetail.OrdenesServicios).length > 0 ||
+          safeParseArray(contactDetail.PreFacturas).length > 0 ||
+          safeParseArray(contactDetail.Facturas).length > 0 ||
+          safeParseArray(contactDetail.Contratos).length > 0 ||
+          safeParseArray(contactDetail.ProcesosDocumentos).length > 0) && (
+          <InfoSection
+            title="Historial y Documentos"
+            icon="document-text-outline"
+          >
+            {/* Cotizaciones */}
+            {safeParseArray(contactDetail.Cotizaciones).length > 0 && (
+              <View style={styles.txGroup}>
+                <Text style={styles.txGroupLabel}>Cotizaciones</Text>
+                {safeParseArray(contactDetail.Cotizaciones).map((item, idx) => (
+                  <View key={idx} style={styles.txRow}>
+                    <Ionicons
+                      name="calculator-outline"
+                      size={16}
+                      color={COLORS.primary}
+                    />
+                    <Text style={styles.txText}>
+                      #{item.Consecutivo} -{" "}
+                      {formatDate(item.FechaElaboracion, false)}
+                    </Text>
+                    <Text style={styles.txValue}>
+                      {formatCurrency(item.ValorCotizacion)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Ordenes Servicios */}
+            {safeParseArray(contactDetail.OrdenesServicios).length > 0 && (
+              <View style={styles.txGroup}>
+                <Text style={styles.txGroupLabel}>Ordenes de Servicio</Text>
+                {safeParseArray(contactDetail.OrdenesServicios).map(
+                  (item, idx) => (
+                    <View key={idx} style={styles.txRow}>
+                      <Ionicons
+                        name="construct-outline"
+                        size={16}
+                        color={COLORS.secondary}
+                      />
+                      <Text style={styles.txText}>
+                        #{item.Consecutivo} - {item.EstadoOrdenServicioNombre}
+                      </Text>
+                      <Text style={styles.txValue}>
+                        {formatCurrency(item.ValorOrdenServicio)}
+                      </Text>
+                    </View>
+                  )
+                )}
+              </View>
+            )}
+
+            {/* Contratos */}
+            {safeParseArray(contactDetail.Contratos).length > 0 && (
+              <View style={styles.txGroup}>
+                <Text style={styles.txGroupLabel}>Contratos</Text>
+                {safeParseArray(contactDetail.Contratos).map((item, idx) => (
+                  <View key={idx} style={styles.txRow}>
+                    <Ionicons
+                      name="key-outline"
+                      size={16}
+                      color={COLORS.dark}
+                    />
+                    <Text style={styles.txText}>
+                      {item.TipoContratoNombre} - #{item.Consecutivo}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Facturas */}
+            {safeParseArray(contactDetail.Facturas).length > 0 && (
+              <View style={styles.txGroup}>
+                <Text style={styles.txGroupLabel}>Facturas</Text>
+                {safeParseArray(contactDetail.Facturas).map((item, idx) => (
+                  <View key={idx} style={styles.txRow}>
+                    <Ionicons
+                      name="receipt-outline"
+                      size={16}
+                      color={COLORS.success}
+                    />
+                    <Text style={styles.txText}>
+                      {item.Prefijo}
+                      {item.Consecutivo} -{" "}
+                      {formatDate(item.FechaCreacion, false)}
+                    </Text>
+                    <Text style={styles.txValue}>
+                      {formatCurrency(item.ValorFactura)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Documentos */}
+            {safeParseArray(contactDetail.ProcesosDocumentos).length > 0 && (
+              <View style={styles.txGroup}>
+                <Text style={styles.txGroupLabel}>Documentos Requeridos</Text>
+                {safeParseArray(contactDetail.ProcesosDocumentos).map(
+                  (item, idx) => (
+                    <View key={idx} style={styles.txRow}>
+                      <Ionicons
+                        name={item.Cargado ? "document" : "document-outline"}
+                        size={16}
+                        color={item.Cargado ? COLORS.success : COLORS.gray}
+                      />
+                      <Text style={styles.txText}>{item.Nombre}</Text>
+                      {item.Obligatorio && (
+                        <Text style={styles.requiredText}>*</Text>
+                      )}
+                    </View>
+                  )
+                )}
+              </View>
+            )}
+          </InfoSection>
+        )}
       </ScrollView>
 
       {loading && (
@@ -912,14 +1258,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    borderLeftWidth: 4,
-    paddingLeft: 10,
     marginBottom: 8,
+  },
+  asocTitleGroup: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   asocTitle: {
     fontSize: 14,
     fontWeight: "700",
     color: COLORS.dark,
+  },
+  asocBadgeGroup: {
+    flexDirection: "row",
+    gap: 6,
   },
   asocBadge: {
     backgroundColor: "rgba(0, 205, 167, 0.1)",
@@ -932,10 +1284,27 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: COLORS.success,
   },
+  asocAddressRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 12,
+  },
+  asocIdBadge: {
+    backgroundColor: COLORS.border,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  asocIdText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: COLORS.gray,
+  },
   asocAddress: {
+    flex: 1,
     fontSize: 13,
     color: COLORS.gray,
-    marginBottom: 12,
   },
   asocStats: {
     flexDirection: "row",
@@ -1039,6 +1408,37 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontStyle: "italic",
     marginVertical: 10,
+  },
+  // Transactional History
+  txGroup: {
+    marginBottom: 16,
+  },
+  txGroupLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: COLORS.secondary,
+    marginBottom: 8,
+    textTransform: "uppercase",
+  },
+  txRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.background,
+    padding: 10,
+    borderRadius: 12,
+    marginBottom: 6,
+    gap: 10,
+  },
+  txText: {
+    flex: 1,
+    fontSize: 13,
+    color: COLORS.dark,
+    fontWeight: "600",
+  },
+  txValue: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: COLORS.primary,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
