@@ -1,7 +1,7 @@
 import React from "react";
 import { Modal, View, TouchableOpacity, StyleSheet, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import ZoomableImage from "../../assets/common/ZoomableImage";
+import ZoomableImage from "../../../assets/common/ZoomableImage";
 
 const ChatImageViewer = ({ visible, imageUri, onClose }) => {
   return (

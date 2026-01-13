@@ -10,7 +10,7 @@ import {
 import { Video } from "expo-av";
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
-import { formatTime } from "../../utils/chatUtils";
+import { formatTime } from "../../../utils/chatUtils";
 
 const ChatVideoViewer = ({ visible, videoUri, onClose }) => {
   const videoRef = useRef(null);

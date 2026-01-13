@@ -1,9 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Alert } from 'react-native';
-import { useChatStore } from '../../core/chatStore';
-import ChatApiService from '../../services/chat/chatService';
-import ChatStorageService from '../../services/chat/chatStorageService';
-import { formatMessagesForChat } from '../../utils/chatUtils';
+import { useChatStore } from '../store/chatStore';
+import ChatApiService from '../services/chatService';
+import ChatStorageService from '../services/chatStorageService';
+import { formatMessagesForChat } from '../../../utils/chatUtils';
 
 export const useChatMessages = (contact, user) => {
   const {

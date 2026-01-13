@@ -17,18 +17,18 @@ import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as DocumentPicker from "expo-document-picker";
 
-import { useChatStore } from "../../core/chatStore";
-import ChatApiService from "../../services/chat/chatService";
-import ChatStorageService from "../../services/chat/chatStorageService";
-import { useGlobal } from "../../core/global";
-import { useChatMessages } from "../../hooks/chat/useChatMessages";
-import { getTipoMensaje } from "../../utils/chatUtils";
+import { useChatStore } from "../store/chatStore";
+import ChatApiService from "../services/chatService";
+import ChatStorageService from "../services/chatStorageService";
+import { useGlobal } from "../../../core/global";
+import { useChatMessages } from "../hooks/useChatMessages";
+import { getTipoMensaje } from "../../../utils/chatUtils";
 
-import ChatMessageList from "../../components/chat/ChatMessageList";
-import ChatInputBar from "../../components/chat/ChatInputBar";
-import AudioRecorder from "../../components/chat/AudioRecorder";
-import ChatImageViewer from "../../components/chat/ChatImageViewer";
-import ChatVideoViewer from "../../components/chat/ChatVideoViewer";
+import ChatMessageList from "../components/ChatMessageList";
+import ChatInputBar from "../components/ChatInputBar";
+import AudioRecorder from "../components/AudioRecorder";
+import ChatImageViewer from "../components/ChatImageViewer";
+import ChatVideoViewer from "../components/ChatVideoViewer";
 
 const UI_ACTIONS = {
   SET_IMAGE_VIEWER: "SET_IMAGE_VIEWER",

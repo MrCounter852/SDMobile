@@ -1,7 +1,7 @@
-import { useGlobal } from '../../core/global';
+import { useGlobal } from '../../../core/global';
 import * as SecureStore from 'expo-secure-store';
 import * as FileSystem from 'expo-file-system/legacy';
-import getEnvironmentConfig from '../../config/environments';
+import getEnvironmentConfig from '../../../config/environments';
 
 const API_BASE_COM = `${getEnvironmentConfig().BASE_URL_NS}/API_COM/api`;
 

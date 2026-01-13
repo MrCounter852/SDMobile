@@ -22,8 +22,8 @@ import Favoritos from "../Favoritos/Favoritos";
 import useGlobal from "../../core/global";
 // import MenuPanel from "../../components/MenuPanel";
 import AprobacionFacturasCompra from "../FacturasCompra/AprobacionFacturasCompra";
-import { ContactList } from "../Chat";
-import { useChatStore } from "../../core/chatStore";
+import { ContactList } from "../../features/chat/screens";
+import { useChatStore } from "../../features/chat/store/chatStore";
 import getEnvironmentConfig from "../../config/environments";
 const Tab = createBottomTabNavigator();
 

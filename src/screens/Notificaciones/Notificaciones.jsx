@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 import {
   View,
   Text,
@@ -9,16 +15,16 @@ import {
   RefreshControl,
   ActivityIndicator,
   Animated,
-} from 'react-native';
-import { Swipeable } from 'react-native-gesture-handler';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useChatStore } from '../../core/chatStore';
-import chatApi from '../../services/chat/chatService';
-import { useGlobal } from '../../core/global';
-import FocusAwareStatusBar from '../../components/FocusAwareStatusBar';
-import { COLORS } from '../../core/theme';
+} from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useChatStore } from "../../features/chat/store/chatStore";
+import chatApi from "../../features/chat/services/chatService";
+import { useGlobal } from "../../core/global";
+import FocusAwareStatusBar from "../../components/FocusAwareStatusBar";
+import { COLORS } from "../../core/theme";
 
 const Notificaciones = ({ navigation }) => {
   const {
@@ -47,12 +53,8 @@ const Notificaciones = ({ navigation }) => {
   // Local Filtering
   const filteredNotifications = useMemo(() => {
     if (filterVisto === null) return notifications;
-    return notifications.filter(n => n.Visto === filterVisto);
+    return notifications.filter((n) => n.Visto === filterVisto);
   }, [notifications, filterVisto]);
-
-
-
-
 
   const markAsRead = async (notificacion) => {
     if (notificacion.Visto) return;
@@ -67,12 +69,14 @@ const Notificaciones = ({ navigation }) => {
       });
 
       if (response && response.result !== 1) {
-        updateNotification(notificacion.NotificacionUsuarioID, { Visto: false });
-        Alert.alert('Error', 'No se pudo marcar como leída');
+        updateNotification(notificacion.NotificacionUsuarioID, {
+          Visto: false,
+        });
+        Alert.alert("Error", "No se pudo marcar como leída");
       }
     } catch (error) {
       updateNotification(notificacion.NotificacionUsuarioID, { Visto: false });
-      console.error('Error marking notification as read:', error);
+      console.error("Error marking notification as read:", error);
     }
   };
 
@@ -90,23 +94,23 @@ const Notificaciones = ({ navigation }) => {
 
       if (response && response.result !== 1) {
         updateNotification(notificacion.NotificacionUsuarioID, { Visto: true });
-        Alert.alert('Error', 'No se pudo marcar como no leída');
+        Alert.alert("Error", "No se pudo marcar como no leída");
       }
     } catch (error) {
       updateNotification(notificacion.NotificacionUsuarioID, { Visto: true });
-      console.error('Error marking notification as unread:', error);
+      console.error("Error marking notification as unread:", error);
     }
   };
 
   const deleteNotification = (notificacion) => {
     Alert.alert(
-      'Eliminar Notificación',
-      '¿Está seguro de que desea eliminar esta notificación?',
+      "Eliminar Notificación",
+      "¿Está seguro de que desea eliminar esta notificación?",
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: "Cancelar", style: "cancel" },
         {
-          text: 'Eliminar',
-          style: 'destructive',
+          text: "Eliminar",
+          style: "destructive",
           onPress: async () => {
             // Optimistic Delete
             removeNotification(notificacion.NotificacionUsuarioID);
@@ -118,12 +122,12 @@ const Notificaciones = ({ navigation }) => {
 
               if (response && response.result !== 1) {
                 // Rollback (requires fetching or adding back, simplified: Alert + reload)
-                Alert.alert('Error', 'No se pudo eliminar la notificación');
+                Alert.alert("Error", "No se pudo eliminar la notificación");
                 loadNotifications(); // Reload to sync
               }
             } catch (error) {
-              console.error('Error deleting notification:', error);
-              Alert.alert('Error', 'No se pudo eliminar la notificación');
+              console.error("Error deleting notification:", error);
+              Alert.alert("Error", "No se pudo eliminar la notificación");
               loadNotifications(); // Reload to sync
             }
           },
@@ -134,13 +138,13 @@ const Notificaciones = ({ navigation }) => {
 
   const deleteAllNotifications = () => {
     Alert.alert(
-      'Eliminar Todas las Notificaciones',
-      '¿Está seguro de que desea eliminar todas las notificaciones?',
+      "Eliminar Todas las Notificaciones",
+      "¿Está seguro de que desea eliminar todas las notificaciones?",
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: "Cancelar", style: "cancel" },
         {
-          text: 'Eliminar Todas',
-          style: 'destructive',
+          text: "Eliminar Todas",
+          style: "destructive",
           onPress: async () => {
             // Optimistic clear
             const backupNotifications = [...notifications]; // Backup in case of error (optional but good practice)
@@ -150,12 +154,18 @@ const Notificaciones = ({ navigation }) => {
               const response = await chatApi.eliminarTodasNotificacionesPush();
               if (response && response.result !== 1) {
                 // Error handled by reload
-                Alert.alert('Error', 'No se pudieron eliminar las notificaciones');
+                Alert.alert(
+                  "Error",
+                  "No se pudieron eliminar las notificaciones"
+                );
                 loadNotifications();
               }
             } catch (error) {
-              console.error('Error deleting all notifications:', error);
-              Alert.alert('Error', 'No se pudieron eliminar las notificaciones');
+              console.error("Error deleting all notifications:", error);
+              Alert.alert(
+                "Error",
+                "No se pudieron eliminar las notificaciones"
+              );
               loadNotifications();
             }
           },
@@ -169,7 +179,7 @@ const Notificaciones = ({ navigation }) => {
       if (!notificacion.Visto) {
         markAsRead(notificacion);
       }
-      console.log('Abrir URL:', notificacion.Url);
+      console.log("Abrir URL:", notificacion.Url);
     }
   };
 
@@ -196,18 +206,22 @@ const Notificaciones = ({ navigation }) => {
     };
 
     const handleMarkAsRead = () => {
-      if (filterVisto === false) { // Unread Tab -> Exit
+      if (filterVisto === false) {
+        // Unread Tab -> Exit
         animateExit(() => markAsRead(item));
-      } else { // All Tab -> Just update
+      } else {
+        // All Tab -> Just update
         markAsRead(item);
         closeSwipeable();
       }
     };
 
     const handleMarkAsUnread = () => {
-      if (filterVisto === true) { // Read Tab -> Exit
+      if (filterVisto === true) {
+        // Read Tab -> Exit
         animateExit(() => markAsUnread(item));
-      } else { // All Tab -> Just update
+      } else {
+        // All Tab -> Just update
         markAsUnread(item);
         closeSwipeable();
       }
@@ -227,7 +241,8 @@ const Notificaciones = ({ navigation }) => {
               {
                 transform: [{ translateX: trans }],
               },
-            ]}>
+            ]}
+          >
             <Ionicons name="eye-sharp" size={30} color="#fff" />
           </Animated.View>
         </View>
@@ -248,7 +263,8 @@ const Notificaciones = ({ navigation }) => {
               {
                 transform: [{ translateX: trans }],
               },
-            ]}>
+            ]}
+          >
             <Ionicons name="eye-off-sharp" size={30} color="#fff" />
           </Animated.View>
         </View>
@@ -261,7 +277,7 @@ const Notificaciones = ({ navigation }) => {
     // All Tab (null): NO Swipe.
 
     const canSwipeRight = filterVisto === false; // Only Unread Tab
-    const canSwipeLeft = filterVisto === true;  // Only Read Tab
+    const canSwipeLeft = filterVisto === true; // Only Read Tab
 
     return (
       <Animated.View
@@ -270,7 +286,7 @@ const Notificaciones = ({ navigation }) => {
             opacity: fadeAnim,
             transform: [{ translateY: slideAnim }],
             maxHeight: heightAnim, // Use maxHeight to animate collapse
-            overflow: 'hidden', // Essential for collapsing
+            overflow: "hidden", // Essential for collapsing
           },
         ]}
       >
@@ -305,16 +321,16 @@ const Notificaciones = ({ navigation }) => {
             {/* Icono de notificación */}
             <View style={styles.iconContainer}>
               <LinearGradient
-                colors={isUnread ? [COLORS.primary, COLORS.highlight] : [COLORS.lightGray, COLORS.gray]}
+                colors={
+                  isUnread
+                    ? [COLORS.primary, COLORS.highlight]
+                    : [COLORS.lightGray, COLORS.gray]
+                }
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.iconGradient}
               >
-                <Ionicons
-                  name="notifications"
-                  size={22}
-                  color="#fff"
-                />
+                <Ionicons name="notifications" size={22} color="#fff" />
               </LinearGradient>
             </View>
 
@@ -345,11 +361,11 @@ const Notificaciones = ({ navigation }) => {
                 <View style={styles.dateContainer}>
                   <Ionicons name="time-outline" size={14} color="#9e9e9e" />
                   <Text style={styles.notificationDate}>
-                    {new Date(item.Fecha).toLocaleDateString('es-ES', {
-                      day: '2-digit',
-                      month: 'short',
-                      hour: '2-digit',
-                      minute: '2-digit',
+                    {new Date(item.Fecha).toLocaleDateString("es-ES", {
+                      day: "2-digit",
+                      month: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
                     })}
                   </Text>
                 </View>
@@ -383,16 +399,19 @@ const Notificaciones = ({ navigation }) => {
   // Contadores para los badges
   const counts = useMemo(() => {
     return {
-      unread: notifications.filter(n => !n.Visto).length,
-      read: notifications.filter(n => n.Visto).length,
-      total: notifications.length
+      unread: notifications.filter((n) => !n.Visto).length,
+      read: notifications.filter((n) => n.Visto).length,
+      total: notifications.length,
     };
   }, [notifications]);
 
   const renderFilters = () => (
     <View style={styles.filtersContainer}>
       <TouchableOpacity
-        style={[styles.filterButton, filterVisto === false && styles.filterActive]}
+        style={[
+          styles.filterButton,
+          filterVisto === false && styles.filterActive,
+        ]}
         onPress={() => setFilterVisto(false)}
         activeOpacity={0.7}
       >
@@ -415,14 +434,19 @@ const Notificaciones = ({ navigation }) => {
             <Text style={styles.filterText}>No Vistas</Text>
             {counts.unread > 0 && (
               <View style={styles.filterBadgeInactive}>
-                <Text style={styles.filterBadgeTextInactive}>{counts.unread}</Text>
+                <Text style={styles.filterBadgeTextInactive}>
+                  {counts.unread}
+                </Text>
               </View>
             )}
           </View>
         )}
       </TouchableOpacity>
       <TouchableOpacity
-        style={[styles.filterButton, filterVisto === true && styles.filterActive]}
+        style={[
+          styles.filterButton,
+          filterVisto === true && styles.filterActive,
+        ]}
         onPress={() => setFilterVisto(true)}
         activeOpacity={0.7}
       >
@@ -445,7 +469,9 @@ const Notificaciones = ({ navigation }) => {
             <Text style={styles.filterText}>Vistas</Text>
             {counts.read > 0 && (
               <View style={styles.filterBadgeInactive}>
-                <Text style={styles.filterBadgeTextInactive}>{counts.read}</Text>
+                <Text style={styles.filterBadgeTextInactive}>
+                  {counts.read}
+                </Text>
               </View>
             )}
           </View>
@@ -453,7 +479,10 @@ const Notificaciones = ({ navigation }) => {
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={[styles.filterButton, filterVisto === null && styles.filterActive]}
+        style={[
+          styles.filterButton,
+          filterVisto === null && styles.filterActive,
+        ]}
         onPress={() => setFilterVisto(null)}
         activeOpacity={0.7}
       >
@@ -476,7 +505,9 @@ const Notificaciones = ({ navigation }) => {
             <Text style={styles.filterText}>Todas</Text>
             {counts.total > 0 && (
               <View style={styles.filterBadgeInactive}>
-                <Text style={styles.filterBadgeTextInactive}>{counts.total}</Text>
+                <Text style={styles.filterBadgeTextInactive}>
+                  {counts.total}
+                </Text>
               </View>
             )}
           </View>
@@ -491,7 +522,10 @@ const Notificaciones = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <FocusAwareStatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+      <FocusAwareStatusBar
+        barStyle="light-content"
+        backgroundColor={COLORS.primary}
+      />
 
       {/* Header con gradiente */}
       <LinearGradient
@@ -500,7 +534,7 @@ const Notificaciones = ({ navigation }) => {
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
       >
-        <SafeAreaView edges={['top']}>
+        <SafeAreaView edges={["top"]}>
           <View style={styles.headerPattern}>
             <View style={styles.patternCircle1} />
             <View style={styles.patternCircle2} />
@@ -509,7 +543,8 @@ const Notificaciones = ({ navigation }) => {
             <View style={styles.headerLeft}>
               <Text style={styles.headerTitle}>Notificaciones</Text>
               <Text style={styles.headerSubtitle}>
-                {notifications.length} {notifications.length === 1 ? 'notificación' : 'notificaciones'}
+                {notifications.length}{" "}
+                {notifications.length === 1 ? "notificación" : "notificaciones"}
               </Text>
             </View>
             {notifications.length > 0 && (
@@ -547,12 +582,16 @@ const Notificaciones = ({ navigation }) => {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <LinearGradient
-              colors={['#f5f7fa', '#c3cfe2']}
+              colors={["#f5f7fa", "#c3cfe2"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.emptyGradient}
             >
-              <Ionicons name="notifications-off-outline" size={80} color="#9e9e9e" />
+              <Ionicons
+                name="notifications-off-outline"
+                size={80}
+                color="#9e9e9e"
+              />
               <Text style={styles.emptyText}>No hay notificaciones</Text>
               <Text style={styles.emptySubtext}>
                 Cuando recibas notificaciones aparecerán aquí
@@ -562,7 +601,11 @@ const Notificaciones = ({ navigation }) => {
         }
         ListFooterComponent={
           notificationsLoading && !refreshing ? (
-            <ActivityIndicator style={styles.loadingIndicator} size="large" color={COLORS.accent} />
+            <ActivityIndicator
+              style={styles.loadingIndicator}
+              size="large"
+              color={COLORS.accent}
+            />
           ) : null
         }
       />
@@ -608,9 +651,9 @@ const styles = StyleSheet.create({
     left: 20,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 20,
   },
@@ -619,31 +662,31 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: "800",
     color: COLORS.white,
     letterSpacing: 0.5,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: "rgba(255, 255, 255, 0.8)",
     marginTop: 4,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   clearAllButton: {
     padding: 8,
   },
   clearAllButtonInner: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     borderRadius: 12,
     padding: 8,
   },
   filtersContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: COLORS.white,
     paddingHorizontal: 16,
     paddingVertical: 16,
     gap: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -652,20 +695,20 @@ const styles = StyleSheet.create({
   filterButton: {
     flex: 1,
     borderRadius: 25,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   filterGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 12,
     paddingHorizontal: 16,
     gap: 6,
   },
   filterInactive: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 12,
     paddingHorizontal: 16,
     backgroundColor: COLORS.background,
@@ -675,25 +718,25 @@ const styles = StyleSheet.create({
   filterText: {
     fontSize: 14,
     color: COLORS.gray,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   filterTextActive: {
     fontSize: 14,
     color: COLORS.white,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   filterBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 2,
     minWidth: 24,
-    alignItems: 'center',
+    alignItems: "center",
   },
   filterBadgeText: {
     fontSize: 12,
     color: COLORS.white,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   filterBadgeInactive: {
     backgroundColor: COLORS.primary,
@@ -701,12 +744,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
     minWidth: 24,
-    alignItems: 'center',
+    alignItems: "center",
   },
   filterBadgeTextInactive: {
     fontSize: 12,
     color: COLORS.white,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   listContainer: {
     padding: 16,
@@ -717,23 +760,23 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 12,
     padding: 16,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    shadowColor: '#000',
+    flexDirection: "row",
+    alignItems: "flex-start",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
-    position: 'relative',
-    overflow: 'hidden',
+    position: "relative",
+    overflow: "hidden",
   },
   unreadNotification: {
     backgroundColor: COLORS.white,
     borderWidth: 1,
-    borderColor: 'rgba(51, 122, 183, 0.2)',
+    borderColor: "rgba(51, 122, 183, 0.2)",
   },
   unreadIndicator: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     top: 0,
     bottom: 0,
@@ -750,28 +793,28 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   notificationContent: {
     flex: 1,
     marginRight: 8,
   },
   notificationHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     marginBottom: 8,
     gap: 8,
   },
   notificationTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.dark,
     flex: 1,
     lineHeight: 22,
   },
   unreadTitle: {
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.dark,
   },
   newBadge: {
@@ -783,7 +826,7 @@ const styles = StyleSheet.create({
   newBadgeText: {
     fontSize: 10,
     color: COLORS.white,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: 0.5,
   },
   notificationText: {
@@ -793,22 +836,22 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   notificationFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   dateContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   notificationDate: {
     fontSize: 12,
     color: COLORS.lightGray,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   notificationActions: {
-    flexDirection: 'column',
+    flexDirection: "column",
     gap: 8,
   },
   actionButton: {
@@ -819,18 +862,18 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 18,
     backgroundColor: COLORS.background,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   emptyContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 80,
   },
   emptyGradient: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 60,
     paddingHorizontal: 40,
     borderRadius: 24,
@@ -839,14 +882,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: COLORS.gray,
     marginTop: 20,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   emptySubtext: {
     fontSize: 14,
     color: COLORS.lightGray,
     marginTop: 8,
-    textAlign: 'center',
-    fontWeight: '500',
+    textAlign: "center",
+    fontWeight: "500",
   },
   loadingIndicator: {
     marginVertical: 20,
@@ -854,34 +897,34 @@ const styles = StyleSheet.create({
   leftActionContainer: {
     flex: 1,
     backgroundColor: COLORS.success, // Green
-    justifyContent: 'center',
+    justifyContent: "center",
     marginBottom: 12,
     borderRadius: 16,
   },
   rightActionContainer: {
     flex: 1,
     backgroundColor: COLORS.primary, // Blue
-    justifyContent: 'center',
-    alignItems: 'flex-end',
+    justifyContent: "center",
+    alignItems: "flex-end",
     marginBottom: 12,
     borderRadius: 16,
   },
   actionPanel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 20,
     width: 200,
   },
   readActionPanel: {
-    justifyContent: 'flex-start',
+    justifyContent: "flex-start",
   },
   unreadActionPanel: {
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   actionText: {
     color: COLORS.white,
-    fontWeight: '600',
+    fontWeight: "600",
     marginLeft: 10,
     marginRight: 10,
   },

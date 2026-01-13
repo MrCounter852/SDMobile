@@ -16,13 +16,16 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Picker } from "@react-native-picker/picker";
 import { Ionicons, Feather } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useChatStore } from "../../core/chatStore";
-import ChatApiService from "../../services/chat/chatService";
-import ChatStorageService from "../../services/chat/chatStorageService";
-import { useGlobal } from "../../core/global";
-import FocusAwareStatusBar from "../../components/FocusAwareStatusBar";
-import { COLORS } from "../../core/theme";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import { useChatStore } from "../store/chatStore";
+import ChatApiService from "../services/chatService";
+import ChatStorageService from "../services/chatStorageService";
+import { useGlobal } from "../../../core/global";
+import FocusAwareStatusBar from "../../../components/FocusAwareStatusBar";
+import { COLORS } from "../../../core/theme";
 
 const { width } = Dimensions.get("window");
 
@@ -1080,7 +1083,7 @@ const styles = StyleSheet.create({
   },
   contactAccount: {
     fontSize: 12,
-    color: 'COLORS.secondary',
+    color: "COLORS.secondary",
     fontWeight: "500",
   },
   statusBadge: {

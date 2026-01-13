@@ -17,8 +17,8 @@ export const useGlobal = create((set, get) => ({
     cdnLlavePrivada: null,
 
     init: () => {
-        const useChatStore = require('./chatStore').default;
-        const ChatApiService = require('../services/chat/chatService').default;
+        const useChatStore = require('../features/chat/store/chatStore').default;
+        const ChatApiService = require('../features/chat/services/chatService').default;
 
         useChatStore.getState().init();
         // Fire-and-forget cache maintenance (non-blocking)
@@ -46,13 +46,13 @@ export const useGlobal = create((set, get) => ({
     setMenuOptions: (menuOptions) => set({ menuOptions }),
     logout: () => {
         // Clear chat storage
-        const ChatStorageService = require('../services/chat/chatStorageService').default;
+        const ChatStorageService = require('../features/chat/services/chatStorageService').default;
         ChatStorageService.clearAll();
         // Clear media cache
-        const ChatApiService = require('../services/chat/chatService').default;
+        const ChatApiService = require('../features/chat/services/chatService').default;
         ChatApiService.clearCache();
         // Reset chat store
-        const useChatStore = require('./chatStore').default;
+        const useChatStore = require('../features/chat/store/chatStore').default;
         useChatStore.getState().reset();
 
         set({

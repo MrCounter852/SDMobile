@@ -17,13 +17,13 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Picker } from "@react-native-picker/picker";
 import { Ionicons, Feather } from "@expo/vector-icons";
-import ChatApiService from "../../services/chat/chatService";
-import { useGlobal } from "../../core/global";
+import ChatApiService from "../services/chatService";
+import { useGlobal } from "../../../core/global";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import FocusAwareStatusBar from "../../components/FocusAwareStatusBar";
+import FocusAwareStatusBar from "../../../components/FocusAwareStatusBar";
 
 const { width } = Dimensions.get("window");
 

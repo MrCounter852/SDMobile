@@ -56,7 +56,7 @@ export const useChatStore = create((set, get) => ({
 
   // Acciones para mensajes
   init: async () => {
-    const ChatStorageService = require('../services/chat/chatStorageService').default;
+    const ChatStorageService = require('../services/chatStorageService').default;
     const chats = await ChatStorageService.getAllChats();
     set({ chats });
   },
@@ -127,7 +127,7 @@ export const useChatStore = create((set, get) => ({
     set({ notificationsLoading: true });
 
     try {
-      const ChatApiService = require('../services/chat/chatService').default;
+      const ChatApiService = require('../services/chatService').default;
       const filters = {
         Page: page,
         Rows: 20,
@@ -236,7 +236,7 @@ export const useChatStore = create((set, get) => ({
       }, {});
 
       // Importar dinámicamente para evitar ciclos
-      const ChatApiService = require('../services/chat/chatService').default;
+      const ChatApiService = require('../services/chatService').default;
 
       // Procesar cada grupo de mensajes
       for (const [contactId, contactMessages] of Object.entries(messagesByContact)) {
@@ -341,7 +341,7 @@ export const useChatStore = create((set, get) => ({
           formattedNewMessages.some(msg => msg.isIncoming && !msg.read)) {
 
           // Importar dinámicamente para evitar problemas de dependencias circulares
-          const ChatApiService = require('../services/chat/chatService').default;
+          const ChatApiService = require('../services/chatService').default;
 
           // Confirmar lectura en segundo plano
           setTimeout(async () => {

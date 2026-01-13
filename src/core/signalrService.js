@@ -77,7 +77,7 @@ class SignalRService {
         // Notificaciones push
         // Firma exacta web: function (Notificaciones, IfPush)
         this.hubProxy.on('NotificacionPush', async (data, IfPush) => {
-            const chatStore = require('./chatStore').default;
+            const chatStore = require('../features/chat/store/chatStore').default;
             if (data && Array.isArray(data)) {
 
                 // NOTA: La web hace un filtro complejo para unificar filas y actualizar "TotalRows".
@@ -123,7 +123,7 @@ class SignalRService {
 
         // Sincronización de opción de menú
         this.hubProxy.on('SincronizarOpcionMenuEmpresa', (data) => {
-            const chatStore = require('./chatStore').default;
+            const chatStore = require('../features/chat/store/chatStore').default;
             chatStore.getState().handleSignalRUpdate(data);
         });
 
