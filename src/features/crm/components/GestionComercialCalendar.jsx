@@ -6,9 +6,8 @@ import {
   CalendarProvider,
   WeekCalendar,
 } from "react-native-calendars";
-import { useGlobal } from "../../core/global";
-const GestionComercialService =
-  require("../../services/GestionComercial/gestionComercialService").default;
+import { useGlobal } from "../../../core/global";
+const GestionComercialService = require("../services/crmService").default;
 
 // Configure Spanish locale
 LocaleConfig.locales["es"] = {
@@ -323,8 +322,12 @@ const GestionComercialCalendar = ({
           complejo: event.complejo,
           cierre: event.cierre,
           proceso: event.proceso,
-          startFormatted: `${formatDateDMY(new Date(event.startDateStr))} ${event.startTimeStr.substring(0, 5)}`,
-          endFormatted: `${formatDateDMY(new Date(event.endDateStr))} ${event.endTimeStr.substring(0, 5)}`,
+          startFormatted: `${formatDateDMY(
+            new Date(event.startDateStr)
+          )} ${event.startTimeStr.substring(0, 5)}`,
+          endFormatted: `${formatDateDMY(
+            new Date(event.endDateStr)
+          )} ${event.endTimeStr.substring(0, 5)}`,
           summary: "",
           color: "transparent",
           primaryColor: event.statusColors?.primary,
@@ -499,7 +502,7 @@ const timelineStyles = {
     width: 10,
     height: 10,
     borderRadius: 5,
-    zIndex: 20
+    zIndex: 20,
   },
 };
 
@@ -610,4 +613,3 @@ const styles = StyleSheet.create({
 });
 
 export default GestionComercialCalendar;
-

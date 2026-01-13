@@ -1,6 +1,6 @@
-import { useGlobal } from '../../core/global';
+import { useGlobal } from '../../../core/global';
 import * as SecureStore from 'expo-secure-store';
-import getEnvironmentConfig from '../../config/environments';
+import getEnvironmentConfig from '../../../config/environments';
 
 const API_BASE_CRM = `${getEnvironmentConfig().BASE_URL_NS}/API_CRM/api`;
 const API_BASE_SIS = `${getEnvironmentConfig().BASE_URL_NS}/API_SIS/api`;

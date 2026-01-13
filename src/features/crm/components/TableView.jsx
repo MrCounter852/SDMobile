@@ -13,11 +13,10 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
-import { useGlobal } from "../../core/global";
+import { useGlobal } from "../../../core/global";
 import ContactItem from "./ContactItem";
 
-const GestionComercialService =
-  require("../../services/GestionComercial/gestionComercialService").default;
+const GestionComercialService = require("../services/crmService").default;
 
 const TableView = React.memo(
   ({

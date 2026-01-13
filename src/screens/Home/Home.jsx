@@ -16,7 +16,7 @@ import Animated, {
 } from "react-native-reanimated";
 // import Menu from "../Menu/Menu";
 import Perfil from "../Perfil/Perfil";
-import GestionComercial from "../GestionComercial/GestionComercial";
+import GestionComercial from "../../features/crm/screens/GestionComercial";
 import Notificaciones from "../Notificaciones/Notificaciones";
 import Favoritos from "../Favoritos/Favoritos";
 import useGlobal from "../../core/global";

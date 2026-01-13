@@ -23,11 +23,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePickerComponent from "@react-native-community/datetimepicker";
-import { useGlobal } from "../../core/global";
-import FocusAwareStatusBar from "../../components/FocusAwareStatusBar";
+import { useGlobal } from "../../../core/global";
+import FocusAwareStatusBar from "../../../components/FocusAwareStatusBar";
 
-const GestionComercialService =
-  require("../../services/GestionComercial/gestionComercialService").default;
+const GestionComercialService = require("../services/crmService").default;
 
 const Tab = createMaterialTopTabNavigator();
 const { width } = Dimensions.get("window");

@@ -23,24 +23,23 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Picker } from "@react-native-picker/picker";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { useGlobal } from "../../core/global";
+import { useGlobal } from "../../../core/global";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 // Usamos require().default para asegurar la compatibilidad con el sistema de exportación
-const GestionComercialService =
-  require("../../services/leads/leadService").default;
-import PropertySelectionModal from "../../components/PropertySelectionModal";
-import CustomModalPicker from "./CustomModalPicker";
+const GestionComercialService = require("../services/leadService").default;
+import PropertySelectionModal from "../../../components/PropertySelectionModal";
+import CustomModalPicker from "../../../assets/common/CustomModalPicker";
 
 import {
   COLORS,
   CustomInput,
   SectionHeader,
-} from "../../components/GestionComercial/FormComponents";
-import DynamicForm from "../../components/GestionComercial/DynamicForm";
-import GeneralInfoSection from "../../components/GestionComercial/NewLead/GeneralInfoSection";
-import SearchDataSection from "../../components/GestionComercial/NewLead/SearchDataSection";
-import ClientDetailSection from "../../components/GestionComercial/NewLead/ClientDetailSection";
+} from "../components/FormComponents";
+import DynamicForm from "../components/DynamicForm";
+import GeneralInfoSection from "../components/NewLead/GeneralInfoSection";
+import SearchDataSection from "../components/NewLead/SearchDataSection";
+import ClientDetailSection from "../components/NewLead/ClientDetailSection";
 
 const DETAIL_LABELS = {
   2: { label: "propietario", title: "Propietario" },

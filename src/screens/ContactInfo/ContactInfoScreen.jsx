@@ -15,7 +15,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { useGlobal } from "../../core/global";
-import leadService from "../../services/leads/leadService";
+import leadService from "../../features/crm/services/leadService";
 
 const COLORS = {
   primary: "#337ab7",
@@ -63,28 +63,31 @@ const ContactInfoScreen = () => {
   }, []);
 
   useEffect(
-      React.useCallback(() => {
-        navigation.setOptions({
-          headerTitle: () => (
-            <Text style={{ color: "#337ab7", fontSize: 18, fontWeight: "bold" }}>
-              Información del contacto
-            </Text>
-          ),
-          headerLeft: () => (
-            <TouchableOpacity
-              style={styles.headerButton}
-              onPress={() => navigation.goBack()}
-            >
-              <Ionicons name="arrow-back" size={24} color="#337ab7" />
-            </TouchableOpacity>
-          ),
-          headerRight: () => null,
-        });
-      }, [navigation])
-    );
+    React.useCallback(() => {
+      navigation.setOptions({
+        headerTitle: () => (
+          <Text style={{ color: "#337ab7", fontSize: 18, fontWeight: "bold" }}>
+            Información del contacto
+          </Text>
+        ),
+        headerLeft: () => (
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color="#337ab7" />
+          </TouchableOpacity>
+        ),
+        headerRight: () => null,
+      });
+    }, [navigation])
+  );
 
   const loadData = async () => {
-    console.log("ContactInfoScreen: loadData start", contact.CuentaMensajeriaContactoID);
+    console.log(
+      "ContactInfoScreen: loadData start",
+      contact.CuentaMensajeriaContactoID
+    );
     setLoading(true);
     try {
       const relaciones = await leadService.consultarRelacionesContacto({
@@ -205,7 +208,7 @@ const ContactInfoScreen = () => {
   console.log("ContactInfoScreen: rendering", loading, busquedas);
 
   return (
-    <SafeAreaView style={styles.container} edges={'bottom'}>
+    <SafeAreaView style={styles.container} edges={"bottom"}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Contact Header */}
         <View style={styles.contactHeader}>
@@ -214,7 +217,9 @@ const ContactInfoScreen = () => {
           </View>
           <View style={styles.contactInfo}>
             <Text style={styles.contactName}>{contact.Nombre}</Text>
-            <Text style={styles.contactPhone}>{contact.FormatoCelular || contact.Telefono}</Text>
+            <Text style={styles.contactPhone}>
+              {contact.FormatoCelular || contact.Telefono}
+            </Text>
           </View>
         </View>
 
@@ -241,11 +246,7 @@ const ContactInfoScreen = () => {
             style={styles.picker}
           >
             {EstadosProcesos.map((item) => (
-              <Picker.Item
-                key={item.ID}
-                label={item.Nombre}
-                value={item.ID}
-              />
+              <Picker.Item key={item.ID} label={item.Nombre} value={item.ID} />
             ))}
           </Picker>
         </View>
@@ -261,14 +262,20 @@ const ContactInfoScreen = () => {
 
         {(!busquedas.ProcesosComerciales ||
           busquedas.ProcesosComerciales.length === 0) &&
-        (!busquedas.ContratosServicios || busquedas.ContratosServicios.length === 0) &&
-        // ... other checks
-        (
-          <View style={styles.empty}>
-            <Ionicons name="folder-open" size={48} color={COLORS.textSecondary} />
-            <Text style={styles.emptyText}>No hay resultados encontrados</Text>
-          </View>
-        )}
+          (!busquedas.ContratosServicios ||
+            busquedas.ContratosServicios.length === 0) && (
+            // ... other checks
+            <View style={styles.empty}>
+              <Ionicons
+                name="folder-open"
+                size={48}
+                color={COLORS.textSecondary}
+              />
+              <Text style={styles.emptyText}>
+                No hay resultados encontrados
+              </Text>
+            </View>
+          )}
       </ScrollView>
 
       {/* Edit Contact Modal */}

@@ -19,7 +19,7 @@ import {
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import SearchableModal from "../SearchableModal";
+import SearchableModal from "../../../components/SearchableModal";
 import { FILTER_OPTIONS } from "./FilterConstants";
 
 const { width } = Dimensions.get("window");

@@ -11,20 +11,19 @@ import { createMaterialTopTabNavigator } from "@react-navigation/material-top-ta
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useGlobal } from "../../core/global";
+import { useGlobal } from "../../../core/global";
 
 // Services
-const GestionComercialService =
-  require("../../services/GestionComercial/gestionComercialService").default;
+const GestionComercialService = require("../services/crmService").default;
 
 // Components
-import FilterModal from "../../components/GestionComercial/FilterModal";
-import ColorPickerModal from "../../components/GestionComercial/ColorPickerModal";
-import TableView from "../../components/GestionComercial/TableView";
-import TimelineView from "../../components/GestionComercial/TimelineView";
-import CalendarView from "../../components/GestionComercial/CalendarView";
-import ActiveFilterTags from "../../components/GestionComercial/ActiveFilterTags";
-import { FILTER_OPTIONS } from "../../components/GestionComercial/FilterConstants";
+import FilterModal from "../components/FilterModal";
+import ColorPickerModal from "../components/ColorPickerModal";
+import TableView from "../components/TableView";
+import TimelineView from "../components/TimelineView";
+import CalendarView from "../components/CalendarView";
+import ActiveFilterTags from "../components/ActiveFilterTags";
+import { FILTER_OPTIONS } from "../components/FilterConstants";
 
 const Tab = createMaterialTopTabNavigator();
 

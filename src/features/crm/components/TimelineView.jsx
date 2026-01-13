@@ -10,14 +10,13 @@ import {
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
-import { useGlobal } from "../../core/global";
+import { useGlobal } from "../../../core/global";
 import TimelineColumn from "./TimelineColumn";
 import DragOverlay from "./DragOverlay";
 import CancelDropZone from "./CancelDropZone";
-import useDragAndDrop from "../../hooks/GestionComercial/useDragAndDrop";
+import useDragAndDrop from "../hooks/useDragAndDrop";
 
-const GestionComercialService =
-  require("../../services/GestionComercial/gestionComercialService").default;
+const GestionComercialService = require("../services/crmService").default;
 
 const COLUMN_WIDTH = 324; // 300 width + 24 margin
 

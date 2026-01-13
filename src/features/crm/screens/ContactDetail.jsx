@@ -16,11 +16,10 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { useGlobal } from "../../core/global";
-import FocusAwareStatusBar from "../../components/FocusAwareStatusBar";
+import { useGlobal } from "../../../core/global";
+import FocusAwareStatusBar from "../../../components/FocusAwareStatusBar";
 
-const GestionComercialService =
-  require("../../services/GestionComercial/gestionComercialService").default;
+const GestionComercialService = require("../services/crmService").default;
 const { width } = Dimensions.get("window");
 
 const COLORS = {
