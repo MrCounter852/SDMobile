@@ -365,6 +365,9 @@ const ActivityForm = ({ contact, onRefresh }) => {
 
   const [form, setForm] = useState({
     TipoCalendarioActividadID: "",
+    TipoActividadID: null,
+    Entregable: false,
+    TipoCalendarioActividadNombre: "",
     Asunto: "",
     FechaInicio: "",
     FechaVencimiento: "",
@@ -372,6 +375,8 @@ const ActivityForm = ({ contact, onRefresh }) => {
     UsuarioID: user?.UsuarioID || "",
     Contacto: contact?.NombreCompleto || "",
     Celular: contact?.Celular || "",
+    Telefono: "",
+    Direccion: "",
     Email: contact?.Email || "",
     Link: "",
     VisitanteDocumento: "",
@@ -380,6 +385,7 @@ const ActivityForm = ({ contact, onRefresh }) => {
     InmuebleID: "",
     AsignarProceso: false,
     Notificacion: true,
+    NotificarPropietario: false,
   });
 
   useEffect(() => {
@@ -406,10 +412,49 @@ const ActivityForm = ({ contact, onRefresh }) => {
       contact.OrigenPreContactoID === 1 || contact.OrigenPreContactoID === 6;
     const isPropertyType = form.TipoCalendarioActividadID === 3;
 
-    setShowVisitanteFields(isVisitType);
-    setShowComplejoSelector(isVisitType);
+    setShowVisitanteFields(isVisitType || !!form.VisitanteDocumento);
+    setShowComplejoSelector(isVisitType || !!form.ComplejoID);
     setShowInmuebleSelector(isPropertyType);
-  }, [form.TipoCalendarioActividadID, contact.OrigenPreContactoID]);
+  }, [
+    form.TipoCalendarioActividadID,
+    contact.OrigenPreContactoID,
+    form.VisitanteDocumento,
+    form.ComplejoID,
+  ]);
+
+  const handleTipoActividadChange = (id) => {
+    const selectedType = activityTypes.find(
+      (t) => t.TipoCalendarioActividadID === id
+    );
+
+    if (selectedType) {
+      const isEntregable = selectedType.Entregable === true;
+      const isNotifyProp = selectedType.TipoActividadID === 1;
+
+      setForm((prev) => ({
+        ...prev,
+        TipoCalendarioActividadID: id,
+        TipoActividadID: selectedType.TipoActividadID,
+        Entregable: isEntregable,
+        TipoCalendarioActividadNombre: selectedType.Nombre,
+        // Limpiar campos si es entregable
+        Direccion: isEntregable ? "" : prev.Direccion,
+        Telefono: isEntregable ? "" : prev.Telefono,
+        Celular: isEntregable ? "" : prev.Celular,
+        // Auto-poblar email si es TipoActividadID == 1
+        Email: isNotifyProp ? contact?.Email || prev.Email : prev.Email,
+        NotificarPropietario: isNotifyProp ? true : prev.NotificarPropietario,
+      }));
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        TipoCalendarioActividadID: "",
+        TipoActividadID: null,
+        Entregable: false,
+        TipoCalendarioActividadNombre: "",
+      }));
+    }
+  };
 
   const updateForm = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -477,7 +522,7 @@ const ActivityForm = ({ contact, onRefresh }) => {
           label="Tipo de actividad"
           required
           selectedValue={form.TipoCalendarioActividadID}
-          onValueChange={(v) => updateForm("TipoCalendarioActividadID", v)}
+          onValueChange={handleTipoActividadChange}
           items={activityTypes.map((t) => ({
             label: t.Nombre,
             value: t.TipoCalendarioActividadID,
@@ -488,7 +533,9 @@ const ActivityForm = ({ contact, onRefresh }) => {
           required
           value={form.Asunto}
           onChangeText={(v) => updateForm("Asunto", v)}
-          placeholder="¿De qué trata la actividad?"
+          placeholder={
+            form.TipoCalendarioActividadNombre || "¿De qué trata la actividad?"
+          }
           icon="text-outline"
         />
         <View style={styles.row}>
@@ -566,7 +613,67 @@ const ActivityForm = ({ contact, onRefresh }) => {
           placeholder="ejemplo1@mail.com; ejemplo2@mail.com"
           icon="mail-outline"
         />
+
+        {form.TipoActividadID === 1 && (
+          <TouchableOpacity
+            style={styles.checkboxLine}
+            onPress={() =>
+              updateForm("NotificarPropietario", !form.NotificarPropietario)
+            }
+            activeOpacity={0.7}
+          >
+            <View
+              style={[
+                styles.checkbox,
+                form.NotificarPropietario && styles.checkboxActive,
+              ]}
+            >
+              {form.NotificarPropietario && (
+                <Ionicons name="checkmark" size={16} color="#FFF" />
+              )}
+            </View>
+            <Text style={styles.checkboxText}>Notificar a propietario</Text>
+          </TouchableOpacity>
+        )}
       </View>
+
+      {!form.Entregable && (
+        <View style={styles.formCard}>
+          <View style={styles.cardHeader}>
+            <View style={styles.cardHeaderIcon}>
+              <Ionicons name="map-outline" size={18} color={COLORS.primary} />
+            </View>
+            <Text style={styles.cardTitle}>Ubicación y Contacto</Text>
+          </View>
+          <CustomInput
+            label="Dirección Actividad"
+            value={form.Direccion}
+            onChangeText={(v) => updateForm("Direccion", v)}
+            placeholder="Dirección del encuentro"
+            icon="location-outline"
+          />
+          <View style={styles.row}>
+            <View style={{ flex: 1, marginRight: 8 }}>
+              <CustomInput
+                label="Teléfono"
+                value={form.Telefono}
+                onChangeText={(v) => updateForm("Telefono", v)}
+                placeholder="Teléfono fijo"
+                icon="call-outline"
+              />
+            </View>
+            <View style={{ flex: 1, marginLeft: 8 }}>
+              <CustomInput
+                label="Celular"
+                value={form.Celular}
+                onChangeText={(v) => updateForm("Celular", v)}
+                placeholder="Número celular"
+                icon="phone-portrait-outline"
+              />
+            </View>
+          </View>
+        </View>
+      )}
 
       {(showVisitanteFields ||
         showComplejoSelector ||
