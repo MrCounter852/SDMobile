@@ -1,0 +1,114 @@
+import React from "react";
+import { StyleSheet, View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+  runOnJS,
+} from "react-native-reanimated";
+import ContactItem from "./ContactItem";
+
+const DRAG_ACTIVATION_DELAY = 300; // ms for long press
+const SPRING_CONFIG = {
+  damping: 15,
+  stiffness: 150,
+};
+
+/**
+ * Wrapper component that makes ContactItem draggable
+ */
+const DraggableContactItem = ({
+  item,
+  columnId,
+  onPress,
+  onDragStart,
+  onDragMove,
+  onDragEnd,
+  isDraggedItem,
+}) => {
+  // Local animated values for this item
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(1);
+  const isActive = useSharedValue(false);
+
+  // Create the pan gesture with activation delay (long press)
+  const panGesture = Gesture.Pan()
+    .activateAfterLongPress(DRAG_ACTIVATION_DELAY)
+    .onStart((event) => {
+      "worklet";
+      isActive.value = true;
+      scale.value = withSpring(1.02, SPRING_CONFIG);
+      opacity.value = withTiming(0.3, { duration: 150 });
+
+      if (onDragStart) {
+        runOnJS(onDragStart)(item, columnId, {
+          x: event.absoluteX,
+          y: event.absoluteY,
+        });
+      }
+    })
+    .onUpdate((event) => {
+      "worklet";
+      if (isActive.value && onDragMove) {
+        runOnJS(onDragMove)(event.absoluteX, event.absoluteY);
+      }
+    })
+    .onEnd((event) => {
+      "worklet";
+      isActive.value = false;
+      scale.value = withSpring(1, SPRING_CONFIG);
+      opacity.value = withTiming(1, { duration: 150 });
+
+      if (onDragEnd) {
+        runOnJS(onDragEnd)(event.absoluteX, event.absoluteY);
+      }
+    })
+    .onFinalize(() => {
+      "worklet";
+      // Ensure we reset if gesture is cancelled
+      if (isActive.value) {
+        isActive.value = false;
+        scale.value = withSpring(1, SPRING_CONFIG);
+        opacity.value = withTiming(1, { duration: 150 });
+      }
+    });
+
+  // Tap gesture for regular press
+  const tapGesture = Gesture.Tap().onEnd(() => {
+    "worklet";
+    if (onPress) {
+      runOnJS(onPress)(item);
+    }
+  });
+
+  // Combine gestures - tap should work when not dragging
+  const composedGesture = Gesture.Race(panGesture, tapGesture);
+
+  // Animated style for local feedback
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: isDraggedItem ? 0.3 : opacity.value,
+  }));
+
+  return (
+    <GestureDetector gesture={composedGesture}>
+      <Animated.View style={[styles.container, animatedStyle]}>
+        <ContactItem
+          item={item}
+          onPress={null} // Handled by gesture
+          onLongPress={null} // Handled by gesture
+        />
+      </Animated.View>
+    </GestureDetector>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    marginBottom: 12,
+  },
+});
+
+export default DraggableContactItem;

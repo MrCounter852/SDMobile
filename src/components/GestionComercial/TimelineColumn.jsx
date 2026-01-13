@@ -9,17 +9,23 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import ContactItem from "./ContactItem";
+import DraggableContactItem from "./DraggableContactItem";
 
 const TimelineColumn = ({
   linea,
+  columnId,
   onContactPress,
-  onMoveContact,
   refreshing,
   onRefresh,
   onLoadMore,
   hasMore,
   loadingMore,
+  // Drag-and-drop props
+  isDropTarget,
+  draggedContactId,
+  onDragStart,
+  onDragMove,
+  onDragEnd,
 }) => {
   const formatCurrency = (value) => {
     if (!value) return "0";
@@ -31,27 +37,15 @@ const TimelineColumn = ({
   };
 
   const renderContact = ({ item }) => (
-    <View style={styles.contactWrapper}>
-      <ContactItem
-        item={item}
-        onPress={() => onContactPress && onContactPress(item)}
-      />
-      {/* Minimalist Move buttons */}
-      <View style={styles.moveButtons}>
-        <TouchableOpacity
-          style={[styles.moveButton, styles.moveLeft]}
-          onPress={() => onMoveContact && onMoveContact(item, "left")}
-        >
-          <Ionicons name="chevron-back" size={14} color="#337ab7" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.moveButton, styles.moveRight]}
-          onPress={() => onMoveContact && onMoveContact(item, "right")}
-        >
-          <Ionicons name="chevron-forward" size={14} color="#337ab7" />
-        </TouchableOpacity>
-      </View>
-    </View>
+    <DraggableContactItem
+      item={item}
+      columnId={columnId}
+      onPress={() => onContactPress && onContactPress(item)}
+      onDragStart={onDragStart}
+      onDragMove={onDragMove}
+      onDragEnd={onDragEnd}
+      isDraggedItem={draggedContactId === item.ProcesoID}
+    />
   );
 
   const renderFooter = () => {
@@ -64,14 +58,25 @@ const TimelineColumn = ({
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View
+      style={[styles.container, isDropTarget && styles.dropTargetContainer]}
+    >
+      <View style={[styles.header, isDropTarget && styles.dropTargetHeader]}>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.title} numberOfLines={1}>
             {linea.Nombre}
           </Text>
-          <View style={styles.countBadge}>
-            <Text style={styles.countText}>{linea.TotalProcesos || 0}</Text>
+          <View
+            style={[styles.countBadge, isDropTarget && styles.dropTargetBadge]}
+          >
+            <Text
+              style={[
+                styles.countText,
+                isDropTarget && styles.dropTargetCountText,
+              ]}
+            >
+              {linea.TotalProcesos || 0}
+            </Text>
           </View>
         </View>
         <TouchableOpacity style={styles.filterButton}>
@@ -107,19 +112,35 @@ const TimelineColumn = ({
         ListFooterComponent={renderFooter}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconCircle}>
+            <View
+              style={[
+                styles.emptyIconCircle,
+                isDropTarget && styles.dropTargetEmptyCircle,
+              ]}
+            >
               <Ionicons
-                name="document-text-outline"
+                name={
+                  isDropTarget
+                    ? "arrow-down-circle-outline"
+                    : "document-text-outline"
+                }
                 size={32}
-                color="#AEAEB2"
+                color={isDropTarget ? "#337ab7" : "#AEAEB2"}
               />
             </View>
-            <Text style={styles.emptyText}>Lista vacía</Text>
+            <Text
+              style={[
+                styles.emptyText,
+                isDropTarget && styles.dropTargetEmptyText,
+              ]}
+            >
+              {isDropTarget ? "Soltar aquí" : "Lista vacía"}
+            </Text>
           </View>
         }
       />
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, isDropTarget && styles.dropTargetFooter]}>
         <View style={styles.footerItem}>
           <Text style={styles.footerLabel}>Total Negocio</Text>
           <Text style={styles.footerValue}>
@@ -146,6 +167,33 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     borderWidth: 1,
     borderColor: "#E5E5EA",
+  },
+  // Drop target styles
+  dropTargetContainer: {
+    borderColor: "#337ab7",
+    borderWidth: 2,
+    shadowColor: "#337ab7",
+    shadowOpacity: 0.3,
+    elevation: 6,
+  },
+  dropTargetHeader: {
+    backgroundColor: "#E5F1FF",
+  },
+  dropTargetBadge: {
+    backgroundColor: "#337ab7",
+  },
+  dropTargetCountText: {
+    color: "#fff",
+  },
+  dropTargetEmptyCircle: {
+    backgroundColor: "#E5F1FF",
+  },
+  dropTargetEmptyText: {
+    color: "#337ab7",
+    fontWeight: "600",
+  },
+  dropTargetFooter: {
+    backgroundColor: "#E5F1FF",
   },
   header: {
     flexDirection: "row",
@@ -191,33 +239,7 @@ const styles = StyleSheet.create({
   },
   contactsContainer: {
     padding: 10,
-    paddingTop: 0,
-  },
-  contactWrapper: {
-    marginBottom: 12,
-  },
-  moveButtons: {
-    flexDirection: "row",
-    gap: 8,
-    marginTop: 8,
-    justifyContent: "flex-end",
-    paddingRight: 16,
-    paddingBottom: 8,
-  },
-  moveButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#fff",
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    borderWidth: 1,
-    borderColor: "#F2F2F7",
+    paddingTop: 10,
   },
   emptyContainer: {
     alignItems: "center",

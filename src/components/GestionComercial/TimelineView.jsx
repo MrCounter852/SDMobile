@@ -1,20 +1,24 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
   Alert,
   ActivityIndicator,
 } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useGlobal } from "../../core/global";
 import TimelineColumn from "./TimelineColumn";
+import DragOverlay from "./DragOverlay";
+import useDragAndDrop from "../../hooks/GestionComercial/useDragAndDrop";
 
 const GestionComercialService =
   require("../../services/GestionComercial/gestionComercialService").default;
+
+const COLUMN_WIDTH = 324; // 300 width + 24 margin
 
 const TimelineView = React.memo(
   ({ navigation, searchFilters, refreshTrigger, onSelectContact }) => {
@@ -26,8 +30,49 @@ const TimelineView = React.memo(
     const [hasMore, setHasMore] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const lastPageLoaded = useRef(0);
+    const scrollViewRef = useRef(null);
+    const scrollOffsetRef = useRef(0);
+    const containerRef = useRef(null);
+    const [containerOffsetY, setContainerOffsetY] = useState(0);
 
     const ROWS_PER_PAGE = 15;
+
+    // Handle moving contact to a new column via drag-and-drop
+    const handleMoveToColumn = useCallback(async (contact, targetColumnId) => {
+      try {
+        await GestionComercialService.moverLineaTiempo({
+          ProcesoID: contact.ProcesoID,
+          ProcesoLineaTiempoID: targetColumnId,
+        });
+        // Refresh after successful move
+        loadTimeline(1, true);
+      } catch (error) {
+        console.error("[TimelineView] Error moving contact:", error);
+        Alert.alert(
+          "Error",
+          error.message ||
+            "No se pudo mover el contacto. El backend rechazó la operación."
+        );
+        throw error; // Re-throw so the hook knows it failed
+      }
+    }, []);
+
+    // Initialize drag-and-drop hook
+    const {
+      draggedContact,
+      sourceColumnId,
+      targetColumnId,
+      isDragging,
+      dragX,
+      dragY,
+      dragScale,
+      dragOpacity,
+      startDrag,
+      updateDrag,
+      endDrag,
+      cancelDrag,
+      updateScrollOffset,
+    } = useDragAndDrop(timelineData, handleMoveToColumn, COLUMN_WIDTH);
 
     const loadTimeline = async (pageNum = 1, isRefresh = false) => {
       if (!searchFilters.OrigenPreContactoID) {
@@ -172,47 +217,47 @@ const TimelineView = React.memo(
       navigation.navigate("ContactDetail", { contact });
     };
 
-    const handleMoveContact = async (contact, direction) => {
-      Alert.alert(
-        "Mover contacto",
-        `¿Mover "${contact.NombreCompleto}" ${
-          direction === "left" ? "a la izquierda" : "a la derecha"
-        }?`,
-        [
-          { text: "Cancelar", style: "cancel" },
-          {
-            text: "Mover",
-            onPress: async () => {
-              try {
-                const currentIndex = timelineData.findIndex((linea) =>
-                  linea.Procesos?.some((p) => p.ProcesoID === contact.ProcesoID)
-                );
+    // Handle scroll to track offset for column position calculation
+    const handleScroll = useCallback(
+      (event) => {
+        const offsetX = event.nativeEvent.contentOffset.x;
+        scrollOffsetRef.current = offsetX;
+        updateScrollOffset(offsetX);
+      },
+      [updateScrollOffset]
+    );
 
-                if (currentIndex === -1) return;
+    // Drag event handlers
+    const handleDragStart = useCallback(
+      (contact, columnId, position) => {
+        startDrag(contact, columnId, position);
+      },
+      [startDrag]
+    );
 
-                const targetIndex =
-                  direction === "left"
-                    ? Math.max(0, currentIndex - 1)
-                    : Math.min(timelineData.length - 1, currentIndex + 1);
+    const handleDragMove = useCallback(
+      (absoluteX, absoluteY) => {
+        updateDrag(absoluteX, absoluteY);
+      },
+      [updateDrag]
+    );
 
-                if (targetIndex === currentIndex) return;
+    const handleDragEnd = useCallback(
+      (absoluteX, absoluteY) => {
+        endDrag(absoluteX);
+      },
+      [endDrag]
+    );
 
-                await GestionComercialService.moverLineaTiempo({
-                  ProcesoID: contact.ProcesoID,
-                  ProcesoLineaTiempoID:
-                    timelineData[targetIndex].ProcesoLineaTiempoID,
-                });
-
-                loadTimeline(1, true);
-              } catch (error) {
-                console.error("Error moving contact:", error);
-                Alert.alert("Error", "No se pudo mover el contacto");
-              }
-            },
-          },
-        ]
-      );
-    };
+    // Measure container position on screen for accurate overlay positioning
+    // IMPORTANT: This must be defined before any early returns to maintain hooks order
+    const handleContainerLayout = useCallback(() => {
+      if (containerRef.current) {
+        containerRef.current.measure((x, y, width, height, pageX, pageY) => {
+          setContainerOffsetY(pageY);
+        });
+      }
+    }, []);
 
     const isInitialLoading =
       (loading || refreshing) && timelineData.length === 0;
@@ -227,36 +272,68 @@ const TimelineView = React.memo(
     }
 
     return (
-      <View style={{ flex: 1 }}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.timelineContainer}
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View
+          ref={containerRef}
+          style={{ flex: 1 }}
+          onLayout={handleContainerLayout}
         >
-          {timelineData.map((linea) => (
-            <TimelineColumn
-              key={linea.ProcesoLineaTiempoID}
-              linea={linea}
-              onContactPress={handleContactPress}
-              onMoveContact={handleMoveContact}
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              onLoadMore={handleLoadMore}
-              hasMore={hasMore}
-              loadingMore={loadingMore}
-            />
-          ))}
+          <ScrollView
+            ref={scrollViewRef}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.timelineContainer}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            // Disable scroll during drag to prevent conflicts
+            scrollEnabled={!isDragging}
+          >
+            {timelineData.map((linea) => (
+              <TimelineColumn
+                key={linea.ProcesoLineaTiempoID}
+                linea={linea}
+                columnId={linea.ProcesoLineaTiempoID}
+                onContactPress={handleContactPress}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                onLoadMore={handleLoadMore}
+                hasMore={hasMore}
+                loadingMore={loadingMore}
+                // Drag-and-drop props
+                isDropTarget={
+                  isDragging &&
+                  targetColumnId === linea.ProcesoLineaTiempoID &&
+                  sourceColumnId !== linea.ProcesoLineaTiempoID
+                }
+                draggedContactId={draggedContact?.ProcesoID}
+                onDragStart={handleDragStart}
+                onDragMove={handleDragMove}
+                onDragEnd={handleDragEnd}
+              />
+            ))}
 
-          {timelineData.length === 0 && (
-            <View style={styles.emptyTimeline}>
-              <Ionicons name="git-branch-outline" size={64} color="#ccc" />
-              <Text style={styles.emptyText}>
-                No hay línea de tiempo configurada
-              </Text>
-            </View>
-          )}
-        </ScrollView>
-      </View>
+            {timelineData.length === 0 && (
+              <View style={styles.emptyTimeline}>
+                <Ionicons name="git-branch-outline" size={64} color="#ccc" />
+                <Text style={styles.emptyText}>
+                  No hay línea de tiempo configurada
+                </Text>
+              </View>
+            )}
+          </ScrollView>
+
+          {/* Floating drag overlay */}
+          <DragOverlay
+            draggedContact={draggedContact}
+            dragX={dragX}
+            dragY={dragY}
+            dragScale={dragScale}
+            dragOpacity={dragOpacity}
+            visible={isDragging}
+            containerOffsetY={containerOffsetY}
+          />
+        </View>
+      </GestureHandlerRootView>
     );
   }
 );
@@ -273,31 +350,6 @@ const styles = StyleSheet.create({
     color: "#8E8E93",
     fontSize: 14,
     fontWeight: "500",
-  },
-  tagsOuterContainer: {
-    backgroundColor: "#fff",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F2F2F7",
-  },
-  tagsScrollContent: {
-    paddingHorizontal: 20,
-    gap: 8,
-  },
-  tagItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#E5F1FF",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#337ab720",
-  },
-  tagLabel: {
-    fontSize: 13,
-    color: "#337ab7",
-    fontWeight: "600",
   },
   timelineContainer: {
     padding: 16,
