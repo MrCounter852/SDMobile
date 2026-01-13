@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -34,6 +34,7 @@ const TableView = React.memo(
     const [refreshing, setRefreshing] = useState(false);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
+    const lastFetchParams = useRef({ filters: null, refreshTrigger: null });
 
     const loadContacts = async (pageNum = 1, isRefresh = false) => {
       if (loading && !isRefresh) return;
@@ -119,8 +120,20 @@ const TableView = React.memo(
 
     useFocusEffect(
       useCallback(() => {
-        if (user?.SucursalID) {
+        if (!user?.SucursalID) return;
+
+        const filtersChanged =
+          JSON.stringify(lastFetchParams.current.filters) !==
+          JSON.stringify(searchFilters);
+        const triggerChanged =
+          lastFetchParams.current.refreshTrigger !== refreshTrigger;
+
+        if (filtersChanged || triggerChanged) {
           loadContacts(1, true);
+          lastFetchParams.current = {
+            filters: JSON.parse(JSON.stringify(searchFilters)),
+            refreshTrigger,
+          };
         }
       }, [searchFilters, refreshTrigger, user?.SucursalID])
     );

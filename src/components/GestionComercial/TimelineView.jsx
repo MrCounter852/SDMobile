@@ -78,32 +78,53 @@ const TimelineView = React.memo(
           setTimelineData(newColumns);
           setPage(1);
           lastPageLoaded.current = 1;
-          setHasMore(totalProcessesReceived === ROWS_PER_PAGE);
-        } else {
-          setTimelineData((prev) => {
-            return prev.map((oldCol) => {
-              const matchingNewCol = newColumns.find(
-                (nc) => nc.ProcesoLineaTiempoID === oldCol.ProcesoLineaTiempoID
-              );
-              if (matchingNewCol) {
-                const existingIds = new Set(
-                  oldCol.Procesos?.map((p) => p.ProcesoID)
-                );
-                const uniqueNewProcesos = (
-                  matchingNewCol.Procesos || []
-                ).filter((p) => !existingIds.has(p.ProcesoID));
 
-                return {
-                  ...oldCol,
-                  Procesos: [...(oldCol.Procesos || []), ...uniqueNewProcesos],
+          const anyHasMore = newColumns.some(
+            (col) => (col.Procesos?.length || 0) < (col.TotalProcesos || 0)
+          );
+          setHasMore(anyHasMore || totalProcessesReceived === ROWS_PER_PAGE);
+        } else {
+          setTimelineData((prevData) => {
+            const nextData = [...prevData];
+            newColumns.forEach((nc) => {
+              const existingIndex = nextData.findIndex(
+                (oc) => oc.ProcesoLineaTiempoID === nc.ProcesoLineaTiempoID
+              );
+              if (existingIndex > -1) {
+                const existingIds = new Set(
+                  nextData[existingIndex].Procesos?.map((p) => p.ProcesoID) ||
+                    []
+                );
+                const uniqueNewProcesos = (nc.Procesos || []).filter(
+                  (p) => !existingIds.has(p.ProcesoID)
+                );
+                nextData[existingIndex] = {
+                  ...nextData[existingIndex],
+                  Procesos: [
+                    ...(nextData[existingIndex].Procesos || []),
+                    ...uniqueNewProcesos,
+                  ],
+                  TotalProcesos:
+                    nc.TotalProcesos ?? nextData[existingIndex].TotalProcesos,
+                  TotalValorNegocio:
+                    nc.TotalValorNegocio ??
+                    nextData[existingIndex].TotalValorNegocio,
                 };
+              } else {
+                nextData.push(nc);
               }
-              return oldCol;
             });
+
+            // Re-check hasMore based on the newly merged data
+            const anyHasMore = nextData.some(
+              (col) => (col.Procesos?.length || 0) < (col.TotalProcesos || 0)
+            );
+            setHasMore(anyHasMore || totalProcessesReceived === ROWS_PER_PAGE);
+
+            return nextData;
           });
           setPage(pageNum);
           lastPageLoaded.current = pageNum;
-          setHasMore(totalProcessesReceived === ROWS_PER_PAGE);
         }
       } catch (error) {
         console.error("Error loading timeline:", error);
@@ -115,10 +136,24 @@ const TimelineView = React.memo(
       }
     };
 
+    const lastFetchParams = useRef({ filters: null, refreshTrigger: null });
+
     useFocusEffect(
       useCallback(() => {
-        if (user?.SucursalID) {
+        if (!user?.SucursalID) return;
+
+        const filtersChanged =
+          JSON.stringify(lastFetchParams.current.filters) !==
+          JSON.stringify(searchFilters);
+        const triggerChanged =
+          lastFetchParams.current.refreshTrigger !== refreshTrigger;
+
+        if (filtersChanged || triggerChanged) {
           loadTimeline(1, true);
+          lastFetchParams.current = {
+            filters: JSON.parse(JSON.stringify(searchFilters)),
+            refreshTrigger,
+          };
         }
       }, [searchFilters, refreshTrigger, user?.SucursalID])
     );

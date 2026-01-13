@@ -95,8 +95,15 @@ const TimelineColumn = ({
             colors={["#337ab7"]}
           />
         }
-        onEndReached={onLoadMore}
-        onEndReachedThreshold={0.3}
+        onEndReached={() => {
+          if (
+            hasMore &&
+            (linea.Procesos?.length || 0) < (linea.TotalProcesos || 0)
+          ) {
+            onLoadMore();
+          }
+        }}
+        onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
