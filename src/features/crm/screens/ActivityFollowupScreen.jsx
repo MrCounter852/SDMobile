@@ -1115,6 +1115,20 @@ const ActivityList = ({ contact, refreshKey }) => {
               </View>
             ) : null}
 
+            {item.Direccion && (
+              <View style={styles.activityMetaRow}>
+                <Ionicons
+                  name="location-outline"
+                  size={14}
+                  color={COLORS.gray}
+                />
+                <Text style={styles.activityMetaText}>
+                  Lugar:{" "}
+                  <Text style={{ fontWeight: "700" }}>{item.Direccion}</Text>
+                </Text>
+              </View>
+            )}
+
             {item.VisitanteNombreCompleto && (
               <View style={styles.activityMetaRow}>
                 <Ionicons
@@ -1159,6 +1173,54 @@ const ActivityList = ({ contact, refreshKey }) => {
               </TouchableOpacity>
             )}
 
+            {item.Completada && (
+              <View style={styles.closureCard}>
+                <View style={[styles.activityMetaRow, { marginBottom: 2 }]}>
+                  <Ionicons
+                    name="lock-closed-outline"
+                    size={14}
+                    color={COLORS.success}
+                  />
+                  <Text style={styles.closureTitle}>Actividad Finalizada</Text>
+                </View>
+                {item.CalendarioActividadCierreDetalle && (
+                  <Text style={styles.closureDetailText}>
+                    Motivo:{" "}
+                    <Text style={{ fontWeight: "700" }}>
+                      {item.CalendarioActividadCierreDetalle}
+                    </Text>
+                  </Text>
+                )}
+                <Text style={styles.closureDetailText}>
+                  Cerrada por: {item.UsuarioCierreNombreCompleto || "N/A"} el{" "}
+                  {new Date(item.FechaCierre).toLocaleDateString()}
+                </Text>
+                {item.ObservacionesCierre && (
+                  <Text style={styles.closureObsText}>
+                    "{item.ObservacionesCierre}"
+                  </Text>
+                )}
+              </View>
+            )}
+
+            {item.CausalInviabilidadProcesoNombre && (
+              <View style={[styles.activityMetaRow, { marginTop: 8 }]}>
+                <Ionicons
+                  name="alert-circle-outline"
+                  size={14}
+                  color={COLORS.danger}
+                />
+                <Text
+                  style={[
+                    styles.activityMetaText,
+                    { color: COLORS.danger, fontWeight: "700" },
+                  ]}
+                >
+                  Causa Inviabilidad: {item.CausalInviabilidadProcesoNombre}
+                </Text>
+              </View>
+            )}
+
             {item.Descripcion ? (
               <Text style={styles.activityItemText}>{item.Descripcion}</Text>
             ) : null}
@@ -1190,6 +1252,18 @@ const ActivityList = ({ contact, refreshKey }) => {
                   })}
                 </Text>
               </View>
+            </View>
+
+            <View style={styles.registrationInfo}>
+              <Ionicons
+                name="create-outline"
+                size={12}
+                color={COLORS.lightGray}
+              />
+              <Text style={styles.registrationText}>
+                Registrado por {item.RegistroUsuario} el{" "}
+                {new Date(item.RegistroFecha).toLocaleString()}
+              </Text>
             </View>
           </View>
         ))
@@ -1774,6 +1848,47 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.primary,
     fontWeight: "700",
+  },
+  closureCard: {
+    backgroundColor: "rgba(0, 205, 167, 0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(0, 205, 167, 0.2)",
+    borderRadius: 12,
+    padding: 10,
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  closureTitle: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: COLORS.success,
+    textTransform: "uppercase",
+  },
+  closureDetailText: {
+    fontSize: 11,
+    color: COLORS.gray,
+    marginLeft: 22,
+    marginBottom: 2,
+  },
+  closureObsText: {
+    fontSize: 12,
+    color: COLORS.dark,
+    fontStyle: "italic",
+    marginLeft: 22,
+    marginTop: 4,
+  },
+  registrationInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    marginTop: 12,
+    gap: 4,
+    opacity: 0.7,
+  },
+  registrationText: {
+    fontSize: 10,
+    color: COLORS.lightGray,
+    fontWeight: "500",
   },
   timelinePoint: { flex: 1, alignItems: "center" },
   timelineLabel: {
