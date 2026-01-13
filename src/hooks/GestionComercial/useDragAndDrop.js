@@ -1,29 +1,74 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useSharedValue, runOnJS } from 'react-native-reanimated';
-import { Vibration } from 'react-native';
+import { Vibration, Dimensions } from 'react-native';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+// Auto-scroll configuration
+const EDGE_THRESHOLD = 30; // Distance from edge to trigger scroll
+const SCROLL_SPEED = 20; // Pixels per frame
+const CANCEL_ZONE_HEIGHT = 80; // Height of cancel drop zone
 
 /**
  * Custom hook for managing drag-and-drop state across timeline columns
  * @param {Array} columns - Array of timeline column data
  * @param {Function} onMoveContact - Callback when contact is dropped on a new column
  * @param {number} columnWidth - Width of each column including margins (default: 324)
+ * @param {Object} scrollViewRef - Ref to the horizontal ScrollView
  */
-const useDragAndDrop = (columns, onMoveContact, columnWidth = 324) => {
+const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef = null) => {
   // Drag state
   const [draggedContact, setDraggedContact] = useState(null);
   const [sourceColumnId, setSourceColumnId] = useState(null);
   const [targetColumnId, setTargetColumnId] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isOverCancelZone, setIsOverCancelZone] = useState(false);
 
   // Animated values for smooth drag
   const dragX = useSharedValue(0);
   const dragY = useSharedValue(0);
   const dragScale = useSharedValue(1);
   const dragOpacity = useSharedValue(1);
+  const cancelZoneHover = useSharedValue(false);
 
   // Refs
   const scrollOffsetRef = useRef(0);
   const startPositionRef = useRef({ x: 0, y: 0 });
+  const autoScrollIntervalRef = useRef(null);
+  const containerHeightRef = useRef(SCREEN_HEIGHT);
+
+  /**
+   * Stop auto-scroll
+   */
+  const stopAutoScroll = useCallback(() => {
+    if (autoScrollIntervalRef.current) {
+      clearInterval(autoScrollIntervalRef.current);
+      autoScrollIntervalRef.current = null;
+    }
+  }, []);
+
+  /**
+   * Start auto-scrolling in a direction
+   */
+  const startAutoScroll = useCallback(
+    (direction) => {
+      stopAutoScroll();
+
+      if (!scrollViewRef?.current) return;
+
+      autoScrollIntervalRef.current = setInterval(() => {
+        const newOffset =
+          scrollOffsetRef.current + (direction === 'right' ? SCROLL_SPEED : -SCROLL_SPEED);
+        const maxOffset = columns.length * columnWidth - SCREEN_WIDTH + 32; // padding
+
+        const clampedOffset = Math.max(0, Math.min(newOffset, maxOffset));
+
+        scrollViewRef.current.scrollTo({ x: clampedOffset, animated: false });
+        scrollOffsetRef.current = clampedOffset;
+      }, 16); // ~60fps
+    },
+    [columns.length, columnWidth, scrollViewRef, stopAutoScroll]
+  );
 
   /**
    * Calculate which column is under the current drag position
@@ -39,6 +84,33 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324) => {
       return null;
     },
     [columns, columnWidth]
+  );
+
+  /**
+   * Check if position is over cancel zone
+   */
+  const checkCancelZone = useCallback(
+    (absoluteY) => {
+      const threshold = containerHeightRef.current - CANCEL_ZONE_HEIGHT;
+      return absoluteY > threshold;
+    },
+    []
+  );
+
+  /**
+   * Handle auto-scroll based on X position
+   */
+  const handleAutoScroll = useCallback(
+    (absoluteX) => {
+      if (absoluteX < EDGE_THRESHOLD) {
+        startAutoScroll('left');
+      } else if (absoluteX > SCREEN_WIDTH - EDGE_THRESHOLD) {
+        startAutoScroll('right');
+      } else {
+        stopAutoScroll();
+      }
+    },
+    [startAutoScroll, stopAutoScroll]
   );
 
   /**
@@ -70,22 +142,54 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324) => {
       dragX.value = absoluteX;
       dragY.value = absoluteY;
 
-      // Calculate target column on JS thread
-      runOnJS((x) => {
-        const newTarget = getTargetColumnFromPosition(x);
-        if (newTarget !== targetColumnId) {
-          setTargetColumnId(newTarget);
+      // Check cancel zone and update target column on JS thread
+      runOnJS((x, y) => {
+        // Check if over cancel zone
+        const overCancel = checkCancelZone(y);
+        if (overCancel !== isOverCancelZone) {
+          setIsOverCancelZone(overCancel);
+          cancelZoneHover.value = overCancel;
+          if (overCancel) {
+            Vibration.vibrate(30);
+          }
         }
-      })(absoluteX);
+
+        // Update target column if not over cancel zone
+        if (!overCancel) {
+          const newTarget = getTargetColumnFromPosition(x);
+          if (newTarget !== targetColumnId) {
+            setTargetColumnId(newTarget);
+          }
+        }
+
+        // Handle auto-scroll
+        handleAutoScroll(x);
+      })(absoluteX, absoluteY);
     },
-    [getTargetColumnFromPosition, targetColumnId]
+    [getTargetColumnFromPosition, targetColumnId, checkCancelZone, isOverCancelZone, handleAutoScroll]
   );
 
   /**
    * End the drag operation
    */
   const endDrag = useCallback(
-    async (absoluteX) => {
+    async (absoluteX, absoluteY) => {
+      stopAutoScroll();
+
+      // Check if dropped on cancel zone
+      if (checkCancelZone(absoluteY)) {
+        // Cancel the drag
+        cancelZoneHover.value = false;
+        dragScale.value = 1;
+        dragOpacity.value = 1;
+        setDraggedContact(null);
+        setSourceColumnId(null);
+        setTargetColumnId(null);
+        setIsDragging(false);
+        setIsOverCancelZone(false);
+        return;
+      }
+
       const finalTargetId = getTargetColumnFromPosition(absoluteX);
 
       // Reset animated values
@@ -110,21 +214,25 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324) => {
       setSourceColumnId(null);
       setTargetColumnId(null);
       setIsDragging(false);
+      setIsOverCancelZone(false);
     },
-    [draggedContact, sourceColumnId, getTargetColumnFromPosition, onMoveContact]
+    [draggedContact, sourceColumnId, getTargetColumnFromPosition, onMoveContact, checkCancelZone, stopAutoScroll]
   );
 
   /**
    * Cancel the drag operation
    */
   const cancelDrag = useCallback(() => {
+    stopAutoScroll();
+    cancelZoneHover.value = false;
     dragScale.value = 1;
     dragOpacity.value = 1;
     setDraggedContact(null);
     setSourceColumnId(null);
     setTargetColumnId(null);
     setIsDragging(false);
-  }, []);
+    setIsOverCancelZone(false);
+  }, [stopAutoScroll]);
 
   /**
    * Update scroll offset (called from ScrollView onScroll)
@@ -133,18 +241,34 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324) => {
     scrollOffsetRef.current = offset;
   }, []);
 
+  /**
+   * Update container height for cancel zone calculation
+   */
+  const updateContainerHeight = useCallback((height) => {
+    containerHeightRef.current = height;
+  }, []);
+
+  // Cleanup auto-scroll on unmount
+  useEffect(() => {
+    return () => {
+      stopAutoScroll();
+    };
+  }, [stopAutoScroll]);
+
   return {
     // State
     draggedContact,
     sourceColumnId,
     targetColumnId,
     isDragging,
+    isOverCancelZone,
 
     // Animated values
     dragX,
     dragY,
     dragScale,
     dragOpacity,
+    cancelZoneHover,
 
     // Methods
     startDrag,
@@ -152,6 +276,7 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324) => {
     endDrag,
     cancelDrag,
     updateScrollOffset,
+    updateContainerHeight,
   };
 };
 

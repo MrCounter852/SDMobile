@@ -13,6 +13,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useGlobal } from "../../core/global";
 import TimelineColumn from "./TimelineColumn";
 import DragOverlay from "./DragOverlay";
+import CancelDropZone from "./CancelDropZone";
 import useDragAndDrop from "../../hooks/GestionComercial/useDragAndDrop";
 
 const GestionComercialService =
@@ -63,16 +64,24 @@ const TimelineView = React.memo(
       sourceColumnId,
       targetColumnId,
       isDragging,
+      isOverCancelZone,
       dragX,
       dragY,
       dragScale,
       dragOpacity,
+      cancelZoneHover,
       startDrag,
       updateDrag,
       endDrag,
       cancelDrag,
       updateScrollOffset,
-    } = useDragAndDrop(timelineData, handleMoveToColumn, COLUMN_WIDTH);
+      updateContainerHeight,
+    } = useDragAndDrop(
+      timelineData,
+      handleMoveToColumn,
+      COLUMN_WIDTH,
+      scrollViewRef
+    );
 
     const loadTimeline = async (pageNum = 1, isRefresh = false) => {
       if (!searchFilters.OrigenPreContactoID) {
@@ -244,7 +253,7 @@ const TimelineView = React.memo(
 
     const handleDragEnd = useCallback(
       (absoluteX, absoluteY) => {
-        endDrag(absoluteX);
+        endDrag(absoluteX, absoluteY);
       },
       [endDrag]
     );
@@ -329,9 +338,12 @@ const TimelineView = React.memo(
             dragY={dragY}
             dragScale={dragScale}
             dragOpacity={dragOpacity}
-            visible={isDragging}
+            visible={isDragging && !isOverCancelZone}
             containerOffsetY={containerOffsetY}
           />
+
+          {/* Cancel drop zone at bottom */}
+          <CancelDropZone visible={isDragging} isHovering={cancelZoneHover} />
         </View>
       </GestureHandlerRootView>
     );
