@@ -1075,10 +1075,89 @@ const ActivityList = ({ contact, refreshKey }) => {
               <View style={{ flex: 1 }}>
                 <Text style={styles.activityItemTitle}>{item.Asunto}</Text>
                 <Text style={styles.activityItemDate}>
-                  Programado por: {item.UsuarioNombre || "N/A"}
+                  Programado por:{" "}
+                  {item.UsuarioNombreCompleto || item.UsuarioNombre || "N/A"}
                 </Text>
               </View>
+              {item.TiposCalendariosActividadesEntregable && (
+                <View style={styles.entregableBadge}>
+                  <Text style={styles.entregableBadgeText}>Entregable</Text>
+                </View>
+              )}
             </View>
+
+            {item.InmuebleDescripcion || item.ComplejoNombre ? (
+              <View style={styles.activityMetaContainer}>
+                {item.ComplejoNombre && (
+                  <View style={styles.activityMetaRow}>
+                    <Ionicons
+                      name="business-outline"
+                      size={14}
+                      color={COLORS.secondary}
+                    />
+                    <Text style={styles.activityMetaText}>
+                      {item.ComplejoNombre}
+                    </Text>
+                  </View>
+                )}
+                {item.InmuebleDescripcion && (
+                  <View style={styles.activityMetaRow}>
+                    <Ionicons
+                      name="home-outline"
+                      size={14}
+                      color={COLORS.secondary}
+                    />
+                    <Text style={styles.activityMetaText}>
+                      {item.InmuebleDescripcion}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            ) : null}
+
+            {item.VisitanteNombreCompleto && (
+              <View style={styles.activityMetaRow}>
+                <Ionicons
+                  name="person-circle-outline"
+                  size={14}
+                  color={COLORS.gray}
+                />
+                <Text style={styles.activityMetaText}>
+                  Visitante:{" "}
+                  <Text style={{ fontWeight: "700" }}>
+                    {item.VisitanteNombreCompleto}
+                  </Text>
+                  {item.VisitanteDocumento
+                    ? ` (${item.VisitanteDocumento})`
+                    : ""}
+                </Text>
+              </View>
+            )}
+
+            {(item.Celular || item.Email) && (
+              <View style={styles.activityMetaRow}>
+                <Ionicons name="call-outline" size={14} color={COLORS.gray} />
+                <Text style={styles.activityMetaText}>
+                  {item.Celular} {item.Email ? `| ${item.Email}` : ""}
+                </Text>
+              </View>
+            )}
+
+            {item.Link && (
+              <TouchableOpacity
+                style={styles.linkButton}
+                onPress={() => Linking.openURL(item.Link)}
+              >
+                <Ionicons
+                  name="videocam-outline"
+                  size={16}
+                  color={COLORS.primary}
+                />
+                <Text style={styles.linkButtonText} numberOfLines={1}>
+                  Unirse a la reunión
+                </Text>
+              </TouchableOpacity>
+            )}
 
             {item.Descripcion ? (
               <Text style={styles.activityItemText}>{item.Descripcion}</Text>
@@ -1088,7 +1167,11 @@ const ActivityList = ({ contact, refreshKey }) => {
               <View style={styles.timelinePoint}>
                 <Text style={styles.timelineLabel}>INICIO</Text>
                 <Text style={styles.timelineValue}>
-                  {new Date(item.FechaInicio).toLocaleDateString()}
+                  {item.FechaInicioAmigable ||
+                    new Date(item.FechaInicio).toLocaleString([], {
+                      dateStyle: "short",
+                      timeStyle: "short",
+                    })}
                 </Text>
               </View>
               <View style={styles.timelineArrow}>
@@ -1101,7 +1184,10 @@ const ActivityList = ({ contact, refreshKey }) => {
               <View style={styles.timelinePoint}>
                 <Text style={styles.timelineLabel}>VENCE</Text>
                 <Text style={styles.timelineValue}>
-                  {new Date(item.FechaVencimiento).toLocaleDateString()}
+                  {new Date(item.FechaVencimiento).toLocaleString([], {
+                    dateStyle: "short",
+                    timeStyle: "short",
+                  })}
                 </Text>
               </View>
             </View>
@@ -1626,6 +1712,19 @@ const styles = StyleSheet.create({
     color: COLORS.lightGray,
     fontWeight: "600",
   },
+  entregableBadge: {
+    backgroundColor: "rgba(0, 205, 167, 0.1)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    alignSelf: "flex-start",
+  },
+  entregableBadgeText: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: COLORS.success,
+    textTransform: "uppercase",
+  },
   activityItemText: {
     fontSize: 13,
     color: COLORS.gray,
@@ -1642,6 +1741,39 @@ const styles = StyleSheet.create({
     backgroundColor: "#F1F5F9",
     padding: 10,
     borderRadius: 12,
+  },
+  activityMetaContainer: {
+    backgroundColor: "rgba(0, 134, 200, 0.05)",
+    padding: 10,
+    borderRadius: 12,
+    marginBottom: 12,
+    gap: 6,
+  },
+  activityMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 4,
+  },
+  activityMetaText: {
+    fontSize: 12,
+    color: COLORS.gray,
+    fontWeight: "500",
+    flex: 1,
+  },
+  linkButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(51, 122, 183, 0.1)",
+    padding: 8,
+    borderRadius: 10,
+    marginBottom: 12,
+    gap: 8,
+  },
+  linkButtonText: {
+    fontSize: 12,
+    color: COLORS.primary,
+    fontWeight: "700",
   },
   timelinePoint: { flex: 1, alignItems: "center" },
   timelineLabel: {
