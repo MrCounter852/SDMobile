@@ -117,14 +117,12 @@ const TableView = React.memo(
       }
     };
 
-    useEffect(() => {
-      loadContacts(1, true);
-    }, [searchFilters, refreshTrigger]);
-
     useFocusEffect(
       useCallback(() => {
-        loadContacts(1, true);
-      }, [searchFilters, refreshTrigger])
+        if (user?.SucursalID) {
+          loadContacts(1, true);
+        }
+      }, [searchFilters, refreshTrigger, user?.SucursalID])
     );
 
     const handleRefresh = () => {

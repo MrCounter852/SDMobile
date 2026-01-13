@@ -86,6 +86,17 @@ const GestionComercial = ({ navigation }) => {
     }
   }, [currentTab]);
 
+  // Sync filters once user data is available
+  useEffect(() => {
+    if (user?.SucursalID || user?.AsesorID) {
+      setSearchFilters((prev) => ({
+        ...prev,
+        AsesorID: prev.AsesorID || user?.AsesorID || null,
+        SucursalID: prev.SucursalID || user?.SucursalID || null,
+      }));
+    }
+  }, [user?.SucursalID, user?.AsesorID]);
+
   useEffect(() => {
     const loadFilterData = async () => {
       setFilterDataLoading(true);
@@ -430,13 +441,34 @@ const GestionComercial = ({ navigation }) => {
     [getActiveFilterTags]
   );
 
-  const sharedFilters = useMemo(
+  // Stabilize query filters to prevent unnecessary re-renders in children
+  const queryFilters = useMemo(
     () => ({
       ...searchFilters,
-      tags: activeTags,
-      onClear: clearFilter,
     }),
-    [searchFilters, activeTags, clearFilter]
+    [
+      searchFilters.OrigenPreContactoID,
+      searchFilters.EstadoProcesoID,
+      searchFilters.FechaInicial,
+      searchFilters.FechaFinal,
+      searchFilters.FullSearch,
+      searchFilters.EstadoGeneral,
+      searchFilters.EstadoActividadID,
+      searchFilters.TipoCalendarioActividadID,
+      searchFilters.AsesorID,
+      searchFilters.NombreCompleto,
+      searchFilters.FormaContactoID,
+      searchFilters.FechaInicialCierre,
+      searchFilters.FechaFinalCierre,
+      searchFilters.ClienteNombreCompleto,
+      searchFilters.Documento,
+      searchFilters.Telefono,
+      searchFilters.Celular,
+      searchFilters.Email,
+      searchFilters.SucursalID,
+      searchFilters.FechaInicialPosibleServicio,
+      searchFilters.FechaFinalPosibleServicio,
+    ]
   );
 
   // Render stable components for tabs to prevent remounting
@@ -444,7 +476,7 @@ const GestionComercial = ({ navigation }) => {
     (props) => (
       <TableView
         {...props}
-        searchFilters={sharedFilters}
+        searchFilters={queryFilters}
         refreshTrigger={refreshTrigger}
         selectedContact={selectedContact}
         onSelectContact={handleSelectContact}
@@ -452,7 +484,7 @@ const GestionComercial = ({ navigation }) => {
       />
     ),
     [
-      sharedFilters,
+      queryFilters,
       refreshTrigger,
       selectedContact,
       handleSelectContact,
@@ -464,23 +496,23 @@ const GestionComercial = ({ navigation }) => {
     (props) => (
       <TimelineView
         {...props}
-        searchFilters={sharedFilters}
+        searchFilters={queryFilters}
         refreshTrigger={refreshTrigger}
         onSelectContact={handleSelectContact}
       />
     ),
-    [sharedFilters, refreshTrigger, handleSelectContact]
+    [queryFilters, refreshTrigger, handleSelectContact]
   );
 
   const renderCalendarView = useCallback(
     (props) => (
       <CalendarView
         {...props}
-        searchFilters={sharedFilters}
+        searchFilters={queryFilters}
         refreshTrigger={refreshTrigger}
       />
     ),
-    [sharedFilters, refreshTrigger]
+    [queryFilters, refreshTrigger]
   );
 
   return (

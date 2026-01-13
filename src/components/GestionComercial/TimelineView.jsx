@@ -70,14 +70,12 @@ const TimelineView = React.memo(
       }
     };
 
-    useEffect(() => {
-      loadTimeline(true);
-    }, [searchFilters, refreshTrigger]);
-
     useFocusEffect(
       useCallback(() => {
-        loadTimeline(true);
-      }, [searchFilters, refreshTrigger])
+        if (user?.SucursalID) {
+          loadTimeline(true);
+        }
+      }, [searchFilters, refreshTrigger, user?.SucursalID])
     );
 
     const handleRefresh = () => {
