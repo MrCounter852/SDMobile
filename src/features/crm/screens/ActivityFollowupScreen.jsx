@@ -355,6 +355,7 @@ const InviableAlert = ({ contact }) => {
 const ActivityForm = ({ contact, onRefresh }) => {
   const { user } = useGlobal();
   const [loading, setLoading] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [activityTypes, setActivityTypes] = useState([]);
   const [users, setUsers] = useState([]);
   const [complejos, setComplejos] = useState([]);
@@ -495,6 +496,7 @@ const ActivityForm = ({ contact, onRefresh }) => {
         InmuebleID: "",
         AsignarProceso: false,
       });
+      setIsCollapsed(true);
       if (onRefresh) onRefresh();
     } catch (error) {
       console.error("Error saving activity:", error);
@@ -506,274 +508,316 @@ const ActivityForm = ({ contact, onRefresh }) => {
 
   return (
     <View style={styles.formContent}>
-      <View style={styles.formCard}>
-        <View style={styles.cardHeader}>
-          <View style={styles.cardHeaderIcon}>
-            <Ionicons
-              name="calendar-outline"
-              size={18}
-              color={COLORS.primary}
-            />
-          </View>
-          <Text style={styles.cardTitle}>Detalles de la Actividad</Text>
-        </View>
-
-        <CustomPicker
-          label="Tipo de actividad"
-          required
-          selectedValue={form.TipoCalendarioActividadID}
-          onValueChange={handleTipoActividadChange}
-          items={activityTypes.map((t) => ({
-            label: t.Nombre,
-            value: t.TipoCalendarioActividadID,
-          }))}
-        />
-        <CustomInput
-          label="Asunto"
-          required
-          value={form.Asunto}
-          onChangeText={(v) => updateForm("Asunto", v)}
-          placeholder={
-            form.TipoCalendarioActividadNombre || "¿De qué trata la actividad?"
-          }
-          icon="text-outline"
-        />
-        <View style={styles.row}>
-          <View style={{ flex: 1, marginRight: 8 }}>
-            <DateTimePicker
-              label="Inicio"
-              required
-              value={form.FechaInicio}
-              onChange={(v) => updateForm("FechaInicio", v)}
-              placeholder="Fecha y hora"
-            />
-          </View>
-          <View style={{ flex: 1, marginLeft: 8 }}>
-            <DateTimePicker
-              label="Vencimiento"
-              required
-              value={form.FechaVencimiento}
-              onChange={(v) => updateForm("FechaVencimiento", v)}
-              placeholder="Fecha y hora"
-            />
-          </View>
-        </View>
-        <CustomInput
-          label="Descripción"
-          value={form.Descripcion}
-          onChangeText={(v) => updateForm("Descripcion", v)}
-          multiline
-          placeholder="Añade más detalles aquí..."
-        />
-      </View>
-
-      <View style={styles.formCard}>
-        <View style={styles.cardHeader}>
-          <View style={styles.cardHeaderIcon}>
-            <Ionicons name="person-outline" size={18} color={COLORS.primary} />
-          </View>
-          <Text style={styles.cardTitle}>Asignación y Notificación</Text>
-        </View>
-
-        <CustomPicker
-          label="Responsable"
-          required
-          selectedValue={form.UsuarioID}
-          onValueChange={(v) => updateForm("UsuarioID", v)}
-          items={users.map((u) => ({
-            label: u.NombreCompleto,
-            value: u.UsuarioID,
-          }))}
-        />
-
-        <TouchableOpacity
-          style={styles.checkboxLine}
-          onPress={() => updateForm("AsignarProceso", !form.AsignarProceso)}
-          activeOpacity={0.7}
+      <TouchableOpacity
+        style={styles.collapseToggle}
+        onPress={() => setIsCollapsed(!isCollapsed)}
+        activeOpacity={0.7}
+      >
+        <LinearGradient
+          colors={["rgba(51, 122, 183, 0.05)", "transparent"]}
+          style={styles.toggleGradient}
         >
-          <View
-            style={[
-              styles.checkbox,
-              form.AsignarProceso && styles.checkboxActive,
-            ]}
-          >
-            {form.AsignarProceso && (
-              <Ionicons name="checkmark" size={16} color="#FFF" />
-            )}
-          </View>
-          <Text style={styles.checkboxText}>
-            Asignar proceso al responsable
-          </Text>
-        </TouchableOpacity>
-
-        <CustomInput
-          label="Email Invitados"
-          value={form.Email}
-          onChangeText={(v) => updateForm("Email", v)}
-          placeholder="ejemplo1@mail.com; ejemplo2@mail.com"
-          icon="mail-outline"
-        />
-
-        {form.TipoActividadID === 1 && (
-          <TouchableOpacity
-            style={styles.checkboxLine}
-            onPress={() =>
-              updateForm("NotificarPropietario", !form.NotificarPropietario)
-            }
-            activeOpacity={0.7}
-          >
-            <View
-              style={[
-                styles.checkbox,
-                form.NotificarPropietario && styles.checkboxActive,
-              ]}
-            >
-              {form.NotificarPropietario && (
-                <Ionicons name="checkmark" size={16} color="#FFF" />
-              )}
-            </View>
-            <Text style={styles.checkboxText}>Notificar a propietario</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {!form.Entregable && (
-        <View style={styles.formCard}>
-          <View style={styles.cardHeader}>
-            <View style={styles.cardHeaderIcon}>
-              <Ionicons name="map-outline" size={18} color={COLORS.primary} />
-            </View>
-            <Text style={styles.cardTitle}>Ubicación y Contacto</Text>
-          </View>
-          <CustomInput
-            label="Dirección Actividad"
-            value={form.Direccion}
-            onChangeText={(v) => updateForm("Direccion", v)}
-            placeholder="Dirección del encuentro"
-            icon="location-outline"
-          />
-          <View style={styles.row}>
-            <View style={{ flex: 1, marginRight: 8 }}>
-              <CustomInput
-                label="Teléfono"
-                value={form.Telefono}
-                onChangeText={(v) => updateForm("Telefono", v)}
-                placeholder="Teléfono fijo"
-                icon="call-outline"
-              />
-            </View>
-            <View style={{ flex: 1, marginLeft: 8 }}>
-              <CustomInput
-                label="Celular"
-                value={form.Celular}
-                onChangeText={(v) => updateForm("Celular", v)}
-                placeholder="Número celular"
-                icon="phone-portrait-outline"
-              />
-            </View>
-          </View>
-        </View>
-      )}
-
-      {(showVisitanteFields ||
-        showComplejoSelector ||
-        showInmuebleSelector ||
-        form.Link) && (
-        <View style={styles.formCard}>
-          <View style={styles.cardHeader}>
-            <View style={styles.cardHeaderIcon}>
+          <View style={styles.toggleLeft}>
+            <View style={styles.toggleIconCircle}>
               <Ionicons
-                name="options-outline"
-                size={18}
+                name="calendar-outline"
+                size={20}
                 color={COLORS.primary}
               />
             </View>
-            <Text style={styles.cardTitle}>Información Adicional</Text>
+            <Text style={styles.toggleTitle}>Añadir Nueva Actividad</Text>
           </View>
+          <Ionicons
+            name={isCollapsed ? "chevron-down" : "chevron-up"}
+            size={20}
+            color={COLORS.gray}
+          />
+        </LinearGradient>
+      </TouchableOpacity>
 
-          {showVisitanteFields && (
+      {!isCollapsed && (
+        <View style={styles.expandedContent}>
+          <View style={styles.formCard}>
+            <View style={styles.cardHeader}>
+              <View style={styles.cardHeaderIcon}>
+                <Ionicons
+                  name="calendar-outline"
+                  size={18}
+                  color={COLORS.primary}
+                />
+              </View>
+              <Text style={styles.cardTitle}>Detalles de la Actividad</Text>
+            </View>
+
+            <CustomPicker
+              label="Tipo de actividad"
+              required
+              selectedValue={form.TipoCalendarioActividadID}
+              onValueChange={handleTipoActividadChange}
+              items={activityTypes.map((t) => ({
+                label: t.Nombre,
+                value: t.TipoCalendarioActividadID,
+              }))}
+            />
+            <CustomInput
+              label="Asunto"
+              required
+              value={form.Asunto}
+              onChangeText={(v) => updateForm("Asunto", v)}
+              placeholder={
+                form.TipoCalendarioActividadNombre ||
+                "¿De qué trata la actividad?"
+              }
+              icon="text-outline"
+            />
             <View style={styles.row}>
               <View style={{ flex: 1, marginRight: 8 }}>
-                <CustomInput
-                  label="Doc. Visitante"
-                  value={form.VisitanteDocumento}
-                  onChangeText={(v) => updateForm("VisitanteDocumento", v)}
-                  keyboardType="numeric"
+                <DateTimePicker
+                  label="Inicio"
+                  required
+                  value={form.FechaInicio}
+                  onChange={(v) => updateForm("FechaInicio", v)}
+                  placeholder="Fecha y hora"
                 />
               </View>
               <View style={{ flex: 1, marginLeft: 8 }}>
-                <CustomInput
-                  label="Nombre Visitante"
-                  value={form.VisitanteNombreCompleto}
-                  onChangeText={(v) => updateForm("VisitanteNombreCompleto", v)}
+                <DateTimePicker
+                  label="Vencimiento"
+                  required
+                  value={form.FechaVencimiento}
+                  onChange={(v) => updateForm("FechaVencimiento", v)}
+                  placeholder="Fecha y hora"
                 />
+              </View>
+            </View>
+            <CustomInput
+              label="Descripción"
+              value={form.Descripcion}
+              onChangeText={(v) => updateForm("Descripcion", v)}
+              multiline
+              placeholder="Añade más detalles aquí..."
+            />
+          </View>
+
+          <View style={styles.formCard}>
+            <View style={styles.cardHeader}>
+              <View style={styles.cardHeaderIcon}>
+                <Ionicons
+                  name="person-outline"
+                  size={18}
+                  color={COLORS.primary}
+                />
+              </View>
+              <Text style={styles.cardTitle}>Asignación y Notificación</Text>
+            </View>
+
+            <CustomPicker
+              label="Responsable"
+              required
+              selectedValue={form.UsuarioID}
+              onValueChange={(v) => updateForm("UsuarioID", v)}
+              items={users.map((u) => ({
+                label: u.NombreCompleto,
+                value: u.UsuarioID,
+              }))}
+            />
+
+            <TouchableOpacity
+              style={styles.checkboxLine}
+              onPress={() => updateForm("AsignarProceso", !form.AsignarProceso)}
+              activeOpacity={0.7}
+            >
+              <View
+                style={[
+                  styles.checkbox,
+                  form.AsignarProceso && styles.checkboxActive,
+                ]}
+              >
+                {form.AsignarProceso && (
+                  <Ionicons name="checkmark" size={16} color="#FFF" />
+                )}
+              </View>
+              <Text style={styles.checkboxText}>
+                Asignar proceso al responsable
+              </Text>
+            </TouchableOpacity>
+
+            <CustomInput
+              label="Email Invitados"
+              value={form.Email}
+              onChangeText={(v) => updateForm("Email", v)}
+              placeholder="ejemplo1@mail.com; ejemplo2@mail.com"
+              icon="mail-outline"
+            />
+
+            {form.TipoActividadID === 1 && (
+              <TouchableOpacity
+                style={styles.checkboxLine}
+                onPress={() =>
+                  updateForm("NotificarPropietario", !form.NotificarPropietario)
+                }
+                activeOpacity={0.7}
+              >
+                <View
+                  style={[
+                    styles.checkbox,
+                    form.NotificarPropietario && styles.checkboxActive,
+                  ]}
+                >
+                  {form.NotificarPropietario && (
+                    <Ionicons name="checkmark" size={16} color="#FFF" />
+                  )}
+                </View>
+                <Text style={styles.checkboxText}>Notificar a propietario</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {!form.Entregable && (
+            <View style={styles.formCard}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardHeaderIcon}>
+                  <Ionicons
+                    name="map-outline"
+                    size={18}
+                    color={COLORS.primary}
+                  />
+                </View>
+                <Text style={styles.cardTitle}>Ubicación y Contacto</Text>
+              </View>
+              <CustomInput
+                label="Dirección Actividad"
+                value={form.Direccion}
+                onChangeText={(v) => updateForm("Direccion", v)}
+                placeholder="Dirección del encuentro"
+                icon="location-outline"
+              />
+              <View style={styles.row}>
+                <View style={{ flex: 1, marginRight: 8 }}>
+                  <CustomInput
+                    label="Teléfono"
+                    value={form.Telefono}
+                    onChangeText={(v) => updateForm("Telefono", v)}
+                    placeholder="Teléfono fijo"
+                    icon="call-outline"
+                  />
+                </View>
+                <View style={{ flex: 1, marginLeft: 8 }}>
+                  <CustomInput
+                    label="Celular"
+                    value={form.Celular}
+                    onChangeText={(v) => updateForm("Celular", v)}
+                    placeholder="Número celular"
+                    icon="phone-portrait-outline"
+                  />
+                </View>
               </View>
             </View>
           )}
 
-          {showComplejoSelector && (
-            <CustomPicker
-              label="Complejo"
-              selectedValue={form.ComplejoID}
-              onValueChange={(v) => updateForm("ComplejoID", v)}
-              items={complejos.map((c) => ({
-                label: c.Nombre,
-                value: c.ComplejoID,
-              }))}
-            />
+          {(showVisitanteFields ||
+            showComplejoSelector ||
+            showInmuebleSelector ||
+            form.Link) && (
+            <View style={styles.formCard}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardHeaderIcon}>
+                  <Ionicons
+                    name="options-outline"
+                    size={18}
+                    color={COLORS.primary}
+                  />
+                </View>
+                <Text style={styles.cardTitle}>Información Adicional</Text>
+              </View>
+
+              {showVisitanteFields && (
+                <View style={styles.row}>
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <CustomInput
+                      label="Doc. Visitante"
+                      value={form.VisitanteDocumento}
+                      onChangeText={(v) => updateForm("VisitanteDocumento", v)}
+                      keyboardType="numeric"
+                    />
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 8 }}>
+                    <CustomInput
+                      label="Nombre Visitante"
+                      value={form.VisitanteNombreCompleto}
+                      onChangeText={(v) =>
+                        updateForm("VisitanteNombreCompleto", v)
+                      }
+                    />
+                  </View>
+                </View>
+              )}
+
+              {showComplejoSelector && (
+                <CustomPicker
+                  label="Complejo"
+                  selectedValue={form.ComplejoID}
+                  onValueChange={(v) => updateForm("ComplejoID", v)}
+                  items={complejos.map((c) => ({
+                    label: c.Nombre,
+                    value: c.ComplejoID,
+                  }))}
+                />
+              )}
+
+              {showInmuebleSelector && (
+                <CustomInput
+                  label="ID Inmueble"
+                  value={form.InmuebleID}
+                  onChangeText={(v) => updateForm("InmuebleID", v)}
+                  icon="home-outline"
+                />
+              )}
+
+              <CustomInput
+                label="Link de Reunión"
+                value={form.Link}
+                onChangeText={(v) => updateForm("Link", v)}
+                placeholder="Enlace de Zoom, Teams, etc."
+                icon="videocam-outline"
+              />
+            </View>
           )}
 
-          {showInmuebleSelector && (
-            <CustomInput
-              label="ID Inmueble"
-              value={form.InmuebleID}
-              onChangeText={(v) => updateForm("InmuebleID", v)}
-              icon="home-outline"
-            />
-          )}
-
-          <CustomInput
-            label="Link de Reunión"
-            value={form.Link}
-            onChangeText={(v) => updateForm("Link", v)}
-            placeholder="Enlace de Zoom, Teams, etc."
-            icon="videocam-outline"
-          />
+          <View style={styles.buttonWrapper}>
+            <TouchableOpacity
+              onPress={handleSave}
+              disabled={loading}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={
+                  loading
+                    ? [COLORS.lightGray, COLORS.gray]
+                    : [COLORS.primary, COLORS.secondary]
+                }
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.submitBtn}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <>
+                    <Text style={styles.submitBtnText}>Guardar Actividad</Text>
+                    <Ionicons
+                      name="arrow-forward"
+                      size={20}
+                      color="#FFF"
+                      style={{ marginLeft: 8 }}
+                    />
+                  </>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
-
-      <View style={styles.buttonWrapper}>
-        <TouchableOpacity
-          onPress={handleSave}
-          disabled={loading}
-          activeOpacity={0.8}
-        >
-          <LinearGradient
-            colors={
-              loading
-                ? [COLORS.lightGray, COLORS.gray]
-                : [COLORS.primary, COLORS.secondary]
-            }
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.submitBtn}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <>
-                <Text style={styles.submitBtnText}>Guardar Actividad</Text>
-                <Ionicons
-                  name="arrow-forward"
-                  size={20}
-                  color="#FFF"
-                  style={{ marginLeft: 8 }}
-                />
-              </>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 };
@@ -781,6 +825,7 @@ const ActivityForm = ({ contact, onRefresh }) => {
 const FollowupForm = ({ contact, onRefresh }) => {
   const { user } = useGlobal();
   const [loading, setLoading] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [observaciones, setObservaciones] = useState("");
 
   const handleSave = async () => {
@@ -799,6 +844,7 @@ const FollowupForm = ({ contact, onRefresh }) => {
       });
       Alert.alert("Éxito", "Seguimiento guardado");
       setObservaciones("");
+      setIsCollapsed(true);
       if (onRefresh) onRefresh();
     } catch (error) {
       console.error("Error saving followup:", error);
@@ -809,59 +855,92 @@ const FollowupForm = ({ contact, onRefresh }) => {
 
   return (
     <View style={styles.formContent}>
-      <View style={styles.formCard}>
-        <View style={styles.cardHeader}>
-          <View style={styles.cardHeaderIcon}>
-            <Ionicons
-              name="chatbubble-ellipses-outline"
-              size={18}
-              color={COLORS.primary}
+      <TouchableOpacity
+        style={styles.collapseToggle}
+        onPress={() => setIsCollapsed(!isCollapsed)}
+        activeOpacity={0.7}
+      >
+        <LinearGradient
+          colors={["rgba(51, 122, 183, 0.05)", "transparent"]}
+          style={styles.toggleGradient}
+        >
+          <View style={styles.toggleLeft}>
+            <View style={styles.toggleIconCircle}>
+              <Ionicons
+                name="chatbubble-ellipses-outline"
+                size={20}
+                color={COLORS.primary}
+              />
+            </View>
+            <Text style={styles.toggleTitle}>Añadir Nuevo Seguimiento</Text>
+          </View>
+          <Ionicons
+            name={isCollapsed ? "chevron-down" : "chevron-up"}
+            size={20}
+            color={COLORS.gray}
+          />
+        </LinearGradient>
+      </TouchableOpacity>
+
+      {!isCollapsed && (
+        <View style={styles.expandedContent}>
+          <View style={styles.formCard}>
+            <View style={styles.cardHeader}>
+              <View style={styles.cardHeaderIcon}>
+                <Ionicons
+                  name="chatbubble-ellipses-outline"
+                  size={18}
+                  color={COLORS.primary}
+                />
+              </View>
+              <Text style={styles.cardTitle}>Nuevo Seguimiento</Text>
+            </View>
+            <CustomInput
+              label="Observaciones"
+              required
+              value={observaciones}
+              onChangeText={setObservaciones}
+              multiline
+              placeholder="Escribe aquí las novedades o avances con este contacto..."
             />
           </View>
-          <Text style={styles.cardTitle}>Nuevo Seguimiento</Text>
-        </View>
-        <CustomInput
-          label="Observaciones"
-          required
-          value={observaciones}
-          onChangeText={setObservaciones}
-          multiline
-          placeholder="Escribe aquí las novedades o avances con este contacto..."
-        />
-      </View>
 
-      <View style={styles.buttonWrapper}>
-        <TouchableOpacity
-          onPress={handleSave}
-          disabled={loading}
-          activeOpacity={0.8}
-        >
-          <LinearGradient
-            colors={
-              loading
-                ? [COLORS.lightGray, COLORS.gray]
-                : [COLORS.primary, COLORS.secondary]
-            }
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.submitBtn}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <>
-                <Text style={styles.submitBtnText}>Guardar Seguimiento</Text>
-                <Ionicons
-                  name="checkmark-circle-outline"
-                  size={20}
-                  color="#FFF"
-                  style={{ marginLeft: 8 }}
-                />
-              </>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
+          <View style={styles.buttonWrapper}>
+            <TouchableOpacity
+              onPress={handleSave}
+              disabled={loading}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={
+                  loading
+                    ? [COLORS.lightGray, COLORS.gray]
+                    : [COLORS.primary, COLORS.secondary]
+                }
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.submitBtn}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <>
+                    <Text style={styles.submitBtnText}>
+                      Guardar Seguimiento
+                    </Text>
+                    <Ionicons
+                      name="checkmark-circle-outline"
+                      size={20}
+                      color="#FFF"
+                      style={{ marginLeft: 8 }}
+                    />
+                  </>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </View>
   );
 };
@@ -1434,6 +1513,44 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   submitBtnText: { color: COLORS.white, fontSize: 16, fontWeight: "800" },
+
+  // Collapsible
+  collapseToggle: {
+    marginBottom: 12,
+    borderRadius: 20,
+    backgroundColor: COLORS.white,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  toggleGradient: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  toggleLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  toggleIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: "rgba(51, 122, 183, 0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  toggleTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: COLORS.dark,
+  },
+  expandedContent: {
+    marginTop: 4,
+  },
 
   // Lists
   listSection: { padding: 16 },
