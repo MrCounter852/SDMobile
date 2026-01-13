@@ -35,6 +35,7 @@ const SearchDataSection = ({
   removeServicios,
   servicio,
   setServicio,
+  onSearchAsesores,
 }) => {
   return (
     <View style={styles.card}>
@@ -53,6 +54,7 @@ const SearchDataSection = ({
               }
             }}
             onLoadData={loadAsesores}
+            onSearch={onSearchAsesores}
             placeholder="Selecciona asesor"
             error={staticErrors.AsesorID}
           />

@@ -191,6 +191,23 @@ const GestionComercial = ({ navigation }) => {
     setRefreshTrigger((prev) => prev + 1);
   }, []);
 
+  const onSearchAsesores = useCallback(
+    async (text) => {
+      try {
+        const response = await GestionComercialService.consultarAsesores({
+          NombreCompleto: text,
+          Rows: 20,
+          SucursalID: searchFilters.SucursalID || user?.SucursalID,
+        });
+        return response.rows || response || [];
+      } catch (error) {
+        console.error("GestionComercial:onSearchAsesores", error);
+        return [];
+      }
+    },
+    [searchFilters.SucursalID, user?.SucursalID]
+  );
+
   const handleSelectContact = useCallback((contact) => {
     setSelectedContact(contact);
     setIsSelectionMode(true);
@@ -652,6 +669,7 @@ const GestionComercial = ({ navigation }) => {
         origenes={origenes}
         tiposCalendarioActividades={tiposCalendarioActividades}
         asesores={asesores}
+        onSearchAsesores={onSearchAsesores}
         sucursales={sucursales}
         formasContacto={formasContacto}
         estadosProcesos={estadosProcesos}

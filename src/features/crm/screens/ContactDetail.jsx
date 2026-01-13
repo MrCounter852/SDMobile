@@ -752,18 +752,30 @@ const ContactDetail = ({ navigation, route }) => {
                   </View>
                 )}
                 <View style={styles.asocStats}>
-                  <View style={styles.asocStat}>
-                    <Text style={styles.asocStatLabel}>CANON</Text>
-                    <Text style={styles.asocStatValue}>
-                      {formatCurrency(inm.ValorCanon)}
-                    </Text>
-                  </View>
-                  <View style={styles.asocStat}>
-                    <Text style={styles.asocStatLabel}>ADMÓN</Text>
-                    <Text style={styles.asocStatValue}>
-                      {formatCurrency(inm.ValorAdmin)}
-                    </Text>
-                  </View>
+                  {inm.ValorVenta ? (
+                    <View style={styles.asocStat}>
+                      <Text style={styles.asocStatLabel}>VENTA</Text>
+                      <Text style={styles.asocStatValue}>
+                        {formatCurrency(inm.ValorVenta)}
+                      </Text>
+                    </View>
+                  ) : inm.ValorCanon ? (
+                    <View style={styles.asocStat}>
+                      <Text style={styles.asocStatLabel}>CANON</Text>
+                      <Text style={styles.asocStatValue}>
+                        {formatCurrency(inm.ValorCanon)}
+                      </Text>
+                    </View>
+                  ) : null}
+
+                  {inm.ValorAdmin > 0 && (
+                    <View style={styles.asocStat}>
+                      <Text style={styles.asocStatLabel}>ADMÓN</Text>
+                      <Text style={styles.asocStatValue}>
+                        {formatCurrency(inm.ValorAdmin)}
+                      </Text>
+                    </View>
+                  )}
                 </View>
               </View>
             ))}

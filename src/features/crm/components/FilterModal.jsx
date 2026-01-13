@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import {
   View,
   Text,
@@ -91,12 +97,16 @@ const FilterModal = ({
   formasContacto = [],
   estadosProcesos = [],
   loading = false,
+  onSearchAsesores,
 }) => {
   const [filters, setFilters] = useState(initialFilters || {});
   const [showDatePicker, setShowDatePicker] = useState(null); // 'FechaInicial', 'FechaFinal', etc.
 
   const [advisorModalVisible, setAdvisorModalVisible] = useState(false);
   const [advisorSearch, setAdvisorSearch] = useState("");
+  const [remoteAsesores, setRemoteAsesores] = useState([]);
+  const [advisorSearching, setAdvisorSearching] = useState(false);
+  const searchTimeout = useRef(null);
   const insets = useSafeAreaInsets();
 
   // Sincronizar filtros cuando cambian los filtros iniciales
@@ -105,6 +115,24 @@ const FilterModal = ({
       ...initialFilters,
     });
   }, [initialFilters]);
+
+  // Reset y carga inicial de asesores remotos al abrir el modal de selección
+  useEffect(() => {
+    if (advisorModalVisible) {
+      setAdvisorSearch("");
+      if (onSearchAsesores) {
+        setAdvisorSearching(true);
+        onSearchAsesores("")
+          .then((results) => {
+            setRemoteAsesores(results);
+            setAdvisorSearching(false);
+          })
+          .catch(() => setAdvisorSearching(false));
+      } else {
+        setRemoteAsesores([]);
+      }
+    }
+  }, [advisorModalVisible, onSearchAsesores]);
 
   const handleApply = () => {
     onApplyFilters(filters);
@@ -221,17 +249,58 @@ const FilterModal = ({
   );
 
   const filteredAsesores = useMemo(() => {
-    const list = asesores.map((a) => ({
-      ID: a.AsesorID,
-      Nombre: a.NombreCompleto,
-    }));
-    if (!advisorSearch) return [{ ID: null, Nombre: "Todos" }, ...list];
+    const list =
+      remoteAsesores.length > 0
+        ? remoteAsesores.map((a) => ({
+            ID: a.AsesorID,
+            Nombre: a.NombreCompleto || a.Nombre,
+          }))
+        : asesores.map((a) => ({
+            ID: a.AsesorID,
+            Nombre: a.NombreCompleto,
+          }));
 
-    const filtered = list.filter((a) =>
-      a.Nombre.toLowerCase().includes(advisorSearch.toLowerCase())
-    );
-    return [{ ID: null, Nombre: "Todos" }, ...filtered];
-  }, [asesores, advisorSearch]);
+    const result = [{ ID: null, Nombre: "Todos" }, ...list];
+
+    // Si hay búsqueda local (por si acaso no hay onSearch), filtramos
+    if (!onSearchAsesores && advisorSearch) {
+      return result.filter(
+        (a) =>
+          a.ID === null ||
+          a.Nombre.toLowerCase().includes(advisorSearch.toLowerCase())
+      );
+    }
+
+    return result;
+  }, [asesores, remoteAsesores, advisorSearch, onSearchAsesores]);
+
+  const handleAdvisorSearch = useCallback(
+    (text) => {
+      setAdvisorSearch(text);
+      if (!onSearchAsesores) return;
+
+      if (searchTimeout.current) clearTimeout(searchTimeout.current);
+
+      if (!text.trim()) {
+        setRemoteAsesores([]);
+        setAdvisorSearching(false);
+        return;
+      }
+
+      setAdvisorSearching(true);
+      searchTimeout.current = setTimeout(async () => {
+        try {
+          const results = await onSearchAsesores(text);
+          setRemoteAsesores(results);
+        } catch (error) {
+          console.error("FilterModal:handleAdvisorSearch", error);
+        } finally {
+          setAdvisorSearching(false);
+        }
+      }, 500);
+    },
+    [onSearchAsesores]
+  );
 
   const selectedAdvisorName = useMemo(() => {
     if (filters.AsesorID === null) return "Todos";
@@ -799,8 +868,9 @@ const FilterModal = ({
         title="Seleccionar Asesor"
         searchPlaceholder="Buscar por nombre..."
         data={filteredAsesores}
+        loading={advisorSearching}
         searchTerm={advisorSearch}
-        onSearchChange={setAdvisorSearch}
+        onSearchChange={handleAdvisorSearch}
         selectedItemId={filters.AsesorID}
         renderItem={(item, selectedId) => (
           <TouchableOpacity

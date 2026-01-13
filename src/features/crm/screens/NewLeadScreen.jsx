@@ -317,18 +317,34 @@ const NewLeadScreen = () => {
     }
   }, [preContacto]);
 
+  const onSearchAsesores = useCallback(
+    async (text) => {
+      try {
+        const response = await GestionComercialService.consultarAsesores({
+          NombreCompleto: text,
+          Rows: 20,
+          SucursalID: user?.SucursalID,
+        });
+        return response || [];
+      } catch (error) {
+        console.error("NewLeadScreen:onSearchAsesores", error);
+        return [];
+      }
+    },
+    [user?.SucursalID]
+  );
+
   const loadAsesores = useCallback(async () => {
     if (asesoresLoaded) return asesores;
     try {
-      const response = await GestionComercialService.consultarAsesores();
+      const response = await onSearchAsesores("");
       setAsesores(response || []);
       setAsesoresLoaded(true);
       return response || [];
     } catch (error) {
-      console.error("NewLeadScreen:loadAsesores", error);
       return [];
     }
-  }, [asesoresLoaded]);
+  }, [asesoresLoaded, onSearchAsesores]);
 
   const loadFormasContacto = useCallback(async () => {
     if (formasContactoLoaded) return formasContacto;
@@ -902,6 +918,7 @@ const NewLeadScreen = () => {
             staticErrors={staticErrors}
             setStaticErrors={setStaticErrors}
             loadAsesores={loadAsesores}
+            onSearchAsesores={onSearchAsesores}
             loadTiposOferta={loadTiposOferta}
             loadCondicionesInmueble={loadCondicionesInmueble}
             loadTiposInmueble={loadTiposInmueble}
