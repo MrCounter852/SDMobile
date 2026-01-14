@@ -45,6 +45,14 @@ const TimelineView = React.memo(
     });
     loadStateRef.current = { hasMore, loading, refreshing, loadingMore, page };
 
+    // Debug: Log mount/unmount
+    React.useEffect(() => {
+      console.log("[TimelineView] MOUNTED");
+      return () => {
+        console.log("[TimelineView] UNMOUNTED");
+      };
+    }, []);
+
     const ROWS_PER_PAGE = 15;
 
     // Handle moving contact to a new column via drag-and-drop
@@ -145,12 +153,20 @@ const TimelineView = React.memo(
           ? response
           : response.data || response.rows || [];
 
+        console.log(
+          `[TimelineView] Page ${pageNum} - Received ${newColumns.length} columns`
+        );
+
         const totalProcessesReceived = newColumns.reduce(
           (acc, col) => acc + (col.Procesos?.length || 0),
           0
         );
+        console.log(
+          `[TimelineView] Page ${pageNum} - Total processes received: ${totalProcessesReceived}`
+        );
 
         if (pageNum === 1) {
+          console.log(`[TimelineView] Page 1 - Setting initial data`);
           setTimelineData(newColumns);
           setPage(1);
           lastPageLoaded.current = 1;
@@ -159,8 +175,25 @@ const TimelineView = React.memo(
             (col) => (col.Procesos?.length || 0) < (col.TotalProcesos || 0)
           );
           setHasMore(anyHasMore || totalProcessesReceived === ROWS_PER_PAGE);
+          console.log(
+            `[TimelineView] Page 1 - hasMore: ${
+              anyHasMore || totalProcessesReceived === ROWS_PER_PAGE
+            }`
+          );
         } else {
+          console.log(
+            `[TimelineView] Page ${pageNum} - Merging with existing data`
+          );
           setTimelineData((prevData) => {
+            console.log(
+              `[TimelineView] Page ${pageNum} - Previous data has ${prevData.length} columns`
+            );
+            if (prevData.length === 0) {
+              console.error(
+                `[TimelineView] ERROR: Previous data is empty when loading page ${pageNum}!`
+              );
+            }
+
             const nextData = [...prevData];
             newColumns.forEach((nc) => {
               const existingIndex = nextData.findIndex(
@@ -173,6 +206,9 @@ const TimelineView = React.memo(
                 );
                 const uniqueNewProcesos = (nc.Procesos || []).filter(
                   (p) => !existingIds.has(p.ProcesoID)
+                );
+                console.log(
+                  `[TimelineView] Column ${nc.ProcesoLineaTiempoID} - Adding ${uniqueNewProcesos.length} new processes`
                 );
                 nextData[existingIndex] = {
                   ...nextData[existingIndex],
@@ -187,15 +223,27 @@ const TimelineView = React.memo(
                     nextData[existingIndex].TotalValorNegocio,
                 };
               } else {
+                console.log(
+                  `[TimelineView] Column ${nc.ProcesoLineaTiempoID} - New column, adding to list`
+                );
                 nextData.push(nc);
               }
             });
+
+            console.log(
+              `[TimelineView] Page ${pageNum} - Final data has ${nextData.length} columns`
+            );
 
             // Re-check hasMore based on the newly merged data
             const anyHasMore = nextData.some(
               (col) => (col.Procesos?.length || 0) < (col.TotalProcesos || 0)
             );
             setHasMore(anyHasMore || totalProcessesReceived === ROWS_PER_PAGE);
+            console.log(
+              `[TimelineView] Page ${pageNum} - hasMore after merge: ${
+                anyHasMore || totalProcessesReceived === ROWS_PER_PAGE
+              }`
+            );
 
             return nextData;
           });
@@ -203,9 +251,10 @@ const TimelineView = React.memo(
           lastPageLoaded.current = pageNum;
         }
       } catch (error) {
-        console.error("Error loading timeline:", error);
+        console.error("[TimelineView] Error loading timeline:", error);
         if (pageNum === 1) setTimelineData([]);
       } finally {
+        console.log(`[TimelineView] Page ${pageNum} - Load complete`);
         setLoading(false);
         setRefreshing(false);
         setLoadingMore(false);
@@ -241,8 +290,16 @@ const TimelineView = React.memo(
     const handleLoadMore = useCallback(() => {
       const { hasMore, loading, refreshing, loadingMore, page } =
         loadStateRef.current;
+      console.log(
+        `[TimelineView] handleLoadMore called - hasMore: ${hasMore}, loading: ${loading}, refreshing: ${refreshing}, loadingMore: ${loadingMore}, page: ${page}`
+      );
       if (hasMore && !loading && !refreshing && !loadingMore) {
+        console.log(`[TimelineView] handleLoadMore - Loading page ${page + 1}`);
         loadTimeline(page + 1);
+      } else {
+        console.log(
+          `[TimelineView] handleLoadMore - Skipped (conditions not met)`
+        );
       }
     }, []);
 

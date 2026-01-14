@@ -487,6 +487,50 @@ const GestionComercial = ({ navigation }) => {
     ]
   );
 
+  // Memoized render functions for Tab.Screen children to prevent remounting
+  const renderTableScreen = useCallback(
+    (props) => (
+      <TableView
+        {...props}
+        searchFilters={queryFilters}
+        refreshTrigger={refreshTrigger}
+        selectedContact={selectedContact}
+        onSelectContact={handleSelectContact}
+        onDeselectContact={handleDeselectContact}
+      />
+    ),
+    [
+      queryFilters,
+      refreshTrigger,
+      selectedContact,
+      handleSelectContact,
+      handleDeselectContact,
+    ]
+  );
+
+  const renderTimelineScreen = useCallback(
+    (props) => (
+      <TimelineView
+        {...props}
+        searchFilters={queryFilters}
+        refreshTrigger={refreshTrigger}
+        onSelectContact={handleSelectContact}
+      />
+    ),
+    [queryFilters, refreshTrigger, handleSelectContact]
+  );
+
+  const renderCalendarScreen = useCallback(
+    (props) => (
+      <CalendarView
+        {...props}
+        searchFilters={queryFilters}
+        refreshTrigger={refreshTrigger}
+      />
+    ),
+    [queryFilters, refreshTrigger]
+  );
+
   return (
     <SafeAreaView style={styles.mainContainer} edges={["top", "left", "right"]}>
       {isSelectionMode ? (
@@ -600,38 +644,16 @@ const GestionComercial = ({ navigation }) => {
         }}
       >
         <Tab.Screen name="Tabla" options={{ tabBarLabel: "Tabla" }}>
-          {(props) => (
-            <TableView
-              {...props}
-              searchFilters={queryFilters}
-              refreshTrigger={refreshTrigger}
-              selectedContact={selectedContact}
-              onSelectContact={handleSelectContact}
-              onDeselectContact={handleDeselectContact}
-            />
-          )}
+          {renderTableScreen}
         </Tab.Screen>
         <Tab.Screen
           name="LineaTiempo"
           options={{ tabBarLabel: "Línea Tiempo" }}
         >
-          {(props) => (
-            <TimelineView
-              {...props}
-              searchFilters={queryFilters}
-              refreshTrigger={refreshTrigger}
-              onSelectContact={handleSelectContact}
-            />
-          )}
+          {renderTimelineScreen}
         </Tab.Screen>
         <Tab.Screen name="Calendario" options={{ tabBarLabel: "Calendario" }}>
-          {(props) => (
-            <CalendarView
-              {...props}
-              searchFilters={queryFilters}
-              refreshTrigger={refreshTrigger}
-            />
-          )}
+          {renderCalendarScreen}
         </Tab.Screen>
       </Tab.Navigator>
 

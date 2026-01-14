@@ -70,12 +70,12 @@ const TimelineColumn = ({
     [onContactPress]
   );
 
-  // Memoize onEndReached handler
-  const handleEndReached = React.useCallback(() => {
+  // onEndReached handler - using current prop values directly
+  const handleEndReached = () => {
     if (hasMore && (linea.Procesos?.length || 0) < (linea.TotalProcesos || 0)) {
       onLoadMore();
     }
-  }, [hasMore, linea.Procesos?.length, linea.TotalProcesos, onLoadMore]);
+  };
 
   // Memoize the renderContact function with stable dependencies
   const renderContact = React.useCallback(
@@ -297,18 +297,5 @@ const styles = StyleSheet.create({
   },
 });
 
-// Custom comparator - only re-render if these specific props change
-const arePropsEqual = (prevProps, nextProps) => {
-  // Always re-render if linea data changes
-  if (prevProps.linea !== nextProps.linea) return false;
-  if (prevProps.columnId !== nextProps.columnId) return false;
-  if (prevProps.refreshing !== nextProps.refreshing) return false;
-  if (prevProps.hasMore !== nextProps.hasMore) return false;
-  if (prevProps.loadingMore !== nextProps.loadingMore) return false;
-
-  // These are stable references (callbacks and shared values), so ignore them
-  // They don't need deep comparison because they're memoized or shared values
-  return true;
-};
-
-export default React.memo(TimelineColumn, arePropsEqual);
+// Use default React.memo - linea reference changes when data updates
+export default React.memo(TimelineColumn);
