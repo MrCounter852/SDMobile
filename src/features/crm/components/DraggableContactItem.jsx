@@ -131,4 +131,16 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DraggableContactItem;
+// Custom comparator - only re-render if item data changes
+const arePropsEqual = (prevProps, nextProps) => {
+  // Re-render if item data changed
+  if (prevProps.item?.ProcesoID !== nextProps.item?.ProcesoID) return false;
+  if (prevProps.item?.NombreCompleto !== nextProps.item?.NombreCompleto)
+    return false;
+  if (prevProps.columnId !== nextProps.columnId) return false;
+
+  // Shared values and stable callbacks don't need comparison
+  return true;
+};
+
+export default React.memo(DraggableContactItem, arePropsEqual);

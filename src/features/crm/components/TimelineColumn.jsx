@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -60,12 +60,30 @@ const TimelineColumn = ({
     }).format(value);
   }, []);
 
+  // Memoize the contact press handler to avoid recreating functions
+  const handleContactPress = React.useCallback(
+    (item) => {
+      if (onContactPress) {
+        onContactPress(item);
+      }
+    },
+    [onContactPress]
+  );
+
+  // Memoize onEndReached handler
+  const handleEndReached = React.useCallback(() => {
+    if (hasMore && (linea.Procesos?.length || 0) < (linea.TotalProcesos || 0)) {
+      onLoadMore();
+    }
+  }, [hasMore, linea.Procesos?.length, linea.TotalProcesos, onLoadMore]);
+
+  // Memoize the renderContact function with stable dependencies
   const renderContact = React.useCallback(
     ({ item }) => (
       <DraggableContactItem
         item={item}
         columnId={columnId}
-        onPress={() => onContactPress && onContactPress(item)}
+        onPress={handleContactPress}
         onDragStart={onDragStart}
         onDragMove={onDragMove}
         onDragEnd={onDragEnd}
@@ -74,7 +92,7 @@ const TimelineColumn = ({
     ),
     [
       columnId,
-      onContactPress,
+      handleContactPress,
       onDragStart,
       onDragMove,
       onDragEnd,
@@ -103,6 +121,30 @@ const TimelineColumn = ({
     []
   );
 
+  // Memoize keyExtractor
+  const keyExtractor = React.useCallback(
+    (item, index) => item.ProcesoID?.toString() || index.toString(),
+    []
+  );
+
+  // Memoize RefreshControl
+  const refreshControl = useMemo(
+    () => (
+      <RefreshControl
+        refreshing={refreshing || false}
+        onRefresh={onRefresh}
+        colors={["#337ab7"]}
+      />
+    ),
+    [refreshing, onRefresh]
+  );
+
+  // Memoize footer value to avoid recalculating
+  const formattedTotal = useMemo(
+    () => formatCurrency(linea.TotalValorNegocio),
+    [linea.TotalValorNegocio, formatCurrency]
+  );
+
   return (
     <Animated.View style={[styles.container, columnHighlightStyle]}>
       <View style={styles.header}>
@@ -122,38 +164,26 @@ const TimelineColumn = ({
       <FlatList
         data={linea.Procesos || []}
         renderItem={renderContact}
-        keyExtractor={(item, index) =>
-          item.ProcesoID?.toString() || index.toString()
-        }
+        keyExtractor={keyExtractor}
         style={styles.scrollContainer}
         contentContainerStyle={styles.contactsContainer}
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing || false}
-            onRefresh={onRefresh}
-            colors={["#337ab7"]}
-          />
-        }
-        onEndReached={() => {
-          if (
-            hasMore &&
-            (linea.Procesos?.length || 0) < (linea.TotalProcesos || 0)
-          ) {
-            onLoadMore();
-          }
-        }}
+        refreshControl={refreshControl}
+        onEndReached={handleEndReached}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={renderEmptyComponent}
+        // Performance optimizations
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        initialNumToRender={5}
       />
 
       <View style={styles.footer}>
         <View style={styles.footerItem}>
           <Text style={styles.footerLabel}>Total Negocio</Text>
-          <Text style={styles.footerValue}>
-            {formatCurrency(linea.TotalValorNegocio)}
-          </Text>
+          <Text style={styles.footerValue}>{formattedTotal}</Text>
         </View>
       </View>
     </Animated.View>
@@ -267,4 +297,18 @@ const styles = StyleSheet.create({
   },
 });
 
-export default React.memo(TimelineColumn);
+// Custom comparator - only re-render if these specific props change
+const arePropsEqual = (prevProps, nextProps) => {
+  // Always re-render if linea data changes
+  if (prevProps.linea !== nextProps.linea) return false;
+  if (prevProps.columnId !== nextProps.columnId) return false;
+  if (prevProps.refreshing !== nextProps.refreshing) return false;
+  if (prevProps.hasMore !== nextProps.hasMore) return false;
+  if (prevProps.loadingMore !== nextProps.loadingMore) return false;
+
+  // These are stable references (callbacks and shared values), so ignore them
+  // They don't need deep comparison because they're memoized or shared values
+  return true;
+};
+
+export default React.memo(TimelineColumn, arePropsEqual);
