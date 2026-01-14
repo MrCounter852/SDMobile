@@ -5,8 +5,8 @@ import { Vibration, Dimensions } from 'react-native';
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Auto-scroll configuration
-const EDGE_THRESHOLD = 30; // Distance from edge to trigger scroll
-const SCROLL_SPEED = 20; // Pixels per frame
+const EDGE_THRESHOLD = 90; // Distance from edge to trigger scroll
+const SCROLL_SPEED = 40; // Pixels per frame
 const CANCEL_ZONE_HEIGHT = 80; // Height of cancel drop zone
 
 /**
