@@ -8,6 +8,7 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const EDGE_THRESHOLD = 90; // Distance from edge to trigger scroll
 const MAX_SCROLL_SPEED = 45; // Maximum pixels per frame
 const CANCEL_ZONE_HEIGHT = 80; // Height of cancel drop zone
+const TIMELINE_DRAG_SCALE = 0.88; // Zoom level when dragging (1.0 = no zoom)
 
 /**
  * Custom hook for managing drag-and-drop state across timeline columns
@@ -114,15 +115,19 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
 
   /**
    * Calculate which column is under the current drag position
-   * Accounts for the timeline scaling effect
+   * Accounts for the timeline scaling effect (centered on screen)
    */
   const getTargetColumnFromPosition = useCallback(
     (x) => {
-      // Coordinate transformation: 
-      // 1. Convert screen position to "scaled content space"
-      // 2. Add scroll offset to get absolute content position
-      const scaledX = x / timelineScale.value;
-      const adjustedX = scaledX + scrollOffsetRef.current;
+      // Coordinate transformation for center-based scale:
+      // 1. Calculate how far the touch is from the screen center
+      // 2. Adjust that distance by the scale factor
+      // 3. Add scroll offset to get absolute content position
+      const screenCenter = SCREEN_WIDTH / 2;
+      const xRelativeToCenter = x - screenCenter;
+      const scaledX = xRelativeToCenter / timelineScale.value;
+      const adjustedX = screenCenter + scaledX + scrollOffsetRef.current;
+      
       const columnIndex = Math.floor(adjustedX / columnWidth);
 
       if (columnIndex >= 0 && columnIndex < columnsRef.current.length) {
@@ -179,7 +184,7 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
       targetColumnIdShared.value = columnId; // Initially it's over its own column
       
       // Zoom out effect
-      timelineScale.value = withTiming(0.88, { duration: 400 });
+      timelineScale.value = withTiming(TIMELINE_DRAG_SCALE, { duration: 400 });
 
       // Set overlay display data directly in shared values (NO re-renders!)
       overlayNombre.value = contact?.NombreCompleto || contact?.Nombre || 'Contacto';

@@ -234,9 +234,10 @@ const TimelineView = React.memo(
 
     // Animated style for the whole timeline zoom-out effect
     const timelineAnimatedStyle = useAnimatedStyle(() => {
+      const scale = timelineScale.value;
       return {
-        transform: [{ scale: timelineScale.value }],
-        transformOrigin: "top center",
+        transform: [{ scale: scale }],
+        transformOrigin: "center center",
       };
     });
 
@@ -301,49 +302,49 @@ const TimelineView = React.memo(
           style={{ flex: 1 }}
           onLayout={handleContainerLayout}
         >
-          <ScrollView
-            ref={scrollViewRef}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.timelineContainer}
-            onScroll={handleScroll}
-            scrollEventThrottle={16}
-          >
-            <Animated.View
-              style={[styles.timelineContent, timelineAnimatedStyle]}
+          <Animated.View style={[{ flex: 1 }, timelineAnimatedStyle]}>
+            <ScrollView
+              ref={scrollViewRef}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.timelineContainer}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
             >
-              {timelineData.map((linea) => (
-                <TimelineColumn
-                  key={linea.ProcesoLineaTiempoID}
-                  linea={linea}
-                  columnId={linea.ProcesoLineaTiempoID}
-                  onContactPress={handleContactPress}
-                  refreshing={refreshing}
-                  onRefresh={handleRefresh}
-                  onLoadMore={handleLoadMore}
-                  hasMore={hasMore}
-                  loadingMore={loadingMore}
-                  // Drag-and-drop props - using shared values to avoid re-renders
-                  isDraggingShared={isDraggingShared}
-                  sourceColumnIdShared={sourceColumnIdShared}
-                  targetColumnIdShared={targetColumnIdShared}
-                  draggedContactId={draggedContactIdShared}
-                  onDragStart={handleDragStart}
-                  onDragMove={handleDragMove}
-                  onDragEnd={handleDragEnd}
-                />
-              ))}
-            </Animated.View>
-
-            {timelineData.length === 0 && (
-              <View style={styles.emptyTimeline}>
-                <Ionicons name="git-branch-outline" size={64} color="#ccc" />
-                <Text style={styles.emptyText}>
-                  No hay línea de tiempo configurada
-                </Text>
+              <View style={styles.timelineContent}>
+                {timelineData.map((linea) => (
+                  <TimelineColumn
+                    key={linea.ProcesoLineaTiempoID}
+                    linea={linea}
+                    columnId={linea.ProcesoLineaTiempoID}
+                    onContactPress={handleContactPress}
+                    refreshing={refreshing}
+                    onRefresh={handleRefresh}
+                    onLoadMore={handleLoadMore}
+                    hasMore={hasMore}
+                    loadingMore={loadingMore}
+                    // Drag-and-drop props - using shared values to avoid re-renders
+                    isDraggingShared={isDraggingShared}
+                    sourceColumnIdShared={sourceColumnIdShared}
+                    targetColumnIdShared={targetColumnIdShared}
+                    draggedContactId={draggedContactIdShared}
+                    onDragStart={handleDragStart}
+                    onDragMove={handleDragMove}
+                    onDragEnd={handleDragEnd}
+                  />
+                ))}
               </View>
-            )}
-          </ScrollView>
+
+              {timelineData.length === 0 && (
+                <View style={styles.emptyTimeline}>
+                  <Ionicons name="git-branch-outline" size={64} color="#ccc" />
+                  <Text style={styles.emptyText}>
+                    No hay línea de tiempo configurada
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
+          </Animated.View>
 
           {/* Floating drag overlay */}
           <DragOverlay
