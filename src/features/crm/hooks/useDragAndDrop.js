@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useSharedValue, runOnJS } from 'react-native-reanimated';
+import { useSharedValue, runOnJS, withTiming } from 'react-native-reanimated';
 import { Vibration, Dimensions } from 'react-native';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -40,6 +40,7 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
   const overlayCelular = useSharedValue('');
   const overlayEstado = useSharedValue('');
   const overlayColor = useSharedValue('#8E8E93');
+  const timelineScale = useSharedValue(1); // Scale of the timeline container
 
   // Refs
   const scrollOffsetRef = useRef(0);
@@ -113,10 +114,15 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
 
   /**
    * Calculate which column is under the current drag position
+   * Accounts for the timeline scaling effect
    */
   const getTargetColumnFromPosition = useCallback(
     (x) => {
-      const adjustedX = x + scrollOffsetRef.current;
+      // Coordinate transformation: 
+      // 1. Convert screen position to "scaled content space"
+      // 2. Add scroll offset to get absolute content position
+      const scaledX = x / timelineScale.value;
+      const adjustedX = scaledX + scrollOffsetRef.current;
       const columnIndex = Math.floor(adjustedX / columnWidth);
 
       if (columnIndex >= 0 && columnIndex < columnsRef.current.length) {
@@ -171,6 +177,9 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
       draggedContactIdShared.value = contact?.ProcesoID ?? null;
       sourceColumnIdShared.value = columnId;
       targetColumnIdShared.value = columnId; // Initially it's over its own column
+      
+      // Zoom out effect
+      timelineScale.value = withTiming(0.88, { duration: 400 });
 
       // Set overlay display data directly in shared values (NO re-renders!)
       overlayNombre.value = contact?.NombreCompleto || contact?.Nombre || 'Contacto';
@@ -247,6 +256,7 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
         targetColumnIdShared.value = null;
         draggedContactRef.current = null;
         sourceColumnIdRef.current = null;
+        timelineScale.value = withTiming(1, { duration: 300 });
         return;
       }
 
@@ -259,6 +269,7 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
       draggedContactIdShared.value = null;
       sourceColumnIdShared.value = null;
       targetColumnIdShared.value = null;
+      timelineScale.value = withTiming(1, { duration: 300 });
 
       // Check if we should move the contact
       if (
@@ -292,6 +303,7 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
     draggedContactIdShared.value = null;
     sourceColumnIdShared.value = null;
     targetColumnIdShared.value = null;
+    timelineScale.value = withTiming(1, { duration: 300 });
     draggedContactRef.current = null;
     sourceColumnIdRef.current = null;
   }, [stopAutoScroll]);
@@ -332,6 +344,7 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
     draggedContactIdShared, // Use this for identifying dragged item
     sourceColumnIdShared,
     targetColumnIdShared,
+    timelineScale,
 
     // Overlay display shared values (NO re-renders!)
     overlayNombre,

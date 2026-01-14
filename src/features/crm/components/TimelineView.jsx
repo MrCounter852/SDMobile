@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Ionicons } from "@expo/vector-icons";
+import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { useFocusEffect } from "@react-navigation/native";
 import { useGlobal } from "../../../core/global";
 import TimelineColumn from "./TimelineColumn";
@@ -70,6 +71,7 @@ const TimelineView = React.memo(
       draggedContactIdShared,
       sourceColumnIdShared,
       targetColumnIdShared,
+      timelineScale,
       overlayNombre,
       overlayCelular,
       overlayEstado,
@@ -230,6 +232,14 @@ const TimelineView = React.memo(
       navigation.navigate("ContactDetail", { contact });
     };
 
+    // Animated style for the whole timeline zoom-out effect
+    const timelineAnimatedStyle = useAnimatedStyle(() => {
+      return {
+        transform: [{ scale: timelineScale.value }],
+        transformOrigin: "top center",
+      };
+    });
+
     // Handle scroll to track offset for column position calculation
     const handleScroll = useCallback(
       (event) => {
@@ -299,27 +309,31 @@ const TimelineView = React.memo(
             onScroll={handleScroll}
             scrollEventThrottle={16}
           >
-            {timelineData.map((linea) => (
-              <TimelineColumn
-                key={linea.ProcesoLineaTiempoID}
-                linea={linea}
-                columnId={linea.ProcesoLineaTiempoID}
-                onContactPress={handleContactPress}
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-                onLoadMore={handleLoadMore}
-                hasMore={hasMore}
-                loadingMore={loadingMore}
-                // Drag-and-drop props - using shared values to avoid re-renders
-                isDraggingShared={isDraggingShared}
-                sourceColumnIdShared={sourceColumnIdShared}
-                targetColumnIdShared={targetColumnIdShared}
-                draggedContactId={draggedContactIdShared}
-                onDragStart={handleDragStart}
-                onDragMove={handleDragMove}
-                onDragEnd={handleDragEnd}
-              />
-            ))}
+            <Animated.View
+              style={[styles.timelineContent, timelineAnimatedStyle]}
+            >
+              {timelineData.map((linea) => (
+                <TimelineColumn
+                  key={linea.ProcesoLineaTiempoID}
+                  linea={linea}
+                  columnId={linea.ProcesoLineaTiempoID}
+                  onContactPress={handleContactPress}
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                  onLoadMore={handleLoadMore}
+                  hasMore={hasMore}
+                  loadingMore={loadingMore}
+                  // Drag-and-drop props - using shared values to avoid re-renders
+                  isDraggingShared={isDraggingShared}
+                  sourceColumnIdShared={sourceColumnIdShared}
+                  targetColumnIdShared={targetColumnIdShared}
+                  draggedContactId={draggedContactIdShared}
+                  onDragStart={handleDragStart}
+                  onDragMove={handleDragMove}
+                  onDragEnd={handleDragEnd}
+                />
+              ))}
+            </Animated.View>
 
             {timelineData.length === 0 && (
               <View style={styles.emptyTimeline}>
@@ -373,6 +387,10 @@ const styles = StyleSheet.create({
   timelineContainer: {
     padding: 16,
     backgroundColor: "#F2F2F7",
+  },
+  timelineContent: {
+    flexDirection: "row",
+    alignItems: "stretch",
   },
   emptyTimeline: {
     flex: 1,
