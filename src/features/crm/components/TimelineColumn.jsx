@@ -12,8 +12,8 @@ import { Ionicons } from "@expo/vector-icons";
 import Animated, {
   useAnimatedStyle,
   useDerivedValue,
-  withTiming,
-  interpolateColor,
+  interpolate,
+  Extrapolation,
 } from "react-native-reanimated";
 import DraggableContactItem from "./DraggableContactItem";
 
@@ -26,7 +26,6 @@ const TimelineColumn = ({
   onLoadMore,
   hasMore,
   loadingMore,
-  // Drag-and-drop props - now using shared values
   isDraggingShared,
   sourceColumnIdShared,
   targetColumnIdShared,
@@ -35,32 +34,23 @@ const TimelineColumn = ({
   onDragMove,
   onDragEnd,
 }) => {
-  // Derived value for drop target status - computed on the UI thread
-  const isTarget = useDerivedValue(() => {
-    return (
-      isDraggingShared?.value &&
-      targetColumnIdShared?.value === columnId &&
-      sourceColumnIdShared?.value !== columnId
-    );
+  // Single derived value for target detection
+  const isTargetValue = useDerivedValue(() => {
+    const isDragging = isDraggingShared?.value ?? false;
+    const isTarget = targetColumnIdShared?.value === columnId;
+    const isSource = sourceColumnIdShared?.value === columnId;
+    return isDragging && isTarget && !isSource ? 1 : 0;
   }, [columnId]);
 
-  // Animated style for the column container highlighting
-  const colAnimatedStyle = useAnimatedStyle(() => {
+  // Single animated style for the entire column highlight - just border
+  const columnHighlightStyle = useAnimatedStyle(() => {
+    const progress = isTargetValue.value;
     return {
-      backgroundColor: withTiming(isTarget.value ? "#F0F7FF" : "#FFFFFF", {
-        duration: 200,
-      }),
+      borderWidth: interpolate(progress, [0, 1], [0, 3], Extrapolation.CLAMP),
+      borderColor: progress > 0.5 ? "#337ab7" : "transparent",
     };
   });
 
-  // Animated style for the header highlight
-  const headerAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      backgroundColor: withTiming(isTarget.value ? "#E1EFFF" : "#FFFFFF", {
-        duration: 200,
-      }),
-    };
-  });
   const formatCurrency = React.useCallback((value) => {
     if (!value) return "0";
     return new Intl.NumberFormat("es-CO", {
@@ -101,42 +91,33 @@ const TimelineColumn = ({
     );
   }, [loadingMore]);
 
+  const renderEmptyComponent = React.useCallback(
+    () => (
+      <View style={styles.emptyContainer}>
+        <View style={styles.emptyIconCircle}>
+          <Ionicons name="document-text-outline" size={32} color="#AEAEB2" />
+        </View>
+        <Text style={styles.emptyText}>Lista vacía</Text>
+      </View>
+    ),
+    []
+  );
+
   return (
-    <Animated.View style={[styles.container, colAnimatedStyle]}>
-      <Animated.View style={[styles.header, headerAnimatedStyle]}>
+    <Animated.View style={[styles.container, columnHighlightStyle]}>
+      <View style={styles.header}>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.title} numberOfLines={1}>
             {linea.Nombre}
           </Text>
-          <Animated.View
-            style={[
-              styles.countBadge,
-              useAnimatedStyle(() => ({
-                backgroundColor: withTiming(
-                  isTarget.value ? "#337ab7" : "#E5E5EA",
-                  { duration: 200 }
-                ),
-              })),
-            ]}
-          >
-            <Animated.Text
-              style={[
-                styles.countText,
-                useAnimatedStyle(() => ({
-                  color: withTiming(isTarget.value ? "#fff" : "#8E8E93", {
-                    duration: 200,
-                  }),
-                })),
-              ]}
-            >
-              {linea.TotalProcesos || 0}
-            </Animated.Text>
-          </Animated.View>
+          <View style={styles.countBadge}>
+            <Text style={styles.countText}>{linea.TotalProcesos || 0}</Text>
+          </View>
         </View>
         <TouchableOpacity style={styles.filterButton}>
           <Ionicons name="filter-outline" size={18} color="#8E8E93" />
         </TouchableOpacity>
-      </Animated.View>
+      </View>
 
       <FlatList
         data={linea.Procesos || []}
@@ -164,59 +145,17 @@ const TimelineColumn = ({
         }}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Animated.View
-              style={[
-                styles.emptyIconCircle,
-                useAnimatedStyle(() => ({
-                  backgroundColor: withTiming(
-                    isTarget.value ? "#E1EFFF" : "#F2F2F7",
-                    { duration: 200 }
-                  ),
-                })),
-              ]}
-            >
-              <Ionicons
-                name="document-text-outline"
-                size={32}
-                color="#AEAEB2"
-              />
-            </Animated.View>
-            <Animated.Text
-              style={[
-                styles.emptyText,
-                useAnimatedStyle(() => ({
-                  color: withTiming(isTarget.value ? "#337ab7" : "#AEAEB2", {
-                    duration: 200,
-                  }),
-                })),
-              ]}
-            >
-              Lista vacía
-            </Animated.Text>
-          </View>
-        }
+        ListEmptyComponent={renderEmptyComponent}
       />
 
-      <Animated.View
-        style={[
-          styles.footer,
-          useAnimatedStyle(() => ({
-            backgroundColor: withTiming(
-              isTarget.value ? "#E5F1FF" : "#FFFFFF",
-              { duration: 200 }
-            ),
-          })),
-        ]}
-      >
+      <View style={styles.footer}>
         <View style={styles.footerItem}>
           <Text style={styles.footerLabel}>Total Negocio</Text>
           <Text style={styles.footerValue}>
             {formatCurrency(linea.TotalValorNegocio)}
           </Text>
         </View>
-      </Animated.View>
+      </View>
     </Animated.View>
   );
 };
@@ -234,33 +173,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 5,
-  },
-  // Drop target styles
-  dropTargetContainer: {
-    borderColor: "red",
-    borderWidth: 2,
-    shadowColor: "#337ab7",
-    shadowOpacity: 0.3,
-    elevation: 6,
-  },
-  dropTargetHeader: {
-    backgroundColor: "#E5F1FF",
-  },
-  dropTargetBadge: {
-    backgroundColor: "#337ab7",
-  },
-  dropTargetCountText: {
-    color: "#fff",
-  },
-  dropTargetEmptyCircle: {
-    backgroundColor: "#E5F1FF",
-  },
-  dropTargetEmptyText: {
-    color: "#337ab7",
-    fontWeight: "600",
-  },
-  dropTargetFooter: {
-    backgroundColor: "#E5F1FF",
+    borderWidth: 0,
+    borderColor: "transparent",
   },
   header: {
     flexDirection: "row",
@@ -318,7 +232,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: "#E5E5EA",
+    backgroundColor: "#F2F2F7",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 12,
@@ -353,4 +267,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TimelineColumn;
+export default React.memo(TimelineColumn);
