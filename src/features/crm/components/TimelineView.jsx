@@ -35,6 +35,16 @@ const TimelineView = React.memo(
     const containerRef = useRef(null);
     const [containerOffsetY, setContainerOffsetY] = useState(0);
 
+    // Refs to keep callback dependencies stable
+    const loadStateRef = useRef({
+      hasMore,
+      loading,
+      refreshing,
+      loadingMore,
+      page,
+    });
+    loadStateRef.current = { hasMore, loading, refreshing, loadingMore, page };
+
     const ROWS_PER_PAGE = 15;
 
     // Handle moving contact to a new column via drag-and-drop
@@ -224,19 +234,24 @@ const TimelineView = React.memo(
       }, [searchFilters, refreshTrigger, user?.SucursalID])
     );
 
-    const handleRefresh = () => {
+    const handleRefresh = useCallback(() => {
       loadTimeline(1, true);
-    };
+    }, []);
 
-    const handleLoadMore = () => {
+    const handleLoadMore = useCallback(() => {
+      const { hasMore, loading, refreshing, loadingMore, page } =
+        loadStateRef.current;
       if (hasMore && !loading && !refreshing && !loadingMore) {
         loadTimeline(page + 1);
       }
-    };
+    }, []);
 
-    const handleContactPress = (contact) => {
-      navigation.navigate("ContactDetail", { contact });
-    };
+    const handleContactPress = useCallback(
+      (contact) => {
+        navigation.navigate("ContactDetail", { contact });
+      },
+      [navigation]
+    );
 
     // Animated style for the whole timeline zoom-out effect
     const timelineAnimatedStyle = useAnimatedStyle(() => {
