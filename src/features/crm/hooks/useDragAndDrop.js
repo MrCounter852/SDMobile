@@ -13,7 +13,7 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Auto-scroll configuration
 const EDGE_THRESHOLD = 90;
-const MAX_SCROLL_SPEED = 40; // Reduced for smoother scrolling
+const MAX_SCROLL_SPEED = 10; // Reduced for smoother scrolling
 const CANCEL_ZONE_BOTTOM = 120; // Height from bottom of screen where cancel zone is
 const TIMELINE_DRAG_SCALE = 0.7;
 
@@ -107,7 +107,7 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
       const newOffset = scrollOffset.value + speed;
       const clampedOffset = Math.max(0, Math.min(newOffset, maxOffset));
 
-      if (Math.abs(clampedOffset - scrollOffset.value) > 0.1) {
+      if (true) {
         scrollTo(scrollViewRef, clampedOffset, 0, false);
         scrollOffset.value = clampedOffset;
       }
@@ -310,7 +310,11 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
     cancelDrag,
     updateScrollOffset: (offset) => {
       "worklet";
-      scrollOffset.value = offset;
+      // Only update from native scroll events when NOT dragging
+      // When dragging, the frame callback drives the scrollOffset
+      if (!isDraggingShared.value) {
+        scrollOffset.value = offset;
+      }
     },
     updateContainerHeight: () => {},
   };
