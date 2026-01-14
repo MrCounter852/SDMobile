@@ -9,7 +9,11 @@ import {
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Ionicons } from "@expo/vector-icons";
-import Animated, { useAnimatedStyle } from "react-native-reanimated";
+import Animated, {
+  useAnimatedStyle,
+  useAnimatedRef,
+  useAnimatedScrollHandler,
+} from "react-native-reanimated";
 import { useFocusEffect } from "@react-navigation/native";
 import { useGlobal } from "../../../core/global";
 import TimelineColumn from "./TimelineColumn";
@@ -31,7 +35,7 @@ const TimelineView = React.memo(
     const [hasMore, setHasMore] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const lastPageLoaded = useRef(0);
-    const scrollViewRef = useRef(null);
+    const scrollViewRef = useAnimatedRef();
     const containerRef = useRef(null);
     const [containerOffsetY, setContainerOffsetY] = useState(0);
 
@@ -323,14 +327,12 @@ const TimelineView = React.memo(
       };
     });
 
-    // Handle scroll to track offset
-    const handleScroll = useCallback(
-      (event) => {
-        const offsetX = event.nativeEvent.contentOffset.x;
-        updateScrollOffset(offsetX);
+    // Handle scroll to track offset - runs on UI thread
+    const handleScroll = useAnimatedScrollHandler({
+      onScroll: (event) => {
+        updateScrollOffset(event.contentOffset.x);
       },
-      [updateScrollOffset]
-    );
+    });
 
     // Drag event handlers
     const handleDragStart = useCallback(
@@ -342,6 +344,7 @@ const TimelineView = React.memo(
 
     const handleDragMove = useCallback(
       (absoluteX, absoluteY) => {
+        "worklet";
         updateDrag(absoluteX, absoluteY);
       },
       [updateDrag]
@@ -384,7 +387,7 @@ const TimelineView = React.memo(
           onLayout={handleContainerLayout}
         >
           <Animated.View style={[{ flex: 1 }, timelineAnimatedStyle]}>
-            <ScrollView
+            <Animated.ScrollView
               ref={scrollViewRef}
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -424,7 +427,7 @@ const TimelineView = React.memo(
                   </Text>
                 </View>
               )}
-            </ScrollView>
+            </Animated.ScrollView>
           </Animated.View>
 
           {/* Floating drag overlay */}
