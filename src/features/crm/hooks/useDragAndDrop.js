@@ -6,17 +6,17 @@ import {
 } from 'react-native-reanimated';
 import { Vibration, Dimensions } from 'react-native';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Auto-scroll configuration
 const EDGE_THRESHOLD = 90;
-const MAX_SCROLL_SPEED = 60;
-const CANCEL_ZONE_HEIGHT = -50;
+const MAX_SCROLL_SPEED = 40; // Reduced for smoother scrolling
+const CANCEL_ZONE_BOTTOM = 120; // Height from bottom of screen where cancel zone is
 const TIMELINE_DRAG_SCALE = 0.7;
 
 /**
  * Custom hook for managing drag-and-drop state across timeline columns
- * Optimized: animations and column calculation on UI thread
+ * Optimized for performance with minimal bridge crossing
  * 
  * @param {Array} columnIds - Array of column ProcesoLineaTiempoID values
  * @param {number} columnWidth - Width of each column including margins (default: 324)
@@ -27,10 +27,10 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
   // Refs for non-serializable data
   const draggedContactRef = useRef(null);
   const sourceColumnIdRef = useRef(null);
-  const containerHeightRef = useRef(600);
   const scrollOffsetRef = useRef(0);
   const autoScrollIntervalRef = useRef(null);
   const currentDragXRef = useRef(0);
+  const lastScrollTimeRef = useRef(0);
   const columnIdsRef = useRef(columnIds);
   columnIdsRef.current = columnIds;
 
@@ -52,14 +52,14 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
   const overlayEstado = useSharedValue('');
   const overlayColor = useSharedValue('#8E8E93');
 
-  // Scroll offset as shared value (synced from ref)
+  // Scroll offset as shared value
   const scrollOffset = useSharedValue(0);
 
-  // Column data as shared values for worklet access
+  // Column data as shared values
   const columnIdsShared = useSharedValue([]);
   const columnCount = useSharedValue(0);
 
-  // Container height as shared value
+  // Container height (not used for cancel zone anymore)
   const containerHeight = useSharedValue(600);
 
   // Update column data when it changes
@@ -69,7 +69,7 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
   }, [columnIds]);
 
   /**
-   * JS version for auto-scroll callback
+   * Get target column from position (JS version)
    */
   const getTargetColumnFromPosition = useCallback((x) => {
     const cols = columnIdsRef.current;
@@ -96,7 +96,7 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
   }, []);
 
   /**
-   * Auto-scroll loop (JS thread)
+   * Optimized auto-scroll loop - throttled updates
    */
   const startAutoScroll = useCallback(() => {
     if (autoScrollIntervalRef.current) return;
@@ -119,19 +119,23 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
       }
 
       if (speed !== 0) {
-        const maxOffset = (columnIdsRef.current?.length || 0) * columnWidth - SCREEN_WIDTH + 32;
+        const maxOffset = Math.max(0, (columnIdsRef.current?.length || 0) * columnWidth - SCREEN_WIDTH + 32);
         const newOffset = scrollOffsetRef.current + speed;
         const clampedOffset = Math.max(0, Math.min(newOffset, maxOffset));
 
-        if (clampedOffset !== scrollOffsetRef.current) {
+        if (Math.abs(clampedOffset - scrollOffsetRef.current) > 0.5) {
           scrollViewRef.current.scrollTo({ x: clampedOffset, animated: false });
           scrollOffsetRef.current = clampedOffset;
           scrollOffset.value = clampedOffset;
 
-          // Update target column during scroll
-          const targetId = getTargetColumnFromPosition(x);
-          if (targetId !== null) {
-            targetColumnIdShared.value = targetId;
+          // Throttle target column updates to every ~50ms
+          const now = Date.now();
+          if (now - lastScrollTimeRef.current > 50) {
+            lastScrollTimeRef.current = now;
+            const targetId = getTargetColumnFromPosition(x);
+            if (targetId !== null && targetId !== targetColumnIdShared.value) {
+              targetColumnIdShared.value = targetId;
+            }
           }
         }
       }
@@ -143,7 +147,7 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
   }, [columnWidth, scrollViewRef, getTargetColumnFromPosition]);
 
   /**
-   * Handle auto-scroll based on X position (JS thread)
+   * Handle auto-scroll based on X position
    */
   const handleAutoScroll = useCallback((x) => {
     currentDragXRef.current = x;
@@ -157,26 +161,18 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
   }, [startAutoScroll, stopAutoScroll]);
 
   /**
-   * Vibration callback (JS thread)
+   * Check if Y position is in cancel zone (bottom of screen)
    */
-  const triggerVibration = useCallback((duration) => {
-    Vibration.vibrate(duration);
+  const isInCancelZone = useCallback((absoluteY) => {
+    // Cancel zone is at the bottom of the screen
+    return absoluteY > SCREEN_HEIGHT - CANCEL_ZONE_BOTTOM;
   }, []);
 
   /**
-   * Store contact data in refs (JS thread)
-   */
-  const storeContactData = useCallback((contact, columnId) => {
-    draggedContactRef.current = contact;
-    sourceColumnIdRef.current = columnId;
-  }, []);
-
-  /**
-   * Start dragging a contact - called from gesture worklet via runOnJS
+   * Start dragging a contact
    */
   const startDrag = useCallback(
     (contact, columnId, position) => {
-      // Set animated values
       dragX.value = position.x;
       dragY.value = position.y;
       dragScale.value = 1.05;
@@ -193,7 +189,6 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
       overlayEstado.value = contact?.EstadoProcesoNombre || contact?.Estado || '';
       overlayColor.value = contact?.Color || '#8E8E93';
 
-      // Store refs
       draggedContactRef.current = contact;
       sourceColumnIdRef.current = columnId;
       
@@ -203,11 +198,11 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
   );
 
   /**
-   * Update drag position - called from gesture worklet via runOnJS
+   * Update drag position
    */
   const updateDrag = useCallback(
     (absoluteX, absoluteY) => {
-      // Set position shared values for smooth animation
+      // Update position for overlay animation
       dragX.value = absoluteX;
       dragY.value = absoluteY;
 
@@ -226,8 +221,8 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
         }
       }
 
-      // Check cancel zone
-      const overCancel = absoluteY > containerHeightRef.current - CANCEL_ZONE_HEIGHT;
+      // Check cancel zone using absolute screen position
+      const overCancel = isInCancelZone(absoluteY);
       if (overCancel !== cancelZoneHover.value) {
         cancelZoneHover.value = overCancel;
         if (overCancel) {
@@ -238,7 +233,7 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
       // Handle auto-scroll
       handleAutoScroll(absoluteX);
     },
-    [columnWidth, handleAutoScroll]
+    [columnWidth, handleAutoScroll, isInCancelZone]
   );
 
   /**
@@ -251,7 +246,8 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
       const draggedContact = draggedContactRef.current;
       const sourceColumnId = sourceColumnIdRef.current;
 
-      if (absoluteY > containerHeightRef.current - CANCEL_ZONE_HEIGHT) {
+      // Check cancel zone using absolute screen position
+      if (isInCancelZone(absoluteY)) {
         cancelZoneHover.value = false;
         dragScale.value = 1;
         dragOpacity.value = 1;
@@ -286,7 +282,7 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
       draggedContactRef.current = null;
       sourceColumnIdRef.current = null;
     },
-    [getTargetColumnFromPosition, onMoveContact, stopAutoScroll]
+    [getTargetColumnFromPosition, onMoveContact, stopAutoScroll, isInCancelZone]
   );
 
   /**
@@ -307,7 +303,7 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
   }, [stopAutoScroll]);
 
   /**
-   * Update scroll offset - called from animated scroll handler
+   * Update scroll offset
    */
   const updateScrollOffset = useCallback((offset) => {
     scrollOffsetRef.current = offset;
@@ -315,11 +311,10 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
   }, []);
 
   /**
-   * Update container height
+   * Update container height (kept for compatibility)
    */
   const updateContainerHeight = useCallback((height) => {
     containerHeight.value = height;
-    containerHeightRef.current = height;
   }, []);
 
   // Cleanup on unmount
