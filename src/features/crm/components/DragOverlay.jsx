@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, View, Text, Dimensions } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useDerivedValue,
+  useAnimatedReaction,
+  runOnJS,
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -10,44 +12,68 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 /**
  * Floating overlay that shows a preview of the dragged contact
- * Positioned absolutely following the drag position
- * Uses shared values to avoid re-renders
+ * Position animations on UI thread, text content via React state
  */
 const DragOverlay = ({
-  overlayContact,
+  overlayNombre,
+  overlayCelular,
+  overlayEstado,
+  overlayColor,
   dragX,
   dragY,
   dragScale,
   dragOpacity,
   isDraggingShared,
   cancelZoneHover,
-  containerOffsetY = 0, // Offset from top of screen to the container
+  containerOffsetY = 0,
 }) => {
+  // React state for text content (updated at drag start)
+  const [displayData, setDisplayData] = useState({
+    nombre: "Contacto",
+    celular: "",
+    estado: "",
+    color: "#8E8E93",
+  });
+
   // Convert containerOffsetY to derived value for use in worklet
   const offsetY = useDerivedValue(() => containerOffsetY, [containerOffsetY]);
 
+  // Update display data when overlay values change (at drag start)
+  useAnimatedReaction(
+    () => ({
+      nombre: overlayNombre.value,
+      celular: overlayCelular.value,
+      estado: overlayEstado.value,
+      color: overlayColor.value,
+      isDragging: isDraggingShared.value,
+    }),
+    (current, previous) => {
+      if (current.isDragging && !previous?.isDragging) {
+        // Drag just started, update display data
+        runOnJS(setDisplayData)({
+          nombre: current.nombre || "Contacto",
+          celular: current.celular || "",
+          estado: current.estado || "",
+          color: current.color || "#8E8E93",
+        });
+      }
+    },
+    []
+  );
+
   // Animated style that follows the drag position
-  // Uses shared values for complete UI thread animation
   const animatedStyle = useAnimatedStyle(() => {
-    // Show overlay when dragging and NOT over cancel zone
     const shouldShow = isDraggingShared.value && !cancelZoneHover.value;
 
     return {
       transform: [
-        { translateX: dragX.value - 140 }, // Center the card (half of width)
-        { translateY: dragY.value - offsetY.value - 80 }, // Adjust for container offset + finger offset
+        { translateX: dragX.value - 140 },
+        { translateY: dragY.value - offsetY.value - 80 },
         { scale: dragScale.value },
       ],
       opacity: shouldShow ? dragOpacity.value : 0,
     };
   });
-
-  // Extract contact display data from overlay contact state
-  const nombre =
-    overlayContact?.NombreCompleto || overlayContact?.Nombre || "Contacto";
-  const celular = overlayContact?.Celular || overlayContact?.Telefono || "";
-  const estado =
-    overlayContact?.EstadoProcesoNombre || overlayContact?.Estado || "";
 
   const getEstadoColor = (estado) => {
     const est = String(estado).toLowerCase();
@@ -57,13 +83,10 @@ const DragOverlay = ({
     return "#8E8E93";
   };
 
-  const statusColor = overlayContact?.Color || getEstadoColor(estado);
+  const statusColor = displayData.color || getEstadoColor(displayData.estado);
 
-  // Always render the overlay but keep it invisible when not dragging
-  // This prevents the lag from mounting the component tree when drag starts
   return (
     <Animated.View style={[styles.overlay, animatedStyle]} pointerEvents="none">
-      {/* Simplified contact card preview */}
       <View style={styles.card}>
         {/* Color indicator */}
         <View
@@ -73,25 +96,25 @@ const DragOverlay = ({
         <View style={styles.content}>
           {/* Name */}
           <Text style={styles.name} numberOfLines={1}>
-            {nombre}
+            {displayData.nombre}
           </Text>
 
           {/* Phone */}
-          {celular ? (
+          {displayData.celular ? (
             <View style={styles.detailRow}>
               <Ionicons name="call-outline" size={12} color="#8E8E93" />
               <Text style={styles.detailText} numberOfLines={1}>
-                {celular}
+                {displayData.celular}
               </Text>
             </View>
           ) : null}
 
           {/* Status badge */}
-          {estado ? (
+          {displayData.estado ? (
             <View
               style={[styles.statusBadge, { backgroundColor: statusColor }]}
             >
-              <Text style={styles.statusText}>{estado}</Text>
+              <Text style={styles.statusText}>{displayData.estado}</Text>
             </View>
           ) : null}
         </View>

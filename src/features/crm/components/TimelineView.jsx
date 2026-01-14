@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -32,7 +32,6 @@ const TimelineView = React.memo(
     const [loadingMore, setLoadingMore] = useState(false);
     const lastPageLoaded = useRef(0);
     const scrollViewRef = useRef(null);
-    const scrollOffsetRef = useRef(0);
     const containerRef = useRef(null);
     const [containerOffsetY, setContainerOffsetY] = useState(0);
 
@@ -58,7 +57,13 @@ const TimelineView = React.memo(
       }
     }, []);
 
-    // Initialize drag-and-drop hook
+    // Extract column IDs for the drag hook
+    const columnIds = useMemo(
+      () => timelineData.map((col) => col.ProcesoLineaTiempoID),
+      [timelineData]
+    );
+
+    // Initialize drag-and-drop hook with new interface
     const {
       draggedContactRef,
       sourceColumnIdRef,
@@ -72,6 +77,7 @@ const TimelineView = React.memo(
       sourceColumnIdShared,
       targetColumnIdShared,
       timelineScale,
+      scrollOffset,
       overlayNombre,
       overlayCelular,
       overlayEstado,
@@ -83,9 +89,9 @@ const TimelineView = React.memo(
       updateScrollOffset,
       updateContainerHeight,
     } = useDragAndDrop(
-      timelineData,
-      handleMoveToColumn,
+      columnIds,
       COLUMN_WIDTH,
+      handleMoveToColumn,
       scrollViewRef
     );
 
@@ -245,11 +251,10 @@ const TimelineView = React.memo(
       };
     });
 
-    // Handle scroll to track offset for column position calculation
+    // Handle scroll to track offset
     const handleScroll = useCallback(
       (event) => {
         const offsetX = event.nativeEvent.contentOffset.x;
-        scrollOffsetRef.current = offsetX;
         updateScrollOffset(offsetX);
       },
       [updateScrollOffset]

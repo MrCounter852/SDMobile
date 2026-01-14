@@ -71,6 +71,7 @@ const DraggableContactItem = ({
     .onUpdate((event) => {
       "worklet";
       if (isActive.value && onDragMove) {
+        // Call via runOnJS - updateDrag has runOnJS inside
         runOnJS(onDragMove)(event.absoluteX, event.absoluteY);
       }
     })
