@@ -6,7 +6,7 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Auto-scroll configuration
 const EDGE_THRESHOLD = 90; // Distance from edge to trigger scroll
-const SCROLL_SPEED = 40; // Pixels per frame
+const MAX_SCROLL_SPEED = 45; // Maximum pixels per frame
 const CANCEL_ZONE_HEIGHT = 80; // Height of cancel drop zone
 
 /**
@@ -44,6 +44,7 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
   // Refs
   const scrollOffsetRef = useRef(0);
   const startPositionRef = useRef({ x: 0, y: 0 });
+  const currentDragXRef = useRef(0);
   const autoScrollIntervalRef = useRef(null);
   const containerHeightRef = useRef(SCREEN_HEIGHT);
   const columnsRef = useRef(columns);
@@ -60,32 +61,55 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
   }, []);
 
   /**
-   * Start auto-scrolling in a direction
-   * Uses requestAnimationFrame for smooth 60fps scrolling
+   * Continuous auto-scroll loop
+   * Speed is calculated based on currentDragXRef
    */
-  const startAutoScroll = useCallback(
-    (direction) => {
-      stopAutoScroll();
+  const startAutoScroll = useCallback(() => {
+    if (autoScrollIntervalRef.current) return;
 
-      if (!scrollViewRef?.current) return;
+    const scroll = () => {
+      if (!scrollViewRef?.current) {
+        autoScrollIntervalRef.current = null;
+        return;
+      }
 
-      const scroll = () => {
-        const newOffset =
-          scrollOffsetRef.current + (direction === 'right' ? SCROLL_SPEED : -SCROLL_SPEED);
+      const x = currentDragXRef.current;
+      let speed = 0;
+
+      if (x > 0 && x < EDGE_THRESHOLD) {
+        // Left edge: speed is negative (scrolling left)
+        // Increases as we get closer to the edge (x approaches 0)
+        const ratio = (EDGE_THRESHOLD - x) / EDGE_THRESHOLD;
+        speed = -ratio * MAX_SCROLL_SPEED;
+      } else if (x > SCREEN_WIDTH - EDGE_THRESHOLD) {
+        // Right edge: speed is positive (scrolling right)
+        // Increases as we get closer to the edge (x approaches SCREEN_WIDTH)
+        const ratio = (x - (SCREEN_WIDTH - EDGE_THRESHOLD)) / EDGE_THRESHOLD;
+        speed = ratio * MAX_SCROLL_SPEED;
+      }
+
+      if (speed !== 0) {
+        const newOffset = scrollOffsetRef.current + speed;
         const maxOffset = columnsRef.current.length * columnWidth - SCREEN_WIDTH + 32;
         const clampedOffset = Math.max(0, Math.min(newOffset, maxOffset));
 
-        scrollViewRef.current.scrollTo({ x: clampedOffset, animated: false });
-        scrollOffsetRef.current = clampedOffset;
-
-        // Continue scrolling
-        autoScrollIntervalRef.current = requestAnimationFrame(scroll);
-      };
+        if (clampedOffset !== scrollOffsetRef.current) {
+          scrollViewRef.current.scrollTo({ x: clampedOffset, animated: false });
+          scrollOffsetRef.current = clampedOffset;
+          
+          // Re-calculate target column while scrolling
+          const targetId = getTargetColumnFromPosition(x);
+          if (targetId !== targetColumnIdShared.value) {
+            targetColumnIdShared.value = targetId;
+          }
+        }
+      }
 
       autoScrollIntervalRef.current = requestAnimationFrame(scroll);
-    },
-    [columnWidth, scrollViewRef, stopAutoScroll]
-  );
+    };
+
+    autoScrollIntervalRef.current = requestAnimationFrame(scroll);
+  }, [columnWidth, scrollViewRef, getTargetColumnFromPosition]);
 
   /**
    * Calculate which column is under the current drag position
@@ -119,10 +143,12 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
    */
   const handleAutoScroll = useCallback(
     (absoluteX) => {
-      if (absoluteX < EDGE_THRESHOLD) {
-        startAutoScroll('left');
-      } else if (absoluteX > SCREEN_WIDTH - EDGE_THRESHOLD) {
-        startAutoScroll('right');
+      currentDragXRef.current = absoluteX;
+      
+      const isInEdge = absoluteX < EDGE_THRESHOLD || absoluteX > SCREEN_WIDTH - EDGE_THRESHOLD;
+      
+      if (isInEdge) {
+        startAutoScroll();
       } else {
         stopAutoScroll();
       }
