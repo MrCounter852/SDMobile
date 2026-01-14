@@ -487,50 +487,6 @@ const GestionComercial = ({ navigation }) => {
     ]
   );
 
-  // Render stable components for tabs to prevent remounting
-  const renderTableView = useCallback(
-    (props) => (
-      <TableView
-        {...props}
-        searchFilters={queryFilters}
-        refreshTrigger={refreshTrigger}
-        selectedContact={selectedContact}
-        onSelectContact={handleSelectContact}
-        onDeselectContact={handleDeselectContact}
-      />
-    ),
-    [
-      queryFilters,
-      refreshTrigger,
-      selectedContact,
-      handleSelectContact,
-      handleDeselectContact,
-    ]
-  );
-
-  const renderTimelineView = useCallback(
-    (props) => (
-      <TimelineView
-        {...props}
-        searchFilters={queryFilters}
-        refreshTrigger={refreshTrigger}
-        onSelectContact={handleSelectContact}
-      />
-    ),
-    [queryFilters, refreshTrigger, handleSelectContact]
-  );
-
-  const renderCalendarView = useCallback(
-    (props) => (
-      <CalendarView
-        {...props}
-        searchFilters={queryFilters}
-        refreshTrigger={refreshTrigger}
-      />
-    ),
-    [queryFilters, refreshTrigger]
-  );
-
   return (
     <SafeAreaView style={styles.mainContainer} edges={["top", "left", "right"]}>
       {isSelectionMode ? (
@@ -643,21 +599,40 @@ const GestionComercial = ({ navigation }) => {
           },
         }}
       >
-        <Tab.Screen
-          name="Tabla"
-          component={renderTableView}
-          options={{ tabBarLabel: "Tabla" }}
-        />
+        <Tab.Screen name="Tabla" options={{ tabBarLabel: "Tabla" }}>
+          {(props) => (
+            <TableView
+              {...props}
+              searchFilters={queryFilters}
+              refreshTrigger={refreshTrigger}
+              selectedContact={selectedContact}
+              onSelectContact={handleSelectContact}
+              onDeselectContact={handleDeselectContact}
+            />
+          )}
+        </Tab.Screen>
         <Tab.Screen
           name="LineaTiempo"
-          component={renderTimelineView}
           options={{ tabBarLabel: "Línea Tiempo" }}
-        />
-        <Tab.Screen
-          name="Calendario"
-          component={renderCalendarView}
-          options={{ tabBarLabel: "Calendario" }}
-        />
+        >
+          {(props) => (
+            <TimelineView
+              {...props}
+              searchFilters={queryFilters}
+              refreshTrigger={refreshTrigger}
+              onSelectContact={handleSelectContact}
+            />
+          )}
+        </Tab.Screen>
+        <Tab.Screen name="Calendario" options={{ tabBarLabel: "Calendario" }}>
+          {(props) => (
+            <CalendarView
+              {...props}
+              searchFilters={queryFilters}
+              refreshTrigger={refreshTrigger}
+            />
+          )}
+        </Tab.Screen>
       </Tab.Navigator>
 
       <FilterModal
