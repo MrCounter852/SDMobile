@@ -46,6 +46,8 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
   const draggedContactIdShared = useSharedValue(null);
   const sourceColumnIdShared = useSharedValue(null);
   const targetColumnIdShared = useSharedValue(null);
+  const isAutoScrolling = useSharedValue(false);
+
   const timelineScale = useSharedValue(1);
 
   // Overlay display data
@@ -68,6 +70,45 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
   }, [columnIds]);
 
   /**
+   * Frame callback for smooth auto-scrolling on UI thread
+   */
+  useFrameCallback((frameInfo) => {
+    "worklet";
+    if (!isDraggingShared.value || !scrollViewRef) {
+        if (isAutoScrolling.value) isAutoScrolling.value = false;
+        return;
+    }
+
+    const x = dragX.value;
+    let speed = 0;
+
+    if (x > 0 && x < EDGE_THRESHOLD) {
+      const ratio = (EDGE_THRESHOLD - x) / EDGE_THRESHOLD;
+      speed = -ratio * MAX_SCROLL_SPEED;
+    } else if (x > SCREEN_WIDTH - EDGE_THRESHOLD) {
+      const ratio = (x - (SCREEN_WIDTH - EDGE_THRESHOLD)) / EDGE_THRESHOLD;
+      speed = ratio * MAX_SCROLL_SPEED;
+    }
+
+    // Update auto-scrolling state
+    const isScrolling = speed !== 0;
+    if (isAutoScrolling.value !== isScrolling) {
+      isAutoScrolling.value = isScrolling;
+    }
+
+    if (speed !== 0) {
+      const maxOffset = Math.max(0, columnCount.value * columnWidth - SCREEN_WIDTH + 32);
+      const newOffset = scrollOffset.value + speed;
+      const clampedOffset = Math.max(0, Math.min(newOffset, maxOffset));
+
+      if (true) {
+        scrollTo(scrollViewRef, clampedOffset, 0, false);
+        scrollOffset.value = clampedOffset;
+      }
+    }
+  });
+
+  /**
    * Target column calculation worklet
    */
   const getTargetColumnUI = (x, currentScrollOffset, scale, ids, count, width) => {
@@ -83,36 +124,6 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
     }
     return null;
   };
-
-  /**
-   * Frame callback for smooth auto-scrolling on UI thread
-   */
-  useFrameCallback((frameInfo) => {
-    "worklet";
-    if (!isDraggingShared.value || !scrollViewRef) return;
-
-    const x = dragX.value;
-    let speed = 0;
-
-    if (x > 0 && x < EDGE_THRESHOLD) {
-      const ratio = (EDGE_THRESHOLD - x) / EDGE_THRESHOLD;
-      speed = -ratio * MAX_SCROLL_SPEED;
-    } else if (x > SCREEN_WIDTH - EDGE_THRESHOLD) {
-      const ratio = (x - (SCREEN_WIDTH - EDGE_THRESHOLD)) / EDGE_THRESHOLD;
-      speed = ratio * MAX_SCROLL_SPEED;
-    }
-
-    if (speed !== 0) {
-      const maxOffset = Math.max(0, columnCount.value * columnWidth - SCREEN_WIDTH + 32);
-      const newOffset = scrollOffset.value + speed;
-      const clampedOffset = Math.max(0, Math.min(newOffset, maxOffset));
-
-      if (true) {
-        scrollTo(scrollViewRef, clampedOffset, 0, false);
-        scrollOffset.value = clampedOffset;
-      }
-    }
-  });
 
   /**
    * React to drag changes to update target column and cancel zone
@@ -304,6 +315,7 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
     overlayCelular,
     overlayEstado,
     overlayColor,
+    isAutoScrolling, // Export the new shared value
     startDrag,
     updateDrag,
     endDrag,

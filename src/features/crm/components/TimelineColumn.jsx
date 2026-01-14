@@ -30,6 +30,7 @@ const TimelineColumn = ({
   sourceColumnIdShared,
   targetColumnIdShared,
   draggedContactId,
+  isAutoScrollingShared,
   onDragStart,
   onDragMove,
   onDragEnd,
@@ -37,8 +38,13 @@ const TimelineColumn = ({
   // Single derived value for target detection
   const isTargetValue = useDerivedValue(() => {
     const isDragging = isDraggingShared?.value ?? false;
+    const isAutoScrolling = isAutoScrollingShared?.value ?? false;
     const isTarget = targetColumnIdShared?.value === columnId;
     const isSource = sourceColumnIdShared?.value === columnId;
+
+    // Don't highlight if auto-scrolling
+    if (isAutoScrolling) return 0;
+
     return isDragging && isTarget && !isSource ? 1 : 0;
   }, [columnId]);
 

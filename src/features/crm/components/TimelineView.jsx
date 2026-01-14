@@ -108,6 +108,7 @@ const TimelineView = React.memo(
       updateDrag,
       endDrag,
       cancelDrag,
+      isAutoScrolling,
       updateScrollOffset,
       updateContainerHeight,
     } = useDragAndDrop(
@@ -412,6 +413,7 @@ const TimelineView = React.memo(
                     sourceColumnIdShared={sourceColumnIdShared}
                     targetColumnIdShared={targetColumnIdShared}
                     draggedContactId={draggedContactIdShared}
+                    isAutoScrollingShared={isAutoScrolling}
                     onDragStart={handleDragStart}
                     onDragMove={handleDragMove}
                     onDragEnd={handleDragEnd}
