@@ -6,9 +6,9 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Auto-scroll configuration
 const EDGE_THRESHOLD = 90; // Distance from edge to trigger scroll
-const MAX_SCROLL_SPEED = 45; // Maximum pixels per frame
+const MAX_SCROLL_SPEED = 60; // Maximum pixels per frame
 const CANCEL_ZONE_HEIGHT = 80; // Height of cancel drop zone
-const TIMELINE_DRAG_SCALE = 0.88; // Zoom level when dragging (1.0 = no zoom)
+const TIMELINE_DRAG_SCALE = 0.7; // Zoom level when dragging (1.0 = no zoom)
 
 /**
  * Custom hook for managing drag-and-drop state across timeline columns
@@ -115,18 +115,14 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
 
   /**
    * Calculate which column is under the current drag position
-   * Accounts for the timeline scaling effect (centered on screen)
+   * Accounts for the timeline scaling effect (fills the screen)
    */
   const getTargetColumnFromPosition = useCallback(
     (x) => {
-      // Coordinate transformation for center-based scale:
-      // 1. Calculate how far the touch is from the screen center
-      // 2. Adjust that distance by the scale factor
-      // 3. Add scroll offset to get absolute content position
-      const screenCenter = SCREEN_WIDTH / 2;
-      const xRelativeToCenter = x - screenCenter;
-      const scaledX = xRelativeToCenter / timelineScale.value;
-      const adjustedX = screenCenter + scaledX + scrollOffsetRef.current;
+      // With compensatory scaling (expanding the container inversely to the zoom),
+      // we can simply map the screen position to the internal content space.
+      const scaledX = x / timelineScale.value;
+      const adjustedX = scaledX + scrollOffsetRef.current;
       
       const columnIndex = Math.floor(adjustedX / columnWidth);
 

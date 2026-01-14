@@ -235,9 +235,13 @@ const TimelineView = React.memo(
     // Animated style for the whole timeline zoom-out effect
     const timelineAnimatedStyle = useAnimatedStyle(() => {
       const scale = timelineScale.value;
+      const invScale = 1 / scale;
       return {
+        width: `${invScale * 100}%`,
+        height: `${invScale * 100}%`,
+        marginLeft: `${(1 - invScale) * 50}%`,
+        marginTop: `${(1 - invScale) * 50}%`,
         transform: [{ scale: scale }],
-        transformOrigin: "center center",
       };
     });
 
