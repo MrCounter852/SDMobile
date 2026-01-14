@@ -59,16 +59,21 @@ const TimelineView = React.memo(
 
     // Initialize drag-and-drop hook
     const {
-      draggedContact,
-      sourceColumnId,
-      targetColumnId,
-      isDragging,
-      isOverCancelZone,
+      draggedContactRef,
+      sourceColumnIdRef,
       dragX,
       dragY,
       dragScale,
       dragOpacity,
       cancelZoneHover,
+      isDraggingShared,
+      draggedContactIdShared,
+      sourceColumnIdShared,
+      targetColumnIdShared,
+      overlayNombre,
+      overlayCelular,
+      overlayEstado,
+      overlayColor,
       startDrag,
       updateDrag,
       endDrag,
@@ -293,8 +298,6 @@ const TimelineView = React.memo(
             contentContainerStyle={styles.timelineContainer}
             onScroll={handleScroll}
             scrollEventThrottle={16}
-            // Disable scroll during drag to prevent conflicts
-            scrollEnabled={!isDragging}
           >
             {timelineData.map((linea) => (
               <TimelineColumn
@@ -307,13 +310,11 @@ const TimelineView = React.memo(
                 onLoadMore={handleLoadMore}
                 hasMore={hasMore}
                 loadingMore={loadingMore}
-                // Drag-and-drop props
-                isDropTarget={
-                  isDragging &&
-                  targetColumnId === linea.ProcesoLineaTiempoID &&
-                  sourceColumnId !== linea.ProcesoLineaTiempoID
-                }
-                draggedContactId={draggedContact?.ProcesoID}
+                // Drag-and-drop props - using shared values to avoid re-renders
+                isDraggingShared={isDraggingShared}
+                sourceColumnIdShared={sourceColumnIdShared}
+                targetColumnIdShared={targetColumnIdShared}
+                draggedContactId={draggedContactIdShared}
                 onDragStart={handleDragStart}
                 onDragMove={handleDragMove}
                 onDragEnd={handleDragEnd}
@@ -332,17 +333,24 @@ const TimelineView = React.memo(
 
           {/* Floating drag overlay */}
           <DragOverlay
-            draggedContact={draggedContact}
+            overlayNombre={overlayNombre}
+            overlayCelular={overlayCelular}
+            overlayEstado={overlayEstado}
+            overlayColor={overlayColor}
             dragX={dragX}
             dragY={dragY}
             dragScale={dragScale}
             dragOpacity={dragOpacity}
-            visible={isDragging && !isOverCancelZone}
+            isDraggingShared={isDraggingShared}
+            cancelZoneHover={cancelZoneHover}
             containerOffsetY={containerOffsetY}
           />
 
           {/* Cancel drop zone at bottom */}
-          <CancelDropZone visible={isDragging} isHovering={cancelZoneHover} />
+          <CancelDropZone
+            isDraggingShared={isDraggingShared}
+            isHovering={cancelZoneHover}
+          />
         </View>
       </GestureHandlerRootView>
     );

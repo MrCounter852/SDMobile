@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useRef, useCallback } from "react";
 import { StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
+  useDerivedValue,
   withSpring,
   withTiming,
   runOnJS,
@@ -26,12 +27,34 @@ const DraggableContactItem = ({
   onDragStart,
   onDragMove,
   onDragEnd,
-  isDraggedItem,
+  draggedContactIdShared,
 }) => {
+  // Store refs to avoid serializing large objects through runOnJS
+  const itemRef = useRef(item);
+  const columnIdRef = useRef(columnId);
+  const onDragStartRef = useRef(onDragStart);
+
+  // Keep refs updated
+  itemRef.current = item;
+  columnIdRef.current = columnId;
+  onDragStartRef.current = onDragStart;
+
   // Local animated values for this item
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
   const isActive = useSharedValue(false);
+
+  // Compute isDragged from shared value - avoids re-renders
+  const isDragged = useDerivedValue(() => {
+    return draggedContactIdShared?.value === item?.ProcesoID;
+  }, [item?.ProcesoID]);
+
+  // Stable callback for drag start - called from JS thread
+  const handleDragStartJS = useCallback((x, y) => {
+    if (onDragStartRef.current) {
+      onDragStartRef.current(itemRef.current, columnIdRef.current, { x, y });
+    }
+  }, []);
 
   // Create the pan gesture with activation delay (long press)
   const panGesture = Gesture.Pan()
@@ -42,12 +65,8 @@ const DraggableContactItem = ({
       scale.value = withSpring(1.02, SPRING_CONFIG);
       opacity.value = withTiming(0.3, { duration: 150 });
 
-      if (onDragStart) {
-        runOnJS(onDragStart)(item, columnId, {
-          x: event.absoluteX,
-          y: event.absoluteY,
-        });
-      }
+      // Pass only primitives through the bridge
+      runOnJS(handleDragStartJS)(event.absoluteX, event.absoluteY);
     })
     .onUpdate((event) => {
       "worklet";
@@ -79,17 +98,17 @@ const DraggableContactItem = ({
   const tapGesture = Gesture.Tap().onEnd(() => {
     "worklet";
     if (onPress) {
-      runOnJS(onPress)(item);
+      runOnJS(onPress)();
     }
   });
 
   // Combine gestures - tap should work when not dragging
   const composedGesture = Gesture.Race(panGesture, tapGesture);
 
-  // Animated style for local feedback
+  // Animated style for local feedback - use derived value instead of prop
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
-    opacity: isDraggedItem ? 0.3 : opacity.value,
+    opacity: isDragged.value ? 0.3 : opacity.value,
   }));
 
   return (

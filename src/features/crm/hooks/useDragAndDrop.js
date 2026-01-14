@@ -11,44 +11,57 @@ const CANCEL_ZONE_HEIGHT = 80; // Height of cancel drop zone
 
 /**
  * Custom hook for managing drag-and-drop state across timeline columns
+ * Uses refs instead of state to avoid re-renders during drag
  * @param {Array} columns - Array of timeline column data
  * @param {Function} onMoveContact - Callback when contact is dropped on a new column
  * @param {number} columnWidth - Width of each column including margins (default: 324)
  * @param {Object} scrollViewRef - Ref to the horizontal ScrollView
  */
 const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef = null) => {
-  // Drag state
-  const [draggedContact, setDraggedContact] = useState(null);
-  const [sourceColumnId, setSourceColumnId] = useState(null);
-  const [targetColumnId, setTargetColumnId] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [isOverCancelZone, setIsOverCancelZone] = useState(false);
+  // Use refs for drag data to avoid re-renders in columns
+  const draggedContactRef = useRef(null);
+  const sourceColumnIdRef = useRef(null);
+  const targetColumnIdRef = useRef(null);
+  const isOverCancelZoneRef = useRef(false);
 
-  // Animated values for smooth drag
+  // Shared values for animations AND for triggering overlay visibility
   const dragX = useSharedValue(0);
   const dragY = useSharedValue(0);
   const dragScale = useSharedValue(1);
   const dragOpacity = useSharedValue(1);
   const cancelZoneHover = useSharedValue(false);
+  const isDraggingShared = useSharedValue(false); // Shared value for overlay visibility
+  const draggedContactIdShared = useSharedValue(null); // For identifying dragged item
+  const sourceColumnIdShared = useSharedValue(null); // Source column ID
+  const targetColumnIdShared = useSharedValue(null); // Current target column ID
+
+  // Shared values for overlay display data (NO re-renders!)
+  const overlayNombre = useSharedValue('');
+  const overlayCelular = useSharedValue('');
+  const overlayEstado = useSharedValue('');
+  const overlayColor = useSharedValue('#8E8E93');
 
   // Refs
   const scrollOffsetRef = useRef(0);
   const startPositionRef = useRef({ x: 0, y: 0 });
   const autoScrollIntervalRef = useRef(null);
   const containerHeightRef = useRef(SCREEN_HEIGHT);
+  const columnsRef = useRef(columns);
+  columnsRef.current = columns;
 
   /**
    * Stop auto-scroll
    */
   const stopAutoScroll = useCallback(() => {
     if (autoScrollIntervalRef.current) {
-      clearInterval(autoScrollIntervalRef.current);
+      cancelAnimationFrame(autoScrollIntervalRef.current);
       autoScrollIntervalRef.current = null;
     }
   }, []);
 
   /**
    * Start auto-scrolling in a direction
+   * Uses requestAnimationFrame for smooth 60fps scrolling
    */
   const startAutoScroll = useCallback(
     (direction) => {
@@ -56,18 +69,22 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
 
       if (!scrollViewRef?.current) return;
 
-      autoScrollIntervalRef.current = setInterval(() => {
+      const scroll = () => {
         const newOffset =
           scrollOffsetRef.current + (direction === 'right' ? SCROLL_SPEED : -SCROLL_SPEED);
-        const maxOffset = columns.length * columnWidth - SCREEN_WIDTH + 32; // padding
-
+        const maxOffset = columnsRef.current.length * columnWidth - SCREEN_WIDTH + 32;
         const clampedOffset = Math.max(0, Math.min(newOffset, maxOffset));
 
         scrollViewRef.current.scrollTo({ x: clampedOffset, animated: false });
         scrollOffsetRef.current = clampedOffset;
-      }, 16); // ~60fps
+
+        // Continue scrolling
+        autoScrollIntervalRef.current = requestAnimationFrame(scroll);
+      };
+
+      autoScrollIntervalRef.current = requestAnimationFrame(scroll);
     },
-    [columns.length, columnWidth, scrollViewRef, stopAutoScroll]
+    [columnWidth, scrollViewRef, stopAutoScroll]
   );
 
   /**
@@ -78,12 +95,12 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
       const adjustedX = x + scrollOffsetRef.current;
       const columnIndex = Math.floor(adjustedX / columnWidth);
 
-      if (columnIndex >= 0 && columnIndex < columns.length) {
-        return columns[columnIndex].ProcesoLineaTiempoID;
+      if (columnIndex >= 0 && columnIndex < columnsRef.current.length) {
+        return columnsRef.current[columnIndex].ProcesoLineaTiempoID;
       }
       return null;
     },
-    [columns, columnWidth]
+    [columnWidth]
   );
 
   /**
@@ -114,27 +131,40 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
   );
 
   /**
-   * Start dragging a contact
+   * Start dragging a contact - NO RE-RENDERS, only ref and shared value updates
    */
   const startDrag = useCallback(
     (contact, columnId, position) => {
       'worklet';
-      runOnJS(setDraggedContact)(contact);
-      runOnJS(setSourceColumnId)(columnId);
-      runOnJS(setIsDragging)(true);
-      runOnJS(Vibration.vibrate)(50);
-
-      startPositionRef.current = { x: position.x, y: position.y };
+      // Set animated values immediately (no JS bridge needed)
       dragX.value = position.x;
       dragY.value = position.y;
       dragScale.value = 1.05;
       dragOpacity.value = 0.95;
+      isDraggingShared.value = true;
+      draggedContactIdShared.value = contact?.ProcesoID ?? null;
+      sourceColumnIdShared.value = columnId;
+      targetColumnIdShared.value = columnId; // Initially it's over its own column
+
+      // Set overlay display data directly in shared values (NO re-renders!)
+      overlayNombre.value = contact?.NombreCompleto || contact?.Nombre || 'Contacto';
+      overlayCelular.value = contact?.Celular || contact?.Telefono || '';
+      overlayEstado.value = contact?.EstadoProcesoNombre || contact?.Estado || '';
+      overlayColor.value = contact?.Color || '#8E8E93';
+
+      // Store data in refs (no re-renders) and trigger vibration
+      runOnJS((c, cId, pos) => {
+        draggedContactRef.current = c;
+        sourceColumnIdRef.current = cId;
+        startPositionRef.current = { x: pos.x, y: pos.y };
+        Vibration.vibrate(50);
+      })(contact, columnId, position);
     },
     []
   );
 
   /**
-   * Update drag position (called during gesture)
+   * Update drag position (called during gesture) - NO RE-RENDERS
    */
   const updateDrag = useCallback(
     (absoluteX, absoluteY) => {
@@ -142,31 +172,31 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
       dragX.value = absoluteX;
       dragY.value = absoluteY;
 
-      // Check cancel zone and update target column on JS thread
-      runOnJS((x, y) => {
-        // Check if over cancel zone
-        const overCancel = checkCancelZone(y);
-        if (overCancel !== isOverCancelZone) {
-          setIsOverCancelZone(overCancel);
-          cancelZoneHover.value = overCancel;
-          if (overCancel) {
-            Vibration.vibrate(30);
-          }
-        }
+      // Update target column ID (shared value for highlighting)
+      // Since this is a worklet, we use runOnJS to calculate the column
+      // to avoid complex shared value mirroring of the columns array
+      runOnJS((x) => {
+        const targetId = getTargetColumnFromPosition(x);
+        targetColumnIdShared.value = targetId;
+      })(absoluteX);
 
-        // Update target column if not over cancel zone
-        if (!overCancel) {
-          const newTarget = getTargetColumnFromPosition(x);
-          if (newTarget !== targetColumnId) {
-            setTargetColumnId(newTarget);
-          }
+      // Check if over cancel zone
+      const overCancel = absoluteY > containerHeightRef.current - CANCEL_ZONE_HEIGHT;
+      if (overCancel !== cancelZoneHover.value) {
+        cancelZoneHover.value = overCancel;
+        if (overCancel) {
+          runOnJS(Vibration.vibrate)(30);
         }
+      }
 
-        // Handle auto-scroll
-        handleAutoScroll(x);
-      })(absoluteX, absoluteY);
+      // Handle auto-scroll directly
+      if (absoluteX < EDGE_THRESHOLD || absoluteX > SCREEN_WIDTH - EDGE_THRESHOLD) {
+        runOnJS(handleAutoScroll)(absoluteX);
+      } else if (autoScrollIntervalRef.current) {
+        runOnJS(stopAutoScroll)();
+      }
     },
-    [getTargetColumnFromPosition, targetColumnId, checkCancelZone, isOverCancelZone, handleAutoScroll]
+    [handleAutoScroll, stopAutoScroll, getTargetColumnFromPosition]
   );
 
   /**
@@ -176,17 +206,21 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
     async (absoluteX, absoluteY) => {
       stopAutoScroll();
 
+      const draggedContact = draggedContactRef.current;
+      const sourceColumnId = sourceColumnIdRef.current;
+
       // Check if dropped on cancel zone
       if (checkCancelZone(absoluteY)) {
-        // Cancel the drag
+        // Cancel the drag - reset shared values
         cancelZoneHover.value = false;
         dragScale.value = 1;
         dragOpacity.value = 1;
-        setDraggedContact(null);
-        setSourceColumnId(null);
-        setTargetColumnId(null);
-        setIsDragging(false);
-        setIsOverCancelZone(false);
+        isDraggingShared.value = false;
+        draggedContactIdShared.value = null;
+        sourceColumnIdShared.value = null;
+        targetColumnIdShared.value = null;
+        draggedContactRef.current = null;
+        sourceColumnIdRef.current = null;
         return;
       }
 
@@ -195,6 +229,10 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
       // Reset animated values
       dragScale.value = 1;
       dragOpacity.value = 1;
+      isDraggingShared.value = false;
+      draggedContactIdShared.value = null;
+      sourceColumnIdShared.value = null;
+      targetColumnIdShared.value = null;
 
       // Check if we should move the contact
       if (
@@ -209,14 +247,11 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
         }
       }
 
-      // Reset state
-      setDraggedContact(null);
-      setSourceColumnId(null);
-      setTargetColumnId(null);
-      setIsDragging(false);
-      setIsOverCancelZone(false);
+      // Reset refs
+      draggedContactRef.current = null;
+      sourceColumnIdRef.current = null;
     },
-    [draggedContact, sourceColumnId, getTargetColumnFromPosition, onMoveContact, checkCancelZone, stopAutoScroll]
+    [getTargetColumnFromPosition, onMoveContact, checkCancelZone, stopAutoScroll]
   );
 
   /**
@@ -227,11 +262,12 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
     cancelZoneHover.value = false;
     dragScale.value = 1;
     dragOpacity.value = 1;
-    setDraggedContact(null);
-    setSourceColumnId(null);
-    setTargetColumnId(null);
-    setIsDragging(false);
-    setIsOverCancelZone(false);
+    isDraggingShared.value = false;
+    draggedContactIdShared.value = null;
+    sourceColumnIdShared.value = null;
+    targetColumnIdShared.value = null;
+    draggedContactRef.current = null;
+    sourceColumnIdRef.current = null;
   }, [stopAutoScroll]);
 
   /**
@@ -256,19 +292,26 @@ const useDragAndDrop = (columns, onMoveContact, columnWidth = 324, scrollViewRef
   }, [stopAutoScroll]);
 
   return {
-    // State
-    draggedContact,
-    sourceColumnId,
-    targetColumnId,
-    isDragging,
-    isOverCancelZone,
+    // Refs (for reading current values without re-renders)
+    draggedContactRef,
+    sourceColumnIdRef,
 
-    // Animated values
+    // Animated/Shared values (for UI and animations)
     dragX,
     dragY,
     dragScale,
     dragOpacity,
     cancelZoneHover,
+    isDraggingShared, // Use this for overlay visibility
+    draggedContactIdShared, // Use this for identifying dragged item
+    sourceColumnIdShared,
+    targetColumnIdShared,
+
+    // Overlay display shared values (NO re-renders!)
+    overlayNombre,
+    overlayCelular,
+    overlayEstado,
+    overlayColor,
 
     // Methods
     startDrag,

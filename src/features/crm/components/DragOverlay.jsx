@@ -11,39 +11,43 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 /**
  * Floating overlay that shows a preview of the dragged contact
  * Positioned absolutely following the drag position
+ * Uses shared values to avoid re-renders
  */
 const DragOverlay = ({
-  draggedContact,
+  overlayContact,
   dragX,
   dragY,
   dragScale,
   dragOpacity,
-  visible,
+  isDraggingShared,
+  cancelZoneHover,
   containerOffsetY = 0, // Offset from top of screen to the container
 }) => {
-  // Convert containerOffsetY to a derived value for use in worklet
+  // Convert containerOffsetY to derived value for use in worklet
   const offsetY = useDerivedValue(() => containerOffsetY, [containerOffsetY]);
 
   // Animated style that follows the drag position
-  // dragX and dragY are screen-absolute, but the overlay is positioned
-  // relative to its container, so we subtract the container offset
+  // Uses shared values for complete UI thread animation
   const animatedStyle = useAnimatedStyle(() => {
+    // Show overlay when dragging and NOT over cancel zone
+    const shouldShow = isDraggingShared.value && !cancelZoneHover.value;
+
     return {
       transform: [
         { translateX: dragX.value - 140 }, // Center the card (half of width)
         { translateY: dragY.value - offsetY.value - 80 }, // Adjust for container offset + finger offset
         { scale: dragScale.value },
       ],
-      opacity: visible ? dragOpacity.value : 0,
+      opacity: shouldShow ? dragOpacity.value : 0,
     };
   });
 
-  // Extract contact display data - use safe defaults when no contact
+  // Extract contact display data from overlay contact state
   const nombre =
-    draggedContact?.NombreCompleto || draggedContact?.Nombre || "Contacto";
-  const celular = draggedContact?.Celular || draggedContact?.Telefono || "";
+    overlayContact?.NombreCompleto || overlayContact?.Nombre || "Contacto";
+  const celular = overlayContact?.Celular || overlayContact?.Telefono || "";
   const estado =
-    draggedContact?.EstadoProcesoNombre || draggedContact?.Estado || "";
+    overlayContact?.EstadoProcesoNombre || overlayContact?.Estado || "";
 
   const getEstadoColor = (estado) => {
     const est = String(estado).toLowerCase();
@@ -53,13 +57,10 @@ const DragOverlay = ({
     return "#8E8E93";
   };
 
-  const statusColor = draggedContact?.Color || getEstadoColor(estado);
+  const statusColor = overlayContact?.Color || getEstadoColor(estado);
 
-  // Don't render anything if no contact is being dragged
-  if (!draggedContact) {
-    return null;
-  }
-
+  // Always render the overlay but keep it invisible when not dragging
+  // This prevents the lag from mounting the component tree when drag starts
   return (
     <Animated.View style={[styles.overlay, animatedStyle]} pointerEvents="none">
       {/* Simplified contact card preview */}

@@ -9,6 +9,12 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import Animated, {
+  useAnimatedStyle,
+  useDerivedValue,
+  withTiming,
+  interpolateColor,
+} from "react-native-reanimated";
 import DraggableContactItem from "./DraggableContactItem";
 
 const TimelineColumn = ({
@@ -20,69 +26,117 @@ const TimelineColumn = ({
   onLoadMore,
   hasMore,
   loadingMore,
-  // Drag-and-drop props
-  isDropTarget,
+  // Drag-and-drop props - now using shared values
+  isDraggingShared,
+  sourceColumnIdShared,
+  targetColumnIdShared,
   draggedContactId,
   onDragStart,
   onDragMove,
   onDragEnd,
 }) => {
-  const formatCurrency = (value) => {
+  // Derived value for drop target status - computed on the UI thread
+  const isTarget = useDerivedValue(() => {
+    return (
+      isDraggingShared?.value &&
+      targetColumnIdShared?.value === columnId &&
+      sourceColumnIdShared?.value !== columnId
+    );
+  }, [columnId]);
+
+  // Animated style for the column container highlighting
+  const colAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      backgroundColor: withTiming(isTarget.value ? "#F0F7FF" : "#F2F2F7", {
+        duration: 200,
+      }),
+    };
+  });
+
+  // Animated style for the header highlight
+  const headerAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      backgroundColor: withTiming(isTarget.value ? "#E1EFFF" : "#F2F2F7", {
+        duration: 200,
+      }),
+    };
+  });
+  const formatCurrency = React.useCallback((value) => {
     if (!value) return "0";
     return new Intl.NumberFormat("es-CO", {
       style: "currency",
       currency: "COP",
       minimumFractionDigits: 0,
     }).format(value);
-  };
+  }, []);
 
-  const renderContact = ({ item }) => (
-    <DraggableContactItem
-      item={item}
-      columnId={columnId}
-      onPress={() => onContactPress && onContactPress(item)}
-      onDragStart={onDragStart}
-      onDragMove={onDragMove}
-      onDragEnd={onDragEnd}
-      isDraggedItem={draggedContactId === item.ProcesoID}
-    />
+  const renderContact = React.useCallback(
+    ({ item }) => (
+      <DraggableContactItem
+        item={item}
+        columnId={columnId}
+        onPress={() => onContactPress && onContactPress(item)}
+        onDragStart={onDragStart}
+        onDragMove={onDragMove}
+        onDragEnd={onDragEnd}
+        draggedContactIdShared={draggedContactId}
+      />
+    ),
+    [
+      columnId,
+      onContactPress,
+      onDragStart,
+      onDragMove,
+      onDragEnd,
+      draggedContactId,
+    ]
   );
 
-  const renderFooter = () => {
+  const renderFooter = React.useCallback(() => {
     if (!loadingMore) return <View style={{ height: 20 }} />;
     return (
       <View style={styles.loadingMoreFooter}>
         <ActivityIndicator size="small" color="#337ab7" />
       </View>
     );
-  };
+  }, [loadingMore]);
 
   return (
-    <View
-      style={[styles.container, isDropTarget && styles.dropTargetContainer]}
-    >
-      <View style={[styles.header, isDropTarget && styles.dropTargetHeader]}>
+    <Animated.View style={[styles.container, colAnimatedStyle]}>
+      <Animated.View style={[styles.header, headerAnimatedStyle]}>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.title} numberOfLines={1}>
             {linea.Nombre}
           </Text>
-          <View
-            style={[styles.countBadge, isDropTarget && styles.dropTargetBadge]}
+          <Animated.View
+            style={[
+              styles.countBadge,
+              useAnimatedStyle(() => ({
+                backgroundColor: withTiming(
+                  isTarget.value ? "#337ab7" : "#E5E5EA",
+                  { duration: 200 }
+                ),
+              })),
+            ]}
           >
-            <Text
+            <Animated.Text
               style={[
                 styles.countText,
-                isDropTarget && styles.dropTargetCountText,
+                useAnimatedStyle(() => ({
+                  color: withTiming(isTarget.value ? "#fff" : "#8E8E93", {
+                    duration: 200,
+                  }),
+                })),
               ]}
             >
               {linea.TotalProcesos || 0}
-            </Text>
-          </View>
+            </Animated.Text>
+          </Animated.View>
         </View>
         <TouchableOpacity style={styles.filterButton}>
           <Ionicons name="filter-outline" size={18} color="#8E8E93" />
         </TouchableOpacity>
-      </View>
+      </Animated.View>
 
       <FlatList
         data={linea.Procesos || []}
@@ -112,43 +166,58 @@ const TimelineColumn = ({
         ListFooterComponent={renderFooter}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <View
+            <Animated.View
               style={[
                 styles.emptyIconCircle,
-                isDropTarget && styles.dropTargetEmptyCircle,
+                useAnimatedStyle(() => ({
+                  backgroundColor: withTiming(
+                    isTarget.value ? "#E1EFFF" : "#F2F2F7",
+                    { duration: 200 }
+                  ),
+                })),
               ]}
             >
               <Ionicons
-                name={
-                  isDropTarget
-                    ? "arrow-down-circle-outline"
-                    : "document-text-outline"
-                }
+                name="document-text-outline"
                 size={32}
-                color={isDropTarget ? "#337ab7" : "#AEAEB2"}
+                color="#AEAEB2"
               />
-            </View>
-            <Text
+            </Animated.View>
+            <Animated.Text
               style={[
                 styles.emptyText,
-                isDropTarget && styles.dropTargetEmptyText,
+                useAnimatedStyle(() => ({
+                  color: withTiming(isTarget.value ? "#337ab7" : "#AEAEB2", {
+                    duration: 200,
+                  }),
+                })),
               ]}
             >
-              {isDropTarget ? "Soltar aquí" : "Lista vacía"}
-            </Text>
+              Lista vacía
+            </Animated.Text>
           </View>
         }
       />
 
-      <View style={[styles.footer, isDropTarget && styles.dropTargetFooter]}>
+      <Animated.View
+        style={[
+          styles.footer,
+          useAnimatedStyle(() => ({
+            backgroundColor: withTiming(
+              isTarget.value ? "#E5F1FF" : "#F8F8F8",
+              { duration: 200 }
+            ),
+          })),
+        ]}
+      >
         <View style={styles.footerItem}>
           <Text style={styles.footerLabel}>Total Negocio</Text>
           <Text style={styles.footerValue}>
             {formatCurrency(linea.TotalValorNegocio)}
           </Text>
         </View>
-      </View>
-    </View>
+      </Animated.View>
+    </Animated.View>
   );
 };
 
@@ -165,12 +234,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 5,
-    borderWidth: 1,
-    borderColor: "#E5E5EA",
   },
   // Drop target styles
   dropTargetContainer: {
-    borderColor: "#337ab7",
+    borderColor: "red",
     borderWidth: 2,
     shadowColor: "#337ab7",
     shadowOpacity: 0.3,
@@ -263,8 +330,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#E5E5EA",
     backgroundColor: "#F2F2F7",
   },
   footerItem: {
