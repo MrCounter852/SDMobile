@@ -47,7 +47,7 @@ const TimelineColumn = ({
   // Animated style for the column container highlighting
   const colAnimatedStyle = useAnimatedStyle(() => {
     return {
-      backgroundColor: withTiming(isTarget.value ? "#F0F7FF" : "#F2F2F7", {
+      backgroundColor: withTiming(isTarget.value ? "#F0F7FF" : "#FFFFFF", {
         duration: 200,
       }),
     };
@@ -56,7 +56,7 @@ const TimelineColumn = ({
   // Animated style for the header highlight
   const headerAnimatedStyle = useAnimatedStyle(() => {
     return {
-      backgroundColor: withTiming(isTarget.value ? "#E1EFFF" : "#F2F2F7", {
+      backgroundColor: withTiming(isTarget.value ? "#E1EFFF" : "#FFFFFF", {
         duration: 200,
       }),
     };
@@ -204,7 +204,7 @@ const TimelineColumn = ({
           styles.footer,
           useAnimatedStyle(() => ({
             backgroundColor: withTiming(
-              isTarget.value ? "#E5F1FF" : "#F8F8F8",
+              isTarget.value ? "#E5F1FF" : "#FFFFFF",
               { duration: 200 }
             ),
           })),
