@@ -13,10 +13,11 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Auto-scroll configuration
 const EDGE_THRESHOLD = 90;
-const MAX_SCROLL_SPEED = 10; // Reduced for smoother scrolling
+const MAX_SCROLL_SPEED = 20; // Reduced for smoother scrolling
 const CANCEL_ZONE_BOTTOM = 120; // Height from bottom of screen where cancel zone is
 const TIMELINE_DRAG_SCALE = 0.7;
-const TARGET_UPDATE_THRESHOLD = 50; // Min px movement to recalculate target column
+const TARGET_UPDATE_THRESHOLD = 80; // Min px movement to recalculate target column
+const FRAME_SKIP_COUNT = 2; // Only update target every N frames during auto-scroll
 
 /**
  * Custom hook for managing drag-and-drop state across timeline columns
@@ -70,13 +71,19 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
     columnCount.value = columnIds?.length || 0;
   }, [columnIds]);
 
+  // Frame throttling for auto-scroll (reduce scrollTo calls)
+  const autoScrollFrameCounter = useSharedValue(0);
+  const AUTO_SCROLL_FRAME_SKIP = 3; // Only scroll every Nth frame
+
   /**
-   * Frame callback for smooth auto-scrolling on UI thread
+   * Frame callback for auto-scrolling on UI thread
+   * OPTIMIZED: Only runs scrollTo every 3 frames to prevent UI thread saturation
    */
   useFrameCallback((frameInfo) => {
     "worklet";
     if (!isDraggingShared.value || !scrollViewRef) {
         if (isAutoScrolling.value) isAutoScrolling.value = false;
+        autoScrollFrameCounter.value = 0;
         return;
     }
 
@@ -98,14 +105,19 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
     }
 
     if (speed !== 0) {
+      // CRITICAL: Only call scrollTo every N frames to prevent lag
+      autoScrollFrameCounter.value = (autoScrollFrameCounter.value + 1) % AUTO_SCROLL_FRAME_SKIP;
+      if (autoScrollFrameCounter.value !== 0) {
+        return; // Skip this frame
+      }
+
       const maxOffset = Math.max(0, columnCount.value * columnWidth - SCREEN_WIDTH + 32);
-      const newOffset = scrollOffset.value + speed;
+      // Multiply speed by frame skip to maintain same scroll velocity
+      const newOffset = scrollOffset.value + (speed * AUTO_SCROLL_FRAME_SKIP);
       const clampedOffset = Math.max(0, Math.min(newOffset, maxOffset));
 
-      if (true) {
-        scrollTo(scrollViewRef, clampedOffset, 0, false);
-        scrollOffset.value = clampedOffset;
-      }
+      scrollTo(scrollViewRef, clampedOffset, 0, false);
+      scrollOffset.value = clampedOffset;
     }
   });
 
@@ -128,24 +140,30 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
 
   // Track last calculated position to avoid recalculating on every pixel
   const lastTargetCalcX = useSharedValue(0);
+  const frameCounter = useSharedValue(0);
 
   /**
-   * React to drag changes to update target column and cancel zone
-   * OPTIMIZED: Only recalculates target column when position changes significantly
+   * Single combined reaction for drag state updates
+   * OPTIMIZED: Combines cancel zone and target column checks
+   * Uses frame skipping during auto-scroll to reduce calculations
    */
   useAnimatedReaction(
     () => ({
       isDragging: isDraggingShared.value,
+      x: dragX.value,
       y: dragY.value,
+      currentScrollOffset: scrollOffset.value,
+      isScrolling: isAutoScrolling.value,
     }),
     (data, prevData) => {
       if (!data.isDragging) {
         // Reset when not dragging
         lastTargetCalcX.value = 0;
+        frameCounter.value = 0;
         return;
       }
 
-      // Check cancel zone - simple Y comparison
+      // Check cancel zone - simple Y comparison (always check)
       const overCancel = data.y > SCREEN_HEIGHT - CANCEL_ZONE_BOTTOM;
       if (overCancel !== cancelZoneHover.value) {
         cancelZoneHover.value = overCancel;
@@ -153,22 +171,17 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
           runOnJS(Vibration.vibrate)(30);
         }
       }
-    }
-  );
 
-  /**
-   * Separate reaction for target column - runs less frequently
-   */
-  useAnimatedReaction(
-    () => ({
-      x: dragX.value,
-      isDragging: isDraggingShared.value,
-      currentScrollOffset: scrollOffset.value,
-    }),
-    (data) => {
-      if (!data.isDragging) return;
+      // Skip target column calculation if in cancel zone
+      if (overCancel) return;
 
-      // Only recalculate if X position changed significantly OR scroll changed
+      // Frame skip during auto-scroll to reduce calculations
+      if (data.isScrolling) {
+        frameCounter.value = (frameCounter.value + 1) % FRAME_SKIP_COUNT;
+        if (frameCounter.value !== 0) return;
+      }
+
+      // Only recalculate if X position changed significantly
       const adjustedX = data.x + data.currentScrollOffset;
       const lastAdjustedX = lastTargetCalcX.value;
       

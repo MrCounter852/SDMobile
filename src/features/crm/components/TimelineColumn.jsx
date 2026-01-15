@@ -5,13 +5,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   RefreshControl,
-  FlatList,
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
   useAnimatedStyle,
   useDerivedValue,
+  useAnimatedProps,
   interpolate,
   Extrapolation,
 } from "react-native-reanimated";
@@ -56,6 +56,11 @@ const TimelineColumn = ({
       borderColor: progress > 0.5 ? "#337ab7" : "transparent",
     };
   });
+
+  // CRITICAL: Disable FlatList scrolling while dragging to prevent lag
+  const flatListAnimatedProps = useAnimatedProps(() => ({
+    scrollEnabled: !(isDraggingShared?.value ?? false),
+  }));
 
   const formatCurrency = React.useCallback((value) => {
     if (!value) return "0";
@@ -167,7 +172,7 @@ const TimelineColumn = ({
         </TouchableOpacity>
       </View>
 
-      <FlatList
+      <Animated.FlatList
         data={linea.Procesos || []}
         renderItem={renderContact}
         keyExtractor={keyExtractor}
@@ -179,6 +184,7 @@ const TimelineColumn = ({
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={renderEmptyComponent}
+        animatedProps={flatListAnimatedProps}
         // Performance optimizations
         removeClippedSubviews={true}
         maxToRenderPerBatch={10}

@@ -13,6 +13,7 @@ import Animated, {
   useAnimatedStyle,
   useAnimatedRef,
   useAnimatedScrollHandler,
+  useAnimatedProps,
 } from "react-native-reanimated";
 import { useFocusEffect } from "@react-navigation/native";
 import { useGlobal } from "../../../core/global";
@@ -290,6 +291,11 @@ const TimelineView = React.memo(
       },
     });
 
+    // CRITICAL: Disable native scrolling while dragging to prevent lag
+    const scrollViewAnimatedProps = useAnimatedProps(() => ({
+      scrollEnabled: !isDraggingShared.value,
+    }));
+
     // Drag event handlers
     const handleDragStart = useCallback(
       (contact, columnId, position) => {
@@ -350,6 +356,7 @@ const TimelineView = React.memo(
               contentContainerStyle={styles.timelineContainer}
               onScroll={handleScroll}
               scrollEventThrottle={16}
+              animatedProps={scrollViewAnimatedProps}
             >
               <View style={styles.timelineContent}>
                 {timelineData.map((linea) => (

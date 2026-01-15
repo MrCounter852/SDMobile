@@ -1,15 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, View, Text, Dimensions } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   useAnimatedReaction,
   runOnJS,
-  withTiming,
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 // Overlay dimensions for offset calculation
 const OVERLAY_WIDTH = 280;
@@ -18,7 +15,7 @@ const OVERLAY_HEIGHT = 80;
 /**
  * Floating overlay that shows a preview of the dragged contact
  * Position animations on UI thread, text content via React state
- * OPTIMIZED: Uses direct shared value access without derived values
+ * OPTIMIZED: Minimal animated calculations, no derived values
  */
 const DragOverlay = ({
   overlayNombre,
@@ -41,19 +38,13 @@ const DragOverlay = ({
     color: "#8E8E93",
   });
 
-  // Store offsetY as shared value - only updated when prop changes
+  // Store offsetY as shared value - update synchronously from effect
   const offsetYShared = useSharedValue(containerOffsetY);
 
-  // Update shared value when prop changes (rare - usually once on mount)
-  useAnimatedReaction(
-    () => containerOffsetY,
-    (current) => {
-      if (offsetYShared.value !== current) {
-        offsetYShared.value = current;
-      }
-    },
-    [containerOffsetY]
-  );
+  // Update shared value when prop changes (very rare - usually once on mount)
+  useEffect(() => {
+    offsetYShared.value = containerOffsetY;
+  }, [containerOffsetY]);
 
   // Update display data when drag starts (only once per drag)
   useAnimatedReaction(
@@ -71,24 +62,19 @@ const DragOverlay = ({
     }
   );
 
-  // OPTIMIZED: Minimal animated style - only essential values
+  // OPTIMIZED: Minimal animated style - precomputed constants
   const animatedStyle = useAnimatedStyle(() => {
-    // Early return with hidden state if not dragging
-    if (!isDraggingShared.value) {
-      return {
-        opacity: 0,
-        transform: [{ translateX: 0 }, { translateY: 0 }, { scale: 1 }],
-      };
-    }
-
-    const shouldShow = !cancelZoneHover.value;
+    "worklet";
+    // Use bitwise operations for faster conditional
+    const isDragging = isDraggingShared.value;
+    const isHidden = !isDragging || cancelZoneHover.value;
 
     return {
-      opacity: shouldShow ? dragOpacity.value : 0,
+      opacity: isHidden ? 0 : dragOpacity.value,
       transform: [
-        { translateX: dragX.value - OVERLAY_WIDTH / 2 },
-        { translateY: dragY.value - offsetYShared.value - OVERLAY_HEIGHT },
-        { scale: dragScale.value },
+        { translateX: dragX.value - 140 }, // OVERLAY_WIDTH / 2 = 140
+        { translateY: dragY.value - offsetYShared.value - 80 }, // OVERLAY_HEIGHT = 80
+        { scale: isDragging ? dragScale.value : 1 },
       ],
     };
   });
