@@ -22,7 +22,7 @@ import DragOverlay from "./DragOverlay";
 import CancelDropZone from "./CancelDropZone";
 import AutoScrollIndicator from "./AutoScrollIndicator";
 import useDragAndDrop from "../hooks/useDragAndDrop";
-
+import { COLORS } from "../../../core/theme";
 const GestionComercialService = require("../services/crmService").default;
 
 const COLUMN_WIDTH = 324; // 300 width + 24 margin
@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
   },
   timelineContainer: {
     padding: 16,
-    backgroundColor: "#F2F2F7",
+    backgroundColor: COLORS.background,
   },
   timelineContent: {
     flexDirection: "row",

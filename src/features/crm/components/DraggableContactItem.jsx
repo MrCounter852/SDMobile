@@ -97,7 +97,7 @@ const DraggableContactItem = ({
   const tapGesture = Gesture.Tap().onEnd(() => {
     "worklet";
     if (onPress) {
-      runOnJS(onPress)();
+      runOnJS(onPress)(itemRef.current);
     }
   });
 

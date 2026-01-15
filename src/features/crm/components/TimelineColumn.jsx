@@ -208,15 +208,13 @@ const styles = StyleSheet.create({
   container: {
     width: 300,
     backgroundColor: "#fff",
-    borderRadius: 24,
-    marginHorizontal: 12,
+    borderRadius: 20, // Slightly more modern
+    marginHorizontal: 10,
     marginVertical: 4,
     overflow: "hidden",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
+    // NO SHADOWS - optimized for performance
+    borderWidth: 1.5,
+    borderColor: "#E5E5EA",
   },
   highlightOverlay: {
     position: "absolute",

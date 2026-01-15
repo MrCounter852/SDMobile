@@ -5,7 +5,7 @@ import Animated, {
   useDerivedValue,
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
-
+import { COLORS } from "../../../core/theme";
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 /**
@@ -41,11 +41,11 @@ const AutoScrollIndicator = ({ isDraggingShared, autoScrollDirection }) => {
         pointerEvents="none"
       >
         <View style={styles.arrowContainer}>
-          <Ionicons name="chevron-back" size={32} color="#fff" />
+          <Ionicons name="chevron-back" size={32} color={COLORS.secondary} />
           <Ionicons
             name="chevron-back"
             size={32}
-            color="#fff"
+            color={COLORS.primary}
             style={styles.secondArrow}
           />
         </View>
@@ -57,11 +57,11 @@ const AutoScrollIndicator = ({ isDraggingShared, autoScrollDirection }) => {
         pointerEvents="none"
       >
         <View style={styles.arrowContainer}>
-          <Ionicons name="chevron-forward" size={32} color="#fff" />
+          <Ionicons name="chevron-forward" size={32} color={COLORS.secondary} />
           <Ionicons
             name="chevron-forward"
             size={32}
-            color="#fff"
+            color={COLORS.primary}
             style={styles.secondArrow}
           />
         </View>
@@ -78,8 +78,9 @@ const styles = StyleSheet.create({
     width: 60,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(51, 122, 183, 0.85)",
+    backgroundColor: "rgba(0, 172, 196, 0.5)",
     zIndex: 9998,
+    height: "80%",
   },
   leftIndicator: {
     left: 0,
