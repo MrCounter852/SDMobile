@@ -46,8 +46,16 @@ const TimelineView = React.memo(
       refreshing,
       loadingMore,
       page,
+      searchFilters,
     });
-    loadStateRef.current = { hasMore, loading, refreshing, loadingMore, page };
+    loadStateRef.current = {
+      hasMore,
+      loading,
+      refreshing,
+      loadingMore,
+      page,
+      searchFilters,
+    };
 
     // Debug: Log mount/unmount
     React.useEffect(() => {
@@ -119,8 +127,22 @@ const TimelineView = React.memo(
     );
 
     const loadTimeline = async (pageNum = 1, isRefresh = false) => {
-      if (!searchFilters.OrigenPreContactoID) {
-        setTimelineData([]);
+      const currentFilters = loadStateRef.current.searchFilters;
+      console.log(
+        `[TimelineView] loadTimeline CALLED: pageNum=${pageNum}, isRefresh=${isRefresh}, filtersReady=${!!currentFilters.OrigenPreContactoID}`
+      );
+      if (!currentFilters.OrigenPreContactoID) {
+        console.log(
+          "[TimelineView] ABORT: OrigenPreContactoID is missing in searchFilters"
+        );
+        if (pageNum === 1) {
+          console.log("[TimelineView] Page 1 abort: Clearing data");
+          setTimelineData([]);
+        } else {
+          console.warn(
+            `[TimelineView] Page ${pageNum} abort: Stale logic prevented clearing data mistakenly.`
+          );
+        }
         return;
       }
 
@@ -130,28 +152,31 @@ const TimelineView = React.memo(
 
       try {
         if (isRefresh || pageNum === 1) {
+          console.log(`[TimelineView] Initializing load (Refresh/Page 1)`);
           setRefreshing(isRefresh);
           if (!isRefresh) setLoading(true);
           lastPageLoaded.current = 0;
         } else if (pageNum > 1) {
+          console.log(`[TimelineView] Loading more data (Page ${pageNum})`);
           setLoadingMore(true);
         }
 
         const filters = {
-          ...searchFilters,
+          ...currentFilters,
           EstadoProcesoID: null, // Critical: Web version clears this for timeline
           Page: pageNum,
           Rows: ROWS_PER_PAGE,
           SucursalID: user?.SucursalID,
         };
 
-        console.log(
-          `[TimelineView] Request Filters (Page ${pageNum}):`,
-          JSON.stringify(filters, null, 2)
-        );
-
         const response = await GestionComercialService.consultarLineasTiempo(
           filters
+        );
+
+        console.log(
+          `[TimelineView] Page ${pageNum} - API SUCCESS. Received ${
+            Array.isArray(response) ? response.length : "object"
+          } from server`
         );
 
         const newColumns = Array.isArray(response)
@@ -159,7 +184,7 @@ const TimelineView = React.memo(
           : response.data || response.rows || [];
 
         console.log(
-          `[TimelineView] Page ${pageNum} - Received ${newColumns.length} columns`
+          `[TimelineView] Page ${pageNum} - Processed ${newColumns.length} columns from response`
         );
 
         const totalProcessesReceived = newColumns.reduce(
@@ -191,12 +216,18 @@ const TimelineView = React.memo(
           );
           setTimelineData((prevData) => {
             console.log(
-              `[TimelineView] Page ${pageNum} - Previous data has ${prevData.length} columns`
+              `[TimelineView] Page ${pageNum} - MERGE START. Current state has ${prevData.length} columns:`,
+              prevData
+                .map(
+                  (c) => `${c.ProcesoLineaTiempoID}(${c.Procesos?.length || 0})`
+                )
+                .join(", ")
             );
             if (prevData.length === 0) {
-              console.error(
-                `[TimelineView] ERROR: Previous data is empty when loading page ${pageNum}!`
+              console.warn(
+                `[TimelineView] WARNING: Previous data is empty when loading page ${pageNum}!`
               );
+              // If it's empty but we were supposed to load page > 1, something cleared it
             }
 
             const nextData = [...prevData];
@@ -209,12 +240,15 @@ const TimelineView = React.memo(
                   nextData[existingIndex].Procesos?.map((p) => p.ProcesoID) ||
                     []
                 );
-                const uniqueNewProcesos = (nc.Procesos || []).filter(
+                const incomingProcesos = nc.Procesos || [];
+                const uniqueNewProcesos = incomingProcesos.filter(
                   (p) => !existingIds.has(p.ProcesoID)
                 );
+
                 console.log(
-                  `[TimelineView] Column ${nc.ProcesoLineaTiempoID} - Adding ${uniqueNewProcesos.length} new processes`
+                  `[TimelineView] Column ${nc.ProcesoLineaTiempoID} (${nc.Nombre}): Found existing. Adding ${uniqueNewProcesos.length} unique from ${incomingProcesos.length} incoming.`
                 );
+
                 nextData[existingIndex] = {
                   ...nextData[existingIndex],
                   Procesos: [
@@ -229,14 +263,19 @@ const TimelineView = React.memo(
                 };
               } else {
                 console.log(
-                  `[TimelineView] Column ${nc.ProcesoLineaTiempoID} - New column, adding to list`
+                  `[TimelineView] Column ${nc.ProcesoLineaTiempoID} (${nc.Nombre}): New column, adding to list`
                 );
                 nextData.push(nc);
               }
             });
 
             console.log(
-              `[TimelineView] Page ${pageNum} - Final data has ${nextData.length} columns`
+              `[TimelineView] Page ${pageNum} - MERGE END. Final state has ${nextData.length} columns:`,
+              nextData
+                .map(
+                  (c) => `${c.ProcesoLineaTiempoID}(${c.Procesos?.length || 0})`
+                )
+                .join(", ")
             );
 
             // Re-check hasMore based on the newly merged data
@@ -244,12 +283,6 @@ const TimelineView = React.memo(
               (col) => (col.Procesos?.length || 0) < (col.TotalProcesos || 0)
             );
             setHasMore(anyHasMore || totalProcessesReceived === ROWS_PER_PAGE);
-            console.log(
-              `[TimelineView] Page ${pageNum} - hasMore after merge: ${
-                anyHasMore || totalProcessesReceived === ROWS_PER_PAGE
-              }`
-            );
-
             return nextData;
           });
           setPage(pageNum);

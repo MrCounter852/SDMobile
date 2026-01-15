@@ -78,8 +78,18 @@ const TimelineColumn = ({
 
   // onEndReached handler - using current prop values directly
   const handleEndReached = () => {
+    console.log(
+      `[TimelineColumn] onEndReached triggered for column: ${linea.Nombre} (${columnId})`
+    );
     if (hasMore && (linea.Procesos?.length || 0) < (linea.TotalProcesos || 0)) {
+      console.log(`[TimelineColumn] Requesting more data via onLoadMore`);
       onLoadMore();
+    } else {
+      console.log(
+        `[TimelineColumn] Load more skipped: hasMore=${hasMore}, length=${
+          linea.Procesos?.length || 0
+        }, total=${linea.TotalProcesos || 0}`
+      );
     }
   };
 
