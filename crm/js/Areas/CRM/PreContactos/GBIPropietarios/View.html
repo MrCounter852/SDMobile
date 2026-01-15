@@ -1,0 +1,1949 @@
+﻿
+<script src="/js/Areas/CRM/PreContactos/GBIPropietarios/ControllerGBIPropietarios.js"></script>
+
+<style type="text/css">
+    .label-sedi {
+        color: white;
+        font-size: 12px;
+        padding: 1px 10px;
+        border-radius: 4px;
+        font-weight: 100;
+        margin-bottom: 0;
+    }
+    #tz-gallery {
+        display: table;
+        margin: 0 auto;
+        max-width: 952px;
+        width: 100%;
+    }
+
+        #tz-gallery .as-sortable-item,
+        #tz-gallery .as-sortable-placeholder {
+            display: inline-block;
+            float: left;
+        }
+
+        #tz-gallery .sortable-row:after {
+            content: ".";
+            display: block;
+            height: 0;
+            clear: both;
+            visibility: hidden;
+        }
+
+    .tz-gallery {
+        border: 1px dashed #aaa;
+        border-radius: 4px;
+        text-align: center;
+        margin: 12px 0;
+        display: inline-block;
+        padding: 5px 10px;
+        width: 100%;
+        min-height: 218px;
+    }
+
+    .tz-gallery div.img {
+        margin: 8px;
+        padding: 5px;
+        border-radius: 4px;
+        transition: 0.2s ease-in-out;
+        box-shadow: 0 2px 3px rgba(0,0,0,0.2);
+        display: inline-block;
+    }
+
+    .tz-gallery div.img img {
+        width: auto;
+        min-height: 150px;
+        max-height: 150px;
+        margin-bottom: 5px;
+        cursor: pointer;
+    }
+
+    .content-tools {
+        max-height: 25px;
+        min-height: 25px;
+        height: 25px;
+        width: 100%;
+        text-align: center;
+    }
+
+    .tz-gallery div.img:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+    }
+
+    .baguetteBox-button {
+        background-color: transparent !important;
+    }
+
+    .label-radio {
+        position: relative;
+        top: -2px;
+        font-weight: 600;
+    }
+
+    .table-lg tbody tr td {
+        padding: 4px 8px;
+    }
+
+    .tr-top {
+        position: sticky;
+        top: 26px;
+        z-index: 100;
+    }
+
+    .tz-gallery::-webkit-scrollbar {
+        width: 10px;
+        height: 6px;
+    }
+
+    .tz-gallery::-webkit-scrollbar-track {
+        background: hsla(0,0%,100%,.1);
+    }
+
+    .tz-gallery::-webkit-scrollbar-thumb {
+        background-color: rgba(0,0,0,.2);
+    }
+</style>
+<div ng-controller="ControllerGBIPropietarios" class="Crm-View" ng-init="Init()">
+    <div class="row" ng-show="ModoView == 1">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="PreContacto.PropuestasComercialesEnCaptacion == true">
+            <div class="box mb-8" ng-class="PreContacto.ShowCotizaciones ? '' : 'pb-0'">
+                <div class="box-header with-border">
+                    <h3 class="box-title box-title-sm w100p">
+                        <button class="not-btn"><i class="fal fa-file-pdf font-23 blue"></i></button>
+                        Propuestas comerciales ({{ PreContacto.Cotizaciones.length }})
+                        <button class="not-btn pull-right" ng-click="PreContacto.ShowCotizaciones = PreContacto.ShowCotizaciones ? false : true"><i class="fad font-23 blue" ng-class="PreContacto.ShowCotizaciones ? 'fa-chevron-double-up' : 'fa-chevron-double-down'"></i></button>
+                        <div class="mr-10 btn-agregar"><button class="btn btn-sm btn-primary btn-rigth" ng-click="AbrirNuevaCotizacion()">Nueva propuesta <i class="fal fa-plus"></i></button></div>
+                    </h3>
+                </div>
+                <div class="box-body" style="padding: 6px 0px;" ng-show="PreContacto.ShowCotizaciones" ng-class="PreContacto.ShowCotizaciones ? 'fade in' : 'fade out'">
+                    <div class="table-responsive content">
+                        <div class="content-card">
+                            <div class="mdc-card demo-card-left" ng-class="item.MostrarViews ? 'width-view' : ''" context-menu="MenuCotizaciones" ng-repeat="item in PreContacto.Cotizaciones">
+                                <div class="display-flex">
+                                    <div class="content-cot">
+                                        <div class="mdc-card-wrapper-text-section pb-5 pt-5">
+                                            <div class="demo-card-title" style="text-align: center;">Propuesta N°.{{ item.Consecutivo }}</div>
+                                        </div>
+                                        <div class="mdc-card-media mdc-card-cotizacion pointer" ng-click="visualizarCotizacion(item);">
+                                            <i class="fal fa-file-invoice" ng-class="item.Aprobado ? 'green' : ''"></i>
+                                        </div>
+                                        <div class="mdc-card-wrapper-text-section" style="padding: 7px 16px 0 16px;">
+                                            <div class="demo-card-subhead ws-ellip rem-lh-1" ng-class="item.Aprobado ? 'green' : ''"><div class="demo-card-subtitle">Estado: </div> {{ item.Aprobado ? 'Aprobado' : 'Sin aprobar' }}</div>
+                                            <div class="demo-card-subhead ws-n"><div class="demo-card-subtitle">Valor: </div> {{ item.ValorCotizacion | currency : '' : 0 }}</div>
+                                            <div class="demo-card-subhead ws-n"><div class="demo-card-subtitle">Fecha: </div> {{ item.FechaElaboracion | date : 'dd-MM-yyyy' }}</div>
+                                        </div>
+                                        <div class="mdc-card-wrapper-text-section text-center" style="padding: 5px 16px 6px 16px;">
+                                            <button class="not-btn" title="Editar la propuesta" ng-click="AbrirEditarCotizacion(item)"><i class="fal fa-edit font-23 blue"></i></button>
+                                            <button class="not-btn mr-2" title="Generar cupon de pago" ng-click="AbrirModalCupoPago(item)" ng-if="item.Aprobado == true"><i class="fal fa-envelope-open-dollar font-23 orange"></i></button>
+                                            <button class="not-btn mr-2" title="Enviar por email" ng-click="AbrirModalMailCotizacion(item)"><i class="fal fa-envelope-open-text font-23 green"></i></button>
+                                            <button class="not-btn" title="Visualizar views de la cotizacion" ng-if="item.CotizacionesVistas.length > 0" ng-click="item.MostrarViews = item.MostrarViews ? false : true"><i class="fal fa-eye font-23 red"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="content-view" ng-if="item.MostrarViews" title="Views realizadas por el cliente">
+                                        <div class="mdc-card-wrapper-text-section pb-5 pt-5">
+                                            <div class="demo-card-title" style="text-align: center;">Vistas ({{ item.CotizacionesVistas.length }})</div>
+                                        </div>
+                                        <div class="mdc-card-wrapper-overflow scroll-sedi">
+                                            <div class="fecha-view" ng-repeat="elem in item.CotizacionesVistas">{{ elem.Fecha | date : 'dd-MM-yyyy hh:mm a' }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="content-view" ng-if="item.MostrarViews" title="Views realizadas por el cliente">
+                                <div class="mdc-card-wrapper-text-section pb-5 pt-5">
+                                    <div class="demo-card-title" style="text-align: center;">Vistas ({{ item.CotizacionesVistas.length }})</div>
+                                </div>
+                                <div class="mdc-card-wrapper-overflow scroll-sedi">
+                                    <div class="fecha-view" ng-repeat="elem in item.CotizacionesVistas">{{ elem.Fecha | date : 'dd-MM-yyyy hh:mm a' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-show="PreContacto.PreFacturas.length > 0">
+            <div class="box mb-8" ng-class="PreContacto.ShowPreFacturas ? '' : 'pb-0'">
+                <div class="box-header with-border">
+                    <h3 class="box-title box-title-sm w100p">
+                        <button class="not-btn"><i class="fal fa-envelope-open-dollar font-23 blue"></i></button>
+                        Cupones de pagos ({{ PreContacto.PreFacturas.length }})
+                        <button class="not-btn pull-right" ng-click="PreContacto.ShowPreFacturas = PreContacto.ShowPreFacturas ? false : true"><i class="fad font-23 blue" ng-class="PreContacto.ShowPreFacturas ? 'fa-chevron-double-up' : 'fa-chevron-double-down'"></i></button>
+                    </h3>
+                </div>
+                <div class="box-body" style="padding: 6px 0px;" ng-show="PreContacto.ShowPreFacturas" ng-class="PreContacto.ShowPreFacturas ? 'fade in' : 'fade out'">
+                    <div class="table-responsive content">
+                        <div class="content-card">
+                            <div class="mdc-card demo-card-left" ng-repeat="item in PreContacto.PreFacturas">
+                                <div class="mdc-card-wrapper-text-section pb-5 pt-5">
+                                    <div class="demo-card-title">Cupon N°-{{ item.Consecutivo }}</div>
+                                </div>
+                                <div class="mdc-card-media mdc-card-cotizacion pointer" ng-click="viewer.Open('API_FAC/api/PDFs/DocumentoD?TipoDocumentoID=4&DocumentoID=' + item.PreFacturaID)">
+                                    <i class="fal fa-envelope-open-dollar"></i>
+                                </div>
+                                <div class="mdc-card-wrapper-text-section" style="padding: 10px 16px 0 16px;">
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Valor: </div> {{ item.ValorPreFactura | currency : '' : 0 }}</div>
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Fecha: </div> {{ item.FechaCreacion | date : 'dd-MM-yyyy' }}</div>
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1"><div title="{{ item.NombreCompleto }}">{{ item.NombreCompleto }}</div></div>
+                                </div>
+                                <div class="mdc-card-wrapper-text-section text-center" style="padding: 7px 16px;">
+                                    <button class="not-btn mr-2" title="Enviar email de cupon de pago" ng-click="AbrirModalMailCuponPago(item)"><i class="fal fa-envelope-open-text font-23 green"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-show="PreContacto.Facturas.length > 0">
+            <div class="box mb-8" ng-class="PreContacto.ShowFacturas ? '' : 'pb-0'">
+                <div class="box-header with-border">
+                    <h3 class="box-title box-title-sm w100p">
+                        <button class="not-btn"><i class="fal fa-file-invoice-dollar font-23 blue"></i></button>
+                        Facturas ({{ PreContacto.Facturas.length }})
+                        <button class="not-btn pull-right" ng-click="PreContacto.ShowFacturas = PreContacto.ShowFacturas ? false : true"><i class="fad font-23 blue" ng-class="PreContacto.ShowFacturas ? 'fa-chevron-double-up' : 'fa-chevron-double-down'"></i></button>
+                    </h3>
+                </div>
+                <div class="box-body" style="padding: 6px 0px;" ng-show="PreContacto.ShowFacturas" ng-class="PreContacto.ShowFacturas ? 'fade in' : 'fade out'">
+                    <div class="table-responsive content">
+                        <div class="content-card">
+                            <div class="mdc-card demo-card-left" ng-repeat="item in PreContacto.Facturas">
+                                <div class="mdc-card-wrapper-text-section pb-5 pt-5">
+                                    <div class="demo-card-title">Factura N°.{{ item.Prefijo }}{{ item.Consecutivo }}</div>
+                                </div>
+                                <div class="mdc-card-media mdc-card-cotizacion pointer" ng-click="viewer.Open('API_FAC/api/PDFs/DocumentoD?TipoDocumentoID=1&DocumentoID=' + item.FacturaID)">
+                                    <i class="fal fa-file-invoice-dollar"></i>
+                                </div>
+                                <div class="mdc-card-wrapper-text-section" style="padding: 10px 16px 0 16px;">
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1" title="{{ item.NombreCompleto }}">{{ item.NombreCompleto }}</div>
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Valor: </div> {{ item.ValorFactura | currency : '' : 0 }}</div>
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Fecha: </div> {{ item.FechaCreacion | date : 'dd-MM-yyyy' }}</div>
+                                </div>
+                                <div class="mdc-card-wrapper-text-section text-center" style="padding: 8px 16px;">
+                                    <button class="not-btn mr-2" ng-click="AbrirModalMailFactura(item)"><i class="fal fa-envelope-open-text font-23 green"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-show="PreContacto.PreFacturas.length > 0 || PreContacto.Facturas.length > 0 || PreContacto.Inmuebles.length > 0 || PreContacto.PropuestasComercialesEnCaptacion == false">
+            <div class="box mb-8" ng-class="PreContacto.ShowInmueble ? '' : 'pb-0'">
+                <div class="box-header with-border">
+                    <h3 class="box-title box-title-sm w100p">
+                        <button class="not-btn"><i class="fal fa-home font-23 blue"></i></button>
+                        Captación del inmueble ({{ PreContacto.Inmuebles.length }})
+                        <button class="not-btn pull-right" ng-click="PreContacto.ShowInmueble = PreContacto.ShowInmueble ? false : true"><i class="fad font-23 blue" ng-class="PreContacto.ShowInmueble ? 'fa-chevron-double-up' : 'fa-chevron-double-down'"></i></button>
+                        <div class="mr-10 btn-agregar"><button class="btn btn-sm btn-primary btn-rigth" ng-click="AbrirNuevoInmueble()"> <!--ng-if="PreContacto.Inmuebles.length == 0"-->Nuevo inmueble <i class="fal fa-plus"></i></button></div>
+                    </h3>
+                </div>
+                <div class="box-body" style="padding: 6px 0px;" ng-show="PreContacto.ShowInmueble" ng-class="PreContacto.ShowInmueble ? 'fade in' : 'fade out'">
+                    <div class="table-responsive content">
+                        <div class="content-card">
+                            <div class="mdc-card demo-card-left" ng-repeat="item in PreContacto.Inmuebles" context-menu="MenuInmuebles">
+                                <div class="mdc-card-wrapper-text-section pb-5 pt-5">
+                                    <div class="demo-card-title">Inmueble N°.{{ item.Consecutivo }}</div>
+                                </div>
+                                <div class="mdc-card-media mdc-card-cotizacion pointer" ng-click="VerFichaInmueble(item)">
+                                    <i class="fal fa-home" style="font-size: 57px" ng-class="item.CausalDevolucionContratoNombre || item.EstadoProcesoInmuebleID == 3 ? 'red' : ''"></i>
+                                </div>
+                                <div class="mdc-card-wrapper-text-section" style="padding: 4px 16px 0 16px;">
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1 text-center">
+                                        <label class="control-label control-label-sm mb-3 ml-0 label-tipo1" style="width:100%" ng-class="item.EstadoProcesoInmuebleID == 1 ? 'label-primary' : (item.EstadoProcesoInmuebleID == 2 ? 'label-success' : (item.EstadoProcesoInmuebleID == 3 ? 'label-danger' : 'label-warning'))">{{ item.EstadoProcesoInmuebleNombre }}</label>
+                                    </div>
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1" title="{{ item.Direccion }}">{{ item.Direccion }}</div>
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Tipo: </div>{{ item.TipoInmuebleNombre }}</div>
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Oferta: </div>{{ item.TipoOfertaNombre }}</div>
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">{{ item.TipoOfertaID == 1 ? 'Canon' : 'Vlr. de venta' }}: </div>{{ (item.TipoOfertaID == 1 ? item.ValorCanon : item.ValorVenta) | currency : '' : 0 }}</div>
+                                </div>
+                                <div class="mdc-card-wrapper-text-section text-center" style="padding: 6px 16px;">
+                                    <button class="not-btn mr-2" data-container="body" data-original-title="Rechazo: {{ item.CausalDevolucionContratoNombre }}" ng-if="item.CausalDevolucionContratoNombre" data-trigger="hover" data-toggle="tooltip"><i class="fal fa-exclamation-triangle font-23 red"></i></button>
+                                    <button class="not-btn mr-2" title="Editar información del inmueble" ng-disabled="!Usuario.PermiteEdicionInmueble" ng-click="EditarInmueble(item)"><i class="fal fa-edit font-23 orange"></i></button>
+                                    <button class="not-btn mr-2" title="Publicar inmueble en plataformas" ng-disabled="!Usuario.PermitePublicacionPortales" ng-click="PublicarInmueble(item)"><i class="fal fa-cloud-upload font-23 blue"></i></button>
+                                </div>
+                            </div>
+                            <div class="mdc-card demo-card-left" ng-repeat="item in PreContacto.Inmuebles" style="min-height: 236.56px" ng-if="item.TipoOfertaID == 1">
+                                <div class="mdc-card-wrapper-text-section pb-5 pt-5">
+                                    <div class="demo-card-title">Inventario N°.{{ item.Consecutivo }}</div>
+                                </div>
+                                <div class="mdc-card-media mdc-card-cotizacion pointer">
+                                    <i class="fal fa-file" ng-click="item.InventarioUniqueID != null ? viewer.Open(item.RutaInventario == null ? ('API_GBI/api/PDFs/DocumentoB?TipoDocumentoID=19&UniqueID=' + item.InventarioUniqueID + '&Attachment=false') : item.RutaInventario) : ''" ng-class="item.InmuebleInventarioID != null && item.RutaInventario != null ? 'green' : (item.InmuebleInventarioID != null ? 'yelow' : 'red')" style="font-size: 66px"></i>
+                                </div>
+                                <div class="mdc-card-wrapper-text-section" style="padding: 3px 16px 5px 16px">
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1 text-center mb-3" ng-class="item.InmuebleInventarioID != null && item.RutaInventario != null ? 'green bold' : (item.InmuebleInventarioID != null ? 'yelow' : 'red')">{{ item.InmuebleInventarioID != null && item.RutaInventario != null ? 'Cargado' : (item.InmuebleInventarioID != null ? 'Generado' : 'Sin generar') }}</div>
+                                    <div class="demo-card-subhead text-center mb-6" ng-if="item.InmuebleInventarioID == null">
+                                        <button class="btn btn-sm btn-primary btn-rigth" ng-click="AbrirGenerarInventario()">Generar inventario <i class="fal fa-plus"></i></button>
+                                    </div>
+                                    <div class="demo-card-subhead text-center mb-4" ng-if="item.InmuebleInventarioID != null">
+                                        <button class="btn btn-sm btn-primary btn-rigth" ng-click="ModificarInventario(item)">Modificar inventario <i class="fal fa-edit"></i></button>
+                                    </div>
+                                    <div class="demo-card-subhead text-center mb-4">
+                                        <div class="btn-group">
+                                            <button class="btn btn-xs btn-success btn-rigth" ng-disabled="item.InventarioUniqueID == null" ng-click="DescargarInventarioRecibo(item)">PDF Sedi</button>
+                                            <button class="btn btn-xs btn-success btn-rigth" ng-disabled="item.RutaInventario == null" ng-click="DescargarInventarioReciboCargado(item)">PDF Cargado</button>
+                                        </div>
+                                    </div>
+                                    <div class="demo-card-subhead text-center">
+                                        <div class="btn-group">
+                                            <button class="btn btn-xs btn-success btn-rigth" ng-click="CargarInventarioRuta(item)" ng-disabled="item.InmuebleInventarioID == null || (item.RutaInventario != null && !Usuario.PermiteCargarInventario)">Cargar <i class="fal fa-paperclip"></i></button>
+                                            <button class="btn btn-xs btn-danger btn-rigth" ng-if="Usuario.PermiteQuitarInventario" ng-click="QuitarInventarioRuta(item)" ng-disabled="item.RutaInventario == null">Quitar <i class="fal fa-trash"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-show="(PreContacto.Inmuebles | filter : { 'EnTramiteMandato' : 'true' }).length > 0">
+            <div class="box mb-8" ng-class="PreContacto.ShowContratos ? '' : 'pb-0'">
+                <div class="box-header with-border">
+                    <h3 class="box-title box-title-sm w100p">
+                        <button class="not-btn"><i class="fal fa-file-contract font-23 blue"></i></button>
+                        Contratos de {{ (PreContacto.Inmuebles | filter : { 'TipoOfertaID' : 1 }).length > 0 ? 'mandato' : 'corretaje' }} ({{ (PreContacto.Inmuebles | filter : { 'EnTramiteMandato' : 'true' }).length }})
+                        <button class="not-btn pull-right" ng-click="PreContacto.ShowContratos = PreContacto.ShowContratos ? false : true">
+                            <i class="fad font-23 blue" ng-class="PreContacto.ShowContratos ? 'fa-chevron-double-up' : 'fa-chevron-double-down'"></i>
+                        </button>
+                    </h3>
+                </div>
+                <div class="box-body" style="padding: 6px 0px;" ng-show="PreContacto.ShowContratos" ng-class="PreContacto.ShowContratos ? 'fade in' : 'fade out'">
+                    <div class="table-responsive content">
+                        <div class="content-card">
+                            <div class="mdc-card demo-card-left" ng-repeat="item in (PreContacto.Inmuebles | filter : { 'EnTramiteMandato' : 'true' })">
+                                <div class="mdc-card-wrapper-text-section pb-5 pt-5">
+                                    <div class="demo-card-title">{{ item.ContratoMandatoAprobado == false ? 'En tramite' : ('Contrato N°.' + item.ContratoMandatoConsecutivo) }}</div>
+                                </div>
+                                <div class="mdc-card-media mdc-card-cotizacion pointer">
+                                    <i class="fal fa-file-contract" style="font-size: 60px" ng-class="item.ContratoMandatoAprobado == true && item.ContratoMandatoRuta != null ? 'green' : (item.ContratoMandatoAprobado == true && item.ContratoMandatoRuta == null ? 'yellow' : 'red')"></i>
+                                </div>
+                                <div class="mdc-card-wrapper-text-section" style="padding: 10px 16px 0 16px;">
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1" ng-class="item.ContratoMandatoAprobado == true && item.ContratoMandatoRuta != null ? 'green bold' : 'red'" title="{{ item.ContratoMandatoAprobado == true && item.ContratoMandatoRuta != null ? 'Aprobado' : (item.ContratoMandatoAprobado == true && item.ContratoMandatoRuta == null ? 'Aprobado pendiente para firma' : (item.EnTramiteMandato ? 'Solicitado' : 'En tramite')) }}">{{ item.ContratoMandatoAprobado == true && item.ContratoMandatoRuta != null ? 'Aprobado' : (item.ContratoMandatoAprobado == true && item.ContratoMandatoRuta == null ? 'Aprobado pendiente para firma' : (item.EnTramiteMandato ? 'Solicitado' : 'En tramite')) }}</div>
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Inmueble N°.{{ item.Consecutivo }}</div></div>
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Oferta: </div>{{ item.TipoOfertaNombre }}</div>
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">{{ item.TipoOfertaID == 1 ? 'Canon' : 'Vlr. de venta' }}: </div>{{ (item.TipoOfertaID == 1 ? item.ValorCanon : item.ValorVenta) | currency : '' : 0 }}</div>
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1" title="{{ item.Direccion }}">{{ item.Direccion }}</div>
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1">{{ item.TipoInmuebleNombre }}</div>
+                                </div>
+                                <div class="mdc-card-wrapper-text-section text-center" style="padding: 2px 16px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <file-viewer ng-viewer="viewer"></file-viewer>
+    <section class="content" ng-show="ModoView == 2" style="padding: 0;">
+        <div class="box">
+            <div class="box-header with-border">
+                <div class="flex flex-center flex-between">
+                    <h3 class="box-title box-title-sm">
+                        <button class="not-btn" ng-click="AtrasModoView();" title="Volver a los contactos"><i class="iconify icon-action-undo font-23" style="color: #6c757d !important;"></i></button>
+                        <span ng-bind="Titulo"></span>
+                    </h3>
+                    <button class="not-btn" ng-click="AtrasModoView();" title="Volver a los contactos"><i class="fad fa-times" style="color: #6c757d !important; font-size: 27px;"></i></button>
+                </div>
+            </div>
+            <div class="box-body" style="padding-top: 6px;" ng-class="Cotizacion.Aprobado == true ? 'disabled' : ''">
+                <div class="row">
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="title-bg rem-75">CONTACTO</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Nombres</label><strong class="red">*</strong>
+                        <div class="form-group has-feedback mb-3">
+                            <input type="text" class="form-control input-sm" placeholder="Nombres" ng-model="Cotizacion.Nombres" maxlength="250" required />
+                            <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Apellidos</label><strong class="red">*</strong>
+                        <div class="form-group has-feedback mb-3">
+                            <input type="text" class="form-control input-sm" placeholder="Apellidos" ng-model="Cotizacion.Apellidos" maxlength="250" required />
+                            <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Celular</label><strong class="red">*</strong>
+                        <div class="form-group has-feedback mb-3">
+                            <input type="text" class="form-control input-sm" placeholder="Celular" ng-model="Cotizacion.Celular" numbers-only maxlength="20" required />
+                            <span class="glyphicon glyphicon-phone form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-8 col-lg-8">
+                        <label class="control-label control-label-sm mb-0">Email</label><strong class="red">*</strong>
+                        <div class="form-group has-feedback mb-3">
+                            <input type="text" class="form-control input-sm" placeholder="Correo" ng-model="Cotizacion.Email" maxlength="200" required />
+                            <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Telefono</label>
+                        <div class="form-group has-feedback mb-3">
+                            <input type="text" class="form-control input-sm" placeholder="Telefono" ng-model="Cotizacion.Telefono" maxlength="35" required />
+                            <span class="glyphicon glyphicon-earphone form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-2 col-md-2 col-lg-2">
+                        <label class="control-label control-label-sm mb-0">Fecha propuesta</label><strong class="red">*</strong>
+                        <div class="has-feedback">
+                            <date-time-picker class="form-control input-sm" ng-model="Cotizacion.FechaElaboracion" format="DD/MM/YYYY" autocomplete="off" format-input="YYYY-MM-DD" placeholder="dd/mm/yyyy"></date-time-picker>
+                            <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
+                        <label class="control-label control-label-sm mb-0">Plantilla de la propuesta</label>
+                        <div class="form-group mb-3">
+                            <select class="form-control input-sm" ng-options="item.PlantillaDocumentoID as item.Nombre for item in PlantillasDocumentosCotizaciones" ng-model="Cotizacion.PlantillaDocumentoID"></select>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <label class="control-label control-label-sm mb-0">Observaciones</label>
+                        <div class="form-group mb-3">
+                            <textarea rows="2" maxlength="3000" class="form-control input-sm" ng-model="Cotizacion.PreContactoObservaciones" placeholder="Ingresar observaciones" style="width: 100%" required></textarea>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="panel-heading title-bg rem-75">
+                            <h4 class="panel-title" style="font-size: inherit; font-weight: 600;">
+                                <a data-toggle="collapse" data-target="#pnl-c-encabezado">ENCABEZADO</a>
+                            </h4>
+                            <button data-toggle="collapse" data-target="#pnl-c-encabezado" class="not-btn arrow-acordion collapsed"><i class="far"></i></button>
+                        </div>
+                        <div id="pnl-c-encabezado" class="panel-collapse collapse">
+                            <div class="panel-body border-0" style="padding: 9px 0">
+                                <summernote lang="es-ES" ng-model="Cotizacion.Encabezado"></summernote>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div ModeFicha="true">
+                            <table class="table table-sm table-striped table-factura">
+                                <thead>
+                                    <tr>
+                                        <th class="width-70">Opciones</th>
+                                        <th class="text-center width-90">Cantidad</th>
+                                        <th class="text-center width-90">Unidad</th>
+                                        <th class="text-center">Descripcion</th>
+                                        <th class="text-center width-130">Valor unitario</th>
+                                        <th class="text-center width-120">Descuento</th>
+                                        <th class="text-center width-120">Valor total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td data-title-text="Opciones" class="text-center width-70">
+                                            <button class="not-btn" ng-click="AgregarProducto();">
+                                                <i class="fal fa-plus-circle blue font-23"></i>
+                                            </button>
+                                        </td>
+                                        <td data-title-text="Cantidad">
+                                            <input type="text" class="form-control input-xs text-right" placeholder="0" ng-model="Producto.Cantidad" ng-change="CalcularProductoCotizacion()" ui-number-mask="0" />
+                                        </td>
+                                        <td data-title-text="Unidad">
+                                            <input type="text" class="form-control input-xs text-left" placeholder="Und" ng-model="Producto.UnidadMedida" maxlength="10" />
+                                        </td>
+                                        <td data-title-text="Descripción">
+                                            <div class="input-group" style="margin-bottom: 0px;">
+                                                <div custom-select="item.ProductoID as item.Nombre for item in searchProductos($searchTerm)" class="custom-select-xs" ng-model="Producto.ProductoID" custom-select-options="ddlProductoOptions" ng-show="Producto.ModoTexto != true"></div>
+                                                <input type="text" class="form-control input-xs" placeholder="Ingrese la descripción" ng-model="Producto.Descripcion" ng-show="Producto.ModoTexto == true" maxlength="500">
+                                                <span class="input-group-btn" ng-show="Producto.ProductoID != null">
+                                                    <button class="not-btn" style="height: 24px; padding: 1px 5px;" ng-click="CambiarModoProducto();">
+                                                        <i class="fad fa-exchange {{ Producto.ModoTexto ? 'green' : 'blue' }} font-23"></i>
+                                                    </button>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td data-title-text="Valor unitario">
+                                            <input type="text" class="form-control input-xs text-right" ng-model="Producto.ValorUnitario" placeholder="0" ng-change="CalcularProductoCotizacion()" ui-number-mask="2" />
+                                        </td>
+                                        <td data-title-text="Descuento">
+                                            <input type="text" class="form-control input-xs text-right" ng-model="Producto.ValorUnitarioDescuento" placeholder="0" ng-change="CalcularProductoCotizacion()" ui-number-mask="2" />
+                                        </td>
+                                        <td class="text-right" data-title-text="Valor Total">
+                                            <span class="font-13">{{ Producto.ValorTotal == undefined ? 0 : Producto.ValorTotal | currency : '' : 2 }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in Cotizacion.CotizacionesProductos" ng-if="item.Eliminar == false">
+                                        <td class="text-center width-70" data-title-text="Opciones">
+                                            <button class="not-btn" ng-click="AbrirModalImpuestos($index, item)">
+                                                <i class="fad fa-exclamation-triangle font-22" style="color: #f5c02a"></i>
+                                            </button>
+                                            <button class="not-btn" ng-click="EliminarProducto($index, item)">
+                                                <i class="fal fa-trash-alt red font-23"></i>
+                                            </button>
+                                        </td>
+                                        <td class="text-center" data-title-text="Cantidad">
+                                            <input type="text" class="form-control input-xs text-right" ng-model="item.Cantidad" placeholder="0" ng-change="CalcularProductoCotizacion(item)" ui-number-mask="2" />
+                                        </td>
+                                        <td data-title-text="Unidad">
+                                            <input type="text" class="form-control input-xs text-left" placeholder="Und" ng-model="item.UnidadMedida" maxlength="10" />
+                                        </td>
+                                        <td data-title-text="Descripción">
+                                            <input type="text" class="form-control input-xs" placeholder="Ingrese la descripción" ng-model="item.Descripcion" maxlength="500">
+                                        </td>
+                                        <td class="text-right" data-title-text="Valor unitario">
+                                            <input type="text" class="form-control input-xs text-right" ng-model="item.ValorUnitario" placeholder="0" ng-change="CalcularProductoCotizacion(item)" ui-number-mask="2" />
+                                        </td>
+                                        <td class="text-right" data-title-text="Descuento">
+                                            <input type="text" class="form-control input-xs text-right" ng-model="item.ValorUnitarioDescuento" placeholder="0" ng-change="CalcularProductoCotizacion(item)" ui-number-mask="2" />
+                                        </td>
+                                        <td class="text-right" data-title-text="Valor total">
+                                            <span class="font-13">{{ item.ValorTotal | currency : "" : 2 }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td mf-diplay="false" colspan="6" class="text-right"><strong>SubTotal</strong></td>
+                                        <td data-title-text="SubTotal" class="text-right">
+                                            <span class="font-13">{{ Cotizacion.ValorNeto | currency : "" : 2 }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in Cotizacion.Impuestos">
+                                        <td mf-diplay="false" colspan="6" class="text-right"><strong>{{ item.ImpuestoNombre }}:</strong></td>
+                                        <td data-title-text="{{ item.ImpuestoNombre }}" class="text-right">
+                                            <span class="font-13">{{ item.ValorImpuesto | currency : "" : 2 }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td mf-diplay="false" colspan="6" class="text-right"><strong>Total</strong></td>
+                                        <td data-title-text="Total" class="text-right">
+                                            <span class="font-13">{{ Cotizacion.ValorTotal | currency : "" : 2 }}</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="panel-heading title-bg rem-75">
+                            <h4 class="panel-title" style="font-size: inherit; font-weight: 600;">
+                                <a data-toggle="collapse" data-target="#pnl-c-condiciones">CONDICIONES</a>
+                            </h4>
+                            <button data-toggle="collapse" data-target="#pnl-c-condiciones" class="not-btn arrow-acordion"><i class="far"></i></button>
+                        </div>
+                        <div id="pnl-c-condiciones" class="panel-collapse collapse show">
+                            <div class="panel-body border-0" style="padding: 9px 0">
+                                <summernote lang="es-ES" ng-model="Cotizacion.Condiciones"></summernote>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="box-footer" ng-if="Cotizacion.Aprobado != true">
+                <button class="btn btn-sm btn-primary pull-right" ng-click="GuardarCotizacion()" ng-if="Cotizacion.CotizacionID == null"><i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Crear</button>
+                <button class="btn btn-sm btn-primary pull-right" ng-click="ActualizarCotizacion()" ng-if="Cotizacion.CotizacionID != null"><i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Guardar</button>
+            </div>
+        </div>
+    </section>
+    <div id="modalImpuestos" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title modal-title-sm"><i class="fa fa-gavel" aria-hidden="true"></i>&nbsp;&nbsp;Impuestos y retenciones</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive" ModeFicha="true" style="margin: 0px;">
+                        <table class="table table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Impuesto</th>
+                                    <th class="text-center width-100">Valor</th>
+                                    <th class="width-60">Opciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td data-title-text="Impuesto">
+                                        <select class="form-control input-sm" ng-options="item.ImpuestoID as item.Nombre for item in Impuestos" ng-change="ChangeImpuestos()" ng-model="Impuesto.ImpuestoID"></select>
+                                    </td>
+                                    <td data-title-text="Valor">
+                                        <input class="form-control input-sm text-right" type="text" ng-model="Impuesto.ValorImpuesto" placeholder="0" ui-number-mask="2" ui-negative-number />
+                                    </td>
+                                    <td class="text-center" data-title-text="Opciones">
+                                        <button class="not-btn" ng-click="AgregarImpuesto();">
+                                            <i class="fal fa-plus-circle blue font-23"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr ng-repeat="item in ProductoEdicion.Impuestos" ng-if="item.Eliminar == false">
+                                    <td data-title-text="Impuesto">
+                                        {{ item.ImpuestoNombre }}
+                                    </td>
+                                    <td data-title-text="Valor">
+                                        <input class="form-control input-xs text-right" type="text" ng-model="item.ValorImpuesto" ui-number-mask="2" ui-negative-number />
+                                    </td>
+                                    <td class="text-center" data-title-text="Opciones">
+                                        <button class="not-btn" ng-click="EliminarImpuesto($index, item)">
+                                            <i class="fal fa-trash-alt red font-23"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-danger pull-right" ng-click="DescartarCambiosImpuestos();"><i class="glyphicon glyphicon-remove"></i>&nbsp;&nbsp;Cancelar</button>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-success pull-right" ng-click="AplicarCambiosImpuestos();"><i class="glyphicon glyphicon-ok"></i>&nbsp;&nbsp;Aplicar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <section class="content" ng-show="ModoView == 3" style="padding: 0;">
+        <div class="box">
+            <div class="box-header with-border">
+                <div class="flex flex-center flex-between">
+                    <h3 class="box-title box-title-sm">
+                        <button class="not-btn" ng-click="AtrasModoView();" title="Volver a los contactos"><i class="iconify icon-action-undo font-23" style="color: #6c757d !important;"></i></button>
+                        <span ng-bind="Titulo"></span>
+                    </h3>
+                    <button class="not-btn" ng-click="AtrasModoView();" title="Volver a los contactos"><i class="fad fa-times" style="color: #6c757d !important; font-size: 27px;"></i></button>
+                </div>
+            </div>
+            <div class="box-body" style="padding: 6px 0px;">
+                <div class="row">
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="panel-heading title-bg rem-75">
+                            <h4 class="panel-title" style="font-size: inherit; font-weight: 600;">
+                                <a data-toggle="collapse" data-target="#pnl-co-contacto">CONTACTO</a>
+                            </h4>
+                            <button data-toggle="collapse" data-target="#pnl-co-contacto" class="not-btn arrow-acordion collapsed"><i class="far"></i></button>
+                        </div>
+                        <div id="pnl-co-contacto" class="panel-collapse collapse">
+                            <div class="panel-body border-0" style="padding: 9px 0">
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Nombres</label><strong class="red">*</strong>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" placeholder="Nombres" ng-model="CupoPago.Nombres" maxlength="250" required />
+                                            <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Apellidos</label><strong class="red">*</strong>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" placeholder="Apellidos" ng-model="CupoPago.Apellidos" maxlength="250" required />
+                                            <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Celular</label><strong class="red">*</strong>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" placeholder="Celular" ng-model="CupoPago.Celular" maxlength="20" required />
+                                            <span class="glyphicon glyphicon-phone form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-8 col-lg-8">
+                                        <label class="control-label control-label-sm mb-0">Email</label>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" placeholder="Correo" ng-model="CupoPago.Email" maxlength="200" required />
+                                            <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Telefono</label>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" placeholder="Telefono" ng-model="CupoPago.Telefono" maxlength="35" required />
+                                            <span class="glyphicon glyphicon-earphone form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                        <label class="control-label control-label-sm mb-0">Observaciones</label>
+                                        <div class="form-group mb-3">
+                                            <textarea rows="2" maxlength="3000" class="form-control input-sm" ng-model="CupoPago.PreContactoObservaciones" placeholder="Ingresar observaciones" style="width: 100%" required></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel-heading title-bg rem-75">
+                            <h4 class="panel-title" style="font-size: inherit; font-weight: 600;">
+                                <a data-toggle="collapse" data-target="#pnl-co-cliente">CLIENTE</a>
+                            </h4>
+                            <button data-toggle="collapse" data-target="#pnl-co-cliente" class="not-btn arrow-acordion"><i class="far"></i></button>
+                        </div>
+                        <div id="pnl-co-cliente" class="panel-collapse collapse show">
+                            <div class="panel-body border-0" style="padding: 9px 0">
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Tipo documento</label><strong class="red">*</strong>
+                                        <div class="form-group mb-3">
+                                            <select class="form-control input-sm" ng-options="item.TipoDocumentoID as item.Nombre for item in TiposDocumentos" ng-model="CupoPago.ClienteTipoDocumentoID"></select>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Documento</label>&nbsp;&nbsp;<span class="red font-11">(Sin dígito de verificación)</span><strong class="red">*</strong>
+                                        <div class="input-group mb-3">
+                                            <documento-box class="form-control input-sm" ng-numerico="{{(TiposDocumentos | filter:{ TipoDocumentoID: CupoPago.ClienteTipoDocumentoID })[0].Numerico}}" ng-model="CupoPago.ClienteDocumento" ng-disabled="CupoPago.TerceroID != null" placeholder="Ingrese documento"></documento-box>
+                                            <div class="input-group-btn input-group-not-btn">
+                                                <button class="not-btn" ng-click="BuscarTercero(CupoPago)"><i class="fal fa-search font-18 blue"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Tipo persona</label><strong class="red">*</strong>
+                                        <div class="form-group mb-3">
+                                            <select class="form-control input-sm" ng-options="item.TipoPersonaID as item.Nombre for item in TiposPersonas" ng-model="CupoPago.ClienteTipoPersonaID" ng-change="ChangeTipoPersona(CupoPago)"></select>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 {{ CupoPago.ShowTipoPersona ? 'col-md-3 col-lg-3' : 'col-md-12 col-lg-12' }}">
+                                        <label class="control-label control-label-sm mb-0">{{ CupoPago.ShowTipoPersona ? 'Nombres' : 'Empresa' }}</label><strong class="red">*</strong>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" ng-model="CupoPago.ClienteNombres" required maxlength="250" placeholder="Ingrese los nombres" />
+                                            <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-if="CupoPago.ShowTipoPersona">
+                                        <label class="control-label control-label-sm mb-0">Nombres 2</label>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" ng-model="CupoPago.ClienteNombres2" required maxlength="250" placeholder="Ingrese los nombres" />
+                                            <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-if="CupoPago.ShowTipoPersona">
+                                        <label class="control-label control-label-sm mb-0">Apellidos</label><strong class="red">*</strong>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" ng-model="CupoPago.ClienteApellidos" required maxlength="250" placeholder="Ingrese los apellidos" />
+                                            <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-if="CupoPago.ShowTipoPersona">
+                                        <label class="control-label control-label-sm mb-0">Apellidos 2</label>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" ng-model="CupoPago.ClienteApellidos2" required maxlength="250" placeholder="Ingrese los apellidos" />
+                                            <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                                        <label class="control-label control-label-sm mb-0">Dirección</label>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" ng-model="CupoPago.ClienteDireccion" required maxlength="200" placeholder="Ingrese la dirección" />
+                                            <span class="icon glyphicon glyphicon-pushpin form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                        <label class="control-label control-label-sm mb-0">Telefono</label>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" ng-model="CupoPago.ClienteTelefono" required maxlength="40" placeholder="Ingrese el telefono" />
+                                            <span class="icon glyphicon glyphicon-earphone form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                        <label class="control-label control-label-sm mb-0">Celular</label><strong class="red">*</strong>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" ng-model="CupoPago.ClienteCelular" required maxlength="20" placeholder="Ingrese celular" />
+                                            <span class="icon glyphicon glyphicon-phone form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                        <label class="control-label control-label-sm mb-0">Email</label> <span class="aviso-email font-10">"Para ingresar varios emails separarlo por <strong class="font-14">;</strong> sin espacios."</span>
+                                        <div class="form-group has-feedback mb-3">
+                                            <email-box class="form-control input-sm" ng-model="CupoPago.ClienteEmail" maxlength="400" placeholder="Ingrese el email"></email-box>
+                                            <span class="icon glyphicon glyphicon-envelope form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                        <label class="control-label control-label-sm mb-0">Email facturación electronica</label> <span class="aviso-email font-10">"Para ingresar varios emails separarlo por <strong class="font-14">;</strong> sin espacios."</span><strong class="red">*</strong>
+                                        <div class="form-group has-feedback mb-3">
+                                            <email-box class="form-control input-sm" ng-model="CupoPago.ClienteEmailFacturacionElectronica" maxlength="400" placeholder="Ingrese el email"></email-box>
+                                            <span class="icon glyphicon glyphicon-envelope form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Pais</label><strong class="red">*</strong>
+                                        <div class="form-group mb-3">
+                                            <div custom-select="item.PaisID as item.Nombre for item in searchPaises($searchTerm)" class="custom-select-sm" custom-select-options="ddlSearchPaisesCliente" ng-model="CupoPago.ClientePaisID"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4" ng-show="CupoPago.ClientePaisCodigoISO == 'co' || CupoPago.ClienteCiudadID != null">
+                                        <label class="control-label control-label-sm mb-0">Ciudad</label><strong class="red">*</strong>
+                                        <div class="form-group mb-3">
+                                            <div custom-select="item.CiudadID as item.Nombre for item in searchCiudades($searchTerm)" class="custom-select-sm" ng-model="CupoPago.ClienteCiudadID"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Responsabilidad tributaria</label>
+                                        <div class="form-group mb-3">
+                                            <select class="form-control input-sm" ng-options="item.ResponsabilidadTributariaID as item.Descripcion for item in Responsabilidades" ng-model="CupoPago.ClienteResponsabilidadTributariaID"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-2 col-md-2 col-lg-2">
+                        <label class="control-label control-label-sm mb-0">Fecha creación</label><strong class="red">*</strong>
+                        <div class="has-feedback">
+                            <date-time-picker class="form-control input-sm" ng-model="CupoPago.FechaCreacion" format="DD/MM/YYYY" autocomplete="off" placeholder="dd/mm/yyyy"></date-time-picker>
+                            <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-2 col-md-2 col-lg-2">
+                        <label class="control-label control-label-sm mb-0">Fecha vencimiento</label><strong class="red">*</strong>
+                        <div class="has-feedback">
+                            <date-time-picker class="form-control input-sm" ng-model="CupoPago.FechaVencimiento" format="DD/MM/YYYY" autocomplete="off" placeholder="dd/mm/yyyy"></date-time-picker>
+                            <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="box-footer">
+                <div class="form-check form-check-left" style="margin-left: 10px;">
+                    <input type="checkbox" class="form-check-input mt-0" id="checked_CP-PSE" ng-model="CupoPago.Pse">
+                    <label class="form-check-label control-label control-label-sm" for="checked_CP-PSE" style="font-weight: 700;">PSE</label>
+                </div>
+                <div class="form-check form-check-left" style="margin-left: 10px;">
+                    <input type="checkbox" class="form-check-input mt-0" id="checked_CP-EnviarCuponPago" ng-model="CupoPago.EnviarCuponPago">
+                    <label class="form-check-label control-label control-label-sm" for="checked_CP-EnviarCuponPago" style="font-weight: 700;">Enviar cupon de pago</label>
+                </div>
+                <button class="btn btn-sm btn-primary pull-right" ng-click="GenerarCuponPago()"><i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Generar</button>
+            </div>
+        </div>
+    </section>
+    <div id="modalPublicacion" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" data-target="#modalPublicacion"><i class="fal fa-times"></i></button>
+                    <h4 class="modal-title modal-title-sm"><i class="fal fa-home font-23" aria-hidden="true"></i>&nbsp;&nbsp;Publicaciones del inmueble N°.{{ InmueblePortales.Consecutivo + (InmueblePortales.CodigoExternoComercial == null ? '' : ' - ' + InmueblePortales.CodigoExternoComercial) }}</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive mb-0" ModeFicha="true">
+                        <table class="table table-striped mb-0">
+                            <tbody>
+                                <tr>
+                                    <td data-title-text="Seleccionar" class="text-center" style="vertical-align: middle">
+                                        <div class="form-check mt-6">
+                                            <input type="checkbox" class="form-check-input" id="checked_Finca" ng-model="InmueblePortales.PublicarFincaRaiz" ng-disabled="!connectFR">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_Finca"></label>
+                                        </div>
+                                    </td>
+                                    <td data-title-text="Portal" class="text-center width-130" style="vertical-align: middle">
+                                        <img src="/images/logos/LogoFincaRaiz.svg" style="max-height: 45px; cursor:pointer;" ng-style="{ 'filter': InmueblePortales.PublicarFincaRaiz == true ? 'grayscale(0%)' : 'grayscale(100%)' }" ng-click="SetFincaRaiz();" />
+                                    </td>
+                                    <td class="text-center pt-5" data-title-text="Opciones" style="padding: 0;vertical-align: middle">
+                                        <button class="btn not-btn pull-right" title="Actualizar el codigo de Finca Raiz" ng-click="ValidarCodigoFincaRaiz()" ng-if="InmueblePortales.FincaRaiz">
+                                            <i class="fad fa-sync"></i>
+                                        </button>
+                                        <div class="btn-group mb-6" ng-if="InmueblePortales.LoadFincaRaiz == false">
+                                            <button class="btn btn-xs btn-primary" ng-disabled="InmueblePortales.PublicarFincaRaiz == false || InmueblePortales.FincaRaizAutomatico == false || connectFR == false" ng-click="PublicarFincaRaiz()">
+                                                <i class="fal fa-upload"></i> Publicar
+                                            </button>
+                                            <button class="btn btn-xs btn-danger" ng-if="InmueblePortales.FincaRaiz" ng-disabled="InmueblePortales.PublicarFincaRaiz == false || InmueblePortales.FincaRaizAutomatico == false" ng-click="DesactivarFincaRaiz()">
+                                                <i class="fal fa-upload fa-rotate-180"></i> Desactivar
+                                            </button>
+                                            <button class="btn btn-xs" ng-class="InmueblePortales.FincaRaizAutomatico ? 'btn-default' : 'btn-warning'" ng-disabled="InmueblePortales.PublicarFincaRaiz == false" ng-click="InmueblePortales.FincaRaizAutomatico = !InmueblePortales.FincaRaizAutomatico; InmueblePortales.ErroresFincaRaiz = null">
+                                                <i class="fal fa-exchange"></i> {{ InmueblePortales.FincaRaizAutomatico ? 'Codigo' : 'Publicador' }}
+                                            </button>
+                                            <button class="btn btn-xs btn-danger" ng-if="InmueblePortales.ErroresFincaRaiz" ng-click="AbrirModalLog(InmueblePortales.ErroresFincaRaiz)">
+                                                <i class="fal fa-bug"></i> Errores
+                                            </button>
+                                        </div>
+                                        <div ng-if="InmueblePortales.LoadFincaRaiz == true" class="text-center">
+                                            <i class="fad fa-fw font-20 fa-spin mb-5 fa-spinner-third" style="color: #23547e"></i>
+                                        </div>
+                                        <div ng-if="InmueblePortales.FincaRaizAutomatico">
+                                            <label class="control-label label-sedi font-12" ng-class="InmueblePortales.FincaRaiz == null ? 'label-danger' : 'label-success'" ng-click="InmueblePortales.FincaRaiz != null ? AbrirLinkFincaRaiz(InmueblePortales.FincaRaiz) : ''">{{ InmueblePortales.FincaRaiz == null ? 'Sin publicar' : ('Publicado código: ' + InmueblePortales.FincaRaiz) }}</label>
+                                        </div>
+                                        <div ng-if="!InmueblePortales.FincaRaizAutomatico" class="input-group mb-5">
+                                            <input type="text" class="form-control input-xs" placeholder="Codigo de finca raiz" required ng-disabled="InmueblePortales.PublicarFincaRaiz == false" ng-model="InmueblePortales.FincaRaiz" />
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-xs btn-success pt-1" ng-click="GuardarCodigoFincaRaiz()" ng-disabled="InmueblePortales.PublicarFincaRaiz == false"><i class="fal fa-save font-16" style="padding: 0"></i></button>
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td data-title-text="Seleccionar" class="text-center" style="vertical-align: middle">
+                                        <div class="form-check mt-6">
+                                            <input type="checkbox" class="form-check-input" id="checked_Mercado" ng-model="InmueblePortales.PublicarMercadoLibre" ng-disabled="!connectML">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_Mercado"></label>
+                                        </div>
+                                    </td>
+                                    <td data-title-text="Portal" class="text-center width-130" style="vertical-align: middle">
+                                        <img src="/images/logos/LogoMercadoLibre.png" style="max-height: 45px; cursor:pointer;" ng-style="{ 'filter': InmueblePortales.PublicarMercadoLibre == true ? 'grayscale(0%)' : 'grayscale(100%)' }" ng-click="SetMercadoLibre();" />
+                                    </td>
+                                    <td class="text-center pt-5" data-title-text="Opciones" style="padding: 0;vertical-align: middle">
+                                        <div class="btn-group mb-6" ng-if="InmueblePortales.LoadMercadoLibre == false">
+                                            <button class="btn btn-xs btn-primary" ng-disabled="InmueblePortales.PublicarMercadoLibre == false || InmueblePortales.MercadoLibreAutomatico == false || connectML == false" ng-click="PublicarMercadoLibre()">
+                                                <i class="fal fa-upload"></i> Publicar
+                                            </button>
+                                            <button class="btn btn-xs btn-danger" ng-if="InmueblePortales.MercadoLibre" ng-disabled="InmueblePortales.PublicarMercadoLibre == false || InmueblePortales.MercadoLibreAutomatico == false" ng-click="DesactivarMercadoLibre()">
+                                                <i class="fal fa-upload fa-rotate-180"></i> Desactivar
+                                            </button>
+                                            <button class="btn btn-xs" ng-class="InmueblePortales.MercadoLibreAutomatico ? 'btn-default' : 'btn-warning'" ng-disabled="InmueblePortales.PublicarMercadoLibre == false" ng-click="InmueblePortales.MercadoLibreAutomatico = !InmueblePortales.MercadoLibreAutomatico; InmueblePortales.ErroresMercadoLibre = null">
+                                                <i class="fal fa-exchange"></i> {{ InmueblePortales.MercadoLibreAutomatico ? 'Codigo' : 'Publicador' }}
+                                            </button>
+                                            <button class="btn btn-xs btn-danger" ng-if="InmueblePortales.ErroresMercadoLibre" ng-click="AbrirModalLog(InmueblePortales.ErroresMercadoLibre)">
+                                                <i class="fal fa-bug"></i> Errores
+                                            </button>
+                                        </div>
+                                        <div ng-if="InmueblePortales.LoadMercadoLibre == true" class="text-center">
+                                            <i class="fad fa-fw font-20 fa-spin mb-5 fa-spinner-third" style="color: #23547e"></i>
+                                        </div>
+                                        <div ng-if="InmueblePortales.MercadoLibreAutomatico">
+                                            <label class="control-label label-sedi font-12" ng-class="InmueblePortales.MercadoLibre == null ? 'label-danger' : 'label-success'" ng-click="InmueblePortales.MercadoLibre != null ? AbrirLinkMercadoLibre(InmueblePortales.MercadoLibre) : ''">{{ InmueblePortales.MercadoLibre == null ? 'Sin publicar' : ('Publicado código: ' + InmueblePortales.MercadoLibre) }}</label>
+                                        </div>
+                                        <div ng-if="!InmueblePortales.MercadoLibreAutomatico" class="input-group mb-5">
+                                            <input type="text" class="form-control input-xs" placeholder="Codigo de mercado libre" required ng-disabled="InmueblePortales.PublicarMercadoLibre == false" ng-model="InmueblePortales.MercadoLibre" />
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-xs btn-success pt-1" ng-click="GuardarCodigoMercadoLibre()" ng-disabled="InmueblePortales.PublicarMercadoLibre == false"><i class="fal fa-save font-16" style="padding: 0"></i></button>
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td data-title-text="Seleccionar" class="text-center" style="vertical-align: middle">
+                                        <div class="form-check mt-6">
+                                            <input type="checkbox" class="form-check-input" id="checked_CienCuadras" ng-model="InmueblePortales.PublicarCienCuadras" ng-disabled="!connectCC">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_CienCuadras"></label>
+                                        </div>
+                                    </td>
+                                    <td data-title-text="Portal" class="text-center width-130" style="vertical-align: middle">
+                                        <img src="/images/logos/LogoCienCuadras.png" style="max-height: 45px; cursor:pointer;" ng-style="{ 'filter': InmueblePortales.PublicarCienCuadras == true ? 'grayscale(0%)' : 'grayscale(100%)' }" ng-click="SetCienCuadras();" />
+                                    </td>
+                                    <td class="text-center pt-5" data-title-text="Opciones" style="padding: 0;vertical-align: middle">
+                                        <button class="btn not-btn pull-right" title="Actualizar el codigo de cien cuadras" ng-click="ValidarCodigoCienCuadras()" ng-if="InmueblePortales.CienCuadras">
+                                            <i class="fad fa-sync"></i>
+                                        </button>
+                                        <div class="btn-group mb-6" ng-if="InmueblePortales.LoadCienCuadras == false">
+                                            <button class="btn btn-xs btn-primary" ng-disabled="InmueblePortales.PublicarCienCuadras == false || InmueblePortales.CienCuadrasAutomatico == false || connectCC == false" ng-click="PublicarCienCuadras()">
+                                                <i class="fal fa-upload"></i> Publicar
+                                            </button>
+                                            <button class="btn btn-xs btn-danger" ng-if="InmueblePortales.CienCuadras" ng-disabled="InmueblePortales.PublicarCienCuadras == false || InmueblePortales.CienCuadrasAutomatico == false" ng-click="DesactivarCienCuadras()">
+                                                <i class="fal fa-upload fa-rotate-180"></i> Desactivar
+                                            </button>
+                                            <button class="btn btn-xs" ng-class="InmueblePortales.CienCuadrasAutomatico ? 'btn-default' : 'btn-warning'" ng-disabled="InmueblePortales.PublicarCienCuadras == false" ng-click="InmueblePortales.CienCuadrasAutomatico = !InmueblePortales.CienCuadrasAutomatico; InmueblePortales.ErroresCienCuadras = null">
+                                                <i class="fal fa-exchange"></i> {{ InmueblePortales.CienCuadrasAutomatico ? 'Codigo' : 'Publicador' }}
+                                            </button>
+                                            <button class="btn btn-xs btn-danger" ng-if="InmueblePortales.ErroresCienCuadras" ng-click="AbrirModalLog(InmueblePortales.ErroresCienCuadras)">
+                                                <i class="fal fa-bug"></i> Errores
+                                            </button>
+                                        </div>
+                                        <div ng-if="InmueblePortales.LoadCienCuadras == true" class="text-center">
+                                            <i class="fad fa-fw font-20 fa-spin mb-5 fa-spinner-third" style="color: #23547e"></i>
+                                        </div>
+                                        <div ng-if="InmueblePortales.CienCuadrasAutomatico">
+                                            <label class="control-label label-sedi font-12" ng-class="InmueblePortales.CienCuadras == null ? 'label-danger' : 'label-success'" ng-click="InmueblePortales.CienCuadrasPropertyID != null ? AbrirLinkCienCuadras(InmueblePortales.CienCuadrasPropertyID) : ''">
+                                                {{ InmueblePortales.CienCuadras == null ? 'Sin publicar' : (InmueblePortales.CienCuadrasPropertyID == null ? 'Pendiente de activación' : ('Publicado código: ' + InmueblePortales.CienCuadras)) }}
+                                            </label>
+                                        </div>
+                                        <div ng-if="!InmueblePortales.CienCuadrasAutomatico" class="input-group mb-5">
+                                            <input type="text" class="form-control input-xs" placeholder="Codigo de cien cuadras" required ng-disabled="InmueblePortales.PublicarCienCuadras == false" ng-model="InmueblePortales.CienCuadras" />
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-xs btn-success pt-1" ng-click="GuardarCodigoCienCuadras()" ng-disabled="InmueblePortales.PublicarCienCuadras == false"><i class="fal fa-save font-16" style="padding: 0"></i></button>
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td data-title-text="Seleccionar" class="text-center" style="vertical-align: middle">
+                                        <div class="form-check mt-6">
+                                            <input type="checkbox" class="form-check-input" id="checked_Paxzu" ng-model="InmueblePortales.PublicarPaxzu" ng-disabled="!connectWS">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_Paxzu"></label>
+                                        </div>
+                                    </td>
+                                    <td data-title-text="Portal" class="text-center width-130" style="vertical-align: middle">
+                                        <img src="/images/logos/ws.png" style="max-height: 45px; cursor:pointer;" ng-style="{ 'filter': InmueblePortales.PublicarPaxzu == true ? 'grayscale(0%)' : 'grayscale(100%)' }" ng-click="SetWebService();" />
+                                    </td>
+                                    <td class="text-center pt-5" data-title-text="Opciones" style="padding: 0;vertical-align: middle">
+                                        <div class="btn-group mb-6" ng-if="InmueblePortales.LoadPaxzu == false">
+                                            <button class="btn btn-xs btn-primary" ng-disabled="InmueblePortales.PublicarPaxzu == false || InmueblePortales.PaxzuAutomatico == false || connectWS == false" ng-click="PublicarPaxzu()">
+                                                <i class="fal fa-upload"></i> Publicar
+                                            </button>
+                                            <button class="btn btn-xs btn-danger" ng-if="InmueblePortales.Paxzu" ng-disabled="InmueblePortales.PublicarPaxzu == false || InmueblePortales.PaxzuAutomatico == false" ng-click="DesactivarPaxzu()">
+                                                <i class="fal fa-upload fa-rotate-180"></i> Desactivar
+                                            </button>
+                                            <button class="btn btn-xs" ng-class="InmueblePortales.PaxzuAutomatico ? 'btn-default' : 'btn-warning'" ng-disabled="true" ng-click="InmueblePortales.PaxzuAutomatico = !InmueblePortales.PaxzuAutomatico; InmueblePortales.ErroresPaxzu = null">
+                                                <i class="fal fa-exchange"></i> {{ InmueblePortales.PaxzuAutomatico ? 'Codigo' : 'Publicador' }}
+                                            </button>
+                                            <button class="btn btn-xs btn-danger" ng-if="InmueblePortales.ErroresPaxzu" ng-click="AbrirModalLog(InmueblePortales.ErroresPaxzu)">
+                                                <i class="fal fa-bug"></i> Errores
+                                            </button>
+                                        </div>
+                                        <div ng-if="InmueblePortales.LoadPaxzu == true" class="text-center">
+                                            <i class="fad fa-fw font-20 fa-spin mb-5 fa-spinner-third" style="color: #23547e"></i>
+                                        </div>
+                                        <div ng-if="InmueblePortales.PaxzuAutomatico">
+                                            <label class="control-label label-sedi font-12" ng-class="InmueblePortales.Paxzu == null ? 'label-danger' : 'label-success'" ng-click="InmueblePortales.Paxzu != null ? AbrirLinkPaxzu(InmueblePortales.Paxzu) : ''">{{ InmueblePortales.Paxzu == null ? 'Sin publicar' : ('Publicado codigo: ' + InmueblePortales.Paxzu) }}</label>
+                                        </div>
+                                        <div ng-if="!InmueblePortales.PaxzuAutomatico" class="input-group mb-5">
+                                            <input type="text" class="form-control input-xs" placeholder="Codigo de paxzu" required ng-disabled="InmueblePortales.PublicarPaxzu == false" ng-model="InmueblePortales.Paxzu" />
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-xs btn-success pt-1" ng-click="GuardarCodigoPaxzu()" ng-disabled="InmueblePortales.PublicarPaxzu == false"><i class="fal fa-save font-16" style="padding: 0"></i></button>
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td data-title-text="Seleccionar" class="text-center" style="vertical-align: middle">
+                                        <div class="form-check mt-6">
+                                            <input type="checkbox" class="form-check-input" id="checked_MetroCuadrado" ng-model="InmueblePortales.PublicarMetroCuadrado" ng-disabled="!connectMC">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_MetroCuadrado"></label>
+                                        </div>
+                                    </td>
+                                    <td data-title-text="Portal" class="text-center width-130" style="vertical-align: middle">
+                                        <img src="/images/logos/LogoMetroCuadrado.png" style="max-height: 45px; cursor:pointer;" ng-style="{ 'filter': InmueblePortales.PublicarMetroCuadrado == true ? 'grayscale(0%)' : 'grayscale(100%)' }" ng-click="SetMetroCuadrado();" />
+                                    </td>
+                                    <td class="text-center pt-5" data-title-text="Opciones" style="padding: 0;vertical-align: middle">
+                                        <button class="btn not-btn pull-right" title="Actualizar el codigo de metro cuadrado" ng-click="ValidarCodigoMetroCuadrado()" ng-if="InmueblePortales.MetroCuadradoTranID != null">
+                                            <i class="fad fa-sync"></i>
+                                        </button>
+                                        <div class="btn-group mb-6" ng-if="InmueblePortales.LoadMetroCuadrado == false">
+                                            <button class="btn btn-xs btn-primary" ng-disabled="InmueblePortales.PublicarMetroCuadrado == false || InmueblePortales.MetroCuadradoAutomatico == false || connectMC == false" ng-click="PublicarMetroCuadrado()">
+                                                <i class="fal fa-upload"></i> Publicar
+                                            </button>
+                                            <button class="btn btn-xs btn-danger" ng-if="InmueblePortales.MetroCuadrado" ng-disabled="InmueblePortales.PublicarMetroCuadrado == false || InmueblePortales.MetroCuadradoAutomatico == false" ng-click="DesactivarMetroCuadrado()">
+                                                <i class="fal fa-upload fa-rotate-180"></i> Desactivar
+                                            </button>
+                                            <button class="btn btn-xs" ng-class="InmueblePortales.MetroCuadradoAutomatico ? 'btn-default' : 'btn-warning'" ng-disabled="InmueblePortales.PublicarMetroCuadrado == false" ng-click="InmueblePortales.MetroCuadradoAutomatico = !InmueblePortales.MetroCuadradoAutomatico; InmueblePortales.ErroresMetroCuadrado = null">
+                                                <i class="fal fa-exchange"></i> {{ InmueblePortales.MetroCuadradoAutomatico ? 'Codigo' : 'Publicador' }}
+                                            </button>
+                                            <button class="btn btn-xs btn-danger" ng-if="InmueblePortales.ErroresMetroCuadrado" ng-click="AbrirModalLog(InmueblePortales.ErroresMetroCuadrado)">
+                                                <i class="fal fa-bug"></i> Errores
+                                            </button>
+                                        </div>
+                                        <div ng-if="InmueblePortales.LoadMetroCuadrado == true" class="text-center">
+                                            <i class="fad fa-fw font-20 fa-spin mb-5 fa-spinner-third" style="color: #23547e"></i>
+                                        </div>
+                                        <div ng-if="InmueblePortales.MetroCuadradoAutomatico">
+                                            <label class="control-label label-sedi font-12" ng-class="InmueblePortales.MetroCuadrado == null ? 'label-danger' : 'label-success'" ng-click="InmueblePortales.MetroCuadrado != null ? AbrirLinkMetroCuadrado(InmueblePortales.MetroCuadrado) : ''">
+                                                {{ InmueblePortales.MetroCuadradoTranID != null ? ('Pendiente de activación: ' + InmueblePortales.MetroCuadradoTranID) : InmueblePortales.MetroCuadrado == null ? 'Sin publicar' : ('Publicado código: ' + InmueblePortales.MetroCuadrado) }}
+                                            </label>
+                                        </div>
+                                        <div ng-if="!InmueblePortales.MetroCuadradoAutomatico" class="input-group mb-5">
+                                            <input type="text" class="form-control input-xs" placeholder="Codigo de metro cuadrado" required ng-disabled="InmueblePortales.PublicarMetroCuadrado == false" ng-model="InmueblePortales.MetroCuadrado" />
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-xs btn-success pt-1" ng-click="GuardarCodigoMetroCuadrado()" ng-disabled="InmueblePortales.PublicarMetroCuadrado == false"><i class="fal fa-save font-16" style="padding: 0"></i></button>
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="form-check form-check-left">
+                        <input type="checkbox" class="form-check-input" id="checked_TodosPortales" ng-model="InmueblePortales.TodosPortales" ng-change="ChangeTodosPortales()">
+                        <label class="form-check-label control-label control-label-sm" for="checked_TodosPortales" style="font-weight: 800; line-height: 1.5rem;">Seleccionar todos</label>
+                    </div>
+                    <div class="btn-group pull-right">
+                        <button class="btn btn-sm btn-danger" ng-disabled="ShowPublicar()" ng-click="DesPublicarEnPortales()"><i class="glyphicon glyphicon-remove"></i>&nbsp;&nbsp;Despublicar</button>
+                        <button class="btn btn-sm btn-primary" ng-disabled="ShowPublicar()" ng-click="PublicarEnPortales()"><i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Publicar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <mail ng-model="MailModel" ng-mail-options="MailOptions"></mail>
+    <div id="modalLogTecnico" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="true">
+        <div class="modal-dialog modal-lg" style="margin-top: 1px">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><i class="fal fa-times"></i></button>
+                    <h4 class="modal-title modal-title-sm"><i class="glyphicon glyphicon-cloud-upload"></i>&nbsp;&nbsp;Log de errores</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="json-container-error"></div>
+                    <br />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="modalDuplicarInmueble" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" data-target="#modalPublicacion"><i class="fal fa-times"></i></button>
+                    <h4 class="modal-title modal-title-sm"><i class="fal fa-clone font-23" aria-hidden="true"></i>&nbsp;&nbsp;Duplicar el inmueble</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <label class="control-label control-label-sm label-favoritos">Duplicar el inmueble N°.{{ Inmueble.Consecutivo }}</label>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                            <label class="control-label control-label-sm mb-0">Tipo de oferta</label><strong class="red">*</strong>
+                            <div class="form-group">
+                                <select class="form-control input-sm" ng-model="InmuebleCopy.TipoOfertaID" ng-options="item.TipoOfertaID as item.Nombre for item in TiposOfertas"></select>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <div style="display: flex; flex-direction: row; justify-content: space-around;">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="checked_IncluirFotos" ng-model="InmuebleCopy.IncluirFotos">
+                                    <label class="form-check-label control-label control-label-sm" for="checked_IncluirFotos">Copiar fotos</label>
+                                </div>
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="checked_IncluirCaracteristicas" ng-model="InmuebleCopy.IncluirCaracteristicas">
+                                    <label class="form-check-label control-label control-label-sm" for="checked_IncluirCaracteristicas">Copiar caracteristicas</label>
+                                </div>
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="checked_IncluirPropietarios" ng-model="InmuebleCopy.IncluirPropietarios">
+                                    <label class="form-check-label control-label control-label-sm" for="checked_IncluirPropietarios">Copiar propietarios</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-sm btn-primary pull-right" ng-click="DuplicarInmueble()"><i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Duplicar inmueble</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <section class="content flex flex-column gap-7" ng-show="ModoView == 4" style="padding: 0;">
+        <div class="box-sedi-2">
+            <div class="content-flex flex-between" style="padding: 8px 0">
+                <div class="flex flex-center">
+                    <h3 class="box-title box-title-sm">
+                        <button class="not-btn" ng-click="AtrasModoView();" title="Volver"><i class="iconify icon-action-undo font-23" style="color: #6c757d !important;"></i></button>
+                        <span ng-bind="Titulo"></span>
+                    </h3>
+                </div>
+                <button class="not-btn" ng-click="AtrasModoView()" title="Cerrar"><i class="fad fa-times" style="color: #6c757d !important; font-size: 27px;"></i></button>
+            </div>
+        </div>
+        <div class="alert alert-danger text-center mb-0" ng-if="Inmueble.CausalDevolucionContratoNombre">
+            <strong>Solicitud rechazada: </strong>{{ Inmueble.CausalDevolucionContratoNombre }} <span ng-if="Inmueble.ObservacionesCausalDevolucionContrato"> - {{ Inmueble.ObservacionesCausalDevolucionContrato }}</span>
+        </div>
+        <div class="flex flex-column gap-7" ng-class="Inmueble.EnTramiteMandato == true || Inmueble.ContratoMandatoAprobado == true ? 'disabled' : ''">
+            <div>
+                <span class="style-title-sedi">Contrato</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="row">
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-repeat="item in Inmueble.InmueblesDocumentos" ng-if="item.GrupoPersonaID == 1 && item.Eliminar == false">
+                                <label class="control-label control-label-sm mb-0" ng-bind="item.Nombre"></label><strong ng-if="item.Requerido == true" class="red">*</strong>
+                                <div class="form-group mb-3">
+                                    <div ng-file-input ng-model-object="item" ng-config-input="ConfigInput"></div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-3 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Estrato</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <select class="form-control input-sm" ng-model="Inmueble.EstratoID" ng-options="item.EstratoID as item.Nombre for item in Estratos"></select>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-2 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Condición del inmueble</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <select class="form-control input-sm" ng-model="Inmueble.CondicionInmuebleID" ng-options="item.CondicionInmuebleID as item.Nombre for item in CondicionesInmuebles"></select>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Uso del inmueble</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <select class="form-control input-sm" ng-model="Inmueble.UsoInmuebleID" ng-options="item.UsoInmuebleID as item.Nombre for item in UsosInmuebles"></select>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Tarifa comision canon</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <select class="form-control input-sm" ng-model="Inmueble.CanonTarifaComisionID" ng-options="item.TarifaComisionID as item.Nombre for item in TarifasComisiones" required></select>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-3 col-md-2 col-lg-3 text-center">
+                                <label class="control-label control-label-sm mb-0">Asegura canon</label>
+                                <div class="form-group">
+                                    <toggle ng-model="Inmueble.AseguraCanon" on="Si" off="No" on-class="ar-ok" off-class="ar-cancel" handle="off" size="btn-xs"></toggle>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-3 col-md-2 col-lg-3 text-center">
+                                <label class="control-label control-label-sm mb-0">Asegura administración</label>
+                                <div class="form-group">
+                                    <toggle ng-model="Inmueble.AseguraAdministracionPH" on="Si" off="No" on-class="ar-ok" off-class="ar-cancel" handle="off" size="btn-xs"></toggle>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-3 col-md-2 col-lg-3 text-center">
+                                <label class="control-label control-label-sm mb-0">Tipo de pago</label>
+                                <div class="form-group">
+                                    <toggle ng-model="Inmueble.PagoAnticipado" on="Anticipado" off="Vencido" on-class="ar-ok" off-class="ar-cancel" handle="off" size="btn-xs"></toggle>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-3 col-md-2 col-lg-3 text-center">
+                                <label class="control-label control-label-sm mb-0">Seguro amparo integral</label>
+                                <div class="form-group">
+                                    <toggle ng-model="Inmueble.SeguroAmparoIntegral" on="Si" off="No" on-class="ar-ok" off-class="ar-cancel" handle="off" size="btn-xs"></toggle>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-3 col-md-2 col-lg-3" ng-if="Inmueble.SeguroAmparoIntegral">
+                                <label class="control-label control-label-sm mb-0">Valor seguro amparo</label><strong class="red">*</strong>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="Inmueble.ValorSeguroAmparoIntegral" ui-number-mask="0" required />
+                                    <span class="form-control-feedback"><i class="fal fa-dollar-sign"></i></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3" ng-if="Inmueble.TipoOfertaID == 1">
+                                <label class="control-label control-label-sm mb-0">Resp. pago administracion</label><strong ng-if="Inmueble.TieneAdministracion" class="red">*</strong>
+                                <div class="form-group">
+                                    <select class="form-control input-sm" ng-model="Inmueble.ResponsablePagoAdministracionID" ng-options="item.ResponsablePagoAdministracionID as item.Nombre for item in ResponsablesPagoAdministracion" required ng-disabled="Inmueble.TieneAdministracion == false"></select>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                <label class="control-label control-label-sm mb-0">Observaciones adicionales</label>
+                                <div class="form-group">
+                                    <textarea type="text" class="form-control input-sm" ng-model="Inmueble.ObservacionesSolicitudElaboracion" required maxlength="700"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="style-title-sedi">Linderos</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="row">
+                            <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Lindero general norte</label><strong class="red">*</strong>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="Inmueble.LinderoGeneralNorte" maxlength="100" required />
+                                    <span class="form-control-feedback"><i class="far fa-home-lg"></i></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Lindero general sur</label><strong class="red">*</strong>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="Inmueble.LinderoGeneralSur" maxlength="100" required />
+                                    <span class="form-control-feedback"><i class="far fa-home-lg"></i></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Lindero general oriente</label><strong class="red">*</strong>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="Inmueble.LinderoGeneralOriente" maxlength="100" required />
+                                    <span class="form-control-feedback"><i class="far fa-home-lg"></i></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Lindero general occidente</label><strong class="red">*</strong>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="Inmueble.LinderoGeneralOccidente" maxlength="100" required />
+                                    <span class="form-control-feedback"><i class="far fa-home-lg"></i></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Lindero especifico norte</label><strong class="red">*</strong>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="Inmueble.LinderoEspecificoNorte" maxlength="100" required />
+                                    <span class="form-control-feedback"><i class="fal fa-home-lg"></i></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Lindero especifico sur</label><strong class="red">*</strong>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="Inmueble.LinderoEspecificoSur" maxlength="100" required />
+                                    <span class="form-control-feedback"><i class="fal fa-home-lg"></i></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Lindero especifico oriente</label><strong class="red">*</strong>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="Inmueble.LinderoEspecificoOriente" maxlength="100" required />
+                                    <span class="form-control-feedback"><i class="fal fa-home-lg"></i></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Lindero especifico occidente</label><strong class="red">*</strong>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="Inmueble.LinderoEspecificoOccidente" maxlength="100" required />
+                                    <span class="form-control-feedback"><i class="fal fa-home-lg"></i></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Lindero inferior (NADIR)</label><strong class="red">*</strong>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="Inmueble.LinderoInferior" maxlength="100" required />
+                                    <span class="form-control-feedback"><i class="fad fa-home-lg"></i></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Lindero superior (CENIT)</label><strong class="red">*</strong>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="Inmueble.LinderoSuperior" maxlength="100" required />
+                                    <span class="form-control-feedback"><i class="fad fa-home-lg"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-repeat="Propietario in Inmueble.InmueblesPropietarios">
+                <div class="flex flex-align-end flex-between gap-7">
+                    <span class="style-title-sedi">Propietario {{ $index + 1 }}</span>
+                    <button class="btn btn-xs btn-danger mb-3" ng-click="QuitarPropietario(Propietario, $index)" ng-if="Propietario.InmueblePropietarioID == null">
+                        <i class="fal fa-trash-alt"></i> Quitar propietario
+                    </button>
+                </div>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="row">
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Tipo documento</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <select class="form-control input-sm" ng-options="item.TipoDocumentoID as item.Nombre for item in TiposDocumentos" ng-model="Propietario.TipoDocumentoID" ng-disabled="Propietario.ValidacionDocumento"></select>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                                <label class="control-label control-label-sm mb-0">Documento<strong class="red">*</strong></label>&nbsp;&nbsp;<span class="red font-11">(Sin dígito de verificación)</span>
+                                <div class="input-group">
+                                    <documento-box id="txtDocument" class="form-control input-sm" ng-numerico="{{(TiposDocumentos | filter:{ TipoDocumentoID: Propietario.TipoDocumentoID })[0].Numerico}}" ng-model="Propietario.Documento" placeholder="Documento" ng-disabled="Propietario.InmueblePropietarioID == null ? Propietario.ValidacionDocumento : true"></documento-box>
+                                    <div class="input-group-btn">
+                                        <button class="btn btn-sm btn-primary" style="padding: 3px 7px;" ng-click="BuscarTercero(Propietario, 'TipoDocumentoID', 'Documento', 'TipoPersonaID', ChangeDocumentosPropietario)" ng-disabled="Propietario.ValidacionDocumento" title="Validar documento" data-toggle="tooltip" data-placement="top"><i class="fal fa-search font-18 blue"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Tipo de persona</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <select class="form-control input-sm" ng-options="item.TipoPersonaID as item.Nombre for item in TiposPersonas" ng-model="Propietario.TipoPersonaID" ng-change="ChangeTipoPersona(Propietario, 'TipoPersonaID');ChangeDocumentosPropietario(Propietario)" ng-disabled="!Propietario.ValidacionDocumento"></select>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-2 col-lg-2">
+                                <label class="control-label control-label-sm mb-0">% participación</label><strong class="red">*</strong>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm text-right" ng-model="Propietario.PorcentajeParticipacion" required maxlength="8" placeholder="0" ui-number-mask="2" ng-disabled="!Propietario.ValidacionDocumento" />
+                                    <span class="form-control-feedback"><i class="fal fa-percent"></i></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 {{ Propietario.ShowTipoPersona ? 'col-md-3 col-lg-3' : 'col-md-12 col-lg-12' }}">
+                                <label class="control-label control-label-sm mb-0">{{ Propietario.ShowTipoPersona ? 'Primer nombre' : 'Razon social' }}<strong class="red">*</strong></label>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="Propietario.Nombres" maxlength="250" placeholder="Primer nombre" ng-disabled="!Propietario.ValidacionDocumento" ng-upper-clean />
+                                    <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-show="Propietario.ShowTipoPersona">
+                                <label class="control-label control-label-sm mb-0">Segundo nombre</label>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="Propietario.Nombres2" maxlength="250" placeholder="Segundo nombre" ng-disabled="!Propietario.ValidacionDocumento" ng-upper-clean />
+                                    <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-show="Propietario.ShowTipoPersona">
+                                <label class="control-label control-label-sm mb-0">Primer apellido</label><strong class="red">*</strong>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="Propietario.Apellidos" maxlength="250" placeholder="Primer apellidos" ng-disabled="!Propietario.ValidacionDocumento" ng-upper-clean />
+                                    <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-show="Propietario.ShowTipoPersona">
+                                <label class="control-label control-label-sm mb-0">Segundo apellido</label>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="Propietario.Apellidos2" maxlength="250" placeholder="Segundo apellidos" ng-disabled="!Propietario.ValidacionDocumento" ng-upper-clean />
+                                    <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                                <label class="control-label control-label-sm mb-0">Email</label><span class="aviso-email font-10">"Para ingresar varios emails separarlo por ; sin espacios."</span><strong class="red">*</strong>
+                                <div class="form-group has-feedback">
+                                    <email-box class="form-control lowercase input-sm" ng-model="Propietario.Email" maxlength="400" placeholder="Email" ng-disabled="!Propietario.ValidacionDocumento"></email-box>
+                                    <span class="icon glyphicon glyphicon-envelope form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Teléfono</label>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="Propietario.Telefono" maxlength="40" placeholder="Telefono" ng-disabled="!Propietario.ValidacionDocumento" />
+                                    <span class="icon glyphicon glyphicon-earphone form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Celular</label><strong class="red">*</strong>
+                                <div class="input-group">
+                                    <div class="input-group-addon iti">
+                                        <div custom-select="item.dialCode as item.dialCode for item in searchPaisesTelephone($searchTerm)" class="custom-select-sm" ng-model="Propietario.CelularCodigoArea" custom-select-options="PaisesTelephone" ng-disabled="!Propietario.ValidacionDocumento"></div>
+                                    </div>
+                                    <div class="has-feedback">
+                                        <input type="text" class="form-control input-sm" ng-model="Propietario.Celular" maxlength="20" placeholder="Celular" ng-disabled="!Propietario.ValidacionDocumento" ui-co-mobile-phone-number />
+                                        <span class="icon glyphicon glyphicon-phone form-control-feedback"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                                <label class="control-label control-label-sm mb-0">Dirección del propietario</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <button class="btn btn-sm btn-success btn-address" ng-click="AbrirModalUbicarPropietario(Propietario)" style="width: 100%;" ng-disabled="!Propietario.ValidacionDocumento"><i class="fad fa-location"></i>&nbsp;{{ GetDireccionPropietario(Propietario) }}</button>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">País</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <div custom-select="item.PaisID as item.Nombre for item in searchPaises($searchTerm)" class="custom-select-sm" custom-select-options="ddlSearchPaisesPropietario" ng-model-object="Propietario" ng-model="Propietario.PaisID" ng-disabled="!Propietario.ValidacionDocumento"></div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-show="Propietario.PaisCodigoISO == 'co' || Propietario.CiudadID != null">
+                                <label class="control-label control-label-sm mb-0">Ciudad</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <div custom-select="item.CiudadID as item.Nombre for item in searchCiudades($searchTerm)" class="custom-select-sm" ng-model="Propietario.CiudadID" ng-disabled="!Propietario.ValidacionDocumento"></div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-show="Propietario.ShowTipoPersona">
+                                <label class="control-label control-label-sm mb-0">Ciudad expedición documento</label>
+                                <div class="form-group">
+                                    <div custom-select="item.CiudadID as item.Nombre for item in searchCiudades($searchTerm)" class="custom-select-sm" ng-model="Propietario.ExpedicionDocumentoCiudadID" ng-disabled="!Propietario.ValidacionDocumento"></div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Nacionalidad</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <div custom-select="item.PaisID as item.Nacionalidad for item in searchPaises($searchTerm)" class="custom-select-sm" ng-model="Propietario.NacionalidadPaisID" ng-disabled="!Propietario.ValidacionDocumento"></div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-repeat="item in Propietario.InmueblesDocumentos" ng-if="item.GrupoPersonaID == 4 && item.Eliminar == false">
+                                <label class="control-label control-label-sm mb-0" ng-bind="item.Nombre"></label><strong ng-if="item.Requerido == true" class="red">*</strong>
+                                <div class="form-group mb-3">
+                                    <div ng-file-input ng-model-object="item" ng-config-input="ConfigInput" ng-disabled="!Propietario.ValidacionDocumento"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-sm btn-primary w100p" ng-click="AgregarPropietario()" ng-if="Inmueble.EnTramiteMandato == false || Inmueble.EnTramiteMandato == null">
+                <i class="fal fa-plus-circle"></i> Agregar propietario
+            </button>
+            <div class="box-sedi-2" ng-if="(Inmueble.EnTramiteMandato == false || Inmueble.EnTramiteMandato == null) && Inmueble.ContratoMandatoAprobado == false">
+                <div class="content-flex flex-between flex-wrap gap-8">
+                    <div class="flex flex-wrap-start gap-8 flex-center">                        
+                    </div>
+                    <div></div>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-success pull-right" ng-click="GuardarPropietarios()">
+                            <i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Guardar cambios
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>        
+    </section>
+    <section class="content flex flex-column gap-7" ng-show="ModoView == 5" style="padding: 0;">
+        <div class="box-sedi-2">
+            <div class="content-flex flex-between" style="padding: 8px 0">
+                <div class="flex flex-center">
+                    <h3 class="box-title box-title-sm">
+                        <button class="not-btn" ng-click="AtrasModoView();" title="Volver"><i class="iconify icon-action-undo font-23" style="color: #6c757d !important;"></i></button>
+                        <span ng-bind="Titulo"></span>
+                    </h3>
+                </div>
+                <button class="not-btn" ng-click="AtrasModoView()" title="Cerrar"><i class="fad fa-times" style="color: #6c757d !important; font-size: 27px;"></i></button>
+            </div>
+        </div>
+        <div class="flex flex-column gap-7" ng-class=" Inmueble.EnTramiteMandato == true || Inmueble.ContratoMandatoAprobado == true ? 'disabled' : ''">
+            <div class="alert alert-danger text-center mb-0" ng-if="Inmueble.CausalDevolucionContratoNombre">
+                <strong>Solicitud rechazada: </strong>{{ Inmueble.CausalDevolucionContratoNombre }} <span ng-if="Inmueble.ObservacionesCausalDevolucionContrato"> - {{ Inmueble.ObservacionesCausalDevolucionContrato }}</span>
+            </div>
+            <div>
+                <span class="style-title-sedi">Contrato</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="row">
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-repeat="item in Inmueble.InmueblesDocumentos" ng-if="item.GrupoPersonaID == 1 && item.Eliminar == false">
+                                <label class="control-label control-label-sm mb-0" ng-bind="item.Nombre"></label><strong ng-if="item.Requerido == true" class="red">*</strong>
+                                <div class="form-group mb-3">
+                                    <div ng-file-input ng-model-object="item" ng-config-input="ConfigInput"></div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-3 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Estrato</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <select class="form-control input-sm" ng-model="Inmueble.EstratoID" ng-options="item.EstratoID as item.Nombre for item in Estratos"></select>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-2 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Condición del inmueble</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <select class="form-control input-sm" ng-model="Inmueble.CondicionInmuebleID" ng-options="item.CondicionInmuebleID as item.Nombre for item in CondicionesInmuebles"></select>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Uso del inmueble</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <select class="form-control input-sm" ng-model="Inmueble.UsoInmuebleID" ng-options="item.UsoInmuebleID as item.Nombre for item in UsosInmuebles"></select>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Tarifa comision venta</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <select class="form-control input-sm" ng-model="Inmueble.VentaTarifaComisionID" ng-options="item.TarifaComisionID as item.Nombre for item in TarifasComisionesVenta" required></select>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                <label class="control-label control-label-sm mb-0">Observaciones adicionales</label>
+                                <div class="form-group">
+                                    <textarea type="text" class="form-control input-sm" ng-model="Inmueble.ObservacionesSolicitudElaboracion" required maxlength="700"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-repeat="Propietario in Inmueble.InmueblesPropietarios">
+                <div class="flex flex-align-end flex-between gap-7">
+                    <span class="style-title-sedi">Propietario {{ $index + 1 }}</span>
+                    <button class="btn btn-xs btn-danger mb-3" ng-click="QuitarPropietario(Propietario, $index)" ng-if="Propietario.InmueblePropietarioID == null">
+                        <i class="fal fa-trash-alt"></i> Quitar propietario
+                    </button>
+                </div>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="row">
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Tipo documento</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <select class="form-control input-sm" ng-options="item.TipoDocumentoID as item.Nombre for item in TiposDocumentos" ng-model="Propietario.TipoDocumentoID" ng-disabled="Propietario.ValidacionDocumento"></select>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                                <label class="control-label control-label-sm mb-0">Documento<strong class="red">*</strong></label>&nbsp;&nbsp;<span class="red font-11">(Sin dígito de verificación)</span>
+                                <div class="input-group">
+                                    <documento-box id="txtDocument" class="form-control input-sm" ng-numerico="{{(TiposDocumentos | filter:{ TipoDocumentoID: Propietario.TipoDocumentoID })[0].Numerico}}" ng-model="Propietario.Documento" placeholder="Documento" ng-disabled="Propietario.InmueblePropietarioID == null ? Propietario.ValidacionDocumento : true"></documento-box>
+                                    <div class="input-group-btn">
+                                        <button class="btn btn-sm btn-primary" style="padding: 3px 7px;" ng-click="BuscarTercero(Propietario, 'TipoDocumentoID', 'Documento', 'TipoPersonaID', ChangeDocumentosPropietario)" ng-disabled="Propietario.ValidacionDocumento" title="Validar documento" data-toggle="tooltip" data-placement="top"><i class="fal fa-search font-18 blue"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Tipo de persona</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <select class="form-control input-sm" ng-options="item.TipoPersonaID as item.Nombre for item in TiposPersonas" ng-model="Propietario.TipoPersonaID" ng-change="ChangeTipoPersona(Propietario, 'TipoPersonaID');ChangeDocumentosPropietario(Propietario)" ng-disabled="!Propietario.ValidacionDocumento"></select>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-2 col-lg-2">
+                                <label class="control-label control-label-sm mb-0">% participación</label><strong class="red">*</strong>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm text-right" ng-model="Propietario.PorcentajeParticipacion" required maxlength="8" placeholder="0" ui-number-mask="2" ng-disabled="!Propietario.ValidacionDocumento" />
+                                    <span class="form-control-feedback"><i class="fal fa-percent"></i></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6" ng-class="Propietario.ShowTipoPersona ? 'col-md-3 col-lg-3' : 'col-md-12 col-lg-12'">
+                                <label class="control-label control-label-sm mb-0">{{ Propietario.ShowTipoPersona ? 'Primer nombre' : 'Razon social' }}<strong class="red">*</strong></label>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="Propietario.Nombres" maxlength="250" placeholder="Primer nombre" ng-disabled="!Propietario.ValidacionDocumento" ng-upper-clean />
+                                    <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-show="Propietario.ShowTipoPersona">
+                                <label class="control-label control-label-sm mb-0">Segundo nombre</label>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="Propietario.Nombres2" maxlength="250" placeholder="Segundo nombre" ng-disabled="!Propietario.ValidacionDocumento" ng-upper-clean />
+                                    <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-show="Propietario.ShowTipoPersona">
+                                <label class="control-label control-label-sm mb-0">Primer apellido</label><strong class="red">*</strong>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="Propietario.Apellidos" maxlength="250" placeholder="Primer apellidos" ng-disabled="!Propietario.ValidacionDocumento" ng-upper-clean />
+                                    <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-show="Propietario.ShowTipoPersona">
+                                <label class="control-label control-label-sm mb-0">Segundo apellido</label>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="Propietario.Apellidos2" maxlength="250" placeholder="Segundo apellidos" ng-disabled="!Propietario.ValidacionDocumento" ng-upper-clean />
+                                    <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                                <label class="control-label control-label-sm mb-0">Email</label><span class="aviso-email font-10">"Para ingresar varios emails separarlo por ; sin espacios."</span><strong class="red">*</strong>
+                                <div class="form-group has-feedback">
+                                    <email-box class="form-control lowercase input-sm" ng-model="Propietario.Email" maxlength="400" placeholder="Email" ng-disabled="!Propietario.ValidacionDocumento"></email-box>
+                                    <span class="icon glyphicon glyphicon-envelope form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Teléfono</label>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="Propietario.Telefono" maxlength="40" placeholder="Telefono" ng-disabled="!Propietario.ValidacionDocumento" />
+                                    <span class="icon glyphicon glyphicon-earphone form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Celular</label><strong class="red">*</strong>
+                                <div class="input-group">
+                                    <div class="input-group-addon iti">
+                                        <div custom-select="item.dialCode as item.dialCode for item in searchPaisesTelephone($searchTerm)" class="custom-select-sm" ng-model="Propietario.CelularCodigoArea" custom-select-options="PaisesTelephone" ng-disabled="!Propietario.ValidacionDocumento"></div>
+                                    </div>
+                                    <div class="has-feedback">
+                                        <input type="text" class="form-control input-sm" ng-model="Propietario.Celular" maxlength="20" placeholder="Celular" ng-disabled="!Propietario.ValidacionDocumento" ui-co-mobile-phone-number />
+                                        <span class="icon glyphicon glyphicon-phone form-control-feedback"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                                <label class="control-label control-label-sm mb-0">Dirección del propietario</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <button class="btn btn-sm btn-success btn-address" ng-click="AbrirModalUbicarPropietario(Propietario)" style="width: 100%;" ng-disabled="!Propietario.ValidacionDocumento"><i class="fad fa-location"></i>&nbsp;{{ GetDireccionPropietario(Propietario) }}</button>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">País</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <div custom-select="item.PaisID as item.Nombre for item in searchPaises($searchTerm)" class="custom-select-sm" custom-select-options="ddlSearchPaisesPropietario" ng-model-object="Propietario" ng-model="Propietario.PaisID" ng-disabled="!Propietario.ValidacionDocumento"></div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-show="Propietario.PaisCodigoISO == 'co' || Propietario.CiudadID != null">
+                                <label class="control-label control-label-sm mb-0">Ciudad</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <div custom-select="item.CiudadID as item.Nombre for item in searchCiudades($searchTerm)" class="custom-select-sm" ng-model="Propietario.CiudadID" ng-disabled="!Propietario.ValidacionDocumento"></div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-show="Propietario.ShowTipoPersona">
+                                <label class="control-label control-label-sm mb-0">Ciudad expedición documento</label>
+                                <div class="form-group">
+                                    <div custom-select="item.CiudadID as item.Nombre for item in searchCiudades($searchTerm)" class="custom-select-sm" ng-model="Propietario.ExpedicionDocumentoCiudadID" ng-disabled="!Propietario.ValidacionDocumento"></div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Nacionalidad</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <div custom-select="item.PaisID as item.Nacionalidad for item in searchPaises($searchTerm)" class="custom-select-sm" ng-model="Propietario.NacionalidadPaisID" ng-disabled="!Propietario.ValidacionDocumento"></div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-repeat="item in Propietario.InmueblesDocumentos" ng-if="item.GrupoPersonaID == 4 && item.Eliminar == false">
+                                <label class="control-label control-label-sm mb-0" ng-bind="item.Nombre"></label><strong ng-if="item.Requerido == true" class="red">*</strong>
+                                <div class="form-group mb-3">
+                                    <div ng-file-input ng-model-object="item" ng-config-input="ConfigInput" ng-disabled="!Propietario.ValidacionDocumento"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-sm btn-primary w100p" ng-click="AgregarPropietario()" ng-if="Inmueble.EnTramiteMandato == false || Inmueble.EnTramiteMandato == null">
+                <i class="fal fa-plus-circle"></i> Agregar propietario
+            </button>
+            <div class="box-sedi-2" ng-if="(Inmueble.EnTramiteMandato == false || Inmueble.EnTramiteMandato == null) && Inmueble.ContratoMandatoAprobado == false">
+                <div class="content-flex flex-between flex-wrap gap-8">
+                    <div class="flex flex-wrap-start gap-8 flex-center">                        
+                    </div>
+                    <div></div>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-success pull-right" ng-click="GuardarPropietarios()">
+                            <i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Guardar cambios
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="content" ng-show="ModoView == 6" style="padding: 0;">
+        <div class="box">
+            <div class="box-header with-border">
+                <div class="flex flex-center flex-between">
+                    <h3 class="box-title box-title-sm">
+                        <button class="not-btn" ng-click="AtrasModoView();" title="Volver a los contactos"><i class="iconify icon-action-undo font-23" style="color: #6c757d !important;"></i></button>
+                        <span ng-bind="Titulo"></span>
+                    </h3>
+                    <button class="not-btn" ng-click="AtrasModoView();" title="Volver a los contactos"><i class="fad fa-times" style="color: #6c757d !important; font-size: 27px;"></i></button>
+                </div>
+            </div>
+            <div class="box-body" style="padding: 6px 0px;">
+                <div class="row">
+                    <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
+                        <label class="control-label control-label-sm mb-0">Inmueble</label><strong class="red">*</strong>
+                        <div class="form-group mb-3">
+                            <select class="form-control input-sm" ng-model="Inventario.InmuebleID" ng-options="item.InmuebleID as ('Inmueble N°.' + item.Prefijo + '-' + item.Consecutivo) for item in PreContacto.Inmuebles" required></select>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-4 col-md-3 col-lg-3">
+                        <label class="control-label control-label-sm mb-0">Tipo inventario</label><strong class="red">*</strong>
+                        <div class="form-group mb-3">
+                            <select class="form-control input-sm" ng-model="Inventario.ConfiguracionInventarioID" ng-options="item.ConfiguracionInventarioID as item.TipoInmuebleNombre for item in ConfiguracionesInventarios" ng-change="ChangeConfiguracionesInventarios()" required></select>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-4 col-md-6 col-lg-6">
+                        <label class="control-label control-label-sm mb-0">Link video</label>
+                        <div class="form-group mb-3 has-feedback">
+                            <input type="text" class="form-control input-sm" ng-model="Inventario.Video" maxlength="300" placeholder="Video de entrega del inmueble" />
+                            <span class="form-control-feedback"><i class="fad fa-video-camera"></i></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <label class="control-label control-label-sm mb-0">Observaciones</label>
+                        <div class="form-group mb-3">
+                            <textarea class="form-control input-sm" rows="2" ng-model="Inventario.Observaciones" maxlength="1500" placeholder="Observaciones del inventario"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-tabs-custom nav-tabs-wizard" style="padding-top: 5px;">
+                    <ul class="nav nav-pills-icon nav-wizard" style="margin-left: 0px;">
+                        <li><a class="active" data-target="#Imagenes" data-toggle="tab"><i class="fal fa-images"></i><span>Imagenes</span></a></li>
+                        <li><a data-target="#Inventario" data-toggle="tab"><i class="fal fa-th-list"></i><span>Inventario</span></a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div id="Imagenes" class="tab-pane active">
+                            <div id="tz-gallery">
+                                <div class="tz-gallery mt-0" ng-model="Inventario.InmueblesInventariosFotos" style="overflow: auto; max-height: calc(100vh - 348px)">
+                                    <div class="img width-170 height-190" ng-repeat="item in Inventario.InmueblesInventariosFotos" on-finish-render="FinishRenderPhotos()" ng-if="item.Eliminar == false">
+                                        <a class="lightbox">
+                                            <img ng-src="{{ Usuario.CDNEndPoint + '/api/Files/GetFile?PublicKey=' + Usuario.CDNLlavePublica + '&UniqueID=' + item.Ruta.replaceAll('cdn://', '') + '&Disposition=Inline' }}" alt="{{ item.Nombre }}">
+                                        </a>
+                                        <div class="content-tools">
+                                            <button class="not-btn" title="Eliminar la foto" data-toggle="tooltip" data-placement="top" data-container="body" ng-click="EliminarPhoto(item, $index)"><i class="fal fa-trash-alt red font-23"></i></button>
+                                            <button class="not-btn" title="Modificar la foto" data-toggle="tooltip" data-placement="top" data-container="body" ng-click="EditarFotoConCropper(item, $index)"><i class="fal fa-images blue font-23"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div ng-file-input ng-config-input="ConfigInputPhotos"></div>
+                            </div>
+                        </div>
+                        <div id="Inventario" class="tab-pane">
+                            <div class="table-responsive" ModeFicha="true" style="max-height: calc(100vh - 150px)">
+                                <table class="table table-sm">
+                                    <thead class="thead-frozen">
+                                        <tr>
+                                            <th>Nombre</th>
+                                            <th class="width-80">Cantidad</th>
+                                            <th>Tipo Material</th>
+                                            <th class="width-70">Estado</th>
+                                            <th>Observaciones</th>
+                                            <th class="width-40"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr ng-repeat-start="item in Inventario.InmueblesInventariosItems" class="tr-top" style="background-color: #f9f9f9" ng-if="item.Eliminar == false">
+                                            <th data-title-text="Descripcion" colspan="6">
+                                                <input type="text" class="form-control input-xs mr-5 text-right width-70" style="display: inline-block;" placeholder="Cantidad" ng-model="item.Cantidad" />
+                                                <div style="display: inline-block; padding: 0 5px" sedi-editable="true" contenteditable="true" ng-model="item.Nombre"></div>
+                                                <div class="pull-right" style="display: flex">
+                                                    <button class="btn btn-xs btn-danger" ng-click="QuitarConcepto(item, $index)">Quitar <i class="fal fa-minus"></i></button>
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">Duplicar <i class="fal fa-clone"></i></button>
+                                                        <div class="dropdown-menu">
+                                                            <button class="dropdown-item font-15" ng-click="DuplicarConDatos(item, $index)"><i class="fad fa-clone blue"></i> Con datos</button>
+                                                            <button class="dropdown-item font-15" ng-click="DuplicarSinDatos(item, $index)"><i class="fal fa-clone"></i> Sin datos</button>
+                                                        </div>
+                                                    </div>
+                                                    <button class="btn btn-xs btn-success" ng-click="AgregarNuevoAtributo(item, $index)">Atributo <i class="fal fa-plus"></i></button>
+                                                </div>
+                                            </th>
+                                        </tr>
+                                        <tr ng-repeat="item2 in item.__children__" ng-if="item2.Eliminar == false">
+                                            <td data-title-text="Descripcion">
+                                                <div class="ml-15" style="padding: 0 5px" sedi-editable="true" contenteditable="true" ng-model="item2.Nombre"></div>
+                                            </td>
+                                            <td data-title-text="Cantidad">
+                                                <input type="text" class="form-control input-xs text-right" placeholder="Cantidad" ng-model="item2.Cantidad" />
+                                            </td>
+                                            <td data-title-text="Tipo material">
+                                                <textarea class="form-control input-xs" rows="3" ng-model="item2.TipoMaterial" maxlength="200" placeholder="Tipo material"></textarea>
+                                            </td>
+                                            <td data-title-text="Estado">
+                                                <div>
+                                                    <input type="radio" class="mr-5" name="name_{{ item2.ID }}" ng-model="item2.ReciboEstado" value="b"><span class="label-radio">Bueno</span>
+                                                </div>
+                                                <div>
+                                                    <input type="radio" class="mt-0 mr-5" name="name_{{ item2.ID }}" ng-model="item2.ReciboEstado" value="r"><span class="label-radio">Regular</span>
+                                                </div>
+                                                <div>
+                                                    <input type="radio" class="mt-0 mr-5" name="name_{{ item2.ID }}" ng-model="item2.ReciboEstado" value="m"><span class="label-radio">Malo</span>
+                                                </div>
+                                            </td>
+                                            <td data-title-text="Observaciones">
+                                                <textarea class="form-control input-xs" rows="3" ng-model="item2.ReciboObservaciones" maxlength="500" placeholder="Observaciones"></textarea>
+                                            </td>
+                                            <td class="width-40" data-title-text="Opciones">
+                                                <button class="not-btn mb-5" title="Eliminar atributo" ng-click="EliminarAtributo(item2, $index, item)"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                                <div class="dropdown">
+                                                    <button class="not-btn dropdown-toggle" data-toggle="dropdown" title="Duplicar atributo"><i class="fal fa-clone font-23 blue"></i></button>
+                                                    <div class="dropdown-menu">
+                                                        <button class="dropdown-item font-15" ng-click="DuplicarConDatosAtributo(item2, $index, item)"><i class="fad fa-clone blue"></i> Con datos</button>
+                                                        <button class="dropdown-item font-15" ng-click="DuplicarSinDatosAtributo(item2, $index, item)"><i class="fal fa-clone"></i> Sin datos</button>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr ng-repeat-end="" ng-if="(Inventario.InmueblesInventariosItems | filter : { 'Eliminar': 'false' }).length == 0"></tr>
+                                        <tr ng-if="(Inventario.InmueblesInventariosItems | filter : { 'Eliminar': 'false' }).length == 0">
+                                            <td colspan="6" class="text-center" data-title-text="Busqueda">
+                                                <b>No se ha seleccionado un tipo de inventario</b>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="box-footer">
+                <button class="btn btn-sm btn-success pull-right" ng-click="GuardarCambiosInventario()"><i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Guardar cambios</button>
+            </div>
+        </div>
+    </section>
+    <section class="content" ng-show="ModoView == 7" style="padding: 0;">
+        <div class="box">
+            <div class="box-header with-border">
+                <div class="flex flex-center flex-between">
+                    <h3 class="box-title box-title-sm">
+                        <button class="not-btn" ng-click="AtrasModoView();" title="Volver a los contactos"><i class="iconify icon-action-undo font-23" style="color: #6c757d !important;"></i></button>
+                        <span ng-bind="Titulo"></span>
+                    </h3>
+                    <button class="not-btn" ng-click="AtrasModoView();" title="Volver a los contactos"><i class="fad fa-times" style="color: #6c757d !important; font-size: 27px;"></i></button>
+                </div>
+            </div>
+            <div class="box-body" style="padding: 6px 0px;">
+                <div class="row">
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <a href="#" ng-click="viewer.Open(Inmueble.RutaInventario == null ? ('API_GBI/api/PDFs/DocumentoB?TipoDocumentoID=19&UniqueID=' + Inmueble.InventarioUniqueID + '&Attachment=false') : Inmueble.RutaInventario)"><i class="fal fa-file-contract mr-2" style="font-size: 0.8rem"></i> <label class="control-label control-label-sm mb-0">Inventario N°.{{ Inmueble.Consecutivo }}</label></a>
+                        <div class="form-group mb-3">
+                            <div ng-file-input ng-config-input="ConfigInputArchivosInventario"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="box-footer">
+                <button class="btn btn-sm btn-success pull-right" ng-click="GuardarInventarioRuta()"><i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Guardar cambios</button>
+            </div>
+        </div>
+    </section>
+    <div id="modalRetiroInmueble" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" data-target="#modalInviavilizar"><i class="fal fa-times"></i></button>
+                    <h4 class="modal-title modal-title-sm">
+                        <i class="fal fa-home-lg-alt"></i>&nbsp;&nbsp;Retirar inmuebles
+                    </h4>
+                </div>
+                <div class="modal-body" style="padding-top: 5px;">
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <label class="control-label control-label-sm">Retirar inmueble Nro {{ Proceso.Consecutivo }}</label>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <label class="control-label control-label-sm mb-1">Causal</label><strong class="red">*</strong>
+                            <div class="form-group">
+                                <div custom-select="item.CausalInviabilidadID as item.Nombre for item in SearchCausalesInviabilidad($searchTerm)" class="custom-select-sm" ng-model="Proceso.CausalInviabilidadID"></div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <label class="control-label control-label-sm mb-1">Observaciones</label>
+                            <strong class="red">*</strong>
+                            <div class="form-group">
+                                <textarea rows="2" class="form-control input-sm" placeholder="Ingrese aqui." ng-model="Proceso.ObservacionesInviabilidad" maxlength="2000"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" ng-click="InviabilizarRetirarInmueble();"><i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Inviabilizar o retirar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="modalEdicionFotos" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" ng-click="CerrarEdicionFotos()"><i class="fal fa-times"></i></button>
+                    <h4 class="modal-title modal-title-sm"><i class="fal fa-images"></i>&nbsp;&nbsp;Editor de imagenes</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="docs-demo">
+                        <div class="img-container">
+                            <img id="edicionImg" alt="Picture">
+                        </div>
+                    </div>
+                    <div class="docs-buttons text-center">
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-primary" data-method="setDragMode" data-option="move" data-toggle="tooltip" title="Mover la imagen">
+                                <span class="docs-tooltip">
+                                    <span class="fa fa-arrows-alt"></span>
+                                </span>
+                            </button>
+                            <button type="button" class="btn btn-primary" data-method="setDragMode" data-option="crop" data-toggle="tooltip" title="Seleccionador manual">
+                                <span class="docs-tooltip">
+                                    <span class="fa fa-crop-alt"></span>
+                                </span>
+                            </button>
+                        </div>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-primary" data-method="zoom" data-option="0.1" data-toggle="tooltip" title="Acercar imagen">
+                                <span class="docs-tooltip">
+                                    <span class="fa fa-search-plus"></span>
+                                </span>
+                            </button>
+                            <button type="button" class="btn btn-primary" data-method="zoom" data-option="-0.1" data-toggle="tooltip" title="Alejar imagen">
+                                <span class="docs-tooltip">
+                                    <span class="fa fa-search-minus"></span>
+                                </span>
+                            </button>
+                        </div>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-primary" data-method="move" data-option="-10" data-second-option="0" data-toggle="tooltip" title="Mover imagen hacia la izquierda">
+                                <span class="docs-tooltip">
+                                    <span class="fa fa-arrow-left"></span>
+                                </span>
+                            </button>
+                            <button type="button" class="btn btn-primary" data-method="move" data-option="10" data-second-option="0" data-toggle="tooltip" title="Mover imagen hacia la derecha">
+                                <span class="docs-tooltip">
+                                    <span class="fa fa-arrow-right"></span>
+                                </span>
+                            </button>
+                            <button type="button" class="btn btn-primary" data-method="move" data-option="0" data-second-option="-10" data-toggle="tooltip" title="Mover imagen hacia arriba">
+                                <span class="docs-tooltip">
+                                    <span class="fa fa-arrow-up"></span>
+                                </span>
+                            </button>
+                            <button type="button" class="btn btn-primary" data-method="move" data-option="0" data-second-option="10" data-toggle="tooltip" title="Mover imagen hacia abajo">
+                                <span class="docs-tooltip">
+                                    <span class="fa fa-arrow-down"></span>
+                                </span>
+                            </button>
+                        </div>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-primary" data-method="rotate" data-option="-90" data-toggle="tooltip" title="Rotar imagen hacia la izquierda 90°">
+                                <span class="docs-tooltip">
+                                    <span class="fa fa-undo-alt"></span>
+                                </span>
+                            </button>
+                            <button type="button" class="btn btn-primary" data-method="rotate" data-option="90" data-toggle="tooltip" title="Rotar imagen hacia la derecha 90°">
+                                <span class="docs-tooltip">
+                                    <span class="fa fa-redo-alt"></span>
+                                </span>
+                            </button>
+                        </div>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-primary" data-method="scaleX" data-option="-1" data-toggle="tooltip" title="Voltear imagen horizontalmente">
+                                <span class="docs-tooltip">
+                                    <span class="fa fa-arrows-alt-h"></span>
+                                </span>
+                            </button>
+                            <button type="button" class="btn btn-primary" data-method="scaleY" data-option="-1" data-toggle="tooltip" title="Voltear imagen verticalmente">
+                                <span class="docs-tooltip">
+                                    <span class="fa fa-arrows-alt-v"></span>
+                                </span>
+                            </button>
+                        </div>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-danger" data-method="reset" data-toggle="tooltip" title="Resetear imagen">
+                                <span class="docs-tooltip">
+                                    <span class="fa fa-sync-alt"></span>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer docs-buttons">
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-success pull-right" ng-click="AplicarCambiosFoto()"><i class="glyphicon glyphicon-ok"></i>&nbsp;&nbsp;Aplicar cambios</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <address ng-address="addressBasic"></address>
+</div>

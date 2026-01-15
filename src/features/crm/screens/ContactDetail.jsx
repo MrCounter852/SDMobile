@@ -20,6 +20,17 @@ import { useGlobal } from "../../../core/global";
 import FocusAwareStatusBar from "../../../components/FocusAwareStatusBar";
 
 const GestionComercialService = require("../services/crmService").default;
+
+// CRM Sub-views
+import CrmStandard from "../components/subviews/CrmStandard";
+import CrmGbiPropietarios from "../components/subviews/CrmGbiPropietarios";
+import CrmGbiArrendatarios from "../components/subviews/CrmGbiArrendatarios";
+import CrmGbiVentas from "../components/subviews/CrmGbiVentas";
+import CrmStorage from "../components/subviews/CrmStorage";
+import CrmStorageFull from "../components/subviews/CrmStorageFull";
+import CrmAvaluosLinea from "../components/subviews/CrmAvaluosLinea";
+import CrmAvaluosCertificados from "../components/subviews/CrmAvaluosCertificados";
+
 const { width } = Dimensions.get("window");
 
 const COLORS = {
@@ -237,6 +248,44 @@ const ContactDetail = ({ navigation, route }) => {
       }
     }
     return fields;
+  };
+
+  const renderSubView = () => {
+    const origenId = contactDetail.OrigenPreContactoID;
+    const props = {
+      contactDetail,
+      formatDate,
+      formatCurrency,
+      safeParseArray,
+      service: GestionComercialService,
+      navigation: navigation,
+    };
+
+    switch (origenId) {
+      case 1: // Storage Full
+        return <CrmStorageFull {...props} />;
+      case 2: // Captaciones (GBI Propietarios)
+        return <CrmGbiPropietarios {...props} />;
+      case 3: // CRM Standard
+        return <CrmStandard {...props} />;
+      case 4: // GBI Arrendatarios
+        return <CrmGbiArrendatarios {...props} />;
+      case 5: // GBI Ventas
+        return <CrmGbiVentas {...props} />;
+      case 6: // Storage
+        return <CrmStorage {...props} />;
+      case 7: // Avaluos
+        if (contactDetail.TipoAvaluoID === 1) {
+          return <CrmAvaluosLinea {...props} />;
+        } else {
+          return <CrmAvaluosCertificados {...props} />;
+        }
+      default:
+        // Por defecto, si no hay un origen específico o es uno genérico,
+        // podríamos mostrar CrmStandard si queremos asegurar que siempre haya algo extra.
+        // O simplemente no renderizar nada adicional.
+        return null;
+    }
   };
 
   // --- RENDER FUNCTIONS --- //
@@ -661,7 +710,10 @@ const ContactDetail = ({ navigation, route }) => {
           </InfoSection>
         )}
 
-        {/* 5. Associated Properties */}
+        {/* 7. CRM MODAL 3 SUB-VIEWS */}
+        {renderSubView()}
+
+        {/* 8. Associated Properties */}
         {safeParseArray(contactDetail.InmueblesProcesos).length > 0 && (
           <InfoSection
             title={`Inmuebles Asociados (${

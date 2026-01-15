@@ -41,11 +41,11 @@ const AutoScrollIndicator = ({ isDraggingShared, autoScrollDirection }) => {
         pointerEvents="none"
       >
         <View style={styles.arrowContainer}>
-          <Ionicons name="chevron-back" size={32} color={COLORS.secondary} />
+          <Ionicons name="chevron-back" size={32} color={COLORS.white} />
           <Ionicons
             name="chevron-back"
             size={32}
-            color={COLORS.primary}
+            color={COLORS.white}
             style={styles.secondArrow}
           />
         </View>
@@ -57,11 +57,11 @@ const AutoScrollIndicator = ({ isDraggingShared, autoScrollDirection }) => {
         pointerEvents="none"
       >
         <View style={styles.arrowContainer}>
-          <Ionicons name="chevron-forward" size={32} color={COLORS.secondary} />
+          <Ionicons name="chevron-forward" size={32} color={COLORS.white} />
           <Ionicons
             name="chevron-forward"
             size={32}
-            color={COLORS.primary}
+            color={COLORS.white}
             style={styles.secondArrow}
           />
         </View>
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     width: 60,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 172, 196, 0.5)",
+    backgroundColor: "rgba(51, 122, 183, 0.5)",
     zIndex: 9998,
     height: "80%",
   },

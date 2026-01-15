@@ -41,11 +41,13 @@ class GestionComercialService {
     };
   }
 
-  async makeRequest(endpoint, options = {}, useCRM = true, useSIS = false, useGBI = false, useSTRG = false) {
+  async makeRequest(endpoint, options = {}, useCRM = true, useSIS = false, useGBI = false, useSTRG = false, useFAC = false) {
+    const API_BASE_FAC = `${getEnvironmentConfig().BASE_URL_NS}/API_FAC/api`;
     let baseUrl = API_BASE_CRM;
     if (useSIS) baseUrl = API_BASE_SIS;
     else if (useGBI) baseUrl = API_BASE_GBI;
     else if (useSTRG) baseUrl = API_BASE_STRG;
+    else if (useFAC) baseUrl = API_BASE_FAC;
 
     const url = `${baseUrl}${endpoint}`;
     const headers = await this.getHeaders();
@@ -807,6 +809,64 @@ class GestionComercialService {
         Token: this.global.user?.Token,
       }),
     }, false, true); // useSIS
+  }
+
+  // --- MÉTODOS ADICIONALES PARA SUB-VISTAS ---
+
+  // Consultar cotizaciones (SIS)
+  async consultarCotizaciones(filtros) {
+    const endpoint = '/Cotizaciones/CotizacionesConsultar';
+    return this.makeRequest(endpoint, {
+      method: 'POST',
+      body: JSON.stringify({
+        Page: filtros?.Page || 1,
+        Rows: filtros?.Rows || 30,
+        ...filtros,
+        Token: this.global.user?.Token,
+      }),
+    }, false, true); // useSIS
+  }
+
+  // Consultar cotizaciones bodegaje (STRG)
+  async consultarCotizacionesBodegaje(filtros) {
+    const endpoint = '/CotizacionesBodegaje/CotizacionesBodegajeConsultar';
+    return this.makeRequest(endpoint, {
+      method: 'POST',
+      body: JSON.stringify({
+        Page: filtros?.Page || 1,
+        Rows: filtros?.Rows || 30,
+        ...filtros,
+        Token: this.global.user?.Token,
+      }),
+    }, false, false, false, true); // useSTRG
+  }
+
+  // Consultar órdenes de servicio (STRG)
+  async consultarOrdenesServicio(filtros) {
+    const endpoint = '/OrdenesServiciosBodegaje/OrdenesServiciosBodegajeConsultar';
+    return this.makeRequest(endpoint, {
+      method: 'POST',
+      body: JSON.stringify({
+        Page: filtros?.Page || 1,
+        Rows: filtros?.Rows || 30,
+        ...filtros,
+        Token: this.global.user?.Token,
+      }),
+    }, false, false, false, true); // useSTRG
+  }
+
+  // Consultar cupones de pago / pre-facturas (FAC)
+  async consultarCuponesPago(filtros) {
+    const endpoint = '/PreFacturas/PreFacturasConsultar';
+    return this.makeRequest(endpoint, {
+      method: 'POST',
+      body: JSON.stringify({
+        Page: filtros?.Page || 1,
+        Rows: filtros?.Rows || 30,
+        ...filtros,
+        Token: this.global.user?.Token,
+      }),
+    }, false, false, false, false, true); // useFAC
   }
 
   // Insertar seguimiento

@@ -1,0 +1,1811 @@
+﻿
+@{
+    ViewBag.Title = "Centro de gestión comercial";
+}
+
+<link href="@Url.VersionedContent("~/css/frameworks/fileInput/fileinput.min.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/css/frameworks/erp/StyleModal.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/css/frameworks/dateTimePiker/bootstrap-datetimepicker.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/css/frameworks/AngularCustomSelect/AngularCustomSelect.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/css/frameworks/ng-table/ng-table.min.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/js/frameworks/angularToogle/checkbox-sedi.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/css/areas/CRM/PreContactos/GestionPreContactos.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/css/frameworks/summernote/summernote.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/css/frameworks/summernote/summernote-bs3.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/js/frameworks/InputFile/InputFile.angular.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/js/frameworks/StorageMap/storage.map.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/js/frameworks/angularToogle/angular-bootstrap-toggle.min.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/js/frameworks/baguetteBox/baguetteBox.min.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/css/frameworks/angularCalendar/angular-bootstrap-calendar.min.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/js/frameworks/ngSortable/ng-sortable.min.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/js/frameworks/jsonPresenter/jquery.jsonPresenter.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/js/frameworks/IntTelephone/css/intlTelInput.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/js/frameworks/hotkeys/hotkeys.min.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/js/frameworks/Cropper/cropper.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/js/frameworks/seguimientos/seguimientos.css")" rel="stylesheet" />
+
+<script src="@Url.VersionedContent("~/js/frameworks/Cropper/cropper.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/IntTelephone/data.min.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/jsonPresenter/jquery.jsonPresenter.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/baguetteBox/baguetteBox.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/StorageMap/lib/three.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/StorageMap/lib/OrbitControls.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/StorageMap/lib/three.text-texture.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/StorageMap/storage.map.angular.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/StorageMap/lib/threex.dynamictexture.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/InputFile/InputFile.angular.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/FileViewer/file.viewer.angular.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/inputMasks/angular-input-masks.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/dateTimePiker/moment-with-locales.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/dateTimePiker/bootstrap-datetimepicker.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/dateTimePiker/bootstrap-datetimepicker.angular.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/AngularCustomSelect/customSelect.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/EmailBox/EmailBox.angular.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/DocumentoBox/DocumentoBox.angular.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/Bodegas/Bodegas.angular.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/Direcciones/Direcciones.angular.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/DetailModal/detail.modal.angular.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/angularToogle/angular-bootstrap-toggle.min.js")"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA9ncq-md7YyoP-nO3Ow-9RyxzfJxdpddY&libraries=places"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/ngSortable/ng-sortable.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/Address/Address.angular.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/hotkeys/hotkeys.min.js")"></script>
+
+<script src="@Url.VersionedContent("~/js/frameworks/angularCalendar/interact.min.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/angularCalendar/ui-bootstrap-tpls-2.5.0.min.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/angularCalendar/angular-bootstrap-calendar-tpls.min.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/ng-table/ng-table.min.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/ngContextMenu/contextMenu.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/xlsx-ar/xlsx.ar.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/Mail/Mail.angular.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/summernote/summernote.min.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/angularSummernote/angular-summernote.min.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/seguimientos/seguimientos.angular.js")"></script>
+<script src="@Url.VersionedContent("~/js/Areas/CRM/PreContactos/ControllerGestion.js")"></script>
+<style>    
+    .border-1 {
+        border-right: 3px solid #0091ae;
+    }
+    .border-2 {
+        border-right: 3px solid #009688;
+    }
+    .border-3 {
+        border-right: 3px solid #FF9800;
+    }
+    .input-numero::-webkit-outer-spin-button,
+    .input-numero::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+</style>
+<div ng-init="Init()" ng-controller="ControllerGestion">
+    <section class="content" ng-show="Modo == 1">
+        <div class="box mb-0">
+            <div class="box-header with-border">
+                <div class="flex flex-center flex-between flex-wrap gap-8">
+                    <div class="pn-filter flex flex-center flex-wrap gap-6">
+                        <div class="nav-tabs-custom nav-tabs-wizard mr-5">
+                            <ul class="nav nav-pills-icon nav-wizard ml-0 mt-0">
+                                <li ng-click="ModoVistaProcesos('tabla')"><a style="padding-right: 2px" data-target="#tablaPreContactos" title="Vista de contactos en tabla" data-toggle="tab" class="active"><i class="fal fa-table mr-0"></i></a></li>
+                                <li ng-click="ModoVistaProcesos('pieLine')" ng-if="Search.OrigenPreContactoID != null"><a data-target="#lineaPreContactos" title="Vista de contactos en columnas" data-toggle="tab" style="padding-right: 2px; padding-left: 2px"><i class="fal fa-line-columns mr-0"></i></a></li>
+                                <li ng-click="AbrirMiCalendario()"><a data-toggle="tab" title="Mi calendario de actividades" style="padding-left: 2px;"><i class="fal fa-calendar-day mr-0"></i></a></li>
+                            </ul>
+                        </div>
+                        <div class="flex flex-center gap-5">
+                            <button class="not-btn" ng-click="AbrirModalFiltrar()" title="Filtrar resultados"><i class="fal fa-filter font-23 blue" style="position: relative; top: 3px;"></i></button>
+                            <button class="not-btn btn-filter" ng-if="Filtrado" ng-click="QuitarFiltros()" title="Eliminar todos los filtros"><i class="fal fa-times red"></i></button>
+                            <h3 class="box-title box-title-sm">Centro de gestión comercial</h3>
+                        </div>
+                        <button class="btn btn-sm btn-primary" ng-if="FilterOrigenesPreContactos.length > 0" ng-click="AbrirModalAgregar()" style=" height: 23px; padding: 0 5px;">Nuevo <i class="fal fa-plus"></i></button>
+                    </div>
+                    <div class="pn-options pt-0 flex flex-wrap flex-center gap-6">
+                        <div class="mat-paginator-range-actions font-18" ng-if="(PreContactos[0].TotalRows != undefined && PreContactos[0].TotalRows > Search.Rows) && ModoProcesos == 'tabla'">
+                            <div class="mat-paginator-range-label" style="white-space: nowrap"> {{ ((Search.Page - 1) * Search.Rows) + 1 }} – {{ (Search.Page * Search.Rows) < PreContactos[0].TotalRows ? (Search.Page * Search.Rows) : PreContactos[0].TotalRows }} de {{ PreContactos[0].TotalRows }} </div>
+                            <button mat-icon-button="" type="button" class="mat-focus-indicator mat-tooltip-trigger mat-paginator-navigation-previous mat-icon-button mat-button-base" ng-click="Anterior()" title="Anterior (alt + a)" data-toggle="tooltip" data-placement="left">
+                                <span class="mat-button-wrapper">
+                                    <svg viewBox="6 5 12 14" focusable="true" class="mat-paginator-icon">
+                                        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
+                                    </svg>
+                                </span>
+                            </button>
+                            <button mat-icon-button="" type="button" class="mat-focus-indicator mat-tooltip-trigger mat-paginator-navigation-next mat-icon-button mat-button-base" ng-click="Siguiente()" title="Siguiente (alt + s)" data-toggle="tooltip" data-placement="left">
+                                <span class="mat-button-wrapper">
+                                    <svg viewBox="6 5 12 14" focusable="true" class="mat-paginator-icon">
+                                        <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path>
+                                    </svg>
+                                </span>
+                            </button>
+                        </div>
+                        <div class="flex flex-center flex-wrap gap-5">
+                            <div class="flex flex-center" style="gap: 5px" ng-if="FilterOrigenesPreContactos.length > 2">
+                                <label class="control-label control-label-sm mb-0">Tipos: </label>
+                                <select class="form-control input-xs" style="min-width: 90px" ng-model="Search.OrigenPreContactoID" ng-options="item.OrigenPreContactoID as item.Nombre for item in FilterOrigenesPreContactos" ng-change="CambiarOrigenPreContacto()"></select>
+                            </div>
+                            <button class="not-btn flex flex-center filter-header" md-display="false" ng-if="ModoProcesos == 'tabla'" ng-click="MostrarFiltros()" title="Mostrar panel de filtros (ctrl + b)" data-toggle="tooltip" data-placement="left"><i class="fas fa-filter font-18" ng-style="{ 'color' : IsFiltros ? '#2a6496' : '#aaa' }"></i></button>
+                            <button class="not-btn flex flex-center" title="Consultar (alt + r)" ng-click="Consultar();LineaTiempoConsultar()"><i class="fad fa-sync blue font-23"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="nav-tabs-custom nav-tabs-wizard">
+                    <div class="tab-content pt-0">
+                        <div id="tablaPreContactos" class="tab-pane active">
+                            <div ng-include="ViewsTableCRM"></div>
+                        </div>
+                        <div id="lineaPreContactos" class="tab-pane">
+                            <div class="pie-line" data-ng-model="PreContactosLineaTiempo" id="ContainerLineaTiempo" style="margin: 0 auto;">
+                                <div class="pie-line-content">
+                                    <div class="pie-line-column" ng-repeat="Linea in PreContactosLineaTiempo" on-finish-render="FinishRenderLineaTiempo()" data-columnindex="{{$index}}" id="column{{$index}}">
+                                        <div>
+                                            <div class="pie-line-header">
+                                                <span>
+                                                    {{ Linea.Nombre }}
+                                                    <button class="not-btn pull-right" ng-click="Linea.IsFiltros = (Linea.IsFiltros ? false : true)" title="Abrir filtros">
+                                                        <i class="fas fa-filter" style="font-size: 18px; position: relative; top: 2px" ng-style="{ 'color': (Linea.IsFiltros ? 'gray' : '') }"></i>
+                                                    </button>
+                                                </span>
+                                                <div class="has-feedback" style="margin: 0 5px 5px 5px" ng-show="Linea.IsFiltros">
+                                                    <input type="text" class="form-control input-xs" ng-model="Linea.FullSearch" placeholder="Buscar" maxlength="30" required ng-change="ChangeFullSearch(Linea)" />
+                                                    <span class="form-control-feedback" style="padding: 5px 3px"><i class="fas fa-search" style="position: relative; top: -4px;"></i></span>
+                                                </div>
+                                            </div>
+                                            <div class="pie-line-column-content" index="{{ Linea.ProcesoLineaTiempoID }}">
+                                                <ul class="pie-line-body" as-sortable="LineaTiempoSortOptions" data-ng-model="Linea.Procesos" ng-style="{ 'height': (Linea.IsFiltros ? 'calc(100vh - 289px)' : 'calc(100vh - 260px)'), 'max-height': (Linea.IsFiltros ? 'calc(100vh - 289px)' : 'calc(100vh - 260px)') }">
+                                                    <li ng-repeat="item in Linea.Procesos" class="card-pie-line" context-menu="Menu" as-sortable-item>
+                                                        <div as-sortable-item-handle>
+                                                            <div>
+                                                                <div ng-if="item.Color" class="color-pie-line" ng-style="{ 'border-color' : item.Color }"></div>
+                                                                <div class="flex flex-center gap-5" title="Contacto {{ item.NombreCompleto }}">
+                                                                    <div style="order: 2">
+                                                                        <button class="not-btn pie-line-calendar ml-5" style="width: 19px" ng-click="VisualizarActividadesSeguimientos(item)" title="Seguimientos"><i class="fal fa-comment-alt font-17 blue"></i><span ng-if="item.CountSeguimientos > 0" class="comment-number" style="top: -4px; position: relative;" title="Total de seguimientos {{ item.CountSeguimientos }}">{{ item.CountSeguimientos < 10 ? item.CountSeguimientos : '+' }}</span></button>
+                                                                        <button class="not-btn pie-line-calendar relative-top-3" style="width: 19px" ng-click="VisualizarActividadesSeguimientos(item)" title="Actividades"><i ng-class="item.EstadoGeneral == 'V' ? 'fal green' : (item.EstadoGeneral == 'A' ? 'fad yellow' : 'fad red')" class="fa-calendar font-18"></i><span class="number-calendar" ng-class="item.EstadoGeneral == 'V' ? '' : (item.EstadoGeneral == 'A' ? '' : 'font-white')" style=" position: relative; top: 0px" ng-if="item.CountActividades > 0" title="Total actividades {{ item.CountActividades }}">{{ item.CountActividades < 10 ? item.CountActividades : '+' }}</span></button>
+                                                                        <button class="not-btn pie-line-calendar relative-top-3" ng-if="Usuario.EdicionLineaTiempo == true" ng-click="CambiarAutomaticaLineaTiempo(item)" style="width: 19px;" title="{{ item.LineaTiempoAutomatica == false ? 'Bloquear proceso' : 'Desbloquear proceso' }}"><i class="fal font-17" ng-class="item.LineaTiempoAutomatica == false ? 'fa-external-link green' : 'fa-external-link-square red'"></i></button>
+                                                                    </div>
+                                                                    <label class="control-label contacto-pie"><a href="#" ng-click="AbrirCentroGestion(item)">{{ item.NombreCompleto }}</a></label><br />
+                                                                </div>
+                                                                <div class="flex-center" title="Valor">
+                                                                    <label class="control-label font-15 mr-6" ng-if="item.ValorNegocio"><i class="fad fa-dollar-sign green"></i> </label><span ng-if="item.ValorNegocio">{{ item.ValorNegocio | currency : '' : '' }}</span><br ng-if="item.ValorNegocio" />
+                                                                </div>
+                                                                <div class="flex-center" title="Fecha de registro">
+                                                                    <label class="control-label font-15 mr-6"><i class="fal fa-calendar-plus orange"></i> </label><span class="font-8 blue">Registro: </span><span>{{ item.Fecha | date : 'dd/MM/yyyy hh:mm a' }}</span>
+                                                                </div>
+                                                                <div class="flex-center" title="Fecha de cierre" ng-if="item.FechaCierre">
+                                                                    <label class="control-label font-15 mr-6"><i class="fal fa-calendar-check green"></i> </label><span class="font-8 blue">Cierre: </span><span>{{ item.FechaCierre | date : 'dd/MM/yyyy hh:mm a' }}</span>
+                                                                </div>
+                                                                <div class="flex-center" title="Fecha de cambio" ng-if="item.FechaCambioLineaTiempo">
+                                                                    <label class="control-label font-15 mr-6"><i class="fal fa-calendar-edit red"></i> </label><span class="font-8 blue">Cambio: </span><span>{{ item.FechaCambioLineaTiempo | date : 'dd/MM/yyyy hh:mm a' }}</span>
+                                                                </div>
+                                                                <div class="flex-center" title="Celular {{ item.Celular | tel }}">
+                                                                    <label class="control-label font-12 mr-6" ng-if="item.Celular"><i class="fal fa-mobile blue"></i> </label><span ng-if="item.Celular">{{ item.Celular | tel }}</span><br ng-if="item.Celular" />
+                                                                </div>
+                                                                <div class="flex-center" title="Email {{ item.Email }}">
+                                                                    <label class="control-label font-12 mr-6" ng-if="item.Email"><i class="fal fa-envelope blue"></i> </label><span ng-if="item.Email" style=" text-overflow: ellipsis; overflow: hidden">{{ item.Email.replaceAll(';', ', ') }}</span><br ng-if="item.Email" />
+                                                                </div>
+                                                                <div class="flex-center" title="Asesor comercial" ng-if="Search.AsesorID == null">
+                                                                    <label class="control-label font-12 mr-6" ng-if="item.AsesorNombreCompleto"><i class="fal fa-user-cog blue"></i> </label><span ng-if="item.AsesorNombreCompleto">{{ item.AsesorNombreCompleto }}</span><br ng-if="item.AsesorNombreCompleto" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <div class="pie-line-footer">
+                                                <div><span class="font-12" style="font-weight: bold">Total: </span><span class="pull-right" style="font-weight: normal;">{{ Linea.TotalProcesos | currency : '' : '' }}</span></div>
+                                                <div><span class="font-12" style="font-weight: bold">Valor: </span><span class="pull-right" style="font-weight: normal;">{{ Linea.TotalValorNegocio | currency : '' : '' }}</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="alert alert-danger text-center" role="alert" ng-if="PreContactosLineaTiempo.length == 0" style="margin-bottom: 0px;">
+                                        <i class="fal fa-exclamation-triangle font-22" style="margin-right: 5px;"></i> No hay configurado una linea de tiempo para los contactos.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="content flex flex-column gap-7 max-width-900" ng-show="Modo == 2">
+        <div class="box-sedi-2">
+            <div class="content-flex flex-between flex-wrap gap-7" style="padding: 8px 0">
+                <div class="flex flex-center gap-7">
+                    <button class="not-btn" ng-click="AtrasModo();" title="Volver a los contactos"><i class="iconify icon-action-undo font-23" style="color: #6c757d !important;"></i></button>
+                    <h3 class="box-title font-18">
+                        <span ng-bind="Titulo"></span>
+                    </h3>
+                </div>
+                <div class="flex flex-center flex-wrap gap-5 pn-options">
+                    <div class="flex flex-center gap-5" ng-if="OrigenesPreContactos.length > 1">
+                        <label class="control-label control-label-sm mr-4 mb-0">Tipo de contacto: </label>
+                        <select class="form-control input-xs mr-4" style="width: 120px; padding: 0 1px;" ng-options="item.OrigenPreContactoID as item.Nombre for item in OrigenesPreContactos" ng-change="ConsultarCombosOrigenes()" ng-model="PreContacto.OrigenPreContactoID"></select>
+                    </div>
+                    <button class="not-btn" ng-click="AtrasModo();" title="Volver a los contactos"><i class="fad fa-times" style="color: #6c757d !important; font-size: 27px;"></i></button>
+                </div>
+            </div>
+        </div>
+        <div>
+            <span class="style-title-sedi">Información general</span>
+            <div class="box-sedi-2 border-1">
+                <div class="content-block">
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-md-4 col-lg-3">
+                            <label class="control-label control-label-sm mb-0">Nombres</label><strong class="red">*</strong>
+                            <div class="form-group has-feedback mb-3">
+                                <input type="text" class="form-control input-sm" placeholder="Nombres" ng-model="PreContacto.Nombres" ng-keydown="SearchInputPreContactosExistentes()" maxlength="250" required ng-upper-clean />
+                                <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-4 col-lg-3">
+                            <label class="control-label control-label-sm mb-0">Apellidos</label><strong class="red">*</strong>
+                            <div class="form-group has-feedback mb-3">
+                                <input type="text" class="form-control input-sm" placeholder="Apellidos" ng-model="PreContacto.Apellidos" ng-keydown="SearchInputPreContactosExistentes()" maxlength="250" required ng-upper-clean />
+                                <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-4 col-lg-2">
+                            <label class="control-label control-label-sm mb-0">Celular</label><strong class="red">*</strong>
+                            <div class="form-group has-feedback mb-3">
+                                <input id="txtCelular" type="text" class="form-control input-sm input-numero" placeholder="Celular" ng-model="PreContacto.Celular" ng-keydown="SearchInputPreContactosExistentes()" required maxlength="20" />
+                                <span class="glyphicon glyphicon-phone form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-8 col-lg-4">
+                            <label class="control-label control-label-sm mb-0">Email</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input type="text" class="form-control input-sm" placeholder="Correo" ng-model="PreContacto.Email" ng-keydown="SearchInputPreContactosExistentes()" maxlength="200" required />
+                                <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-4 col-lg-3" ng-if="PreContacto.OrigenPreContactoID == 7">
+                            <label class="control-label control-label-sm mb-0">Ciudad</label>
+                            <div class="form-group mb-3">
+                                <div custom-select="item.CiudadID as item.Nombre for item in searchCiudades($searchTerm)" custom-select-options="ddlSearchCiudades" class="custom-select-sm" ng-model="PreContacto.CiudadID"></div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-4 col-lg-6" ng-if="PreContacto.OrigenPreContactoID == 7">
+                            <label class="control-label control-label-sm mb-0">Dirección</label>
+                            <div class="form-group mb-3">
+                                <button class="btn btn-sm btn-success btn-address" ng-click="AbrirModalDireccion();" style="width: 100%; margin-bottom: 0px;"><i class="fad fa-location"></i>&nbsp;{{ PreContacto.Direccion == '' || PreContacto.Direccion == null ? 'Seleccionar' : PreContacto.Direccion }}</button>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-4 col-lg-3">
+                            <label class="control-label control-label-sm mb-0">¿Como se contactaron?</label><strong class="red">*</strong>
+                            <div class="form-group mb-3">
+                                <div custom-select="item.FormaContactoID as item.Nombre for item in searchFormasFormasContactos($searchTerm)" class="custom-select-sm" ng-model="PreContacto.FormaContactoID" ng-display="PreContacto.FormaContactoNombre"></div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-4 col-lg-3">
+                            <label class="control-label control-label-sm mb-0">¿Como nos conocieron?</label><strong class="red">*</strong>
+                            <div class="form-group mb-3">
+                                <div custom-select="item.FormaComoNosConocioID as item.Descripcion for item in searchFormasComoNosConocio($searchTerm)" class="custom-select-sm" ng-model="PreContacto.FormaComoNosConocioID" ng-display="PreContacto.FormaComoNosConocioNombre" custom-select-options="ddlSearchFormasComoNosConocio"></div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-4 col-lg-3">
+                            <label class="control-label control-label-sm mb-0">Especificación como nos conocieron</label>
+                            <div class="form-group mb-3">
+                                <div custom-select="item.FormaComoNosConocioDetalleID as item.Nombre for item in searchFormasComoNosConocioDetalles($searchTerm)" class="custom-select-sm" ng-model="PreContacto.FormaComoNosConocioDetalleID" ng-display="PreContacto.FormaComoNosConocioDetalleNombre"></div>
+                            </div>
+                        </div>
+                        <div id="Campos" class="col-xs-12 col-sm-12 col-md-4 col-lg-3">
+                            <label class="control-label control-label-sm mb-0">Palabras de busqueda</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input type="text" class="form-control input-sm" placeholder="Ingrese las palabras de busqueda en la red" ng-model="PreContacto.PalabraBusqueda" maxlength="100" required />
+                                <span class="glyphicon glyphicon-plus form-control-feedback"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <span class="style-title-sedi">Datos de busqueda</span>
+            <div class="box-sedi-2 border-2">
+                <div class="content-block">
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-md-6 col-lg-3" ng-if="Usuario.Asignable == true || PreContacto.ProcesoID == null">
+                            <label class="control-label control-label-sm mb-0">{{ PreContacto.OrigenPreContactoID == 2 ? 'Asesor captación' : 'Asesor venta o comercial' }}</label><strong class="red">*</strong>
+                            <div class="form-group mb-3">
+                                <div custom-select="item.AsesorID as item.NombreCompleto for item in searchAsesores($searchTerm)" class="custom-select-sm" ng-disabled="PreContacto.ProcesoID != null" ng-model="PreContacto.AsesorID"></div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-3 col-lg-2">
+                            <label class="control-label control-label-sm mb-0">Teléfono</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input type="text" class="form-control input-sm" placeholder="Telefono" ng-model="PreContacto.Telefono" maxlength="40" required />
+                                <span class="glyphicon glyphicon-earphone form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-6 col-lg-7" ng-if="PreContacto.OrigenPreContactoID == 4 || PreContacto.OrigenPreContactoID == 5">
+                            <label class="control-label control-label-sm mb-0">Inmueble de interes</label>
+                            <div class="input-group mb-3">
+                                <div custom-select="item.InmuebleID as item.Descripcion for item in SearchInmueblesDisponibles($searchTerm)" class="custom-select-sm" ng-model="PreContacto.InmuebleID" custom-select-options="ddlSearchInmueblesDisponibles"></div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-if="PreContacto.OrigenPreContactoID == 2  || PreContacto.OrigenPreContactoID == 4">
+                            <label class="control-label control-label-sm mb-0">Tipo de oferta</label><strong ng-if="PreContacto.OrigenPreContactoID == 2 || PreContacto.OrigenPreContactoID == 4" class="red">*</strong>
+                            <div class="form-group">
+                                <select class="form-control input-sm" ng-model="PreContacto.TipoOfertaID" ng-options="item.TipoOfertaID as item.Nombre for item in TiposOfertas" required></select>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-2" ng-if="PreContacto.OrigenPreContactoID == 2  || PreContacto.OrigenPreContactoID == 4 || PreContacto.OrigenPreContactoID == 5">
+                            <label class="control-label control-label-sm mb-0">Condición del inmueble</label>
+                            <div class="form-group">
+                                <select class="form-control input-sm" ng-model="PreContacto.CondicionInmuebleID" ng-options="item.CondicionInmuebleID as item.Nombre for item in CondicionesInmuebles" required></select>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-2" ng-if="PreContacto.OrigenPreContactoID == 2  || PreContacto.OrigenPreContactoID == 4 || PreContacto.OrigenPreContactoID == 5 || PreContacto.OrigenPreContactoID == 7">
+                            <label class="control-label control-label-sm mb-0">Tipo de inmueble</label><strong ng-if="PreContacto.OrigenPreContactoID == 2 || PreContacto.OrigenPreContactoID == 4 || PreContacto.OrigenPreContactoID == 5 || PreContacto.OrigenPreContactoID == 7" class="red">*</strong>
+                            <div class="form-group">
+                                <select class="form-control input-sm" ng-model="PreContacto.TipoInmuebleID" ng-options="item.TipoInmuebleID as item.Nombre for item in TiposInmuebles" required></select>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-2" ng-if="PreContacto.OrigenPreContactoID == 7">
+                            <label class="control-label control-label-sm mb-0">Tipo de avaluo</label><strong class="red">*</strong>
+                            <div class="form-group">
+                                <select class="form-control input-sm" ng-model="PreContacto.TipoAvaluoID" ng-options="item.TipoAvaluoID as item.Nombre for item in TiposAvaluos" required></select>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-if="PreContacto.OrigenPreContactoID == 2  || PreContacto.OrigenPreContactoID == 4 || PreContacto.OrigenPreContactoID == 5">
+                            <label class="control-label control-label-sm mb-0">Antiguedad del inmueble</label>
+                            <div class="form-group">
+                                <select class="form-control input-sm" ng-model="PreContacto.AntiguedadInmuebleID" ng-options="item.AntiguedadInmuebleID as item.Nombre for item in AntiguedadesInmuebles" required></select>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-if="PreContacto.OrigenPreContactoID == 2">
+                            <label class="control-label control-label-sm mb-0">Localidad</label><strong class="blue ml-4 font-10">Solo aplica para bogota.</strong>
+                            <div class="form-group">
+                                <select class="form-control input-sm" ng-model="PreContacto.LocalidadID" ng-options="item.LocalidadID as item.Nombre for item in Localidades" required></select>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-2" ng-if="PreContacto.OrigenPreContactoID == 2 || PreContacto.OrigenPreContactoID == 5">
+                            <label class="control-label control-label-sm mb-0">Area</label>
+                            <div class="form-group">
+                                <input type="text" class="form-control input-sm" ng-model="PreContacto.Area" required maxlength="10" ui-number-mask="0" placeholder="Area del inmueble" />
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-2" ng-if="PreContacto.OrigenPreContactoID == 4">
+                            <label class="control-label control-label-sm mb-0">Area</label>
+                            <div class="form-group" style="display: flex">
+                                <input type="text" class="form-control input-sm" ng-model="PreContacto.AreaDesde" maxlength="10" ui-number-mask="0" placeholder="Desde" />
+                                <input type="text" class="form-control input-sm ml-7" ng-model="PreContacto.AreaHasta" maxlength="10" ui-number-mask="0" placeholder="Hasta" />
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-if="PreContacto.OrigenPreContactoID == 4">
+                            <div class="display-flex gap-5">
+                                <div>
+                                    <label class="control-label control-label-sm mb-0">Habitaciones</label><strong ng-if="PreContacto.OrigenPreContactoID == 5" class="red">*</strong>
+                                    <div class="form-group">
+                                        <input type="text" class="form-control input-sm" ng-model="PreContacto.Cantidadhabitaciones" maxlength="4" ui-number-mask="0" placeholder="Minimo" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="control-label control-label-sm mb-0">Parqueaderos</label>
+                                    <div class="form-group">
+                                        <input type="text" class="form-control input-sm" ng-model="PreContacto.CantidadGarajes" maxlength="4" ui-number-mask="0" placeholder="Minimo" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-5 col-lg-2" ng-if="PreContacto.OrigenPreContactoID == 4">
+                            <label class="control-label control-label-sm mb-0">Presupuesto</label>
+                            <div class="form-group" style="display: flex">
+                                <input type="text" class="form-control input-sm" ng-model="PreContacto.PresupuestoDesde" maxlength="20" ui-number-mask="0" placeholder="Desde" />
+                                <input type="text" class="form-control input-sm ml-7" ng-model="PreContacto.PresupuestoHasta" maxlength="20" ui-number-mask="0" placeholder="Hasta" />
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-4" ng-if="PreContacto.OrigenPreContactoID == 2">
+                            <label class="control-label control-label-sm mb-0">Dirección del inmueble</label><strong class="red">*</strong>
+                            <div class="form-group">
+                                <input type="text" class="form-control input-sm" ng-model="PreContacto.InmuebleDireccion" maxlength="700" required placeholder="Direccion de inmueble" />
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-2" ng-if="PreContacto.OrigenPreContactoID == 4">
+                            <label class="control-label control-label-sm mb-0">Baños</label>
+                            <div class="form-group">
+                                <input type="text" class="form-control input-sm" ng-model="PreContacto.CantidadBanos" maxlength="4" ui-number-mask="0" placeholder="Minimo" />
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-5 col-lg-4" ng-if="PreContacto.OrigenPreContactoID == 4">
+                            <label class="control-label control-label-sm mb-0">Estrato</label>
+                            <div class="form-group">
+                                <div class="form-check form-check-left">
+                                    <input type="checkbox" class="form-check-input" id="checked_Estrato1" ng-model="PreContacto.Estrato1">
+                                    <label class="form-check-label control-label control-label-sm" for="checked_Estrato1" style="font-weight: 700;">1</label>
+                                </div>
+                                <div class="form-check form-check-left ml-10">
+                                    <input type="checkbox" class="form-check-input" id="checked_Estrato2" ng-model="PreContacto.Estrato2">
+                                    <label class="form-check-label control-label control-label-sm" for="checked_Estrato2" style="font-weight: 700;">2</label>
+                                </div>
+                                <div class="form-check form-check-left ml-10">
+                                    <input type="checkbox" class="form-check-input" id="checked_Estrato3" ng-model="PreContacto.Estrato3">
+                                    <label class="form-check-label control-label control-label-sm" for="checked_Estrato3" style="font-weight: 700;">3</label>
+                                </div>
+                                <div class="form-check form-check-left ml-10">
+                                    <input type="checkbox" class="form-check-input" id="checked_Estrato4" ng-model="PreContacto.Estrato4">
+                                    <label class="form-check-label control-label control-label-sm" for="checked_Estrato4" style="font-weight: 700;">4</label>
+                                </div>
+                                <div class="form-check form-check-left ml-10">
+                                    <input type="checkbox" class="form-check-input" id="checked_Estrato5" ng-model="PreContacto.Estrato5">
+                                    <label class="form-check-label control-label control-label-sm" for="checked_Estrato5" style="font-weight: 700;">5</label>
+                                </div>
+                                <div class="form-check form-check-left ml-10">
+                                    <input type="checkbox" class="form-check-input" id="checked_Estrato6" ng-model="PreContacto.Estrato6">
+                                    <label class="form-check-label control-label control-label-sm" for="checked_Estrato6" style="font-weight: 700;">6</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="PreContacto.OrigenPreContactoID == 4 || PreContacto.OrigenPreContactoID == 5">
+                            <label class="control-label control-label-sm mb-0">Localidades</label><strong ng-if="PreContacto.OrigenPreContactoID == 4" class="red">*</strong><strong class="blue ml-4 font-10">Solo aplica para bogota.</strong>
+                            <div class="body-check">
+                                <div class="form-check check-item" ng-repeat="item in Localidades" ng-if="item.LocalidadID != null" ng-init="InitLocalidades(item)">
+                                    <input type="checkbox" class="form-check-input" id="checked_{{ $index }}" ng-model="item.Seleccionar" ng-change="ChangeLocalidades(item)">
+                                    <label class="form-check-label control-label control-label-sm" for="checked_{{ $index }}">{{ item.Nombre }}</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="PreContacto.OrigenPreContactoID == 4">
+                            <label class="control-label control-label-sm mb-0">Descripción adicional ubicación</label>
+                            <div class="form-group mb-3">
+                                <textarea rows="2" maxlength="500" class="form-control input-sm" ng-model="PreContacto.InteresesUbicacion" placeholder="Barrio, Entre Calle y Carrera, Etc" style="width: 100%" required></textarea>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="PreContacto.OrigenPreContactoID == 2  || PreContacto.OrigenPreContactoID == 4 || PreContacto.OrigenPreContactoID == 5">
+                            <label class="control-label control-label-sm mb-0">Descripción adicional inmueble</label>
+                            <div class="form-group mb-3">
+                                <textarea rows="2" maxlength="500" class="form-control input-sm" ng-model="PreContacto.DescripcionAdicional" placeholder="(Cerca a: Colegios, Centros Comerciales, Veterinarias, Transporte Publico, Etc)" style="width: 100%" required></textarea>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <label class="control-label control-label-sm mb-0">Observaciones</label>
+                            <div class="form-group mb-3">
+                                <textarea rows="2" maxlength="3000" class="form-control input-sm" ng-model="PreContacto.Observaciones" placeholder="Ingresar observaciones del contacto" style="width: 100%" required></textarea>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6" ng-if="PreContacto.OrigenPreContactoID == 1  || PreContacto.OrigenPreContactoID == 6">
+                            <table class="table table-striped table-sm mb-5">
+                                <thead>
+                                    <tr>
+                                        <th style="font-size: 12px !important;">Servicios solicitados</th>
+                                        <th class="width-50"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div custom-select="item.TipoProductoID as item.Nombre for item in searchTiposProductos($searchTerm)" class="custom-select-sm" ng-model="Servicio.TipoProductoID" custom-select-options="ddlSearchTiposProductos"></div>
+                                        </td>
+                                        <td class="text-center">
+                                            <button ng-click="AddServicios()" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in PreContacto.ProcesosServiciosIniciales" ng-if="item.Eliminar == false">
+                                        <td>
+                                            {{ item.Nombre }}
+                                        </td>
+                                        <td class="text-center">
+                                            <button ng-click="RemoveServicios(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <div class="form-check form-check-left mt-5">
+                                <input type="checkbox" class="form-check-input" id="checked_DetallarCliente" ng-model="PreContacto.DetallarCliente">
+                                <label class="form-check-label control-label control-label-sm" for="checked_DetallarCliente" style="font-weight: 700;">Detallar {{ PreContacto.OrigenPreContactoID == 2 ? 'propietario' : (PreContacto.OrigenPreContactoID == 4 ? 'arrendatario' : (PreContacto.OrigenPreContactoID == 5 ? 'comprador' : 'cliente o empresa')) }}</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div ng-if="PreContacto.DetallarCliente">
+            <span class="style-title-sedi">{{ PreContacto.OrigenPreContactoID == 2 ? 'Propietario' : (PreContacto.OrigenPreContactoID == 4 ? 'Arrendatario' : (PreContacto.OrigenPreContactoID == 5 ? 'Comprador' : 'Cliente o empresa')) }}</span>
+            <div class="box-sedi-2 border-3">
+                <div class="content-block">
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                            <label class="control-label control-label-sm mb-0">Tipo documento</label>
+                            <div class="form-group mb-3">
+                                <select class="form-control input-sm" ng-options="item.TipoDocumentoID as item.Nombre for item in TiposDocumentos" ng-model="PreContacto.ClienteTipoDocumentoID"></select>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                            <label class="control-label control-label-sm mb-0">Documento</label>&nbsp;&nbsp;
+                            <span class="red font-11">(Sin dígito de verificación)</span>
+                            <div class="input-group mb-3">
+                                <documento-box class="form-control input-sm" ng-numerico="{{(TiposDocumentos | filter:{ TipoDocumentoID: PreContacto.ClienteTipoDocumentoID })[0].Numerico}}" ng-model="PreContacto.ClienteDocumento" placeholder="Ingrese documento"></documento-box>
+                                <div class="input-group-btn input-group-not-btn">
+                                    <button class="not-btn" ng-click="BuscarTercero(PreContacto)"><i class="fal fa-search font-18 blue"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                            <label class="control-label control-label-sm mb-0">Tipo persona</label>
+                            <div class="form-group mb-3">
+                                <select class="form-control input-sm" ng-options="item.TipoPersonaID as item.Nombre for item in TiposPersonas" ng-model="PreContacto.ClienteTipoPersonaID" ng-change="ChangeTipoPersona(PreContacto)"></select>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 {{ PreContacto.ShowTipoPersona ? 'col-md-3 col-lg-3' : 'col-md-12 col-lg-12' }}">
+                            <label class="control-label control-label-sm mb-0">{{ PreContacto.ShowTipoPersona ? 'Nombres' : 'Empresa' }}</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input type="text" class="form-control input-sm" ng-model="PreContacto.ClienteNombres" required maxlength="250" placeholder="Ingrese los nombres" />
+                                <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-if="PreContacto.ShowTipoPersona">
+                            <label class="control-label control-label-sm mb-0">Nombres 2</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input type="text" class="form-control input-sm" ng-model="PreContacto.ClienteNombres2" required maxlength="250" placeholder="Ingrese los nombres" />
+                                <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-if="PreContacto.ShowTipoPersona">
+                            <label class="control-label control-label-sm mb-0">Apellidos</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input type="text" class="form-control input-sm" ng-model="PreContacto.ClienteApellidos" required maxlength="250" placeholder="Ingrese los apellidos" />
+                                <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-if="PreContacto.ShowTipoPersona">
+                            <label class="control-label control-label-sm mb-0">Apellidos 2</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input type="text" class="form-control input-sm" ng-model="PreContacto.ClienteApellidos2" required maxlength="250" placeholder="Ingrese los apellidos" />
+                                <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                            <label class="control-label control-label-sm mb-0">Dirección</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input type="text" class="form-control input-sm" ng-model="PreContacto.ClienteDireccion" required maxlength="200" placeholder="Ingrese la dirección" />
+                                <span class="icon glyphicon glyphicon-pushpin form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                            <label class="control-label control-label-sm mb-0">Telefono</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input type="text" class="form-control input-sm" ng-model="PreContacto.ClienteTelefono" required maxlength="40" placeholder="Ingrese el telefono" />
+                                <span class="icon glyphicon glyphicon-earphone form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                            <label class="control-label control-label-sm mb-0">Celular</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input type="text" class="form-control input-sm" ng-model="PreContacto.ClienteCelular" required maxlength="20" placeholder="Ingrese celular" />
+                                <span class="icon glyphicon glyphicon-phone form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <label class="control-label control-label-sm mb-0">Email</label>
+                            <span class="aviso-email font-10">"Para ingresar varios emails separarlo por <strong class="font-14">;</strong> sin espacios."</span>
+                            <div class="form-group has-feedback mb-3">
+                                <email-box class="form-control input-sm" ng-model="PreContacto.ClienteEmail" maxlength="400" placeholder="Ingrese el email"></email-box>
+                                <span class="icon glyphicon glyphicon-envelope form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <label class="control-label control-label-sm mb-0">Email facturación electronica</label>
+                            <span class="aviso-email font-10">"Para ingresar varios emails separarlo por <strong class="font-14">;</strong> sin espacios."</span>
+                            <div class="form-group has-feedback mb-3">
+                                <email-box class="form-control input-sm" ng-model="PreContacto.ClienteEmailFacturacionElectronica" maxlength="400" placeholder="Ingrese el email"></email-box>
+                                <span class="icon glyphicon glyphicon-envelope form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                            <label class="control-label control-label-sm mb-0">Responsabilidad tributaria</label>
+                            <div class="form-group mb-3">
+                                <select class="form-control input-sm" ng-options="item.ResponsabilidadTributariaID as item.Descripcion for item in Responsabilidades" ng-model="PreContacto.ClienteResponsabilidadTributariaID"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box-sedi-2">
+            <div class="content-flex flex-between flex-wrap gap-5">
+                <div>
+                    <button class="btn mb-0 btn-danger" ng-if="Inmueble.InmuebleID == null && (PreContacto.OrigenPreContactoID == 4 || PreContacto.OrigenPreContactoID == 5)" ng-click="AbrirModalInventario(PreContacto)">
+                        <i class="fal fa-box-open"></i> Inventario
+                    </button>
+                </div>
+                <div class="flex flex-center">
+                </div>
+                <div class="btn-group">
+                    <button class="btn mb-0 btn-primary" ng-if="PreContacto.PreContactoID != null" ng-click="Actualizar()">
+                        <i class="fal fa-save"></i> Actualizar
+                    </button>
+                    <button class="btn mb-0 btn-primary" ng-if="PreContacto.PreContactoID == null" ng-click="Insertar()">
+                        <i class="fad fa-save"></i> Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div id="panel-menu-contactos-existentes" class="opciones-left" ng-if="Modo == 2 && PreContacto.ProcesoID == null">
+        <a class="opciones-link" ng-click="AbrirMenu($event)"><i class="fad fa-list-ul"></i></a>
+        <div class="content-opciones">
+            <div class="content-opciones-header">
+                <h4 style="font-size: 15px;">CONTACTOS EXISTENTES</h4>
+                <button class="not-btn btn-closed" ng-click="AbrirMenu($event)" title="Esconder el menu"><i class="fad fa-times" style="font-size: 27px; color: #6c757d !important;"></i></button>
+            </div>
+            <div class="content-opciones-body" style="max-height: calc(100vh - 130px); margin: 8px 0px;">
+                <div class="content-opciones-header-account" ng-repeat="item in PreContactosExistentes">
+                    <div class="content-acount">
+                        <div class="acount-title flex flex-column" style="font-size: 11px; color: #33475b;">
+                            <b ng-if="item.NombreCompleto">{{ item.NombreCompleto }}</b>
+                            <span ng-if="item.Documento != null"><b>C.C: </b> {{ item.Documento }}</span>
+                            <span ng-if="item.Telefono"><b>TEL: </b> {{ item.Telefono }}</span>
+                            <span ng-if="item.Celular"><b>CEL: </b> {{ item.Celular | tel }}</span>                            
+                            <span ng-if="item.Email"><b>EMAIL: </b> {{ item.Email.replaceAll(';', ' - ') }}</span>
+                            <span ng-if="item.FechaRegistro"><b>REGISTRO: </b> {{ item.FechaRegistro | date : 'dd/MM/yyyy hh:mm a' }}</span>
+                            <span ng-if="item.Asesor"><b>ASESOR: </b> {{ item.Asesor }}</span>
+                            <div class="flex flex-center flex-between gap-5">
+                                <label class="control-label control-label-sm mb-0 line-1 label-sedi1" ng-class="item.EstadoProcesoID == 1 ? 'label-primary' : (item.EstadoProcesoID == 4 ? 'label-warning' : (item.EstadoProcesoID == 7 ? 'label-danger' : 'label-success'))">
+                                    {{ item.EstadoProcesoNombre }}
+                                </label>
+                                <button class="btn btn-xs btn-primary" ng-click="CargarPreContactoExistente(item)">Asociar contacto</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="position: absolute; top: calc(50% - 110px);" ng-if="PreContactosExistentes.length == 0">
+                    <div class="text-center">
+                        <img src="https://static.hsappstatic.net/ui-images/static-2.620/optimized/empty-state-charts.svg" />
+                    </div>
+                    <div style="font-size: 15px !important; color: #33475b; font-weight: lighter;" class="text-center">Ningún contacto coincide con los filtros actuales.</div>
+                </div>
+            </div>
+            <div class="content-opciones-footer abs-b-0">
+            </div>
+        </div>
+    </div>
+    <section class="content" ng-show="Modo == 3">
+        <div id="Modo3" class="flex flex-column gap-8 auto-rigth margin-auto" ng-class="PreContacto.OrigenPreContactoID == 2 || PreContacto.OrigenPreContactoID == 4 || PreContacto.OrigenPreContactoID == 5 || PreContacto.OrigenPreContactoID == 1 ? 'max-width-900' : 'max-width-800'">
+            <div id="headerPrincipal" class="box-sedi-2">
+                <div class="content-flex flex-between flex-wrap gap-8">
+                    <div class="flex flex-center gap-10">
+                        <button class="flex flex-center not-btn" ng-click="AtrasModo()" title="Volver a los contactos"><i class="iconify icon-action-undo font-23" style="color: #6c757d !important;"></i></button>
+                        <h3 class="box-title box-title-sm" ng-bind="TituloGestionamiento"></h3>
+                    </div>
+                    <div class="flex flex-center gap-10">
+                        <button class="flex flex-center btn btn-primary btn-xs" ng-click="Sincronizar()" title="Consultar contacto"><i class="fal fa-sync-alt"></i> Sincronizar</button>
+                        <button class="flex flex-center not-btn" ng-click="AtrasModo()" title="Volver a los contactos"><i class="fad fa-times" style="color: #6c757d !important; font-size: 27px;"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div ng-include="ViewsCRM" onload="OnLoadInclude()"></div>
+        </div>
+    </section>
+    <section class="content" ng-show="Modo == 4">
+        <div class="box mb-0">
+            <div class="box-header with-border">
+                <div class="flex flex-center flex-wrap gap-5">
+                    <div class="flex flex-center flex-wrap">
+                        <button class="not-btn" ng-click="AtrasModo()" title="Volver a los contactos"><i class="iconify icon-action-undo font-23" style="color: #6c757d !important; position: relative; top: 3px"></i></button>
+                        <div class="nav-tabs-custom nav-tabs-wizard mr-7 calendar-icons">
+                            <ul class="nav nav-pills-icon nav-wizard">
+                                <li><a data-target="#tablaActividades" data-toggle="tab" class="active" style="padding-right: 2px"><i class="fal fa-table mr-0"></i></a></li>
+                                <li><a data-target="#calendarioActividades" data-toggle="tab" style="padding-left: 2px;"><i class="fal fa-calendar mr-0"></i></a></li>
+                            </ul>
+                        </div>
+                        <h3 class="box-title box-title-sm"><span ng-bind="Titulo"></span></h3>
+                    </div>
+                    <button class="btn btn-sm btn-primary" ng-click="AbrirModalAgregarActividad()" style="height: 23px; padding: 0 5px;">Nueva actividad <i class="fal fa-plus"></i></button>
+                    <button class="not-btn pull-right" style="order: 2; margin-left: auto;" ng-click="AtrasModo();" title="Volver a los contactos"><i class="fad fa-times" style="color: #6c757d !important; font-size: 27px;"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="nav-tabs-custom nav-tabs-wizard mt-5">
+                    <div class="tab-content" style="padding-top: 0px">
+                        <style type="text/css">
+                            .frozen-120 {
+                                position: sticky;
+                                left: 120px;
+                            }
+
+                            .ellipsis-250 {
+                                max-width: 250px;
+                                white-space: nowrap;
+                                text-overflow: ellipsis;
+                                overflow: hidden;
+                            }
+                        </style>
+                        <div id="tablaActividades" class="tab-pane active">
+                            <div class="flex flex-wrap-start flex-between" style="gap: 5px 10px">
+                                <div class="flex flex-wrap-start" style="gap: 5px 10px; flex: 0 1210px">
+                                    <div class="text-center" style="flex: 1 180px">
+                                        <label class="control-label control-label-sm mb-0">Estados</label>
+                                        <select class="form-control input-xs px-4" ng-model="searchActividades.EstadoActividadID" ng-options="item.ID as item.Nombre for item in Estados"></select>
+                                    </div>
+                                    <div style="flex: 1 170px">
+                                        <label class="control-label control-label-sm mb-0">Rango de fechas</label>
+                                        <div class="flex">
+                                            <date-time-picker class="form-control input-xs flex-grow" required ng-model="searchActividades.FechaInicial" placeholder="Fecha inicial" format="DD/MM/YYYY"></date-time-picker>
+                                            <date-time-picker class="form-control input-xs flex-grow" required ng-model="searchActividades.FechaFinal" placeholder="Fecha final" format="DD/MM/YYYY"></date-time-picker>
+                                        </div>
+                                    </div>
+                                    <div style="flex: 1 250px" ng-show="Usuario.FiltroAsesor == true">
+                                        <label class="control-label control-label-sm mb-0">Asesor</label>
+                                        <div custom-select="item.UsuarioID as item.NombreCompleto for item in searchAsesoresUsuariosCalendario($searchTerm)" class="custom-select-xs" ng-model="searchActividades.UsuarioID" ng-display="searchActividades.Usuario"></div>
+                                    </div>
+                                    <div style="flex: 1 200px">
+                                        <label class="control-label control-label-sm mb-0">Busqueda</label>
+                                        <input type="text" class="form-control input-xs px-4" ng-model="searchActividades.FullSearch" placeholder="Busqueda" maxlength="100">
+                                    </div>
+                                    <div style="flex: 1 250px">
+                                        <label class="control-label control-label-sm mb-0">Tipos actividades</label>
+                                        <div class="flex">
+                                            <select class="form-control input-xs flex-grow" ng-model="searchActividades.TipoCalendarioActividadID" ng-options="item.TipoCalendarioActividadID as item.Nombre for item in CalendarioTiposActividades"></select>
+                                            <button class="btn btn-success btn-xs" style="padding: 2px 8px" ng-click="ConsultarActividades(null, 1)">Consultar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-center" style="flex: 0 160px">
+                                    <label class="control-label control-label-sm mb-0">Dia</label>
+                                    <div class="mat-paginator-range-actions">
+                                        <button mat-icon-button="" type="button" class="mat-focus-indicator mat-tooltip-trigger mat-paginator-navigation-previous mat-icon-button mat-button-base" ng-click="DiaAnteriorCalendario()" title="Dia anterior" data-toggle="tooltip" data-placement="top">
+                                            <span class="mat-button-wrapper">
+                                                <svg viewBox="6 5 12 14" focusable="true" class="mat-paginator-icon">
+                                                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
+                                                </svg>
+                                            </span>
+                                        </button>
+                                        <date-time-picker class="form-control input-xs width-90 text-center" ng-model="searchActividades.Fecha" format="DD/MM/YYYY" placeholder="dd/mm/yyyy" required ng-change="ConsultarActividades()"></date-time-picker>
+                                        <button mat-icon-button="" type="button" class="mat-focus-indicator mat-tooltip-trigger mat-paginator-navigation-next mat-icon-button mat-button-base" ng-click="DiaSiguienteCalendario()" title="Dia siguiente" data-toggle="tooltip" data-placement="top">
+                                            <span class="mat-button-wrapper">
+                                                <svg viewBox="6 5 12 14" focusable="true" class="mat-paginator-icon">
+                                                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path>
+                                                </svg>
+                                            </span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                                <div class="table-responsive mt-10" modeficha="true" style="max-height: calc(100vh - 210px)">
+                                    <table class="table table-sm ng-table mb-0 table-hover">
+                                        <thead class="thead-frozen">
+                                            <tr class="ng-table-sort-header">
+                                                <th class="header sortable width-120 frozen-0 indez-100"><span class="sort-indicator" ng-click="GlobalOrderActividades('FechaInicio', $event)">Fecha actividad</span></th>
+                                                <th class="header sortable width-90 frozen-120 indez-100"><span class="sort-indicator" ng-click="GlobalOrderActividades('Estado', $event)">Estado</span></th>
+                                                <th class="header sortable"><span class="sort-indicator" ng-click="GlobalOrderActividades('Asunto', $event)">Actividad</span></th>
+                                                <th class="header sortable text-center">Datos de la actividad</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr ng-repeat="item in TablaActividades" context-menu="MenuCalendarios">
+                                                <td data-title-text="Fecha actividad" class="width-120 frozen-0">
+                                                    <div class="flex flex-column">
+                                                        <span>{{ item.FechaInicio | date : 'dd/MM/yyyy hh:mm a' }}</span><span class="red">{{ item.FechaVencimiento | date : 'dd/MM/yyyy hh:mm a' }}</span>
+                                                    </div>
+                                                </td>
+                                                <td data-title-text="Estado" class="text-center width-70 frozen-120" style="background: white">
+                                                    <label class="control-label label-estado" ng-class="item.EstadoActividadID == 1 ? 'label-primary' : (item.EstadoActividadID == 2 ? 'label-success' : (item.EstadoActividadID == 3 ? 'label-danger' : 'label-warning'))">
+                                                        {{ item.EstadoActividadID == 1 ? 'Finalizada' : (item.EstadoActividadID == 2 ? 'Vigente' : (item.EstadoActividadID == 3 ? 'Vencida' : 'Pendiente')) }}
+                                                    </label>
+                                                </td>
+                                                <td data-title-text="Asunto">
+                                                    <span ng-if="item.ProcesoID == null">{{ item.Asunto }}</span>
+                                                    <a ng-if="item.ProcesoID != null" href="#" ng-click="AbrirCentroGestionDesdeCalendario(item)">{{ item.Asunto }}</a>
+                                                </td>
+                                                <td data-title-text="Datos de la actividad" style="white-space: normal !important">
+                                                    <div class="flex flex-column" style="gap: 1px">
+                                                        <div class="flex-wrap-start" style="gap: 1px 20px" ng-if="item.Contacto || (item.Cliente && item.Cliente != item.Contacto) || item.Celular || item.Email || item.Direccion">
+                                                            <span ng-if="item.Contacto"><strong class="blue">Contacto: </strong>{{ item.Contacto }}</span>
+                                                            <span ng-if="item.Cliente && item.Cliente != item.Contacto"><strong class="blue">Cliente: </strong>{{ item.Cliente }}</span>
+                                                            <span ng-if="item.Celular"><strong class="blue">Celular: </strong>{{ item.Celular }}</span>
+                                                            <span ng-if="item.Email"><strong class="blue">Email: </strong>{{ item.Email.replaceAll(';', ' - ') }}</span>
+                                                            <span ng-if="item.Direccion"><strong class="blue">Dirección: </strong>{{ item.Direccion }}</span>
+                                                        </div>
+                                                        <span ng-if="item.InmuebleDescripcion"><strong class="blue">Inmueble: </strong>{{ item.InmuebleDescripcion }}</span>
+                                                        <div class="flex-wrap-start" style="gap: 1px 20px">
+                                                            <span ng-if="item.ComplejoNombre"><strong class="blue">Complejo: </strong>{{ item.ComplejoNombre }}</span>
+                                                            <span ng-if="item.VisitanteNombreCompleto"><strong class="blue">Visitante: </strong>{{ item.VisitanteNombreCompleto }} - <strong class="blue">Documento: </strong>{{ item.VisitanteDocumento }} </span>
+                                                        </div>
+                                                        <span ng-if="item.Descripcion"><strong class="blue">Descripción: </strong>{{ item.Descripcion }}</span>
+                                                        <span ng-if="item.CalendarioActividadCierreDetalleNombre"><strong class="blue">Tipo de cierre: </strong>{{ item.CalendarioActividadCierreDetalleNombre }}</span>
+                                                        <span class="red" ng-if="searchActividades.UsuarioID == null"><strong>Usuario: </strong>{{ item.Usuario }}</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr ng-if="TablaActividades.length == 0">
+                                                <td colspan="4" class="text-center">
+                                                    <b>{{ (searchActividades.FullSearch != undefined && searchActividades.FullSearch != '') ? 'No se encontraron resultados de "' + searchActividades.FullSearch + '"' : 'No se han cargado datos sobre la tabla'}}</b>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                        <tfoot class="tfoot-frozen">
+                                            <tr class="tr-tfoot">
+                                                <td class="frozen-0 indez-100" colspan="2">
+                                                    <span class="font-total font-14">Total actividades:<div style="margin-left: 10px; font-weight: 100; display: inline;">{{ (TablaActividades[0].TotalRows == undefined ? 0 : TablaActividades[0].TotalRows) | currency: '' : '' }}</div></span>
+                                                </td>
+                                                <td></td>
+                                                <td class="text-right frozen-r-0">
+                                                    <div class="mat-paginator-range-actions" ng-if="TablaActividades[0].TotalRows != undefined && TablaActividades[0].TotalRows > searchActividades.Rows">
+                                                        <div class="mat-paginator-range-label font-15"> {{ ((searchActividades.Page - 1) * searchActividades.Rows) + 1 }} – {{ (searchActividades.Page * searchActividades.Rows) < TablaActividades[0].TotalRows ? (searchActividades.Page * searchActividades.Rows) : TablaActividades[0].TotalRows }} de {{ TablaActividades[0].TotalRows }} </div>
+                                                        <button mat-icon-button="" type="button" class="mat-focus-indicator mat-tooltip-trigger mat-paginator-navigation-previous mat-icon-button mat-button-base" ng-click="AnteriorActividades()" title="Anterior pagina">
+                                                            <span class="mat-button-wrapper">
+                                                                <svg viewBox="6 5 12 14" focusable="true" class="mat-paginator-icon">
+                                                                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
+                                                                </svg>
+                                                            </span>
+                                                        </button>
+                                                        <button mat-icon-button="" type="button" class="mat-focus-indicator mat-tooltip-trigger mat-paginator-navigation-next mat-icon-button mat-button-base" ng-click="SiguienteActividades('TablaActividades')" title="Siguiente pagina">
+                                                            <span class="mat-button-wrapper">
+                                                                <svg viewBox="6 5 12 14" focusable="true" class="mat-paginator-icon">
+                                                                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path>
+                                                                </svg>
+                                                            </span>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        <div id="calendarioActividades" class="tab-pane">
+                            <div class="row mb-6">
+                                <div class="col-xs-12 col-sm-3 col-md-2 col-lg-2 text-center">
+                                    <label class="control-label control-label-sm mb-0">Estados</label>
+                                    <div class="flex-filtro">
+                                        <select class="form-control input-xs px-4" ng-model="searchMiCalendario.EstadoActividadID" ng-options="item.ID as item.Nombre for item in Estados"></select>
+                                    </div>
+                                </div>
+                                <div class="col-xs-12 col-sm-3 col-md-3 col-lg-2 px-3" ng-show="Usuario.FiltroAsesor == true">
+                                    <label class="control-label control-label-sm mb-0">Asesor</label>
+                                    <div class="flex-filtro">
+                                        <div custom-select="item.UsuarioID as item.NombreCompleto for item in searchAsesoresUsuariosCalendario($searchTerm)" class="custom-select-xs" ng-model="searchMiCalendario.UsuarioID" ng-display="searchMiCalendario.Usuario"></div>
+                                    </div>
+                                </div>
+                                <div class="col-xs-12 col-sm-3 col-md-2 col-lg-2">
+                                    <label class="control-label control-label-sm mb-0">Busqueda</label>
+                                    <input type="text" class="form-control input-xs px-4" ng-model="searchMiCalendario.FullSearch" placeholder="Busqueda" maxlength="100">
+                                </div>
+                                <div class="col-xs-12 col-sm-3 col-md-3 col-lg-2 px-3">
+                                    <label class="control-label control-label-sm mb-0">Tipos actividades</label>
+                                    <div class="flex-filtro">
+                                        <select class="form-control input-xs px-4" ng-model="searchMiCalendario.TipoCalendarioActividadID" ng-options="item.TipoCalendarioActividadID as item.Nombre for item in CalendarioTiposActividades"></select>
+                                        <button class="btn btn-success btn-xs" style="padding: 2px 8px" ng-click="MiCalendarioConsultar()">Consultar</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-5">
+                                <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                                    <label class="control-label mb-0" style="font-size: 24px">{{ Page.calendarTitle }}</label>
+                                </div>
+                                <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4 text-center">
+                                    <div class="btn-group">
+                                        <button class="btn btn-primary" mwl-date-modifier date="Page.viewDate" decrement="Page.calendarView" ng-click="cellIsOpen = false; MiCalendarioConsultar()">Anterior</button>
+                                        <button class="btn btn-default" mwl-date-modifier date="Page.viewDate" set-to-today ng-click="cellIsOpen = false; MiCalendarioConsultar()">Hoy</button>
+                                        <button class="btn btn-primary" mwl-date-modifier date="Page.viewDate" increment="Page.calendarView" ng-click="cellIsOpen = false; MiCalendarioConsultar()">Siguiente</button>
+                                    </div>
+                                </div>
+                                <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4 text-center">
+                                    <div class="btn-group">
+                                        <label class="btn btn-primary" ng-model="Page.calendarView" uib-btn-radio="'year'" ng-click="cellIsOpen = false; MiCalendarioConsultar()">Año</label>
+                                        <label class="btn btn-primary" ng-model="Page.calendarView" uib-btn-radio="'month'" ng-click="cellIsOpen = false; MiCalendarioConsultar()">Mes</label>
+                                        <label class="btn btn-primary" ng-model="Page.calendarView" uib-btn-radio="'week'" ng-click="cellIsOpen = false; MiCalendarioConsultar()">Semana</label>
+                                        <label class="btn btn-primary" ng-model="Page.calendarView" uib-btn-radio="'day'" ng-click="cellIsOpen = false; MiCalendarioConsultar()">Dia</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <style type="text/css">
+                                mwl-calendar .cal-month-box div[class*=cal-cell] {
+                                    min-height: 30px;
+                                    border-right: 1px solid #e1e1e1;
+                                    position: relative;
+                                }
+
+                                mwl-calendar .cal-row-head div[class*=cal-cell],
+                                mwl-calendar .cal-row-head div[class*=cal-cell]:first-child {
+                                    border-right: 1px solid #e1e1e1;
+                                }
+                            </style>
+                            <div class="table-responsive">
+                                <mwl-calendar events="Page.events"
+                                              view="Page.calendarView"                                              
+                                              view-date="Page.viewDate"
+                                              on-event-click="InfoEvento(calendarEvent)"
+                                              day-view-start="05:00"
+                                              day-view-end="23:59"
+                                              day-view-split="10">
+                                </mwl-calendar>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div id="modalFiltrar" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><i class="fal fa-times"></i></button>
+                    <h4 class="modal-title">
+                        <i class="glyphicon glyphicon-filter"></i>&nbsp;&nbsp;Filtrar contactos
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6" ng-show="Usuario.FiltroAsesor == true">
+                            <label class="control-label control-label-sm mb-0">Asesor</label>
+                            <div class="form-group mb-3">
+                                <div class="custom-select-sm" custom-select="item.AsesorID as item.NombreCompleto for item in searchFilterAsesores($searchTerm)" ng-model="Search.AsesorID" ng-display="Search.Asesor"></div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                            <label class="control-label control-label-sm mb-0">Fecha inicio</label>
+                            <div class="has-feedback form-group mb-3">
+                                <date-time-picker class="form-control input-sm" ng-model="Search.FechaInicial" format="DD/MM/YYYY" placeholder="dd/mm/yyyy" required></date-time-picker>
+                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                            <label class="control-label control-label-sm mb-0">Fecha final</label>
+                            <div class="has-feedback form-group mb-3">
+                                <date-time-picker class="form-control input-sm" ng-model="Search.FechaFinal" format="DD/MM/YYYY" placeholder="dd/mm/yyyy" required></date-time-picker>
+                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                            <label class="control-label control-label-sm mb-0">¿Como se contactaron?</label>
+                            <div class="form-group mb-3">
+                                <div custom-select="item.FormaContactoID as item.Nombre for item in searchFormasFormasContactosFilter($searchTerm)" class="custom-select-sm" ng-model="Search.FormaContactoID"></div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                            <label class="control-label control-label-sm mb-0">Contacto</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input class="form-control input-sm" type="text" placeholder="Buscar por nombre" maxlength="250" ng-model="Search.NombreCompleto" required />
+                                <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                            <label class="control-label control-label-sm mb-0">Fecha inicial cierre</label>
+                            <div class="has-feedback form-group mb-3">
+                                <date-time-picker class="form-control input-sm" ng-model="Search.FechaInicialCierre" format="DD/MM/YYYY" placeholder="dd/mm/yyyy" required></date-time-picker>
+                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                            <label class="control-label control-label-sm mb-0">Fecha final cierre</label>
+                            <div class="has-feedback form-group mb-3">
+                                <date-time-picker class="form-control input-sm" ng-model="Search.FechaFinalCierre" format="DD/MM/YYYY" placeholder="dd/mm/yyyy" required></date-time-picker>
+                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                            <label class="control-label control-label-sm mb-0">Cliente</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input class="form-control input-sm" type="text" placeholder="Buscar por nombre" maxlength="250" ng-model="Search.ClienteNombreCompleto" required />
+                                <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                            <label class="control-label control-label-sm mb-0">Documento</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input class="form-control input-sm" type="text" placeholder="Buscar por  documento" maxlength="250" ng-model="Search.Documento" required />
+                                <span class="glyphicon glyphicon-Search form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                            <label class="control-label control-label-sm mb-0">Teléfono</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input class="form-control input-sm" type="text" placeholder="Buscar por telefono" maxlength="250" ng-model="Search.Telefono" required />
+                                <span class="glyphicon glyphicon-earphone form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                            <label class="control-label control-label-sm mb-0">Celular</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input class="form-control input-sm" type="text" placeholder="Buscar por  ceular" maxlength="250" ng-model="Search.Celular" required />
+                                <span class="glyphicon glyphicon-phone form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div id="CamposFilter" class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                            <label class="control-label control-label-sm mb-0">E-mail</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input class="form-control input-sm" type="text" placeholder="Buscar por email" maxlength="250" ng-model="Search.Email" required />
+                                <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6" ng-if="ModoProcesos == 'tabla'">
+                            <label class="control-label control-label-sm mb-0">Estado</label>
+                            <div class="form-group mb-3">
+                                <div custom-select="item.EstadoProcesoID as item.Nombre for item in searchEstadosProcesosFilter($searchTerm)" class="custom-select-sm" ng-model="Search.EstadoProcesoID" ng-display="Search.EstadoProcesoNombre" custom-select-options="ddlSearchEstadosProcesosFilter"></div>                                
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6" ng-if="Usuario.FiltroSucursal">
+                            <label class="control-label control-label-sm mb-0">Sucursal</label>
+                            <div class="form-group mb-3">
+                                <div custom-select="item.SucursalID as item.Nombre for item in searchSucursalesUsuarios($searchTerm)" class="custom-select-sm" ng-model="Search.SucursalID" ng-display="Search.SucursalNombre" custom-select-options="ddlSearchSucursalesUsuarios"></div>                                
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-if="Configuracion.FechaPosibleServicioCentroGestion">
+                            <label class="control-label control-label-sm mb-0">Fecha inicial servicio</label>
+                            <div class="has-feedback form-group mb-3">
+                                <date-time-picker class="form-control input-sm" ng-model="Search.FechaInicialPosibleServicio" format="DD/MM/YYYY" placeholder="dd/mm/yyyy" required></date-time-picker>
+                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-if="Configuracion.FechaPosibleServicioCentroGestion">
+                            <label class="control-label control-label-sm mb-0">Fecha final servicio</label>
+                            <div class="has-feedback form-group mb-3">
+                                <date-time-picker class="form-control input-sm" ng-model="Search.FechaFinalPosibleServicio" format="DD/MM/YYYY" placeholder="dd/mm/yyyy" required></date-time-picker>
+                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                            <label class="control-label control-label-sm mb-0">Estado de actividades</label>
+                            <div class="form-group mb-3">
+                                <select class="form-control input-sm" ng-model="Search.EstadoGeneral" ng-options="item.ID as item.Nombre for item in EstadosGenerales" ng-change="GlobalSearch()"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="btn-group">
+                        <button class="btn btn-danger pull-right" ng-click="CerrarModalFiltrar()"><i class="glyphicon glyphicon-remove"></i>&nbsp;&nbsp;Cancelar</button>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-success pull-right" ng-click="Consultar();LineaTiempoConsultar();CerrarModalFiltrar();"><i class="glyphicon glyphicon-ok"></i>&nbsp;&nbsp;Aplicar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="modalInviavilizar" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" data-target="#modalInviavilizar"><i class="fal fa-times"></i></button>
+                    <h4 class="modal-title modal-title-sm">
+                        <i class="fal fa-comments"></i>&nbsp;&nbsp;Inviabilizar contacto
+                    </h4>
+                </div>
+                <div class="modal-body" style="padding-top: 5px;">
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <label class="control-label control-label-sm mb-0">Contacto:&nbsp;&nbsp;</label>{{ PreContacto.NombreCompleto }}
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                            <label class="control-label control-label-sm mb-0">Fecha de registro:&nbsp;&nbsp;</label>{{ PreContacto.Fecha | date : 'dd/MM/yyyy hh:mm a' }}
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                            <label class="control-label control-label-sm mb-0" ng-show="PreContacto.Celular">Celular:&nbsp;&nbsp;</label>
+                            <a ng-click="AbrirWhatsAppWeb(PreContacto)">{{ PreContacto.Celular | tel }}</a> &nbsp;<a ng-href="{{ 'tel:' + PreContacto.Celular }}"><i class="fal fa-mobile"></i> llamar</a>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <label class="control-label control-label-sm mb-0" ng-show="PreContacto.Email">Email:&nbsp;&nbsp;</label>{{ PreContacto.Email }}
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <label class="control-label control-label-sm mb-0">Asesor:&nbsp;&nbsp;</label>{{ PreContacto.AsesorNombreCompleto }}
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6" ng-if="PreContacto.ValorCampo1">
+                            <label class="control-label control-label-sm mb-0">{{ LabelColumna1 }}:&nbsp;&nbsp;</label>{{ PreContacto.ValorCampo1 }}
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6" ng-if="PreContacto.ValorCampo2">
+                            <label class="control-label control-label-sm mb-0">{{ LabelColumna2 }}:&nbsp;&nbsp;</label>{{ PreContacto.ValorCampo2 }}
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6" ng-if="PreContacto.ValorCampo3">
+                            <label class="control-label control-label-sm mb-0">{{ LabelColumna3 }}:&nbsp;&nbsp;</label>{{ PreContacto.ValorCampo3 }}
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="PreContacto.Observaciones != null && PreContacto.Observaciones != ''">
+                            <label class="control-label control-label-sm mb-0">Observaciones:&nbsp;&nbsp;</label>{{ PreContacto.Observaciones }}
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <label class="control-label control-label-sm mb-1">Causal</label><strong class="red">*</strong>
+                            <div class="form-group">
+                                <div custom-select="item.CausalInviabilidadID as item.Nombre for item in SearchCausalesInviabilidad($searchTerm)" class="custom-select-sm" ng-model="PreContacto.CausalInviabilidadID" custom-select-options="ddlSearchCausalesInviabilidad"></div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <label class="control-label control-label-sm mb-1">Observaciones</label>
+                            <strong class="red">*</strong>
+                            <div class="form-group">
+                                <textarea rows="2" class="form-control input-sm" placeholder="Ingrese aqui." ng-model="PreContacto.ObservacionesInviabilidad" maxlength="2000"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="form-check form-check-left ml-5" ng-if="PreContacto.OrigenPreContactoID == 4">
+                        <input type="checkbox" class="form-check-input" id="checked_BusquedaFutura" ng-model="PreContacto.BusquedaFutura">
+                        <label class="form-check-label control-label control-label-sm" for="checked_BusquedaFutura" style="font-weight: 700;">Alerta de coincidencia</label>
+                    </div>
+                    <button type="button" class="btn btn-primary" ng-click="InviabilizarPrecontacto();"><i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Inviabilizar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="ModalCambiarEstado" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog modal-md modal-sedi" style="max-width: 500px">
+            <div class="modal-content">
+                <div class="modal-header pb-7">
+                    <div class="box-sedi-2">
+                        <div class="content-flex flex-between" style="padding: 8px 0">
+                            <h4 class="modal-title modal-title-sm box-title bold"><i class="fal fa-exchange blue"></i>&nbsp;&nbsp;Cambiar estado contacto (<b>{{ PreContacto.NombreCompleto }}</b>)</h4>
+                            <button class="not-btn flex flex-center" data-dismiss="modal" data-target="#modalAsignacion" title="Cerrar"><i class="fad fa-times" style="color: #6c757d !important; font-size: 20px;"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="box-sedi-2">
+                        <div class="content-flex flex-wrap-start" style="gap: 5px 10px">
+                            <div style="flex: 1 100px">
+                                <label class="control-label control-label-sm mb-0">Estado</label><strong class="red">*</strong>
+                                <div custom-select="item.EstadoProcesoID as item.Nombre for item in searchEstadosProcesos($searchTerm)" class="custom-select-sm" ng-model="PreContacto.EstadoProcesoID" ng-display="PreContacto.EstadoProcesoNombre" custom-select-options="ddlSearchEstadosProcesos"></div>                                
+                            </div>
+                            <div style="flex: 1 100px">
+                                <label class="control-label control-label-sm mb-0">Estado linea tiempo</label><strong class="red">*</strong>
+                                <div custom-select="item.EstadoLineaTiempoID as item.Nombre for item in searchProcesosLineasTiempos($searchTerm)" class="custom-select-sm" ng-model="PreContacto.EstadoLineaTiempoID" ng-display="PreContacto.EstadoLineaTiempoNombre" custom-select-options="ddlSearchProcesosLineasTiempos"></div>                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer pt-7">
+                    <div class="box-sedi-2">
+                        <div class="content-flex flex-center flex-between flex-wrap gap-5">
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-danger pull-right" data-dismiss="modal" data-target="#ModalCambiarEstado"><i class="glyphicon glyphicon-remove"></i>&nbsp;&nbsp;Cancelar</button>
+                            </div>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-success pull-right" ng-click="CambiarEstadoContacto()"><i class="glyphicon glyphicon-ok"></i>&nbsp;&nbsp;Cambiar estado</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="modalCalendario" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog modal-lg modal-sedi">
+            <div class="modal-content">
+                <div class="modal-header pb-7">
+                    <div class="box-sedi-2">
+                        <div class="content-flex flex-between" style="padding: 8px 0">
+                            <div class="flex flex-center">
+                                <h2 class="box-title bold">
+                                    <button class="not-btn"><i class="fal fa-comments blue"></i></button>
+                                    Actividades y Seguimientos del contacto
+                                </h2>
+                            </div>
+                            <button class="not-btn flex flex-center" data-dismiss="modal" data-target="#modalCalendario" title="Cerrar"><i class="fad fa-times" style="color: #6c757d !important; font-size: 20px;"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="flex flex-column gap-7">
+                        <div class="box-sedi-2">
+                            <div class="content-flex flex-wrap-start flex-between" style="gap: 0px 30px">
+                                <div class="flex flex-center">
+                                    <div class="dropdown flex flex-center">
+                                        <button class="not-btn flex-center flex flex-center-h mr-4" data-toggle="dropdown"><i class="fal ico-user-seguimiento fa-info-circle"></i></button>
+                                        <ul class="dropdown-menu">
+                                            <li title="Asesor"><a><i class="ico-drop fal fa-user"></i>&nbsp;&nbsp;<span>{{ PreContacto.AsesorNombreCompleto }}</span></a></li>
+                                            <li title="Fecha registro" ng-if="PreContacto.Fecha != undefined"><a><i class="ico-drop fal fa-calendar"></i>&nbsp;&nbsp;<span>{{ PreContacto.Fecha | date : 'dd/MM/yyyy' }}</span></a></li>
+                                            <li title="Email" ng-if="PreContacto.Email != undefined"><a><i class="ico-drop fal fa-envelope-open"></i>&nbsp;&nbsp;<span>{{ PreContacto.Email }}</span></a></li>
+                                            <li title="{{ LabelColumna1 }}" ng-if="PreContacto.ValorCampo1 != undefined"><a><label class="control-label control-label-sm mb-0">{{ LabelColumna1 }}</label>&nbsp;&nbsp;<span>{{ PreContacto.ValorCampo1 }}</span></a></li>
+                                            <li title="{{ LabelColumna2 }}" ng-if="PreContacto.ValorCampo2 != undefined"><a><label class="control-label control-label-sm mb-0">{{ LabelColumna2 }}</label>&nbsp;&nbsp;<span>{{ PreContacto.ValorCampo2 }}</span></a></li>
+                                            <li title="{{ LabelColumna3 }}" ng-if="PreContacto.ValorCampo3 != undefined"><a><label class="control-label control-label-sm mb-0">{{ LabelColumna3 }}</label>&nbsp;&nbsp;<span>{{ PreContacto.ValorCampo3 }}</span></a></li>
+                                            <li title="Observaciones" ng-if="PreContacto.Observaciones != undefined"><a><i class="ico-drop fal fa-comments"></i>&nbsp;&nbsp;<span>{{ PreContacto.Observaciones }}</span></a></li>
+                                        </ul>
+                                    </div>
+                                    <label class="control-label control-label-sm mb-0">Contacto:&nbsp;&nbsp;</label> {{ PreContacto.NombreCompleto }}
+                                </div>
+                                <div class="flex flex-center">
+                                    <label class="control-label control-label-sm mb-0">Celular:&nbsp;&nbsp;</label><a ng-click="AbrirWhatsAppWeb(PreContacto)">{{ PreContacto.Celular | tel }}</a> &nbsp;<a ng-href="{{ 'tel:' + PreContacto.Celular }}"><i class="fal fa-mobile"></i> llamar</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-danger mb-0" style="padding: 5px 10px" ng-if="PreContacto.EstadoProcesoID == 7 && PreContacto.CausalInviabilidadNombre != undefined">
+                            <label class="mb-0">Causa inviable: </label> {{ PreContacto.CausalInviabilidadNombre }}<br />
+                            <label class="mb-0">Fecha inviable: </label> {{ PreContacto.FechaInviabilidad | date : 'dd-MM-yyyy' }}<br />
+                            <label class="mb-0">Observaciones: </label> {{ PreContacto.ObservacionesInviabilidad }}
+                        </div>
+                        <div class="flex-wrap-start gap-7">
+                            <div style="flex: 1 200px">
+                                <span class="style-title-sedi">Seguimientos</span>
+                                <seguimientos ng-configs="ConfigSeguimiento"></seguimientos>
+                            </div>
+                            <div style="flex: 1 200px">
+                                <span class="style-title-sedi">Actividades</span>
+                                <div class="flex flex-column gap-7">
+                                    <div class="btn-group-actividades flex-filtro">
+                                        <select class="form-control input-sm" style="width: 200px" ng-disabled="DisabledFiltroActividades" ng-model="ActividadesCompletadas" ng-options="item.ID as item.Nombre for item in EstadosCompletadasCalendario" ng-change="ConsultarActividadesCalendarios()"></select>
+                                        <button class="btn btn-primary btn-sm wp-100" ng-disabled="Actividad.BloquearNuevaActividad" ng-click="NuevaActividad()"><i class="fal fa-calendar-plus"></i> Nueva actividad</button>
+                                        <button class="btn btn-success btn-sm" ng-click="ReConsultarTodasActividades()"><i class="fal fa-search"></i></button>
+                                    </div>
+                                    <div class="content-actividades" ng-class="PreContacto.AgregarActividad ? '' : 'overflow-actividades'">
+                                        <div class="item-actividades item-actividad-not-hover" ng-if="PreContacto.AgregarActividad">
+                                            <div class="row">
+                                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                                    <label class="control-label control-label-sm mb-0">Tipo Actividad</label><strong class="red">*</strong>
+                                                    <div class="form-group mb-3">
+                                                        <select class="form-control input-sm" ng-options="item.TipoCalendarioActividadID as item.Nombre for item in TiposActividades" ng-model="Actividad.TipoCalendarioActividadID" ng-change="ChangeTipoActividad()"></select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                                    <label class="control-label control-label-sm mb-0">Actividad</label>
+                                                    <div class="form-group has-feedback mb-3">
+                                                        <input type="text" class="form-control input-sm" required placeholder="{{ Actividad.TipoCalendarioActividadNombre }}" ng-model="Actividad.Asunto" maxlength="200" aria-label="..." />
+                                                        <span class="glyphicon glyphicon-globe form-control-feedback"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                                    <label class="control-label control-label-sm mb-0">Responsable actividad</label><strong class="red">*</strong> <input type="checkbox" style="margin: 0 5px;" /><span class="font-10">Asignar el proceso comercial al responsable</span>
+                                                    <div class="form-group flex flex-center mb-3">
+                                                        <div custom-select="item.UsuarioID as item.NombreCompleto for item in searchAsesoresUsuarios($searchTerm)" class="custom-select-sm" ng-model="Actividad.UsuarioID"></div>
+                                                        <div class="dropdown flex flex-center" ng-if="Actividad.UsuarioID != null">
+                                                            <button class="btn btn-sm btn-success dropdown-toggle flex flex-center" ng-click="ActividadesPorFechaConsultar($event)" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Ver disponibilidad" style="padding: 4px"><i class="fal fa-calendar green" style="font-size: 19px"></i></button>
+                                                            <div class="dropdown-menu" ng-click="$event.stopPropagation()">
+                                                                <div class="flex flex-column" style="padding: 8px 10px; min-width: 400px">
+                                                                    <div class="flex flex-center" style="justify-content:space-around">
+                                                                        <button class="not-btn" ng-click="ActividadesPorFechaDiaAnterior($event)" ng-if="Actividad.FechaCronograma"><i class="fal fa-caret-left font-23 blue"></i></button>
+                                                                        <h3 class="box-title bold">Actividades {{Actividad.FechaCronograma ? "- " + (Actividad.FechaCronograma | date : 'DD/MM/YYYY'):""}}</h3>
+                                                                        <button class="not-btn" ng-click="ActividadesPorFechaDiaSiguiente($event)" ng-if="Actividad.FechaCronograma"><i class="fal fa-caret-right font-23 blue"></i></button>
+                                                                    </div>
+                                                                    <div class="table-responsive" style="max-height: 400px">
+                                                                        <table class="table table-sm mb-0 ">
+                                                                            <thead>
+                                                                                <tr>
+                                                                                    <th class="text-center width-120">Fecha</th>
+                                                                                    <th class="text-center">Evento</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                <tr ng-repeat="item in ActividadesFechas">
+                                                                                    <td data-title-text="Fecha">
+                                                                                        <div class="flex flex-column">
+                                                                                            <span>{{ item.FechaInicio | date : 'dd/MM/yyyy hh:mm a'}}</span>
+                                                                                            <span class="red">{{ item.FechaVencimiento | date : 'dd/MM/yyyy hh:mm a' }}</span>
+                                                                                        </div>
+                                                                                    </td>
+                                                                                    <td data-title-text="Asunto">
+                                                                                        <span>{{ item.Asunto }}</span>
+                                                                                    </td>
+                                                                                </tr>
+                                                                                <tr ng-if="ActividadesFechas.length == 0">
+                                                                                    <td colspan="3" class="text-center"><b>No hay actividades pendientes este dia </b> </td>
+                                                                                </tr>
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                                                    <label class="control-label control-label-sm mb-0">Fecha de inicio</label><strong class="red">*</strong>
+                                                    <div class="form-group has-feedback mb-3">
+                                                        <date-time-picker class="form-control input-sm date-picker" required ng-model="Actividad.FechaInicio" placeholder="DD/MM/YYYY HH:mm" format="DD/MM/YYYY HH:mm" ng-change="ChangeFechaInicio()"></date-time-picker>
+                                                        <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                                                    <label class="control-label control-label-sm mb-0">Fecha de vencimiento</label><strong class="red">*</strong>
+                                                    <div class="form-group has-feedback mb-3">
+                                                        <date-time-picker class="form-control input-sm date-picker" required ng-model="Actividad.FechaVencimiento" placeholder="DD/MM/YYYY HH:mm" format="DD/MM/YYYY HH:mm"></date-time-picker>
+                                                        <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-xs-12 col-sm-3 col-md-3 col-lg-3" ng-if="Search.OrigenPreContactoID == 1 || Search.OrigenPreContactoID == 6 || Actividad.VisitanteDocumento != null">
+                                                    <label class="control-label control-label-sm mb-0">Documento</label>
+                                                    <div class="form-group mb-3">
+                                                        <input class="form-control input-sm" type="text" required ng-model="Actividad.VisitanteDocumento" placeholder="Cedula o NIT" maxlength="20" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-xs-12 col-sm-9 col-md-9 col-lg-9" ng-if="Search.OrigenPreContactoID == 1 || Search.OrigenPreContactoID == 6 || Actividad.VisitanteNombreCompleto != null">
+                                                    <label class="control-label control-label-sm mb-0">Visitante</label>
+                                                    <div class="form-group has-feedback mb-3">
+                                                        <input class="form-control input-sm" type="text" required ng-model="Actividad.VisitanteNombreCompleto" placeholder="Nombre completo del que visita el complejo" maxlength="500" />
+                                                        <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="Search.OrigenPreContactoID == 1 || Search.OrigenPreContactoID == 6 || Actividad.ComplejoID != null">
+                                                    <label class="control-label control-label-sm mb-0">Complejo que se le asocia la actividad o visita</label>
+                                                    <div class="form-group">
+                                                        <select class="form-control input-sm" ng-options="item.ComplejoID as item.Nombre for item in Complejos" ng-model="Actividad.ComplejoID"></select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                                    <label class="control-label control-label-sm mb-0">Emails invitados</label>
+                                                    <span class="aviso-email font-10">"Para ingresar varios emails separarlo por <strong class="font-14">;</strong> sin espacios."</span>
+                                                    <div class="form-group has-feedback mb-3">
+                                                        <email-box class="form-control input-sm" ng-model="Actividad.Email" required maxlength="1000" placeholder="Agregar invitados"></email-box>
+                                                        <span class="icon glyphicon glyphicon-user form-control-feedback"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                                    <label class="control-label control-label-sm mb-0">Link de reuniones</label>
+                                                    <div class="form-group has-feedback mb-3">
+                                                        <input class="form-control input-sm" type="text" required ng-model="Actividad.Link" placeholder="Link de zoom o meet u otro." maxlength="500" />
+                                                        <span class="glyphicon glyphicon-globe form-control-feedback"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="Actividad.Entregable == false;">
+                                                    <label class="control-label control-label-sm mb-0">Dirección actividad</label>
+                                                    <div class="form-group has-feedback mb-3">
+                                                        <input class="form-control input-sm" type="text" required ng-model="Actividad.Direccion" placeholder="Dirección" maxlength="50" />
+                                                        <span class="glyphicon glyphicon-home form-control-feedback"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6" ng-if="Actividad.Entregable == false;">
+                                                    <label class="control-label control-label-sm mb-0">Teléfono</label>
+                                                    <div class="form-group has-feedback mb-3">
+                                                        <input class="form-control input-sm date-picker" type="text" required ng-model="Actividad.Telefono" placeholder="Telefono" maxlength="50" />
+                                                        <span class="glyphicon glyphicon-phone-alt form-control-feedback"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6" ng-if="Actividad.Entregable == false;">
+                                                    <label class="control-label control-label-sm mb-0">Celular</label>
+                                                    <div class="form-group has-feedback mb-3">
+                                                        <input class="form-control input-sm date-picker" required type="text" ng-model="Actividad.Celular" placeholder="Celular" maxlength="50" />
+                                                        <span class="glyphicon glyphicon-phone form-control-feedback"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                                    <label class="control-label control-label-sm mb-0">Descripción de la actividad</label>
+                                                    <div class="form-group has-feedback mb-3">
+                                                        <textarea class="form-control input-sm" required ng-model="Actividad.Descripcion" rows="2" maxlength="2000"></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 pt-5">
+                                                    <div class="btn-group pull-left" ng-if="(TiposActividades | filter : { 'TipoCalendarioActividadID': Actividad.TipoCalendarioActividadID, 'TipoActividadID': 1 }).length > 0">
+                                                        <div class="flex flex-center gap-5">
+                                                            <input class="checkbox-sedi-20 mt-0" type="checkbox" ng-model="Actividad.NotificarPropietario" /><label class="control-label control-label-sm mb-0">Notificar a propietario</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="btn-group pull-right">
+                                                        <button class="btn btn-danger" style="padding: 2px 8px" ng-click="PreContacto.AgregarActividad = false">Cancelar</button>
+                                                        <button class="btn btn-success" style="padding: 2px 8px" ng-click="GuardarActividad()">Guardar</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="not-found-calendar" ng-if="CalendariosActividades.length == 0 && PreContacto.AgregarActividad == false" style="min-height: 325px">
+                                            <div class="content-calendar">
+                                                <i class="fal fa-calendar"></i>
+                                                <label class="control-label control-label-sm mb-0">No se encontraron actividades</label>
+                                            </div>
+                                        </div>
+                                        <div class="item-actividades" context-menu="MenuActividades" ng-repeat="item in CalendariosActividades" ng-show="PreContacto.AgregarActividad == false" ng-class="item.HabilitarFinalizar ? 'transform-none' : ''">
+                                            <div class="flex-wrap-start" style="gap: 2px 10px">
+                                                <div style="flex: 1 500px; margin-bottom: 3px; border-bottom: 2px solid #ddd; display: flex; justify-content: center; align-items: flex-end;" class="text-center">
+                                                    <label class="mb-0 flex-grow"><span class="title-mb">Actividad:</span>{{ item.Asunto }}</label>
+                                                    <div class="flex flex-center gap-3">
+                                                        <button class="not-btn" type="button" aria-expanded="false" ng-click="item.MostrarFecha = (item.MostrarFecha == undefined ? true : !item.MostrarFecha)">
+                                                            <i class="fal font-17" ng-class="item.MostrarFecha == true ? 'fa-eye' : 'fa-eye-slash'"></i>
+                                                        </button>
+                                                        <button class="not-btn" type="button" aria-expanded="false" ng-if="item.RegistroUsuario != null || item.RegistroFecha != null" ng-click="MostrarAuditoriaActividad($event, item)">
+                                                            <i class="fal fa-user-alt orange font-17"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div style="flex: 1 190px">
+                                                    <span class="title-mb">Inicio:</span><div class="mb-activies">{{ item.FechaInicio | date: 'dd/MM/yyyy hh:mm a' }}</div>
+                                                </div>
+                                                <div style="flex: 1 190px" ng-if="item.MostrarFecha == true">
+                                                    <span class="title-mb">Fin:</span><div class="mb-activies red">{{ item.FechaVencimiento | date: 'dd/MM/yyyy hh:mm a' }}</div>
+                                                </div>
+                                                <div ng-if="item.UsuarioNombreCompleto != null">
+                                                    <span class="title-mb">Responsable:</span><div class="mb-activies">{{ item.UsuarioNombreCompleto }}</div>
+                                                </div>
+                                                <div ng-if="item.Email != null && item.Email != ''">
+                                                    <span class="title-mb">Email invitados:</span><div class="mb-activies"><a style="display: inline;color: #555" href="#" ng-repeat="email in item.Email.split(';')" ng-click="AbrirEmail(email)">{{ email }},&nbsp;</a></div>
+                                                </div>
+                                                <div ng-if="item.TiposCalendariosActividadesEntregable == false && item.Direccion != null">
+                                                    <span class="title-mb">Direccion:</span><div class="mb-activies">{{ item.Direccion }}</div>
+                                                </div>
+                                                <div ng-if="item.TiposCalendariosActividadesEntregable == false && item.Telefono != null">
+                                                    <span class="title-mb">Telefono:</span><div class="mb-activies">{{ item.Telefono }}</div>
+                                                </div>
+                                                <div ng-if="item.TiposCalendariosActividadesEntregable == false && item.Celular != null">
+                                                    <span class="title-mb">Celular:</span><div class="mb-activies">{{ item.Celular }}</div>
+                                                </div>
+                                                <div ng-if="item.InmuebleDescripcion != null">
+                                                    <span class="title-mb">Inmueble:</span><div class="mb-activies">{{ item.InmuebleDescripcion }}</div>
+                                                </div>
+                                                <div ng-if="item.VisitanteNombreCompleto != null">
+                                                    <span class="title-mb">Visitante:</span><div class="mb-activies">{{ item.VisitanteDocumento }} - {{ item.VisitanteNombreCompleto }}</div>
+                                                </div>
+                                                <div ng-if="item.ComplejoNombre != null">
+                                                    <span class="title-mb">Complejo:</span><div class="mb-activies">{{ item.ComplejoNombre }}</div>
+                                                </div>
+                                                <div ng-if="item.Link != null">
+                                                    <span class="title-mb">Link de reuniones:</span><div class="mb-activies"><a href="#" ng-click="AbrirLink(item.Link)">{{ item.Link }}</a></div>
+                                                </div>
+                                                <div ng-if="item.Descripcion != null">
+                                                    <span class="title-mb">Descripción de la actividad:</span><div class="mb-activies" style="font-size: 0.78rem;">{{ item.Descripcion }}</div>
+                                                </div>
+                                                <div ng-if="item.UsuarioCierreNombreCompleto != null">
+                                                    <span class="title-mb">Usuario cierre:</span><div class="mb-activies">{{ item.UsuarioCierreNombreCompleto }}</div>
+                                                </div>
+                                                <div ng-if="item.HabilitarFinalizar" style="flex: 1 500px;">
+                                                    <div ng-show="item.InmuebleProcesoProcesoID != null">
+                                                        <label class="control-label control-label-sm mb-3 mr-3">¿El cliente sigue interesado en el inmueble?</label><toggle ng-model="item.SigueInteresado" on="Si" off="No" on-class="ar-ok" off-class="ar-cancel" handle="off" size="btn-xs"></toggle>
+                                                    </div>
+                                                    <label class="control-label control-label-sm mb-0">Observaciones de finalización</label><strong class="red">*</strong>
+                                                    <textarea class="form-control input-sm mb-5" rows="3" ng-model="item.ObservacionesCierre" maxlength="1000" required></textarea>
+                                                    <div class="flex flex-center mb-5" ng-if="item.CantidadActividadesCierres > 0">
+                                                        <label class="control-label control-label-sm mb-0" style="min-width:80px">Tipo de cierre<strong class="red">*</strong></label>
+                                                        <div class="custom-select-xs" custom-select="item.CalendarioActividadCierreDetalleID as item.Nombre for item in searchCalendariosActividadesCierresDetalles($searchTerm)" ng-model="item.CalendarioActividadCierreDetalleID" custom-select-options="ddlSearchCalendariosActividadesCierresDetalles"></div>
+                                                    </div>
+                                                    <label class="control-label control-label-sm mb-0" ng-show="item.InmuebleProcesoProcesoID != null && item.SigueInteresado == false">Causa de inviabilidad</label><strong class="red" ng-show="item.InmuebleProcesoProcesoID != null && item.SigueInteresado == false">*</strong>
+                                                    <div class="form-group" ng-show="item.InmuebleProcesoProcesoID != null && item.SigueInteresado == false">
+                                                        <select class="form-control input-sm" ng-model="item.CausalInviabilidadProcesoID" ng-options="item.CausalInviabilidadProcesoID as item.Nombre for item in CausalesInviabilidadProcesos"></select>
+                                                    </div>
+                                                    <div class="btn-group mb-10 pull-right">
+                                                        <button class="btn btn-danger btn-xs" ng-click="CancelarCierreActividad(item)">Cancelar</button>
+                                                        <button class="btn btn-success btn-xs" ng-click="FinalizarActividad(item)">Finalizar</button>
+                                                    </div>
+                                                </div>
+                                                <div ng-if="item.Completada == true" class="alert alert-success mb-alert mb-0 flex flex-column" style="flex: 1 500px">
+                                                    <div><span class="title-mb">Resultado de la actividad:</span><span class="font-12" title="Fecha de cierre" data-placement="top" data-toggle="tooltip">{{ item.FechaCierre | date: 'dd/MM/yyyy hh:mm a' }}</span></div>
+                                                    <div ng-if="item.CalendarioActividadCierreDetalle"><span class="title-mb">Tipo de cierre:</span><span class="font-12">{{ item.CalendarioActividadCierreDetalle }}</span></div>
+                                                    <div class="mb-activies mb-0" style="font-size: 0.78rem;">{{ item.ObservacionesCierre }}</div>
+                                                </div>                                                
+                                                <div class="flex-wrap-start" style="flex: 1 500px">
+                                                    <div style="border-right: 2px solid #ddd; flex: 1 110px;" class="text-center" title="Tipo de actividad" data-placement="top" data-toggle="tooltip">
+                                                        <i class="fad fa-clock blue"></i>&nbsp;
+                                                        <div class="mb-activies" style="margin-bottom: 0px;">{{ item.TipoCalendarioActividadNombre }}</div>
+                                                    </div>
+                                                    <div class="text-center" style="border-right: 2px solid #ddd; flex: 1;" title="Actividad con notificación" data-placement="top" data-toggle="tooltip">
+                                                        <i class="fad" ng-class="item.Notificacion == true ? 'fa-check-circle green' : item.Notificacion == false ? 'fa-times-circle red' : 'fa-times-circle red'"></i>&nbsp;
+                                                        <div class="mb-activies" style="margin-bottom: 0px;">Notificación</div>
+                                                    </div>
+                                                    <div class="text-center" title="Estado de la actividad" style="flex: 1;" data-placement="top" data-toggle="tooltip">
+                                                        <i class="fad" ng-class="item.Completada == true ? 'fa-check-circle green' : 'fa-exclamation-triangle yellow'"></i>&nbsp;
+                                                        <div class="mb-activies" style="margin-bottom: 0px;">{{ item.Completada ? 'Finalizada' : 'Pendiente' }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">                    
+                </div>
+            </div>
+        </div>        
+    </div>
+    <div id="panel-menu-contacto" class="opciones-left opened" ng-if="Modo == 3">
+        <a class="opciones-link" ng-click="AbrirMenu($event)"><i class="fad fa-list-ul"></i></a>
+        <div class="content-opciones">
+            <div class="content-opciones-header">
+                <button class="not-btn btn-back-centro" ng-click="AtrasModo()" title="Volver a los contactos"><i class="iconify icon-action-undo font-23" style="color: #6c757d !important;"></i></button>
+                <h4>CONTACTO</h4>
+                <button class="not-btn btn-closed" ng-click="AbrirMenu($event)" title="Esconder el menu"><i class="fad fa-times" style="font-size: 27px; color: #6c757d !important;"></i></button>
+            </div>
+            <div class="content-opciones-header-account">
+                <div class="content-acount">
+                    <div class="thumb-acount">
+                        <i class="fas fa-user-headset"></i>
+                    </div>
+                    <div class="acount-title">
+                        <h4 class="text-center">{{ PreContacto.NombreCompleto }}</h4>
+                        <div class="acount-nit">
+                            <div class="td-estado alert text-center {{ PreContacto.EstadoProcesoID == 10 ? 'alert-success' : PreContacto.EstadoProcesoID == 7 ? 'alert-danger' : PreContacto.EstadoProcesoID == 4 ? 'alert-warning' : 'alert-info' }}" role="alert" style="width: 100%;">
+                                {{ PreContacto.EstadoProcesoNombre }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-opciones-body" style="max-height: calc(100vh - 340px)">
+                <div class="form-group">
+                    <div class="demo-card-subhead blue pointer" ng-if="PreContacto.Email" ng-click="AbrirEmail(PreContacto.Email)">
+                        <div class="demo-card-subtitle">Email: </div> {{ PreContacto.Email.replaceAll(';', ', ') }}
+                    </div>
+                    <div class="demo-card-subhead blue pointer" ng-if="PreContacto.Celular">
+                        <div class="demo-card-subtitle">Celular: </div><a href="#" ng-click="AbrirWhatsAppWeb(PreContacto)">{{ PreContacto.Celular | tel }}</a> &nbsp;<a ng-href="{{ 'tel:' + PreContacto.Celular }}"><i class="fal fa-mobile"></i> llamar</a>
+                    </div>
+                    <div class="demo-card-subhead">
+                        <div class="demo-card-subtitle">Tipo contacto: </div> {{ PreContacto.OrigenPreContactoNombre }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.Telefono">
+                        <div class="demo-card-subtitle">Telefono: </div> {{ PreContacto.Telefono }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.ClienteNombreCompleto">
+                        <div class="demo-card-subtitle">Empresa: </div> {{ PreContacto.ClienteNombreCompleto }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.Fecha">
+                        <div class="demo-card-subtitle">Registro: </div> {{ PreContacto.Fecha | date : 'dd-MM-yyyy hh:mm a' }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.FechaCambioLineaTiempo">
+                        <div class="demo-card-subtitle orange">Cambio: </div> {{ PreContacto.FechaCambioLineaTiempo | date : 'dd-MM-yyyy hh:mm a' }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.FechaCierre">
+                        <div class="demo-card-subtitle green">Cierre: </div> {{ PreContacto.FechaCierre | date : 'dd-MM-yyyy hh:mm a' }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.ValorCampo1">
+                        <div class="demo-card-subtitle">{{ PreContacto.LabelCampo1 }}: </div> {{ PreContacto.ValorCampo1 }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.ValorCampo2">
+                        <div class="demo-card-subtitle">{{ PreContacto.LabelCampo2 }}: </div> {{ PreContacto.ValorCampo2 }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.ValorCampo3">
+                        <div class="demo-card-subtitle">{{ PreContacto.LabelCampo3 }}: </div> {{ PreContacto.ValorCampo3 }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.ValorCampo4">
+                        <div class="demo-card-subtitle">{{ PreContacto.LabelCampo4 }}: </div> {{ PreContacto.ValorCampo4 }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.ValorCampo5">
+                        <div class="demo-card-subtitle">{{ PreContacto.LabelCampo5 }}: </div> {{ PreContacto.ValorCampo5 }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.ValorCampo6">
+                        <div class="demo-card-subtitle">{{ PreContacto.LabelCampo6 }}: </div> {{ PreContacto.ValorCampo6 }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.ValorCampo7">
+                        <div class="demo-card-subtitle">{{ PreContacto.LabelCampo7 }}: </div> {{ PreContacto.ValorCampo7 }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.ValorCampo8">
+                        <div class="demo-card-subtitle">{{ PreContacto.LabelCampo8 }}: </div> {{ PreContacto.ValorCampo8 }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.ValorCampo9">
+                        <div class="demo-card-subtitle">{{ PreContacto.LabelCampo9 }}: </div> {{ PreContacto.ValorCampo9 }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.ValorCampo10">
+                        <div class="demo-card-subtitle">{{ PreContacto.LabelCampo10 }}: </div> {{ PreContacto.ValorCampo10 }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.AsesorNombreCompleto">
+                        <div class="demo-card-subtitle">{{ PreContacto.OrigenPreContactoID == 2 ? 'Asesor captación' : 'Asesor' }}: </div> {{ PreContacto.AsesorNombreCompleto }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.FormaContactoNombre">
+                        <div class="demo-card-subtitle">¿Como se contactaron?: </div> {{ PreContacto.FormaContactoNombre }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.FormaComoNosConocioNombre">
+                        <div class="demo-card-subtitle">¿Como nos conocieron?: </div> {{ PreContacto.FormaComoNosConocioNombre }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.FormaComoNosConocioDetalleNombre">
+                        <div class="demo-card-subtitle">Especificación de como nos conocieron: </div> {{ PreContacto.FormaComoNosConocioDetalleNombre }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.UsuarioRegistroNombreCompleto">
+                        <div class="demo-card-subtitle">Usuario registro: </div> {{ PreContacto.UsuarioRegistroNombreCompleto }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.InmuebleConsecutivo">
+                        <div class="demo-card-subtitle">Nro. inmueble por que llego: </div> {{ PreContacto.InmuebleConsecutivo }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.ProcesosServiciosIniciales.length > 0">
+                        <div class="demo-card-subtitle">Servicios solicitados: </div>
+                        <span ng-repeat="item in PreContacto.ProcesosServiciosIniciales">{{ item.Nombre }} - </span>
+                    </div>
+                    <div class="demo-card-supporting-text" ng-if="PreContacto.Observaciones">
+                        <div class="demo-card-subtitle">Observaciones: </div>
+                        <span ng-bind-html="PreContacto.Observaciones"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="demo-card-subhead" ng-if="PreContacto.CausalInviabilidadNombre">
+                        <div class="demo-card-subtitle red">Causa inviable: </div> {{ PreContacto.CausalInviabilidadNombre }}
+                    </div>
+                    <div class="demo-card-subhead" ng-if="PreContacto.FechaInviabilidad">
+                        <div class="demo-card-subtitle red">Fecha inviable: </div> {{ PreContacto.FechaInviabilidad | date : 'dd-MM-yyyy hh:mm a' }}
+                    </div>
+                    <div class="demo-card-supporting-text" ng-if="PreContacto.ObservacionesInviabilidad">
+                        <div class="demo-card-subtitle red">Observaciones: </div>
+                        <span ng-bind-html="PreContacto.ObservacionesInviabilidad"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="content-opciones-footer abs-b-0">
+                <button class="btn btn-sm btn-primary mb-5 w50p" ng-click="AbrirModalEditar(PreContacto, 3)">Editar <i class="fal fa-user-edit"></i></button>
+                <button class="btn btn-sm btn-success mb-5 w50p" ng-if="PreContacto.EstadoProcesoID == 7" ng-click="ViabilizarProceso(PreContacto, null)">Viable <i class="fal fa-user-crown"></i></button>
+                <button class="btn btn-sm btn-danger mb-5 w50p" ng-if="PreContacto.EstadoProcesoID != 7" ng-click="AbrirModalInviabilizar(PreContacto, null)">Inviabilizar <i class="fal fa-user-slash"></i></button>
+                <button class="btn btn-sm btn-success mb-5 w100p" ng-click="VisualizarActividadesSeguimientos(PreContacto, null, null, true)"><i class="fal fa-calendar"></i> ({{ PreContacto.CountActividades }}) Actividades y ({{ PreContacto.CountSeguimientos }}) Seguimientos <i class="fal fa-comment-alt"></i></button>
+                <button class="btn btn-sm btn-primary mb-5 w50p" ng-click="AbrirModalInventario(PreContacto)">Inventario <i class="fal fa-box-open"></i></button>
+            </div>
+        </div>
+    </div>
+    <div ng-include="ViewsInventario"></div>
+    <file-viewer ng-viewer="viewer"></file-viewer>
+    <address ng-address="address"></address>
+    <div id="modalActividad" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" data-target="#modalCalendario"><i class="fal fa-times"></i></button>
+                    <h4 class="modal-title modal-title-sm">
+                        <i class="fal fa-calendar-plus"></i>&nbsp;&nbsp;Actividad de calendario
+                    </h4>
+                </div>
+                <div class="modal-body pt-0">
+                    <div class="flex-row" ng-if="Actividad.HabilitarFinalizar == false">
+                        <div class="flex-170">
+                            <label class="control-label control-label-sm mb-0">Tipo Actividad</label><strong class="red">*</strong>
+                            <div class="form-group mb-3">
+                                <select class="form-control input-sm" ng-options="item.TipoCalendarioActividadID as item.Nombre for item in TiposActividades" ng-model="Actividad.TipoCalendarioActividadID" ng-change="ChangeTipoActividad()"></select>
+                            </div>
+                        </div>
+                        <div class="flex-140">
+                            <label class="control-label control-label-sm mb-0">Fecha de inicio</label><strong class="red">*</strong>
+                            <div class="form-group has-feedback mb-3">
+                                <date-time-picker class="form-control input-sm date-picker" required ng-model="Actividad.FechaInicio" placeholder="DD/MM/YYYY HH:mm" format="DD/MM/YYYY HH:mm" ng-change="ChangeFechaInicio()"></date-time-picker>
+                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="flex-140">
+                            <label class="control-label control-label-sm mb-0">Fecha de vencimiento</label><strong class="red">*</strong>
+                            <div class="form-group has-feedback mb-3">
+                                <date-time-picker class="form-control input-sm date-picker" required ng-model="Actividad.FechaVencimiento" placeholder="DD/MM/YYYY HH:mm" format="DD/MM/YYYY HH:mm"></date-time-picker>
+                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="flex-600">
+                            <label class="control-label control-label-sm mb-0">Actividad</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input type="text" class="form-control input-sm" required placeholder="{{ Actividad.TipoCalendarioActividadNombre }}" ng-model="Actividad.Asunto" maxlength="200" aria-label="..." />
+                                <span class="glyphicon glyphicon-globe form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="flex-600">
+                            <label class="control-label control-label-sm mb-0">Responsable actividad</label><strong class="red">*</strong>
+                            <div class="form-group mb-3">
+                                <div custom-select="item.UsuarioID as item.NombreCompleto for item in searchAsesoresUsuarios($searchTerm)" class="custom-select-sm" ng-model="Actividad.UsuarioID"></div>
+                            </div>
+                        </div>
+                        <div class="flex-600" ng-if="Search.OrigenPreContactoID == 2 || Search.OrigenPreContactoID == 4 || Search.OrigenPreContactoID == 5">
+                            <label class="control-label control-label-sm mb-0">Inmueble que se le asocia la actividad</label>
+                            <div class="form-group">
+                                <div class="custom-select-sm" custom-select="item.InmuebleID as item.Nombre for item in searchInmuebles($searchTerm)" ng-model="Actividad.InmuebleID"></div>
+                            </div>
+                        </div>
+                        <div class="flex-130" ng-if="Search.OrigenPreContactoID == 1 || Search.OrigenPreContactoID == 6 || Actividad.VisitanteDocumento != null">
+                            <label class="control-label control-label-sm mb-0">Documento del visitante</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input class="form-control input-sm" type="text" required ng-model="Actividad.VisitanteDocumento" placeholder="Cedula o NIT" maxlength="20" />
+                                <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="flex-300" ng-if="Search.OrigenPreContactoID == 1 || Search.OrigenPreContactoID == 6 || Actividad.VisitanteNombreCompleto != null">
+                            <label class="control-label control-label-sm mb-0">Visitante</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input class="form-control input-sm" type="text" required ng-model="Actividad.VisitanteNombreCompleto" placeholder="Nombre completo del que visita el complejo" maxlength="500" />
+                                <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="flex-200" ng-if="Search.OrigenPreContactoID == 1 || Search.OrigenPreContactoID == 6 || Actividad.ComplejoID != null">
+                            <label class="control-label control-label-sm mb-0">Complejo que se le asocia la actividad</label>
+                            <div class="form-group">
+                                <select class="form-control input-sm" ng-options="item.ComplejoID as item.Nombre for item in Complejos" ng-model="Actividad.ComplejoID"></select>
+                            </div>
+                        </div>
+                        <div class="flex-300">
+                            <label class="control-label control-label-sm mb-0">Link de reuniones</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input class="form-control input-sm" type="text" required ng-model="Actividad.Link" placeholder="Link de zoom o meet u otro." maxlength="500" />
+                                <span class="glyphicon glyphicon-globe form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="flex-600">
+                            <label class="control-label control-label-sm mb-0">Emails invitados</label>
+                            <span class="aviso-email font-10">"Para ingresar varios emails separarlo por <strong class="font-14">;</strong> sin espacios."</span>
+                            <div class="form-group has-feedback mb-3">
+                                <email-box class="form-control input-sm" ng-model="Actividad.Email" required maxlength="1000" placeholder="Agregar invitados"></email-box>
+                                <span class="icon glyphicon glyphicon-user form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="flex-600" ng-if="Actividad.Entregable == false;">
+                            <label class="control-label control-label-sm mb-0">Dirección actividad</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input class="form-control input-sm" type="text" required ng-model="Actividad.Direccion" placeholder="Dirección" maxlength="50" />
+                                <span class="glyphicon glyphicon-home form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="flex-150" ng-if="Actividad.Entregable == false;">
+                            <label class="control-label control-label-sm mb-0">Teléfono</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input class="form-control input-sm date-picker" type="text" required ng-model="Actividad.Telefono" placeholder="Telefono" maxlength="50" />
+                                <span class="glyphicon glyphicon-phone-alt form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="flex-150" ng-if="Actividad.Entregable == false;">
+                            <label class="control-label control-label-sm mb-0">Celular</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input class="form-control input-sm date-picker" required type="text" ng-model="Actividad.Celular" placeholder="Celular" maxlength="50" />
+                                <span class="glyphicon glyphicon-phone form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="flex-600">
+                            <label class="control-label control-label-sm mb-0">Descripción de la actividad</label>
+                            <div class="form-group has-feedback mb-3">
+                                <textarea class="form-control input-sm" required ng-model="Actividad.Descripcion" rows="2" maxlength="2000"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex-wrap-start" style="gap: 3px 5px" ng-if="Actividad.HabilitarFinalizar == true">
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 text-center">
+                            <label style="border-bottom: 2px solid #ddd; width: 100%;"><span class="title-mb">Actividad:</span>{{ Actividad.Asunto }}</label>
+                        </div>
+                        <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 text-center">
+                            <span class="title-mb">Inicio:</span><div class="mb-activies">{{ Actividad.FechaInicio | date: 'dd/MM/yyyy hh:mm a' }}</div>
+                        </div>
+                        <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 text-center">
+                            <span class="title-mb">Fin:</span><div class="mb-activies red">{{ Actividad.FechaVencimiento | date: 'dd/MM/yyyy hh:mm a' }}</div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="Actividad.UsuarioNombreCompleto != null">
+                            <span class="title-mb">Responsable:</span><div class="mb-activies">{{ Actividad.UsuarioNombreCompleto }}</div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="Actividad.Email != null">
+                            <span class="title-mb">Email invitados:</span><div class="mb-activies"><a style="display: inline;color: #555" href="#" ng-repeat="email in Actividad.Email.split(';')" ng-click="AbrirEmail(email)">{{ email }},&nbsp;</a></div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6" ng-if="Actividad.TiposCalendariosActividadesEntregable == false && Actividad.Direccion != null">
+                            <span class="title-mb">Direccion:</span><div class="mb-activies">{{ Actividad.Direccion }}</div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-if="Actividad.TiposCalendariosActividadesEntregable == false && Actividad.Telefono != null">
+                            <span class="title-mb">Telefono:</span><div class="mb-activies">{{ Actividad.Telefono }}</div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-if="Actividad.TiposCalendariosActividadesEntregable == false && Actividad.Celular != null">
+                            <span class="title-mb">Celular:</span><div class="mb-activies">{{ Actividad.Celular }}</div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="Actividad.InmuebleDescripcion != null">
+                            <span class="title-mb">Inmueble:</span><div class="mb-activies">{{ Actividad.InmuebleDescripcion }}</div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="Actividad.VisitanteNombreCompleto != null">
+                            <span class="title-mb">Visitante:</span><div class="mb-activies">{{ Actividad.VisitanteDocumento }} - {{ Actividad.VisitanteNombreCompleto }}</div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="Actividad.ComplejoNombre != null">
+                            <span class="title-mb">Complejo:</span><div class="mb-activies">{{ Actividad.ComplejoNombre }}</div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="Actividad.Link != null">
+                            <span class="title-mb">Link de reuniones:</span><div class="mb-activies"><a href="#" ng-click="AbrirLink(Actividad.Link)">{{ Actividad.Link }}</a></div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="Actividad.Descripcion != null">
+                            <span class="title-mb">Descripción de la actividad:</span><div class="mb-activies" style="font-size: 0.78rem;">{{ Actividad.Descripcion }}</div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="Actividad.UsuarioCierreNombreCompleto != null">
+                            <span class="title-mb">Usuario cierre:</span><div class="mb-activies">{{ Actividad.UsuarioCierreNombreCompleto }}</div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="Actividad.Completada == false">
+                            <label class="control-label control-label-sm mb-0">Observaciones de finalización</label><strong class="red">*</strong>
+                            <textarea class="form-control input-sm mb-5" rows="3" ng-model="Actividad.ObservacionesCierre" maxlength="1000" required></textarea>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="Actividad.Completada == false && Actividad.CantidadActividadesCierres > 0">
+                            <div class="flex flex-center mb-5">
+                                <label class="control-label control-label-sm mb-0" style="min-width:80px">Tipo de cierre<strong class="red">*</strong></label>
+                                <div class="custom-select-xs" custom-select="item.CalendarioActividadCierreDetalleID as item.Nombre for item in searchCalendariosActividadesCierresDetalles($searchTerm)" ng-model="Actividad.CalendarioActividadCierreDetalleID" custom-select-options="ddlSearchCalendariosActividadesCierresDetalles"></div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="Actividad.Completada == true">
+                            <div class="alert alert-success mb-alert">
+                                <span class="title-mb">Resultado de la actividad:</span><span class="font-12" title="Fecha de cierre" data-placement="top" data-toggle="tooltip">{{ Actividad.FechaCierre | date: 'dd/MM/yyyy hh:mm a' }}</span><br />
+                                <div class="mb-activies mb-5" style="font-size: 0.78rem;">{{ Actividad.ObservacionesCierre }}</div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 flex-row">
+                            <div class="flex-170 text-center" style="border-right: 2px solid #ddd" title="Tipo de actividad" data-placement="top" data-toggle="tooltip">
+                                <i class="fad fa-clock blue"></i>&nbsp;
+                                <div class="mb-activies mb-0">{{ Actividad.TipoCalendarioActividadNombre }}</div>
+                            </div>
+                            <div class="flex-170 text-center" style="border-right: 2px solid #ddd" title="Actividad con notificación" data-placement="top" data-toggle="tooltip">
+                                <i class="fad" ng-class="Actividad.Notificacion == true ? 'fa-check-circle green' : Actividad.Notificacion == false ? 'fa-times-circle red' : 'fa-times-circle red'"></i>&nbsp;
+                                <div class="mb-activies mb-0">Notificación</div>
+                            </div>
+                            <div class="flex-170 text-center" title="Estado de la actividad" data-placement="top" data-toggle="tooltip">
+                                <i class="fad" ng-class="Actividad.Completada == true ? 'fa-check-circle green' : 'fa-exclamation-triangle yellow'"></i>&nbsp;
+                                <div class="mb-activies mb-0">{{ Actividad.Completada ? 'Finalizada' : 'Pendiente' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="btn-group pull-right" ng-if="Actividad.HabilitarFinalizar == false">
+                        <button class="btn btn-danger" style="padding: 2px 8px" data-dismiss="modal" data-target="#modalActividad">Cancelar</button>
+                        <button class="btn btn-success" style="padding: 2px 8px" ng-click="GuardarActividadIndividual()">Guardar</button>
+                    </div>
+                    <div class="btn-group pull-right" ng-if="Actividad.HabilitarFinalizar == true && Actividad.Completada == false">
+                        <button class="btn btn-danger" style="padding: 2px 8px" data-dismiss="modal" data-target="#modalActividad">Cancelar</button>
+                        <button class="btn btn-success" style="padding: 2px 8px" ng-click="FinalizarActividadIndividual()">Finalizar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

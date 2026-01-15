@@ -1,0 +1,697 @@
+﻿
+<script src="/js/Areas/CRM/PreContactos/Inventario/ControllerInventario.js?v=123"></script>
+<style type="text/css">
+    div.opciones-bottom.opened {
+        right: -1px !important;
+    }
+    div.opciones-bottom {
+        right: -320px !important;
+    }
+    div.opciones-bottom {
+        background: #ffffff;
+        width: 320px;
+        position: fixed;
+        bottom: 0;
+        z-index: 300;
+        border-radius: 5px 0 0 0;
+        right: -320px;
+        border: 1px solid #225179;
+        transition: 1s;
+        max-height: calc(100vh - 61px);
+    }
+    div.opciones-bottom.opened {
+        right: 218px;
+    }
+    div.opciones-bottom h4,
+    div.opciones-bottom h3 {
+        color: #fff;
+        padding: 2px 0 5px 10px;
+        margin: 0;
+        line-height: 20px;
+        font-size: 13px;
+    }
+    div.opciones-bottom a.opciones-link {
+        background-color: #ffffff;
+        display: block;
+        height: 45px;
+        position: absolute;
+        right: 318px;
+        bottom: -1px;
+        width: 45px;
+        font-size: 17px;
+        line-height: 40px;
+        color: #225179;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 5px 0 0 5px;
+        border: 1px solid #225179;
+        border-right: 0px;
+        cursor: pointer;
+    }
+    div.opciones-bottom a.opciones-link i {
+        font-size: 24px;
+        vertical-align: middle;
+        cursor: pointer;
+    }
+    div.opciones-bottom a.opciones-link:hover {
+        text-decoration: none;
+    }
+    div.opciones-bottom .content-opciones-body {
+        border-radius: 7px;
+        bottom: 0;
+        margin: 10px 13px;
+        max-height: calc(100vh - 175px);
+        padding: 0 5px;
+        overflow-y: auto;
+    }
+    div.opciones-bottom .content-opciones-header h4,
+    div.opciones-bottom .content-opciones-header h3 {
+        text-align: center;
+        padding: 10px 0;
+        background-color: #f0f3f3;
+        font-size: 17px;
+        margin: 10px 13px;
+        font-weight: 600;
+        border-radius: 8px;
+        display: block;
+        color: #333;
+    }
+    .flex-filtro {
+        display: flex;
+    }
+    .flex-filtro input {
+        margin-right: 4px;
+    }
+    .label-incluida {
+        padding: 0px 5px;
+        margin-bottom: 0;
+        border-radius: 5px;
+        font-weight: 300;
+        color: white;
+        font-size: 13px;
+    }
+    .check-2 {
+        top: 2px;
+        position: relative;
+    }
+</style>
+<div ng-controller="ControllerInventario" class="Crm-Inventario" ng-init="InitInventario()">
+    <detail-modal ng-detail="DetailInventario">
+        <div class="table-responsive table-inventario" ng-if="searchInventario.OrigenPreContactoID == 1 || searchInventario.OrigenPreContactoID == 6">
+            <table class="table table-sm ng-table mb-0">
+                <thead class="thead-frozen">
+                    <tr class="ng-table-sort-header">
+                        <th class="header sortable width-90 frozen-0 indez-100"><span class="sort-indicator" ng-click="GlobalOrderInventario('Codigo', $event)">Bodega</span></th>
+                        <th class="header sortable"><span class="sort-indicator" ng-click="GlobalOrderInventario('Complejo', $event)">Complejo</span></th>
+                        <th class="header sortable"><span class="sort-indicator" ng-click="GlobalOrderInventario('ComplejoPiso', $event)">Piso</span></th>
+                        <th class="header sortable width-100"><span class="sort-indicator" ng-click="GlobalOrderInventario('M3Comercial', $event)">M3 Comercial</span></th>
+                        <th class="header sortable width-100"><span class="sort-indicator" ng-click="GlobalOrderInventario('M3Real', $event)">M3 Real</span></th>
+                        <th class="header sortable width-130"><span class="sort-indicator" ng-click="GlobalOrderInventario('ValorDiario', $event)">Vr Diario</span></th>
+                        <th class="header sortable width-130"><span class="sort-indicator" ng-click="GlobalOrderInventario('ValorMensual', $event)">Vr Mensual</span></th>
+                        <th class="header sortable">Estado</th>
+                        <th class="header sortable">Reserva</th>
+                    </tr>
+                    <tr>
+                        <th class="th-filter frozen-0 indez-100">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.Codigo" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.Complejo" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.ComplejoPiso" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter">
+                            <div class="dis-flex">
+                                <input type="text" class="form-control input-xs" ng-model="searchInventario.MinM3Comercial" placeholder="Min" ui-number-mask="0" required ng-change="GlobalSearchInventario()" />
+                                <input type="text" class="form-control input-xs" ng-model="searchInventario.MaxM3Comercial" placeholder="Max" ui-number-mask="0" required ng-change="GlobalSearchInventario()" />
+                            </div>
+                        </th>
+                        <th class="th-filter">
+                            <div class="dis-flex">
+                                <input type="text" class="form-control input-xs" ng-model="searchInventario.MinM3Real" placeholder="Min" ui-number-mask="0" required ng-change="GlobalSearchInventario()" />
+                                <input type="text" class="form-control input-xs" ng-model="searchInventario.MaxM3Real" placeholder="Max" ui-number-mask="0" required ng-change="GlobalSearchInventario()" />
+                            </div>
+                        </th>
+                        <th class="th-filter">
+                            <div class="dis-flex">
+                                <input type="text" class="form-control input-xs" ng-model="searchInventario.VrMinDiario" placeholder="Min" ui-number-mask="0" required ng-change="GlobalSearchInventario()" />
+                                <input type="text" class="form-control input-xs" ng-model="searchInventario.VrMaxDiario" placeholder="Max" ui-number-mask="0" required ng-change="GlobalSearchInventario()" />
+                            </div>
+                        </th>
+                        <th class="th-filter">
+                            <div class="dis-flex">
+                                <input type="text" class="form-control input-xs" ng-model="searchInventario.VrMinMensual" placeholder="Min" ui-number-mask="0" required ng-change="GlobalSearchInventario()" />
+                                <input type="text" class="form-control input-xs" ng-model="searchInventario.VrMaxMensual" placeholder="Max" ui-number-mask="0" required ng-change="GlobalSearchInventario()" />
+                            </div>
+                        </th>
+                        <th class="th-filter">
+                        </th>
+                        <th class="th-filter">
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="item in BodegasDisponibles" column-hover>
+                        <td data-title-text="Bodega" class="frozen-0">{{ item.Codigo }}</td>
+                        <td data-title-text="Complejo">{{ item.Complejo }}</td>
+                        <td data-title-text="Piso">{{ item.ComplejoPiso }}</td>
+                        <td data-title-text="M3 Comercial" class="text-right">{{ item.M3Comercial | currency: '' : '' }}</td>
+                        <td data-title-text="M3 Real" class="text-right">{{ item.M3Real | currency: '' : '' }}</td>
+                        <td data-title-text="Vr Diario" class="text-right">{{ item.ValorDiario | currency: '' : '' }}</td>
+                        <td data-title-text="Vr Mensual" class="text-right">{{ item.ValorMensual | currency: '' : '' }}</td>
+                        <td data-title-text="Estado" class="text-center">
+                            <label class="control-label label-estado" ng-class="item.EstadoBodegaNombre == 'Libre' ? 'label-success' : 'label-warning'">
+                                {{ item.EstadoBodegaNombre  }}
+                            </label>
+                        </td>
+                        <td data-title-text="Reserva"><span ng-bind="item.UsuarioReserva" ng-if="item.EstadoBodegaNombre != 'Libre'"></span></td>
+                    </tr>
+                    <tr ng-if="BodegasDisponibles.length == 0">
+                        <td colspan="16" class="text-center">
+                            <b>{{ (searchInventario.FullSearch != undefined && searchInventario.FullSearch != '') ? 'No se encontraron resultados de "' + searchInventario.FullSearch + '"' : 'No se han cargado datos sobre la tabla'}}</b>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot class="tfoot-frozen">
+                    <tr class="tr-tfoot">
+                        <td class="frozen-0 indez-100" colspan="2">
+                            <span class="font-total font-14">Total:<div style="margin-left: 10px; font-weight: 100; display: inline;">{{ (BodegasDisponibles[0].TotalRows == undefined ? 0 : BodegasDisponibles[0].TotalRows) | currency: '' : '' }}</div></span>
+                        </td>
+                        <td class="text-right" colspan="10">
+                            <div class="mat-paginator-range-actions" ng-if="BodegasDisponibles[0].TotalRows != undefined && BodegasDisponibles[0].TotalRows > searchInventario.Rows">
+                                <div class="mat-paginator-range-label font-15"> {{ ((searchInventario.Page - 1) * searchInventario.Rows) + 1 }} – {{ (searchInventario.Page * searchInventario.Rows) < BodegasDisponibles[0].TotalRows ? (searchInventario.Page * searchInventario.Rows) : BodegasDisponibles[0].TotalRows }} de {{ BodegasDisponibles[0].TotalRows }} </div>
+                                <button mat-icon-button="" type="button" class="mat-focus-indicator mat-tooltip-trigger mat-paginator-navigation-previous mat-icon-button mat-button-base" ng-click="AnteriorInventario()" title="Anterior pagina" data-toggle="tooltip" data-placement="left">
+                                    <span class="mat-button-wrapper">
+                                        <svg viewBox="6 5 12 14" focusable="true" class="mat-paginator-icon">
+                                            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
+                                        </svg>
+                                    </span>
+                                </button>
+                                <button mat-icon-button="" type="button" class="mat-focus-indicator mat-tooltip-trigger mat-paginator-navigation-next mat-icon-button mat-button-base" ng-click="SiguienteInventario('BodegasDisponibles')" title="Siguiente pagina" data-toggle="tooltip" data-placement="left">
+                                    <span class="mat-button-wrapper">
+                                        <svg viewBox="6 5 12 14" focusable="true" class="mat-paginator-icon">
+                                            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path>
+                                        </svg>
+                                    </span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="table-responsive table-inventario" ng-if="searchInventario.OrigenPreContactoID == 4 || searchInventario.OrigenPreContactoID == 5">
+            <table class="table table-sm ng-table mb-0">
+                <thead class="thead-frozen">
+                    <tr class="ng-table-sort-header">
+                        <th class="header sortable frozen-0 indez-100 width-100"><span class="sort-indicator" ng-click="GlobalOrderInventario('InmuebleConsecutivo', $event)">Inmueble</span></th>
+                        <th class="header sortable"><span class="sort-indicator" ng-click="GlobalOrderInventario('InmuebleDireccion', $event)">Dirección inmueble</span></th>
+                        <th class="header sortable"><span class="sort-indicator" ng-click="GlobalOrderInventario('TipoInmueble', $event)">Tipo Inmueble</span></th>
+                        <th class="header sortable"><span class="sort-indicator" ng-click="GlobalOrderInventario('Habitaciones', $event)">Habitaciones</span></th>
+                        <th class="header sortable"><span class="sort-indicator" ng-click="GlobalOrderInventario('Parqueaderos', $event)">Parqueaderos</span></th>
+                        <th class="header sortable"><span class="sort-indicator" ng-click="GlobalOrderInventario('Banos', $event)">Baños</span></th>
+                        <th class="header sortable" ng-if="searchInventario.OrigenPreContactoID == 4"><span class="sort-indicator" ng-click="GlobalOrderInventario('ValorCanon', $event)">Vr Canon</span></th>
+                        <th class="header sortable" ng-if="searchInventario.OrigenPreContactoID == 4" ng-show="ConfigInmueble.ValorAdministracion"><span class="sort-indicator" ng-click="GlobalOrderInventario('ValorAdministracion', $event)">Vr Admin</span></th>
+                        <th class="header sortable" ng-if="searchInventario.OrigenPreContactoID == 4" ng-show="ConfigInmueble.ValorTotal"><span class="sort-indicator" ng-click="GlobalOrderInventario('ValorTotal', $event)">Vr Canon + Vr Admin</span></th>
+                        <th class="header sortable" ng-if="searchInventario.OrigenPreContactoID == 5"><span class="sort-indicator" ng-click="GlobalOrderInventario('ValorVenta', $event)">Vr Venta</span></th>
+                        <th class="header sortable" ng-show="ConfigInmueble.Localidad"><span class="sort-indicator" ng-click="GlobalOrderInventario('Localidad', $event)">Localidad</span></th>
+                        <th class="header sortable" ng-show="ConfigInmueble.Barrio"><span class="sort-indicator" ng-click="GlobalOrderInventario('Barrio', $event)">Barrio</span></th>
+                        <th class="header sortable" ng-show="ConfigInmueble.Zona"><span class="sort-indicator" ng-click="GlobalOrderInventario('Zona', $event)">Zona</span></th>
+                        <th class="header sortable" ng-show="ConfigInmueble.AreaConstruida"><span class="sort-indicator" ng-click="GlobalOrderInventario('AreaConstruida', $event)">Area Construida</span></th>
+                        <th class="header sortable" ng-show="ConfigInmueble.Estrato"><span class="sort-indicator" ng-click="GlobalOrderInventario('Estrato', $event)">Estrato</span></th>
+                        <th class="header sortable" ng-show="ConfigInmueble.MetroCuadrado"><span class="sort-indicator" ng-click="GlobalOrderInventario('MetroCuadrado', $event)">Metro Cuadrado</span></th>
+                        <th class="header sortable" ng-show="ConfigInmueble.FincaRaiz"><span class="sort-indicator" ng-click="GlobalOrderInventario('FincaRaiz', $event)">Finca Raiz</span></th>
+                        <th class="header sortable" ng-show="ConfigInmueble.MercadoLibre"><span class="sort-indicator" ng-click="GlobalOrderInventario('MercadoLibre', $event)">Mercado Libre</span></th>
+                        <th class="header sortable" ng-show="ConfigInmueble.LaHaus"><span class="sort-indicator" ng-click="GlobalOrderInventario('LaHaus', $event)">La Haus</span></th>
+                        <th class="header sortable" ng-show="ConfigInmueble.ZonaHabitat"><span class="sort-indicator" ng-click="GlobalOrderInventario('ZonaHabitat', $event)">Zona Habitat</span></th>
+                        <th class="header sortable" ng-show="ConfigInmueble.CienCuadras"><span class="sort-indicator" ng-click="GlobalOrderInventario('CienCuadras', $event)">Cien Cuadras</span></th>
+                        <th class="header sortable" ng-show="ConfigInmueble.Idonde"><span class="sort-indicator" ng-click="GlobalOrderInventario('Idonde', $event)">Idonde</span></th>
+                        <th class="header sortable" ng-show="ConfigInmueble.FechaRegistro"><span class="sort-indicator" ng-click="GlobalOrderInventario('FechaRegistro', $event)">Fecha Registro</span></th>
+                        <th class="header sortable" ng-show="ConfigInmueble.Propietario"><span class="sort-indicator" ng-click="GlobalOrderInventario('Propietario', $event)">Propietario</span></th>
+                        <th class="header sortable" ng-show="ConfigInmueble.PropietarioCelular"><span class="sort-indicator" ng-click="GlobalOrderInventario('PropietarioCelular', $event)">Celular</span></th>
+                        <th class="header sortable" ng-show="ConfigInmueble.PropietarioDireccion"><span class="sort-indicator" ng-click="GlobalOrderInventario('PropietarioDireccion', $event)">Dirección</span></th>
+                        <th class="header sortable" ng-show="ConfigInmueble.PropietarioEmail"><span class="sort-indicator" ng-click="GlobalOrderInventario('PropietarioEmail', $event)">Email</span></th>
+                        <th class="header sortable" ng-show="ConfigInmueble.RestriccionesVisita"><span class="sort-indicator" ng-click="GlobalOrderInventario('RestriccionesVisita', $event)">Restricciones</span></th>
+                        <th class="header sortable" ng-show="ConfigInmueble.AreaLote"><span class="sort-indicator" ng-click="GlobalOrderInventario('AreaLote', $event)">Area Lote</span></th>
+                        <th class="header sortable" ng-show="ConfigInmueble.Chip"><span class="sort-indicator" ng-click="GlobalOrderInventario('Chip', $event)">Chip</span></th>
+                        <th class="header sortable" ng-show="ConfigInmueble.EdadInmueble">Edad Inmueble</th>
+                        <th class="header sortable" ng-show="ConfigInmueble.Sucursal">Sucursal</th>
+                        <th class="header sortable" ng-show="ConfigInmueble.Fotos">N° Fotos</th>
+                    </tr>
+                    <tr>
+                        <th class="th-filter frozen-0 indez-100">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.InmuebleConsecutivo" ui-number-mask="0" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.InmuebleDireccion" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter">
+                            <select class="form-control input-xs" ng-options="item.TipoInmuebleID as item.Nombre for item in TiposInmuebles" ng-model="searchInventario.TipoInmuebleID" ng-change="GlobalSearchInventario()"></select>
+                        </th>
+                        <th class="th-filter">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.Habitaciones" ui-number-mask="0" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.Parqueaderos" ui-number-mask="0" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.Banos" ui-number-mask="0" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-if="searchInventario.OrigenPreContactoID == 4">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.ValorCanon" ui-number-mask="0" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-if="searchInventario.OrigenPreContactoID == 4" ng-show="ConfigInmueble.ValorAdministracion">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.ValorAdministracion" ui-number-mask="0" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-if="searchInventario.OrigenPreContactoID == 4" ng-show="ConfigInmueble.ValorTotal">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.ValorTotal" ui-number-mask="0" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-if="searchInventario.OrigenPreContactoID == 5">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.ValorVenta" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.Localidad">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.Localidad" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.Barrio">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.Barrio" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.Zona">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.Zona" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.AreaConstruida">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.AreaConstruida" ui-number-mask="0" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.Estrato">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.Estrato" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.MetroCuadrado">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.MetroCuadrado" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.FincaRaiz">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.FincaRaiz" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.MercadoLibre">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.MercadoLibre" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.LaHaus">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.LaHaus" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.ZonaHabitat">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.ZonaHabitat" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.CienCuadras">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.CienCuadras" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.Idonde">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.Idonde" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.FechaRegistro">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.FechaRegistro" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.Propietario">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.Propietario" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.PropietarioCelular">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.PropietarioCelular" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.PropietarioDireccion">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.PropietarioDireccion" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.PropietarioEmail">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.PropietarioEmail" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.RestriccionesVisita">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.RestriccionesVisita" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.AreaLote">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.AreaLote" ui-number-mask="0" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.Chip">
+                            <input type="text" class="form-control input-xs" ng-model="searchInventario.Chip" required ng-change="GlobalSearchInventario()" />
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.EdadInmueble">
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.Sucursal">
+                        </th>
+                        <th class="th-filter" ng-show="ConfigInmueble.Fotos">
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="item in InmueblesDisponibles" column-hover>
+                        <td data-title-text="Inmueble" class="frozen-0 text-center">
+                            {{ item.InmuebleConsecutivo }}
+                        </td>
+                        <td data-title-text="Dirección inmueble">
+                            {{ item.InmuebleDireccion }}
+                        </td>
+                        <td data-title-text="Tipo Inmueble">
+                            {{ item.TipoInmueble }}
+                        </td>
+                        <td data-title-text="Habitaciones" class="text-right">
+                            {{ item.Habitaciones }}
+                        </td>
+                        <td data-title-text="Parqueaderos" class="text-right">
+                            {{ item.Parqueaderos }}
+                        </td>
+                        <td data-title-text="Baños" class="text-right">
+                            {{ item.Banos }}
+                        </td>
+                        <td ng-if="searchInventario.OrigenPreContactoID == 4" data-title-text="Vr Canon" class="text-right">{{ item.ValorCanon | currency : '' : 2 }}</td>
+                        <td ng-if="searchInventario.OrigenPreContactoID == 4" ng-show="ConfigInmueble.ValorAdministracion" data-title-text="Vr Admin" class="text-right">
+                            <div ng-if="item.AdmonIncluida == false">{{ item.ValorAdministracion | currency : '' : 2 }}</div>
+                            <label ng-if="item.AdmonIncluida == true" class="control-label label-success label-incluida">Incluida</label>
+                        </td>
+                        <td ng-if="searchInventario.OrigenPreContactoID == 4" ng-show="ConfigInmueble.ValorTotal" data-title-text="Vr Total + Vr Admin" class="text-right">{{ item.ValorTotal | currency : '' : 2 }}</td>
+                        <td ng-if="searchInventario.OrigenPreContactoID == 5" data-title-text="Vr Venta" class="text-right">{{ item.ValorVenta | currency : '' : 2 }}</td>
+                        <td ng-show="ConfigInmueble.Localidad" data-title-text="Localidad">{{ item.Localidad }}</td>
+                        <td ng-show="ConfigInmueble.Barrio" data-title-text="Barrio">{{ item.Barrio }}</td>
+                        <td ng-show="ConfigInmueble.Zona" data-title-text="Zona">{{ item.Zona }}</td>
+                        <td ng-show="ConfigInmueble.AreaConstruida" data-title-text="Area Construida" class="text-right">{{ item.AreaConstruida }}</td>
+                        <td ng-show="ConfigInmueble.Estrato" data-title-text="Estrato" class="text-right">{{ item.Estrato }}</td>
+                        <td ng-show="ConfigInmueble.MetroCuadrado" data-title-text="Metro Cuadrado">{{ item.MetroCuadrado }}</td>
+                        <td ng-show="ConfigInmueble.FincaRaiz" data-title-text="Finca Raiz">{{ item.FincaRaiz }}</td>
+                        <td ng-show="ConfigInmueble.MercadoLibre" data-title-text="Mercado Libre">{{ item.MercadoLibre }}</td>
+                        <td ng-show="ConfigInmueble.LaHaus" data-title-text="La Haus">{{ item.LaHaus }}</td>
+                        <td ng-show="ConfigInmueble.ZonaHabitat" data-title-text="Zona Habitat">{{ item.ZonaHabitat }}</td>
+                        <td ng-show="ConfigInmueble.CienCuadras" data-title-text="Cien Cuadras">{{ item.CienCuadras }}</td>
+                        <td ng-show="ConfigInmueble.Idonde" data-title-text="Idonde">{{ item.Idonde }}</td>
+                        <td ng-show="ConfigInmueble.FechaRegistro" data-title-text="Fecha Registro" class="text-right">{{ item.FechaRegistro | date : 'dd/MM/yyyy' }}</td>
+                        <td ng-show="ConfigInmueble.Propietario" data-title-text="Propietario">{{ item.Propietario }}</td>
+                        <td ng-show="ConfigInmueble.PropietarioCelular" data-title-text="Celular">{{ item.PropietarioCelular }}</td>
+                        <td ng-show="ConfigInmueble.PropietarioDireccion" data-title-text="Direccion">{{ item.PropietarioDireccion }}</td>
+                        <td ng-show="ConfigInmueble.PropietarioEmail" data-title-text="Email">{{ item.PropietarioEmail }}</td>
+                        <td ng-show="ConfigInmueble.RestriccionesVisita" data-title-text="Restricciones">{{ item.RestriccionesVisita }}</td>
+                        <td ng-show="ConfigInmueble.AreaLote" data-title-text="Area Lote" class="text-right">{{ item.AreaLote }}</td>
+                        <td ng-show="ConfigInmueble.Chip" data-title-text="Chip">{{ item.Chip }}</td>
+                        <td ng-show="ConfigInmueble.EdadInmueble" data-title-text="Edad Inmueble">{{ item.EdadInmueble }}</td>
+                        <td ng-show="ConfigInmueble.Sucursal" data-title-text="Sucursal">{{ item.Sucursal }}</td>
+                        <td ng-show="ConfigInmueble.Fotos" data-title-text="N° Fotos" class="text-right">{{ item.CountFotos }}</td>
+                    </tr>
+                    <tr ng-if="InmueblesDisponibles.length == 0">
+                        <td colspan="32" class="text-center">
+                            <b>{{ (searchInventario.FullSearch != undefined && searchInventario.FullSearch != '') ? 'No se encontraron resultados de "' + searchInventario.FullSearch + '"' : 'No se han cargado datos sobre la tabla'}}</b>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot class="tfoot-frozen">
+                    <tr class="tr-tfoot">
+                        <td class="frozen-0 indez-100" colspan="2">
+                            <span class="font-total font-14">Total:<div style="margin-left: 10px; font-weight: 100; display: inline;">{{ (InmueblesDisponibles[0].TotalRows == undefined ? 0 : InmueblesDisponibles[0].TotalRows) | currency: '' : '' }}</div></span>
+                        </td>
+                        <td ng-if="searchInventario.OrigenPreContactoID == 4"></td>
+                        <td ng-if="searchInventario.OrigenPreContactoID == 4" ng-show="ConfigInmueble.ValorAdministracion"></td>
+                        <td ng-if="searchInventario.OrigenPreContactoID == 4" ng-show="ConfigInmueble.ValorTotal"></td>
+                        <td ng-if="searchInventario.OrigenPreContactoID == 5"></td>
+                        <td ng-show="ConfigInmueble.Localidad"></td>
+                        <td ng-show="ConfigInmueble.Barrio"></td>
+                        <td ng-show="ConfigInmueble.Zona"></td>
+                        <td ng-show="ConfigInmueble.AreaConstruida"></td>
+                        <td ng-show="ConfigInmueble.Estrato"></td>
+                        <td ng-show="ConfigInmueble.MetroCuadrado"></td>
+                        <td ng-show="ConfigInmueble.FincaRaiz"></td>
+                        <td ng-show="ConfigInmueble.MercadoLibre"></td>
+                        <td ng-show="ConfigInmueble.LaHaus"></td>
+                        <td ng-show="ConfigInmueble.ZonaHabitat"></td>
+                        <td ng-show="ConfigInmueble.CienCuadras"></td>
+                        <td ng-show="ConfigInmueble.Idonde"></td>
+                        <td ng-show="ConfigInmueble.FechaRegistro"></td>
+                        <td ng-show="ConfigInmueble.Propietario"></td>
+                        <td ng-show="ConfigInmueble.PropietarioCelular"></td>
+                        <td ng-show="ConfigInmueble.PropietarioDireccion"></td>
+                        <td ng-show="ConfigInmueble.PropietarioEmail"></td>
+                        <td ng-show="ConfigInmueble.RestriccionesVisita"></td>
+                        <td ng-show="ConfigInmueble.AreaLote"></td>
+                        <td ng-show="ConfigInmueble.Chip"></td>
+                        <td ng-show="ConfigInmueble.EdadInmueble"></td>
+                        <td ng-show="ConfigInmueble.Sucursal"></td>
+                        <td ng-show="ConfigInmueble.Fotos"></td>
+                        <td class="text-right frozen-r-0 indez-100" colspan="4">
+                            <div class="mat-paginator-range-actions" ng-if="InmueblesDisponibles[0].TotalRows != undefined && InmueblesDisponibles[0].TotalRows > searchInventario.Rows">
+                                <div class="mat-paginator-range-label font-15"> {{ ((searchInventario.Page - 1) * searchInventario.Rows) + 1 }} – {{ (searchInventario.Page * searchInventario.Rows) < InmueblesDisponibles[0].TotalRows ? (searchInventario.Page * searchInventario.Rows) : InmueblesDisponibles[0].TotalRows }} de {{ InmueblesDisponibles[0].TotalRows }} </div>
+                                <button mat-icon-button="" type="button" class="mat-focus-indicator mat-tooltip-trigger mat-paginator-navigation-previous mat-icon-button mat-button-base" ng-click="AnteriorInventario()" title="Anterior pagina" data-toggle="tooltip" data-placement="left">
+                                    <span class="mat-button-wrapper">
+                                        <svg viewBox="6 5 12 14" focusable="true" class="mat-paginator-icon">
+                                            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
+                                        </svg>
+                                    </span>
+                                </button>
+                                <button mat-icon-button="" type="button" class="mat-focus-indicator mat-tooltip-trigger mat-paginator-navigation-next mat-icon-button mat-button-base" ng-click="SiguienteInventario('InmueblesDisponibles')" title="Siguiente pagina" data-toggle="tooltip" data-placement="left">
+                                    <span class="mat-button-wrapper">
+                                        <svg viewBox="6 5 12 14" focusable="true" class="mat-paginator-icon">
+                                            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path>
+                                        </svg>
+                                    </span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="opciones-bottom opened" ng-if="searchInventario.OrigenPreContactoID == 4 || searchInventario.OrigenPreContactoID == 5">
+            <a class="opciones-link" ng-click="AbrirPanel($event)"><i class="fal fa-filter mt-2"></i></a>
+            <div class="content-opciones">
+                <div class="content-opciones-header">
+                    <h3>Mas filtros y columnas</h3>
+                    <button class="not-btn btn-closed" ng-click="AbrirPanel($event)" title="Esconder el panel"><i class="fad fa-times" style="font-size: 27px; color: #6c757d !important;"></i></button>
+                </div>
+                <div class="content-opciones-body">
+                    <div class="nav-tabs-custom nav-tabs-wizard" style="padding-top: 0px;">
+                        <ul class="nav nav-pills-icon nav-wizard" style="margin-left: 0px;">
+                            <li><a class="active" data-target="#Filtros_1" data-toggle="tab"><i class="fal fa-layer-plus"></i><span>Filtros</span></a></li>
+                            <li><a data-target="#Columnas_1" data-toggle="tab"><i class="fal fa-layer-minus"></i><span>Columnas</span></a></li>
+                        </ul>
+                        <div class="tab-content pt-3">
+                            <div id="Filtros_1" class="tab-pane fade in active">
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                        <label class="control-label control-label-sm mb-0">Baños</label>
+                                        <div class="form-group mb-3 flex-filtro">
+                                            <input type="text" class="form-control input-xs" placeholder="Min" ng-model="searchInventario.MinBanos" required ui-number-mask="0" />
+                                            <input type="text" class="form-control input-xs" placeholder="Max" ng-model="searchInventario.MaxBanos" required ui-number-mask="0" />
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                        <label class="control-label control-label-sm mb-0">Habitaciones</label>
+                                        <div class="form-group mb-3 flex-filtro">
+                                            <input type="text" class="form-control input-xs" placeholder="Min" ng-model="searchInventario.MinHabitaciones" required ui-number-mask="0" />
+                                            <input type="text" class="form-control input-xs" placeholder="Max" ng-model="searchInventario.MaxHabitaciones" required ui-number-mask="0" />
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                        <label class="control-label control-label-sm mb-0">Parqueaderos</label>
+                                        <div class="form-group mb-3 flex-filtro">
+                                            <input type="text" class="form-control input-xs" placeholder="Min" ng-model="searchInventario.MinParqueaderos" required ui-number-mask="0" />
+                                            <input type="text" class="form-control input-xs" placeholder="Max" ng-model="searchInventario.MaxParqueaderos" required ui-number-mask="0" />
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="searchInventario.OrigenPreContactoID == 4">
+                                        <label class="control-label control-label-sm mb-0">Vr Canon</label>
+                                        <div class="form-group mb-3 flex-filtro">
+                                            <input type="text" class="form-control input-xs" placeholder="Min" ng-model="searchInventario.MinValorCanon" required ui-number-mask="0" />
+                                            <input type="text" class="form-control input-xs" placeholder="Max" ng-model="searchInventario.MaxValorCanon" required ui-number-mask="0" />
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="searchInventario.OrigenPreContactoID == 4">
+                                        <label class="control-label control-label-sm mb-0">Vr Admin</label>
+                                        <div class="form-group mb-3 flex-filtro">
+                                            <input type="text" class="form-control input-xs" placeholder="Min" ng-model="searchInventario.MinValorAdministracion" required ui-number-mask="0" />
+                                            <input type="text" class="form-control input-xs" placeholder="Max" ng-model="searchInventario.MaxValorAdministracion" required ui-number-mask="0" />
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="searchInventario.OrigenPreContactoID == 4">
+                                        <label class="control-label control-label-sm mb-0">Vr Total</label>
+                                        <div class="form-group mb-3 flex-filtro">
+                                            <input type="text" class="form-control input-xs" placeholder="Min" ng-model="searchInventario.MinValorTotal" required ui-number-mask="0" />
+                                            <input type="text" class="form-control input-xs" placeholder="Max" ng-model="searchInventario.MaxValorTotal" required ui-number-mask="0" />
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="searchInventario.OrigenPreContactoID == 5">
+                                        <label class="control-label control-label-sm mb-0">Vr Venta</label>
+                                        <div class="form-group mb-3 flex-filtro">
+                                            <input type="text" class="form-control input-xs" placeholder="Min" ng-model="searchInventario.MinValorVenta" required ui-number-mask="0" />
+                                            <input type="text" class="form-control input-xs" placeholder="Max" ng-model="searchInventario.MaxValorVenta" required ui-number-mask="0" />
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                        <label class="control-label control-label-sm mb-0">Area Privada</label>
+                                        <div class="form-group mb-3 flex-filtro">
+                                            <input type="text" class="form-control input-xs" placeholder="Min" ng-model="searchInventario.MinAreaLote" required ui-number-mask="0" />
+                                            <input type="text" class="form-control input-xs" placeholder="Max" ng-model="searchInventario.MaxAreaLote" required ui-number-mask="0" />
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                        <label class="control-label control-label-sm mb-0">Area Construida</label>
+                                        <div class="form-group flex-filtro">
+                                            <input type="text" class="form-control input-xs" placeholder="Min" ng-model="searchInventario.MinAreaConstruida" required ui-number-mask="0" />
+                                            <input type="text" class="form-control input-xs" placeholder="Max" ng-model="searchInventario.MaxAreaConstruida" required ui-number-mask="0" />
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                        <button class="btn btn-success btn-sm w100p" ng-click="ConsultarInventario()">Consultar <i class="fal fa-search ml-2"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="Columnas_1" class="tab-pane fade in">
+                                <div class="row">
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_ValorAdministracion_inventario" ng-model="ConfigInmueble.ValorAdministracion" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_ValorAdministracion_inventario" style="font-weight: 500;">Vr Admin</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_ValorTotal_inventario" ng-model="ConfigInmueble.ValorTotal" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_ValorTotal_inventario" style="font-weight: 500;">Valor Total</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_Localidad_inventario" ng-model="ConfigInmueble.Localidad" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_Localidad_inventario" style="font-weight: 500;">Localidad</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_Barrio_inventario" ng-model="ConfigInmueble.Barrio" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_Barrio_inventario" style="font-weight: 500;">Barrio</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_Zona_inventario" ng-model="ConfigInmueble.Zona" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_Zona_inventario" style="font-weight: 500;">Zona</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_AreaConstruida_inventario" ng-model="ConfigInmueble.AreaConstruida" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_AreaConstruida_inventario" style="font-weight: 500;">Area Construida</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_Estrato_inventario" ng-model="ConfigInmueble.Estrato" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_Estrato_inventario" style="font-weight: 500;">Estrato</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_Ruta_inventario" ng-model="ConfigInmueble.MetroCuadrado" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_Ruta_inventario" style="font-weight: 500;">Metro Cuadrado</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_FincaRaiz_inventario" ng-model="ConfigInmueble.FincaRaiz" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_FincaRaiz_inventario" style="font-weight: 500;">Finca Raiz</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_MercadoLibre_inventario" ng-model="ConfigInmueble.MercadoLibre" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_MercadoLibre_inventario" style="font-weight: 500;">Mercado Libre</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_LaHaus_inventario" ng-model="ConfigInmueble.LaHaus" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_LaHaus_inventario" style="font-weight: 500;">La Haus</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_ZonaHabitat_inventario" ng-model="ConfigInmueble.ZonaHabitat" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_ZonaHabitat_inventario" style="font-weight: 500;">Zona Habitat</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_CienCuadras_inventario" ng-model="ConfigInmueble.CienCuadras" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_CienCuadras_inventario" style="font-weight: 500;">Cien Cuadras</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_Idonde_inventario" ng-model="ConfigInmueble.Idonde" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_Idonde_inventario" style="font-weight: 500;">Idonde</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_FechaRegistro_inventario" ng-model="ConfigInmueble.FechaRegistro" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_FechaRegistro_inventario" style="font-weight: 500;">Fecha Registro</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_Propietario_inventario" ng-model="ConfigInmueble.Propietario" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_Propietario_inventario" style="font-weight: 500;">Propietario</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_PropietarioCelular_inventario" ng-model="ConfigInmueble.PropietarioCelular" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_PropietarioCelular_inventario" style="font-weight: 500;">Celular</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_PropietarioDireccion_inventario" ng-model="ConfigInmueble.PropietarioDireccion" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_PropietarioDireccion_inventario" style="font-weight: 500;">Dirección</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_PropietarioEmail_inventario" ng-model="ConfigInmueble.PropietarioEmail" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_PropietarioEmail_inventario" style="font-weight: 500;">Email</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_RestriccionesVisita_inventario" ng-model="ConfigInmueble.RestriccionesVisita" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_RestriccionesVisita_inventario" style="font-weight: 500;">Restricciones</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_AreaLote_inventario" ng-model="ConfigInmueble.AreaLote" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_AreaLote_inventario" style="font-weight: 500;">Area Lote</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_Chip_inventario" ng-model="ConfigInmueble.Chip" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_Chip_inventario" style="font-weight: 500;">Chip</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_EdadInmueble_inventario" ng-model="ConfigInmueble.EdadInmueble" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_EdadInmueble_inventario" style="font-weight: 500;">Edad Inmueble</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_Sucursal_inventario" ng-model="ConfigInmueble.Sucursal" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_Sucursal_inventario" style="font-weight: 500;">Sucursal</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-check form-check-left">
+                                            <input type="checkbox" class="form-check-input" id="checked_Fotos_inventario" ng-model="ConfigInmueble.Fotos" ng-click="GuardarConfiguracion('LocalConfigInmuebles', 'ConfigInmueble')">
+                                            <label class="form-check-label control-label control-label-sm" for="checked_Fotos_inventario" style="font-weight: 500; padding-left: 25px;">N° Fotos</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>    
+    </detail-modal>
+</div>

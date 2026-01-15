@@ -1,0 +1,131 @@
+﻿<div class="table-responsive autoHeigth" ModeFicha="true">
+    <div class="pn-group" md-display="showMovil">
+        <div></div>
+        <div class="has-feedback pull-right">
+            <input type="text" class="form-control input-sm" ng-model="Search.FullSearch" ng-change="GlobalSearch()" placeholder="Buscar" required />
+            <span class="glyphicon glyphicon-search form-control-feedback"></span>
+        </div>
+    </div>
+    <table id="tablePreContactos" class="table table-sm ng-table table-nowrap mb-0">
+        <thead class="thead-frozen">
+            <tr class="ng-table-sort-header">
+                <th class="header sortable width-60 frozen-0 indez-100">Opciones</th>
+                <th class="header sortable frozen-60 indez-100">
+                    <span class="sort-indicator" ng-click="GlobalOrder('NombreCompleto', $event)">Contacto</span>
+                </th>
+                <th class="header sortable">
+                    <span class="sort-indicator" ng-click="GlobalOrder('Celular', $event)">Celular</span>
+                </th>
+                <th class="header sortable">
+                    <span class="sort-indicator" ng-click="GlobalOrder('Email', $event)">Email</span>
+                </th>
+                <th class="header sortable" ng-if="LabelColumna1">{{ LabelColumna1 }}</th>
+                <th class="header sortable" ng-if="LabelColumna2">{{ LabelColumna2 }}</th>
+                <th class="header sortable" ng-if="LabelColumna3">{{ LabelColumna3 }}</th>
+                <th class="header sortable">
+                    <span class="sort-indicator" ng-click="GlobalOrder('Fecha', $event)">Fecha</span>
+                </th>
+                <th class="header sortable">Oferta</th>
+                <th class="header sortable">Inmuebles</th>
+                <th class="header sortable" ng-if="Search.AsesorID == null">
+                    <span class="sort-indicator" ng-click="GlobalOrder('AsesorNombreCompleto', $event)">Asesor</span>
+                </th>
+                <th class="header sortable">Contrato</th>
+                <th class="header sortable frozen-r-0 indez-100 width-90">Estado</th>
+            </tr>
+            <tr ng-show="IsFiltros">
+                <th class="th-filter frozen-0 width-60 indez-100">
+                    <select class="form-control input-xs" style="padding: 1px 0" ng-model="Search.EstadoGeneral" ng-options="item.ID as item.Nombre for item in EstadosGenerales" ng-change="GlobalSearch()"></select>
+                </th>
+                <th class="th-filter frozen-60 indez-100">
+                    <input type="text" class="form-control input-xs" ng-model="Search.NombreCompleto" required ng-change="GlobalSearch()" />
+                </th>
+                <th class="th-filter">
+                    <input type="text" class="form-control input-xs" ng-model="Search.Celular" required ng-change="GlobalSearch()" />
+                </th>
+                <th class="th-filter">
+                    <input type="text" class="form-control input-xs" ng-model="Search.Email" required ng-change="GlobalSearch()" />
+                </th>
+                <th class="th-filter" id="thLabelColumna1" ng-show="LabelColumna1">
+                </th>
+                <th class="th-filter" id="thLabelColumna2" ng-show="LabelColumna2">
+                </th>
+                <th class="th-filter" id="thLabelColumna3" ng-show="LabelColumna3">
+                </th>
+                <th class="th-filter">
+                    <select class="form-control input-xs" ng-model="Search.Color" style="padding: 1px;" ng-change="Consultar();LineaTiempoConsultar()">
+                        <option value="{{item.ID}}" ng-repeat="item in Colores" ng-style="{ 'background-color' : item.ID }">{{ item.Nombre }}</option>
+                    </select>
+                </th>
+                <th class="th-filter">
+                </th>
+                <th class="th-filter">
+                    <input type="text" class="form-control input-xs" ng-model="Search.Inmuebles" required ng-change="GlobalSearch()" />
+                </th>
+                <th class="th-filter" ng-if="Search.AsesorID == null">
+                </th>
+                <th class="th-filter">
+                </th>
+                <th class="th-filter frozen-r-0 indez-100">
+                    <div custom-select="item.EstadoProcesoID as item.Nombre for item in searchEstadosProcesosFilter($searchTerm)" class="custom-select-xs" ng-model="Search.EstadoProcesoID" ng-display="Search.EstadoProcesoNombre" ng-change="Consultar();LineaTiempoConsultar()" custom-select-options="ddlSearchEstadosProcesosFilter"></div>                    
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="item in PreContactos" context-menu="Menu" context-tr-active ng-style="{ 'background-color' : item.Color }">
+                <td data-title-text="Opciones" class="text-center frozen-0 width-60" ng-style="{ 'background-color' : item.Color }">
+                    <button class="not-btn" ng-click="VisualizarActividadesSeguimientos(item)"><i title="Seguimientos" style="top: 3px; position: relative;" class="fal fa-comment-alt font-18 blue"></i><span ng-if="item.CountSeguimientos > 0" class="comment-number" title="Total seguimientos {{ item.CountSeguimientos }}">{{ item.CountSeguimientos < 10 ? item.CountSeguimientos : '+' }}</span></button>
+                    <button class="not-btn" ng-click="VisualizarActividadesSeguimientos(item)"><i title="Actividades" ng-class="item.EstadoGeneral == 'V' ? 'fal green' : (item.EstadoGeneral == 'A' ? 'fad yellow' : 'fad red')" class="fa-calendar font-18"></i><span class="number-calendar" ng-class="item.EstadoGeneral == 'V' ? '' : (item.EstadoGeneral == 'A' ? '' : 'font-white')" ng-if="item.CountActividades > 0" title="Total actividades {{ item.CountActividades }}">{{ item.CountActividades < 10 ? item.CountActividades : '+' }}</span></button>
+                </td>
+                <td data-title-text="Contacto" class="frozen-60" ng-style="{ 'background-color' : item.Color }"><a href="#" ng-click="AbrirCentroGestion(item)">{{ item.NombreCompleto }}</a></td>
+                <td data-title-text="Celular">
+                    <a href="#" title="Enviar mensaje a través de WhatsApp Web" ng-if="item.Celular != null" ng-click="AbrirWhatsAppWeb(item)">{{ item.Celular | tel }}</a>
+                </td>
+                <td data-title-text="Email" ng-click="AbrirEmail(item.Email)">
+                    <div>
+                        <a href="#" title="Enviar email" style="cursor: pointer; display: block;" ng-repeat="elem in item.Email.split(';')">{{ elem }}</a>
+                    </div>
+                </td>
+                <td data-title-text="{{ LabelColumna1 }}" ng-if="LabelColumna1">{{ item.ValorCampo1 }}</td>
+                <td data-title-text="{{ LabelColumna2 }}" ng-if="LabelColumna2">{{ item.ValorCampo2 }}</td>
+                <td data-title-text="{{ LabelColumna3 }}" ng-if="LabelColumna3">{{ item.ValorCampo3 }}</td>
+                <td data-title-text="Fecha">{{ item.Fecha | date : 'dd/MM/yyyy hh:mm a' }}</td>
+                <td data-title-text="Oferta">{{ item.TipoOfertaNombre }}</td>
+                <td data-title-text="Inmueble" ng-init="InitParseJson(item, 'Inmueble')">
+                    <div>
+                        <div style="white-space: nowrap; display: block;" ng-repeat="elem in item.Inmueble">
+                            <strong>N°.{{ elem.Consecutivo }}</strong>,&nbsp;{{ elem.TipoInmuebleNombre }} en <strong>{{ elem.TipoOfertaNombre }}</strong>
+                        </div>
+                    </div>
+                </td>
+                <td data-title-text="Asesor" ng-if="Search.AsesorID == null">{{ item.AsesorNombreCompleto }}</td>
+                <td data-title-text="Contrato" class="text-center">
+                    <label class="control-label control-label-sm label-tipo1 mb-0" ng-if="item.EstadoMandato != null" ng-class="item.EstadoMandato == 1 ? 'label-danger' : (item.EstadoMandato == 2 ? 'label-warning' : 'label-success')">
+                        {{ item.EstadoMandato == 1 ? 'Requiere mandato' : (item.EstadoMandato == 2 ? 'Pendiente de firma mandato' : 'Aprobado mandato') }}
+                    </label>
+                    <label class="control-label control-label-sm label-tipo1 mb-0" ng-if="item.EstadoCorretaje != null" ng-class="item.EstadoCorretaje == 1 ? 'label-primary' : (item.EstadoCorretaje == 2 ? 'label-warning' : 'label-success')">
+                        {{ item.EstadoCorretaje == 1 ? 'Requiere corretaje' : (item.EstadoCorretaje == 2 ? 'Pendiente de firma corretaje' : 'Aprobado corretaje') }}
+                    </label>
+                </td>
+                <td data-title-text="Estado" class="frozen-r-0" ng-style="{ 'background-color' : item.Color }">
+                    <div class="td-estado alert" ng-class="item.EstadoProcesoID == 10 ? 'alert-success' : item.EstadoProcesoID == 7 ? 'alert-danger' : item.EstadoProcesoID == 4 ? 'alert-warning' : 'alert-info'" role="alert">
+                        {{ item.EstadoProcesoNombre }}
+                    </div>
+                </td>
+            </tr>
+            <tr ng-if="PreContactos.length == 0">
+                <td colspan="19" class="text-center">
+                    <b>{{ (Search.FullSearch != undefined && Search.FullSearch != '') ? 'No se encontraron resultados de "' + Search.FullSearch + '"' : 'No se han cargado datos sobre la tabla'}}</b>
+                </td>
+            </tr>
+        </tbody>
+        <tfoot class="tfoot-frozen">
+            <tr class="tr-tfoot">
+                <td class="frozen-0 indez-100" colspan="2" data-title-text="Total registros">
+                    <span class="font-total" mf-diplay="false">Total: </span><span class="ml-3 font-12">{{ (PreContactos[0].TotalRows == undefined ? 0 : PreContactos[0].TotalRows) | currency: '' : '' }}</span>
+                </td>
+                <td colspan="19" mf-diplay="false" data-title-text=""></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>

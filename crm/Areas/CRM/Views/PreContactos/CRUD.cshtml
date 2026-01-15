@@ -1,0 +1,280 @@
+﻿
+@{
+    ViewBag.Title = "Gestión de precontactos";
+}
+
+<link href="@Url.VersionedContent("~/css/frameworks/erp/StyleModal.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/css/frameworks/dateTimePiker/bootstrap-datetimepicker.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/css/frameworks/AngularCustomSelectTree/AngularCustomSelectTree.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/css/frameworks/AngularCustomSelect/AngularCustomSelect.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/css/frameworks/ng-table/ng-table.min.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/js/frameworks/hotkeys/hotkeys.min.css")" rel="stylesheet" />
+
+<script src="@Url.VersionedContent("~/js/frameworks/dateTimePiker/moment-with-locales.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/inputMasks/angular-input-masks.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/angular/angular-locale_es-co.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/dateTimePiker/bootstrap-datetimepicker.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/dateTimePiker/bootstrap-datetimepicker.angular.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/daterangepicker/daterangepicker.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/daterangepicker/daterangepicker.angular.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/AngularCustomSelect/customSelect.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/AngularCustomSelectTree/customSelectTree.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/hotkeys/hotkeys.min.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/ng-table/ng-table.min.js")"></script>
+<script src="@Url.VersionedContent("~/js/Areas/CRM/PreContactos/ControllerPreContactos.js")"></script>
+
+<div ng-init="Init()" ng-controller="ControllerPreContactos">
+    <section class="content">
+        <div class="row">
+            <div class="col-xs-12 col-sm-8 col-md-8 col-lg-12">
+                <div class="box">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Gestion de leads</h3>
+                    </div>
+                    <div class="box-body">
+                        <div class="table-responsive">
+                            <div class="btn-group">
+                                <button ng-click="AbrirModalAgregar()" class="btn btn-primary">Nuevo&nbsp;<i class="glyphicon glyphicon-plus"></i></button>
+                                <button ng-show="isEdicion" ng-click="AbrirModalEditar()" class="btn btn-primary">Editar&nbsp;<i class="glyphicon glyphicon-edit"></i></button>
+                                <button ng-show="isEdicion" ng-click="Eliminar()" class="btn btn-danger">Eliminar&nbsp;<i class="glyphicon glyphicon-trash"></i></button>
+                                <button ng-click="AbrirModalFiltrar()" class="btn btn-primary">Filtrar&nbsp;<i class="glyphicon glyphicon-filter"></i></button>
+                                <button ng-show="search.Filtrado" ng-click="QuitarFiltros()" class="btn btn-danger">Filtrar&nbsp;<i class="glyphicon glyphicon-filter"></i><i class="fa fa-times"></i></button>
+                            </div>
+                            <table ng-table="tablePreContactos" id="table" class="table table-sm table-striped">
+                                <tr ng-repeat="item in $data" ng-click="seleccionarFila(item);" ng-style="{ cursor: 'pointer', 'background-color': (item.PreContactoID == PreContacto.PreContactoID ? '#daedf1' : '') }">
+                                    <td title="'Nombres'" sortable="'Nombres'" style="text-transform: uppercase;">{{ item.Nombres }} {{ item.Apellidos }} </td>
+                                    <td title="'Documento'" sortable="'Documento'">{{ item.Documento }}</td>
+                                    <td title="'Teléfono'" sortable="'Telefono'">{{ item.Telefono }}</td>
+                                    <td title="'Celular'" sortable="'Celular'">{{ item.Celular }}</td>
+                                    <td title="'Email'" sortable="'Email'">{{ item.Email }}</td>
+                                    <td title="'Direccion'" sortable="'Direccion'">{{ item.Direccion }}</td>
+                                    <td title="'Asesor'" sortable="'Asesor'">{{ item.AsesorNombres }} {{ item.AsesorApellidos }}</td>
+                                    <td title="'Fecha registro.'" sortable="'Fecha'">{{ item.Fecha | date : 'dd/MM/yyyy' }}</td>
+                                    <td title="'Viable'">
+                                        <center>
+                                            <i class="fal fa-check" aria-hidden="true" ng-if="item.Viable"></i>
+                                            <i class="fa fa-times" aria-hidden="true" ng-if="item.Viable == false"></i>
+                                        </center>
+                                    </td>
+                                </tr>
+                                <tr ng-show="$data.length == 0">
+                                    <td colspan="9" class="text-center">
+                                        <b>{{ (SearchTerm != undefined && SearchTerm != '') ? 'No se encontraron resultados de "'+ SearchTerm +'"' : 'No se han cargado datos sobre la tabla'}}</b>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div id="modalAgregar" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form>
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><i class="fal fa-times"></i></button>
+                        <h4 class="modal-title"><i class="{{icon}}"></i>&nbsp;&nbsp;{{tipo}}</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                <div class="form-group has-feedback">
+                                    <label class="control-label control-label-sm">Asesor</label><strong style="color: red">*</strong>
+                                    <div class="custom-select-tree-sm" custom-select-tree="item.AsesorID as item.AsesorNombreCompleto for item in searchAsesores($searchTerm)" ng-model="PreContacto.AsesorID" custom-select-options="ddlSearchAsesores"></div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
+                                <div class="form-group has-feedback">
+                                    <label class="control-label control-label-sm">Nombres</label>
+                                    <input class="form-control input-sm" type="text" placeholder="Nombres" maxlength="250" ng-model="PreContacto.Nombres" />
+                                    <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
+                                <div class="form-group has-feedback">
+                                    <label class="control-label control-label-sm">Apellidos</label>
+                                    <input class="form-control input-sm" type="text" placeholder="Apellidos" maxlength="250" ng-model="PreContacto.Apellidos" />
+                                    <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
+                                <div class="form-group has-feedback">
+                                    <label class="control-label control-label-sm">Documento</label>
+                                    <input class="form-control input-sm" type="text" placeholder="Documento" maxlength="250" ng-model="PreContacto.Documento" />
+                                    <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
+                                <div class="form-group has-feedback">
+                                    <label class="control-label control-label-sm">Teléfono</label>
+                                    <input class="form-control input-sm" type="text" placeholder="Telefono" maxlength="250" ng-model="PreContacto.Telefono" />
+                                    <span class="glyphicon glyphicon-earphone form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
+                                <div class="form-group has-feedback">
+                                    <label class="control-label control-label-sm">Celular</label>
+                                    <input class="form-control input-sm" type="text" placeholder="Ceular" maxlength="250" ng-model="PreContacto.Celular" />
+                                    <span class="glyphicon glyphicon-phone form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
+                                <div class="form-group has-feedback">
+                                    <label class="control-label control-label-sm">E-mail</label>
+                                    <input class="form-control input-sm" type="text" placeholder="Email" maxlength="250" ng-model="PreContacto.Email" />
+                                    <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
+                                <div class="form-group has-feedback">
+                                    <label class="control-label control-label-sm">Dirección</label>
+                                    <input class="form-control input-sm" type="text" placeholder="Dirección" maxlength="250" ng-model="PreContacto.Direccion" />
+                                    <span class="glyphicon glyphicon-home form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
+                                <div class="form-group has-feedback">
+                                    <label class="control-label control-label-sm">Fecha</label>
+                                    <input id="Fecha" class="form-control input-sm" type="text" placeholder="Fecha" maxlength="250" ng-model="PreContacto.Fecha" />
+                                    <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-xs-12 col-sm-12 col-md-4 col-lg-6">
+                                <div class="form-group has-feedback">
+                                    <label class="control-label control-label-sm">Como nos conocio</label><strong style="color: red">*</strong>
+                                    <select class="form-control input-sm" ng-model="PreContacto.FormaComoNosConocioID" ng-options="item.FormaComoNosConocioID as item.Descripcion for item in formasComoNosConocio" ng-change="cambiarFormaComoNosConocioCRM(false);"></select>
+                                </div>
+                            </div>
+
+                            <div class="col-xs-12 col-sm-12 col-md-4 col-lg-6">
+                                <div class="form-group has-feedback">
+                                    <label class="control-label control-label-sm">Detalle como nos conocio</label>
+                                    <select class="form-control input-sm" ng-model="PreContacto.FormaComoNosConocioDetalleID" ng-options="item.FormaComoNosConocioDetalleID as item.Nombre for item in formasComoNosConocioDetalles"></select>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-4 col-lg-6">
+                                <div class="form-group has-feedback">
+                                    <label class="control-label control-label-sm">Como nos contactó</label><strong style="color: red">*</strong>
+                                    <select class="form-control input-sm" ng-model="PreContacto.FormaContactoID" ng-options="item.FormaContactoID as item.Nombre for item in formasFormasContactos"></select>
+                                </div>
+                            </div>
+
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
+                                <label class="control-label control-label-sm">Viable</label>
+                                <div class="form-group has-feedback">
+                                    <input type="checkbox" ng-model="PreContacto.Viable" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>                        
+                    <div class="modal-footer">
+                        <div ng-show="!button">
+                            <button class="btn btn-success pull-right" ng-click="Actualizar()"><i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Actualizar</button>
+                        </div>
+                        <div ng-show="button">
+                            <button class="btn btn-success pull-right" ng-click="Insertar()"><i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Guardar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div id="modalFiltrar" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><i class="fal fa-times"></i></button>
+                    <h4 class="modal-title"><i class="glyphicon glyphicon-filter"></i>&nbsp;&nbsp;Filtrar Resultados</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="nav-tabs-custom">
+                        <ul class="nav nav-tabs">
+                            <li><a class="active" data-target="#filtros" data-toggle="tab" style="cursor: pointer; color: black; font-weight: bold">Filtros</a></li>
+                            <li><a data-target="#paginado" data-toggle="tab" style="cursor: pointer; color: black; font-weight: bold">Paginado</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div id="filtros" class="tab-pane active">
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                        <div class="form-group has-feedback">
+                                            <label class="control-label control-label-sm">Asesor</label>
+                                            <div class="custom-select-tree-sm" custom-select-tree="item.AsesorID as item.AsesorNombreCompleto for item in searchAsesores($searchTerm)" ng-model="search.AsesorID" custom-select-options="ddlSearchAsesores"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
+                                        <div class="form-group has-feedback">
+                                            <label class="control-label control-label-sm">Nombres</label>
+                                            <input class="form-control input-sm" type="text" placeholder="Buscar por nombres" maxlength="250" ng-model="search.Nombres" />
+                                            <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
+                                        <div class="form-group has-feedback">
+                                            <label class="control-label control-label-sm">Apellidos</label>
+                                            <input class="form-control input-sm" type="text" placeholder="Buscar por apellidos" maxlength="250" ng-model="search.Apellidos" />
+                                            <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
+                                        <div class="form-group has-feedback">
+                                            <label class="control-label control-label-sm">Documento</label>
+                                            <input class="form-control input-sm" type="text" placeholder="Buscar por  documento" maxlength="250" ng-model="search.Documento" />
+                                            <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
+                                        <div class="form-group has-feedback">
+                                            <label class="control-label control-label-sm">Teléfono</label>
+                                            <input class="form-control input-sm" type="text" placeholder="Buscar por telefono" maxlength="250" ng-model="search.Telefono" />
+                                            <span class="glyphicon glyphicon-earphone form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
+                                        <div class="form-group has-feedback">
+                                            <label class="control-label control-label-sm">Celular</label>
+                                            <input class="form-control input-sm" type="text" placeholder="Buscar por  ceular" maxlength="250" ng-model="search.Celular" />
+                                            <span class="glyphicon glyphicon-phone form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
+                                        <div class="form-group has-feedback">
+                                            <label class="control-label control-label-sm">E-mail</label>
+                                            <input class="form-control input-sm" type="text" placeholder="Buscar por  email" maxlength="250" ng-model="search.Email" />
+                                            <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="paginado" class="tab-pane">
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-group">
+                                            <select class="form-control input-sm" ng-model="search.Rows">
+                                                <option value="10">10 Registros</option>
+                                                <option value="100">100 Registros</option>
+                                                <option value="500">500 Registros</option>
+                                                <option value="0">Todos</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="btn-group">
+                        <a class="btn btn-danger" style="float: right;" ng-click="CerrarModalFiltrar()"><i class="glyphicon glyphicon-remove"></i>&nbsp;&nbsp;Cancelar</a>
+                    </div>
+                    <div class="btn-group">
+                        <a class="btn btn-success" style="float: right;" ng-click="Consultar();CerrarModalFiltrar();"><i class="glyphicon glyphicon-ok"></i>&nbsp;&nbsp;Aplicar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

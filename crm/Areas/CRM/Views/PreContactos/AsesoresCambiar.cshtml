@@ -1,0 +1,140 @@
+﻿
+@{
+    ViewBag.Title = "Cambio asesores inmuebles";
+}
+
+<link href="@Url.VersionedContent("~/css/frameworks/erp/StyleModal.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/css/frameworks/ng-table/ng-table.min.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/css/frameworks/AngularCustomSelect/AngularCustomSelect.css")" rel="stylesheet" />
+
+<script src="@Url.VersionedContent("~/js/frameworks/FileViewer/file.viewer.angular.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/AngularCustomSelect/customSelect.js")"></script>
+<script src="@Url.VersionedContent("~/js/Areas/CRM/PreContactos/ControllerAsesoresCambiar.js")"></script>
+
+<style type="text/css">
+    table.table-cc-fc > thead > tr > th {
+        padding: 2px 7px;
+    }
+
+    table.table-cc-fc {
+        border-left: 2px solid #ddd;
+    }
+
+    .sedi-danger {
+        margin-bottom: 0;
+        font-weight: 100;
+        color: white;
+        padding: 1px 5px;
+        border-radius: 4px;
+    }
+    .checkbox-sedi-20 {
+        position: relative;
+        top: 3px;
+    }
+    th.tr-padding,
+    td.tr-padding {
+        padding: 0px 5px !important;
+    }
+</style>
+
+<div ng-init="Init();" ng-controller="ControllerAsesoresCambiar">
+    <section class="content">
+        <div class="box mb-0">
+            <div class="box-header with-border">
+                <h3 class="box-title box-title-sm">
+                    <button class="not-btn"><i class="fal fa-exchange-alt font-23 blue"></i></button>
+                    Cambio de asesor en procesos comerciales
+                </h3>
+            </div>
+            <div class="box-body pt-5">
+                <div class="flex flex-wrap-start flex-center gap-8 mb-5">
+                    <div style="flex: 1 133px">
+                        <label class="control-label control-label-sm mb-0">Estado</label>
+                        <div class="form-group mb-0">
+                            <select class="form-control input-sm" style="padding: 5px" ng-options="item.EstadoProcesoID as item.Nombre for item in EstadosProcesos" ng-model="Search.EstadoProcesoID"></select>
+                        </div>
+                    </div>
+                    <div style="flex: 1 133px">
+                        <label class="control-label control-label-sm mb-0">Tipos contactos</label>
+                        <div class="form-group mb-0">
+                            <select class="form-control input-sm" style="padding: 5px" ng-model="Search.OrigenPreContactoID" ng-options="item.OrigenPreContactoID as item.Nombre for item in OrigenesPreContactos" required></select>
+                        </div>
+                    </div>
+                    <div style="flex: 1 350px">
+                        <label class="control-label control-label-sm mb-0">Asesor actual</label>
+                        <div class="form-group flex flex-between mb-0">
+                            <select class="form-control input-sm" style="width: 74px; padding: 2px 5px;" ng-model="Search.AsesoresActivos" ng-options="item.ID as item.Nombre for item in Estados" required></select>
+                            <div custom-select="item.AsesorID as item.NombreCompleto for item in searchAsesoresOrigen($searchTerm)" class="custom-select-sm" ng-model="Search.OrigenAsesorID" custom-select-options="ddlSearchUsuarios"></div>
+                            <button class="btn-sm btn btn-success" ng-click="BuscarProcesosComerciales()">Consultar</button>
+                        </div>
+                    </div>
+                    <div style="flex: 1 240px">
+                        <label class="control-label control-label-sm mb-0">Nuevo asesor</label><strong class="red">*</strong>
+                        <div class="form-group mb-0">
+                            <div custom-select="item.AsesorID as item.NombreCompleto for item in searchAsesores($searchTerm)" class="custom-select-sm" ng-model="Search.DestinoAsesorID"></div>
+                        </div>
+                    </div>
+                    <div style="flex: 1 190px">
+                        <label class="control-label control-label-sm mb-0">Buscar</label>
+                        <div class="form-group has-feedback mb-0">
+                            <input type="text" class="form-control input-sm" ng-model="Search.FullSearch" ng-change="GlobalSearch()" placeholder="Contacto, Email, Celular o Cliente" maxlength="100" required />
+                            <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive" style="max-height: calc(100vh - 250px)">
+                    <table class="table table-sm ng-table mb-0">
+                        <thead class="thead-frozen">
+                            <tr class="ng-table-sort-header">
+                                <th class="header sortable">Fecha</th>
+                                <th class="header sortable">Contacto</th>
+                                <th class="header sortable">Cliente</th>
+                                <th class="header sortable">Celular</th>
+                                <th class="header sortable">Email</th>
+                                <th class="header sortable">Tipo contacto</th>
+                                <th class="header sortable">Asesor actual</th>
+                                <th class="header sortable">Estado</th>
+                                <th class="header sortable text-center width-30 tr-padding">
+                                    <input type="checkbox" class="checkbox-sedi-20" ng-if="Procesos.length > 0" ng-model="Search.SeleccionarTodos" ng-change="ChangeSeleccionar()" />
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in Procesos">
+                                <td data-title-text="Fecha">{{ item.Fecha | date : 'dd/MM/yyyy hh:mm a' }}</td>
+                                <td data-title-text="Contacto">{{ item.NombreCompleto }}</td>
+                                <td data-title-text="Cliente">{{ item.ClienteNombreCompleto }}</td>
+                                <td data-title-text="Celular">{{ item.Celular }}</td>
+                                <td data-title-text="Email">{{ item.Email }}</td>
+                                <td data-title-text="Tipo contacto">{{ item.OrigenPrecontactoNombre }}</td>
+                                <td data-title-text="Asesor actual">{{ item.AsesorNombreCompleto == null ? 'Sin asesor' : item.AsesorNombreCompleto }}</td>
+                                <td data-title-text="Estado" class="text-center">
+                                    <label class="control-label control-label-sm mb-0 sedi-danger text-nowrap" ng-class="item.EstadoProcesoID == 10 ? 'label-success' : (item.EstadoProcesoID == 7 ? 'label-danger' : (item.EstadoProcesoID == 1 ? 'label-primary' : 'label-warning'))">{{ item.EstadoProcesoNombre }}</label>
+                                </td>
+                                <td data-title-text="Todos" class="text-center width-30 tr-padding">
+                                    <input type="checkbox" class="checkbox-sedi-20" ng-model="item.Seleccionar" />
+                                </td>
+                            </tr>
+                            <tr ng-if="Procesos.length == 0">
+                                <td colspan="9" class="text-center">
+                                    <b>No se han encontrado procesos comerciales</b>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="tfoot-frozen">
+                            <tr class="tr-tfoot">
+                                <td colspan="9">
+                                    <strong class="font-total">Total: </strong><div style="margin-left: 5px; font-weight: 100; display: inline;">{{ Procesos.length | currency: '' : '' }}</div>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            <div class="box-footer" ng-if="Procesos.length > 0">
+                <button class="btn btn-sm btn-success pull-right" ng-disabled="(Procesos | filter : { 'Seleccionar': 'true' }).length == 0" ng-click="GuardarCambios()"><i class="glyphicon glyphicon-ok"></i>&nbsp;&nbsp;Guardar cambios</button>
+            </div>
+        </div>
+    </section>
+    <file-viewer ng-viewer="viewer"></file-viewer>
+</div>

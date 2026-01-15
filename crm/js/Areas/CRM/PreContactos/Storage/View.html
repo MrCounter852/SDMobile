@@ -1,0 +1,1504 @@
+﻿<script src="/js/Areas/CRM/PreContactos/Storage/ControllerStorage.js?v=1213"></script>
+
+<div ng-controller="ControllerStorage" class="Crm-View" ng-init="Init()">
+    <div class="row" ng-show="ModoView == 1">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <div class="box mb-8" ng-class="PreContacto.ShowCotizaciones ? '' : 'pb-0'">
+                <div class="box-header with-border">
+                    <h3 class="box-title box-title-sm w100p">
+                        <button class="not-btn"><i class="fal fa-file-pdf font-23 blue"></i></button>
+                        Cotizaciones ({{ PreContacto.Cotizaciones.length }})
+                        <button class="not-btn pull-right" ng-click="PreContacto.ShowCotizaciones = PreContacto.ShowCotizaciones ? false : true"><i class="fad font-23 blue" ng-class="PreContacto.ShowCotizaciones ? 'fa-chevron-double-up' : 'fa-chevron-double-down'"></i></button>
+                        <div class="mr-10 btn-agregar"><button class="btn btn-sm btn-primary btn-rigth" ng-click="AbrirNuevaCotizacion()">Nueva cotización <i class="fal fa-plus"></i></button></div>
+                    </h3>
+                </div>
+                <div class="box-body" style="padding: 6px 0px;" ng-show="PreContacto.ShowCotizaciones" ng-class="PreContacto.ShowCotizaciones ? 'fade in' : 'fade out'">
+                    <div class="table-responsive content">
+                        <div class="content-card">
+                            <div class="mdc-card demo-card-left" ng-class="item.MostrarViews ? 'width-view' : ''" context-menu="MenuCotizaciones" ng-repeat="item in PreContacto.Cotizaciones">
+                                <div class="display-flex">
+                                    <div class="content-cot">
+                                        <div class="mdc-card-wrapper-text-section pb-5 pt-5">
+                                            <div class="demo-card-title" style="text-align: center;">Cotización N°.{{ item.Consecutivo }}</div>
+                                        </div>
+                                        <div class="mdc-card-media mdc-card-cotizacion pointer" ng-click="visualizarCotizacion(item);">
+                                            <i class="fal fa-file-invoice" ng-class="item.Aprobado ? 'green' : ''"></i>
+                                        </div>
+                                        <div class="mdc-card-wrapper-text-section" style="padding: 7px 16px 0 16px;">
+                                            <div class="demo-card-subhead ws-ellip rem-lh-1" ng-class="item.Aprobado ? 'green' : ''"><div class="demo-card-subtitle">Estado: </div> {{ item.Aprobado ? 'Aprobado' : 'Sin aprobar' }}</div>
+                                            <div class="demo-card-subhead ws-n"><div class="demo-card-subtitle">Valor: </div> {{ item.ValorCotizacion | currency : '' : 0 }}</div>
+                                            <div class="demo-card-subhead ws-n"><div class="demo-card-subtitle">Fecha: </div> {{ item.FechaElaboracion | date : 'dd-MM-yyyy' }}</div>
+                                        </div>
+                                        <div class="mdc-card-wrapper-text-section text-center" style="padding: 5px 16px 6px 16px;">
+                                            <button class="not-btn" title="Editar la cotización" ng-click="AbrirEditarCotizacion(item)"><i class="fal fa-edit font-23 blue"></i></button>
+                                            <button class="not-btn mr-2" title="Generar orden de servicio" ng-if="item.Aprobado == true" ng-click="AbrirNuevaOrdenServicio(item)"><i class="fal fa-clone font-23 orange"></i></button>
+                                            <!--<button class="not-btn mr-2" title="Enviar por email" ng-click="AbrirModalMailCotizacion(item)"><i class="fal fa-envelope-open-text font-23 green"></i></button>-->
+                                            <button class="not-btn" title="Visualizar views de la cotizacion" ng-if="item.CotizacionesVistas.length > 0" ng-click="item.MostrarViews = item.MostrarViews ? false : true"><i class="fal fa-eye font-23 red"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="content-view" ng-if="item.MostrarViews" title="Views realizadas por el cliente">
+                                        <div class="mdc-card-wrapper-text-section pb-5 pt-5">
+                                            <div class="demo-card-title" style="text-align: center;">Vistas ({{ item.CotizacionesVistas.length }})</div>
+                                        </div>
+                                        <div class="mdc-card-wrapper-overflow scroll-sedi">
+                                            <div class="fecha-view" ng-repeat="elem in item.CotizacionesVistas">{{ elem.Fecha | date : 'dd-MM-yyyy hh:mm a' }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="PreContacto.OrdenesServicios.length > 0">
+            <div class="box mb-8" ng-class="PreContacto.ShowOrdenesServicios ? '' : 'pb-0'">
+                <div class="box-header with-border">
+                    <h3 class="box-title box-title-sm w100p">
+                        <button class="not-btn"><i class="fal fa-file-spreadsheet font-23 blue"></i></button>
+                        Ordenes Servicios ({{ PreContacto.OrdenesServicios.length }})
+                        <button class="not-btn pull-right" ng-click="PreContacto.ShowOrdenesServicios = PreContacto.ShowOrdenesServicios ? false : true"><i class="fad font-23 blue" ng-class="PreContacto.ShowOrdenesServicios ? 'fa-chevron-double-up' : 'fa-chevron-double-down'"></i></button>
+                    </h3>
+                </div>
+                <div class="box-body" style="padding: 6px 0px;" ng-show="PreContacto.ShowOrdenesServicios" ng-class="PreContacto.ShowOrdenesServicios ? 'fade in' : 'fade out'">
+                    <div class="table-responsive content">
+                        <div class="content-card">
+                            <div class="mdc-card demo-card-left" context-menu="MenuOrdenesServicios" ng-repeat="item in PreContacto.OrdenesServicios">
+                                <div class="mdc-card-wrapper-text-section pb-0 pt-5 c-alias">
+                                    <div class="demo-card-title">Orden N°.{{ item.Consecutivo }}</div>
+                                </div>
+                                <div class="mdc-card-media mdc-card-cotizacion pointer" ng-click="viewer.Open('API_STRG/api/PDFs/DocumentoD?TipoDocumentoID=3&DocumentoID=' + item.OrdenServicioID)">
+                                    <i class="fal fa-file-spreadsheet" ng-class="item.EstadoOrdenServicioID == 4 ? 'red' : (item.EstadoOrdenServicioID == 2 ? 'orange' : (item.EstadoOrdenServicioID == 1 ? 'blue' : 'green'))"></i>
+                                </div>
+                                <div class="mdc-card-wrapper-text-section c-alias" style="padding: 10px 16px 0 16px;">
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1" ng-class="item.EstadoOrdenServicioID == 4 ? 'red' : (item.EstadoOrdenServicioID == 2 ? 'orange' : (item.EstadoOrdenServicioID == 1 ? 'blue' : 'green'))"><div class="demo-card-subtitle">Estado: </div> {{ item.EstadoOrdenServicioNombre }}</div>
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Valor: </div> {{ item.ValorOrdenServicio | currency : '' : 0 }}</div>
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Fecha: </div> {{ item.FechaElaboracion | date : 'dd-MM-yyyy' }}</div>
+                                </div>
+                                <div class="mdc-card-wrapper-text-section text-center" style="padding: 8px 16px;">
+                                    <button class="not-btn" title="Editar la orden de servicio" ng-click="AbrirEditarOrdenServicio(item)"><i class="fal fa-edit font-23 blue"></i></button>
+                                    <button class="not-btn mr-2" title="Enviar por email" ng-click="AbrirModalMailOrdenServicio(item)"><i class="fal fa-envelope-open-text font-23 green"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="PreContacto.PreFacturas.length > 0">
+            <div class="box mb-8" ng-class="PreContacto.ShowCodigoBarras ? '' : 'pb-0'">
+                <div class="box-header with-border">
+                    <h3 class="box-title box-title-sm w100p">
+                        <button class="not-btn"><i class="fal fa-file-code font-23 blue"></i></button>
+                        Código de barras ({{ PreContacto.PreFacturas.length }})
+                        <button class="not-btn pull-right" ng-click="PreContacto.ShowCodigoBarras = PreContacto.ShowCodigoBarras ? false : true"><i class="fad font-23 blue" ng-class="PreContacto.ShowCodigoBarras ? 'fa-chevron-double-up' : 'fa-chevron-double-down'"></i></button>                        
+                    </h3>
+                </div>
+                <div class="box-body" style="padding: 6px 0px;" ng-show="PreContacto.ShowCodigoBarras" ng-class="PreContacto.ShowCodigoBarras ? 'fade in' : 'fade out'">
+                    <div class="table-responsive content">
+                        <div class="content-card">
+                            <div class="mdc-card demo-card-left" ng-repeat="item in PreContacto.PreFacturas">
+                                <div class="mdc-card-wrapper-text-section pb-0 pt-5">
+                                    <div class="demo-card-title">Código N°.{{ item.Consecutivo }}</div>
+                                </div>
+                                <div class="mdc-card-media mdc-card-cotizacion pointer" ng-click="viewer.Open('API_FAC/api/PDFs/DocumentoD?TipoDocumentoID=4&DocumentoID=' + item.PreFacturaID)">
+                                    <i class="fal fa-file-code"></i>
+                                </div>
+                                <div class="mdc-card-wrapper-text-section" style="padding: 10px 16px 0 16px;">
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1" title="{{ item.NombreCompleto }}">{{ item.NombreCompleto }}</div>
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Valor: </div> {{ item.ValorPreFactura | currency : '' : 0 }}</div>
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Fecha: </div> {{ item.FechaCreacion | date : 'dd-MM-yyyy' }}</div>
+                                </div>
+                                <div class="mdc-card-wrapper-text-section text-center" style="padding: 8px 16px">
+                                    <button class="not-btn" title="Editar la proforma" ng-click="AbrirEditarProforma(item)"><i class="fal fa-edit font-23 blue"></i></button>
+                                    <button class="not-btn mr-2" ng-click="AbrirModalMailPreFactura(item)"><i class="fal fa-envelope-open-text font-23 green"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="PreContacto.Facturas.length > 0">
+            <div class="box mb-8" ng-class="PreContacto.ShowFacturas ? '' : 'pb-0'">
+                <div class="box-header with-border">
+                    <h3 class="box-title box-title-sm w100p">
+                        <button class="not-btn"><i class="fal fa-file-invoice-dollar font-23 blue"></i></button>
+                        Facturas ({{ PreContacto.Facturas.length }})
+                        <button class="not-btn pull-right" ng-click="PreContacto.ShowFacturas = PreContacto.ShowFacturas ? false : true"><i class="fad font-23 blue" ng-class="PreContacto.ShowFacturas ? 'fa-chevron-double-up' : 'fa-chevron-double-down'"></i></button>
+                    </h3>
+                </div>
+                <div class="box-body" style="padding: 6px 0px;" ng-show="PreContacto.ShowFacturas" ng-class="PreContacto.ShowFacturas ? 'fade in' : 'fade out'">
+                    <div class="table-responsive content">
+                        <div class="content-card">
+                            <div class="mdc-card demo-card-left" ng-repeat="item in PreContacto.Facturas">
+                                <div class="mdc-card-wrapper-text-section pb-5 pt-5">
+                                    <div class="demo-card-title">Factura N°.{{ item.Prefijo }}{{ item.Consecutivo }}</div>
+                                </div>
+                                <div class="mdc-card-media mdc-card-cotizacion pointer" ng-click="viewer.Open('API_FAC/api/PDFs/DocumentoD?TipoDocumentoID=1&DocumentoID=' + item.FacturaID)">
+                                    <i class="fal fa-file-invoice-dollar"></i>
+                                </div>
+                                <div class="mdc-card-wrapper-text-section" style="padding: 10px 16px 0 16px;">
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1" title="{{ item.NombreCompleto }}">{{ item.NombreCompleto }}</div>
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Valor: </div> {{ item.ValorFactura | currency : '' : 0 }}</div>
+                                    <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Fecha: </div> {{ item.FechaCreacion | date : 'dd-MM-yyyy' }}</div>
+                                </div>
+                                <div class="mdc-card-wrapper-text-section text-center" style="padding: 8px 16px;">
+                                    <button class="not-btn mr-2" ng-click="AbrirModalMailFactura(item)"><i class="fal fa-envelope-open-text font-23 green"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <file-viewer ng-viewer="viewer"></file-viewer>    
+    <section class="content" ng-show="ModoView == 2" style="padding: 0;">
+        <div class="box">
+            <div class="box-header with-border">
+                <div class="flex flex-center flex-between">
+                    <h3 class="box-title box-title-sm">
+                        <button class="not-btn" ng-click="AtrasModoView();" title="Volver a los contactos"><i class="iconify icon-action-undo font-23" style="color: #6c757d !important;"></i></button>
+                        <span ng-bind="Titulo"></span>
+                    </h3>
+                    <button class="not-btn" ng-click="AtrasModoView();" title="Volver a los contactos"><i class="fad fa-times" style="color: #6c757d !important; font-size: 27px;"></i></button>
+                </div>
+            </div>
+            <div class="box-body" style="padding: 6px 0px;" ng-class="Cotizacion.Aprobado == false ? '' : 'disabled'">
+                <div class="row">
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="panel-heading title-bg rem-75">
+                            <h4 class="panel-title" style="font-size: inherit; font-weight: 600;">
+                                <a data-toggle="collapse" data-target="#pnl-c-contacto">CONTACTO</a>
+                            </h4>
+                            <button data-toggle="collapse" data-target="#pnl-c-contacto" class="not-btn arrow-acordion"><i class="far"></i></button>
+                        </div>
+                        <div id="pnl-c-contacto" class="panel-collapse collapse show">
+                            <div class="panel-body border-0" style="padding: 9px 0">
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Nombres</label><strong class="red">*</strong>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" placeholder="Nombres" ng-model="Cotizacion.Nombres" maxlength="250" required />
+                                            <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Apellidos</label><strong class="red">*</strong>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" placeholder="Apellidos" ng-model="Cotizacion.Apellidos" maxlength="250" required />
+                                            <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Celular</label><strong class="red">*</strong>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" placeholder="Celular" ng-model="Cotizacion.Celular" maxlength="20" required />
+                                            <span class="glyphicon glyphicon-phone form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-8 col-lg-8">
+                                        <label class="control-label control-label-sm mb-0">Email</label><strong class="red">*</strong>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" placeholder="Correo" ng-model="Cotizacion.Email" maxlength="200" required />
+                                            <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Dirección</label>
+                                        <div class="input-group mb-3">
+                                            <direcciones ng-model="Cotizacion.Direccion" ng-change="cargarDireciones(Cotizacion.Direccion);"></direcciones>
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-default btn-sm" style="height: 30px;" ng-click="AbrirModalDisponibilidadBodegas(Cotizacion.Direccion);"><i class="glyphicon glyphicon-zoom-in" style="position: initial;"></i></button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                        <label class="control-label control-label-sm mb-0">Observaciones</label>
+                                        <div class="form-group mb-3">
+                                            <textarea rows="2" maxlength="3000" class="form-control input-sm" ng-model="Cotizacion.PreContactoObservaciones" placeholder="Ingresar observaciones" style="width: 100%" required></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-3 col-lg-3">
+                                        <label class="control-label control-label-sm mb-0">Telefono</label>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" placeholder="Telefono" ng-model="Cotizacion.Telefono" maxlength="35" required />
+                                            <span class="glyphicon glyphicon-earphone form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-4 col-sm-3 col-md-2 col-lg-2">
+                                        <div class="form-group" style="display: flex; align-items: center; min-height: 43px;">
+                                            <div class="form-check form-check-left">
+                                                <input type="checkbox" class="form-check-input mt-0" id="checked_CO-PDFCliente" ng-model="Cotizacion.PDFCliente">
+                                                <label class="form-check-label control-label control-label-sm" for="checked_CO-PDFCliente" style="font-weight: 700;">PDF Cliente</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel-heading title-bg rem-75">
+                            <h4 class="panel-title" style="font-size: inherit; font-weight: 600;">
+                                <a data-toggle="collapse" data-target="#pnl-c-cliente">CLIENTE</a>
+                            </h4>
+                            <button data-toggle="collapse" data-target="#pnl-c-cliente" class="not-btn arrow-acordion collapsed"><i class="far"></i></button>
+                        </div>
+                        <div id="pnl-c-cliente" class="panel-collapse collapse">
+                            <div class="panel-body border-0" style="padding: 9px 0">
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Tipo documento</label>
+                                        <div class="form-group mb-3">
+                                            <select class="form-control input-sm" ng-options="item.TipoDocumentoID as item.Nombre for item in TiposDocumentos" ng-model="Cotizacion.ClienteTipoDocumentoID"></select>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Documento</label>&nbsp;&nbsp;<span class="red font-11">(Sin dígito de verificación)</span>
+                                        <div class="input-group mb-3">
+                                            <documento-box class="form-control input-sm" ng-numerico="{{(TiposDocumentos | filter:{ TipoDocumentoID: Cotizacion.ClienteTipoDocumentoID })[0].Numerico}}" ng-model="Cotizacion.ClienteDocumento" placeholder="Ingrese documento"></documento-box>
+                                            <div class="input-group-btn input-group-not-btn">
+                                                <button class="not-btn" ng-click="BuscarTercero(Cotizacion)"><i class="fal fa-search font-18 blue"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Tipo persona</label>
+                                        <div class="form-group mb-3">
+                                            <select class="form-control input-sm" ng-options="item.TipoPersonaID as item.Nombre for item in TiposPersonas" ng-model="Cotizacion.ClienteTipoPersonaID" ng-change="ChangeTipoPersona(Cotizacion)"></select>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 {{ Cotizacion.ShowTipoPersona ? 'col-md-3 col-lg-3' : 'col-md-12 col-lg-12' }}">
+                                        <label class="control-label control-label-sm mb-0">{{ Cotizacion.ShowTipoPersona ? 'Nombres' : 'Empresa' }}</label>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" ng-model="Cotizacion.ClienteNombres" required maxlength="250" placeholder="Ingrese los nombres" />
+                                            <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-if="Cotizacion.ShowTipoPersona">
+                                        <label class="control-label control-label-sm mb-0">Nombres 2</label>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" ng-model="Cotizacion.ClienteNombres2" required maxlength="250" placeholder="Ingrese los nombres" />
+                                            <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-if="Cotizacion.ShowTipoPersona">
+                                        <label class="control-label control-label-sm mb-0">Apellidos</label>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" ng-model="Cotizacion.ClienteApellidos" required maxlength="250" placeholder="Ingrese los apellidos" />
+                                            <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-if="Cotizacion.ShowTipoPersona">
+                                        <label class="control-label control-label-sm mb-0">Apellidos 2</label>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" ng-model="Cotizacion.ClienteApellidos2" required maxlength="250" placeholder="Ingrese los apellidos" />
+                                            <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                                        <label class="control-label control-label-sm mb-0">Dirección</label>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" ng-model="Cotizacion.ClienteDireccion" required maxlength="200" placeholder="Ingrese la dirección" />
+                                            <span class="icon glyphicon glyphicon-pushpin form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                        <label class="control-label control-label-sm mb-0">Telefono</label>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" ng-model="Cotizacion.ClienteTelefono" required maxlength="40" placeholder="Ingrese el telefono" />
+                                            <span class="icon glyphicon glyphicon-earphone form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                        <label class="control-label control-label-sm mb-0">Celular</label>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" ng-model="Cotizacion.ClienteCelular" required maxlength="20" placeholder="Ingrese celular" />
+                                            <span class="icon glyphicon glyphicon-phone form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                        <label class="control-label control-label-sm mb-0">Email</label> <span class="aviso-email font-10">"Para ingresar varios emails separarlo por <strong class="font-14">;</strong> sin espacios."</span>
+                                        <div class="form-group has-feedback mb-3">
+                                            <email-box class="form-control input-sm" ng-model="Cotizacion.ClienteEmail" maxlength="400" placeholder="Ingrese el email"></email-box>
+                                            <span class="icon glyphicon glyphicon-envelope form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Responsabilidad tributaria</label>
+                                        <div class="form-group mb-3">
+                                            <select class="form-control input-sm" ng-options="item.ResponsabilidadTributariaID as item.Descripcion for item in Responsabilidades" ng-model="Cotizacion.ClienteResponsabilidadTributariaID"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Asesor venta o comercial</label><strong class="red">*</strong>
+                        <div class="form-group mb-3" ng-if="Usuario.Asignable == true">
+                            <div custom-select="item.AsesorID as item.NombreCompleto for item in searchAsesores($searchTerm)" class="custom-select-sm" ng-model="Cotizacion.AsesorID"></div>
+                        </div>
+                        <div class="form-group has-feedback mb-3" ng-if="Usuario.Asignable == false">
+                            <input type="text" class="form-control input-sm" placeholder="Asesor" ng-model="Cotizacion.AsesorNombreCompleto" maxlength="300" ng-disabled="true" />
+                            <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Medio de transporte</label><strong class="red">*</strong>
+                        <div class="form-group mb-3">
+                            <div custom-select="item.MedioTransporteID as item.Nombre for item in searchMediosTransporte($searchTerm)" class="custom-select-sm" ng-model="Cotizacion.MedioTransporteID" custom-select-options="ddlMediosTransporte"></div>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Campaña</label>
+                        <div class="form-group mb-3">
+                            <select class="form-control input-sm" ng-options="item.CampanaID as item.Nombre for item in Campanas" ng-model="Cotizacion.CampanaID"></select>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Plantilla PDF</label><strong class="red">*</strong>
+                        <div class="form-group mb-3">
+                            <select class="form-control input-sm" ng-options="item.PlantillaDocumentoID as item.Nombre for item in CotizacionesPlantillasDocumentos" ng-model="Cotizacion.PlantillaDocumentoID"></select>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Segmento</label><strong class="red">*</strong>
+                        <div class="form-group mb-3">
+                            <select class="form-control input-sm" ng-options="item.SegmentoID as item.Descripcion for item in Segmentos" ng-model="Cotizacion.SegmentoID"></select>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-3 col-md-2 col-lg-2">
+                        <label class="control-label control-label-sm mb-0">Cant. vehiculos</label>
+                        <div class="form-group has-feedback mb-3">
+                            <input type="text" class="form-control input-sm" ng-model="Cotizacion.NumeroCamiones" maxlength="100" placeholder="Ingrese cantidad" required ui-number-mask="0" />
+                            <span class="glyphicon glyphicon-glass form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-3 col-md-2 col-lg-2">
+                        <label class="control-label control-label-sm mb-0">Cant. operarios</label>
+                        <div class="form-group has-feedback mb-3">
+                            <input type="text" class="form-control input-sm" ng-model="Cotizacion.NumeroOperarios" maxlength="100" placeholder="Ingrese cantidad" required ui-number-mask="0" />
+                            <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-3 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Plantilla email</label>
+                        <div class="form-group mb-3">
+                            <select class="form-control input-sm" ng-options="item.PlantillaEmailID as item.Nombre for item in PlantillasEmailCotizacion" ng-model="Cotizacion.PlantillaEmailID"></select>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Forma de pago</label>
+                        <div class="form-group mb-3">
+                            <select class="form-control input-sm" ng-options="item.FormaPagoID as item.Nombre for item in FormasPagos" ng-model="Cotizacion.FormaPagoID"></select>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Ruta</label><strong class="red">*</strong>
+                        <div class="form-group mb-3">
+                            <div custom-select="item.RutaID as item.Nombre for item in searchRutas($searchTerm)" class="custom-select-sm" ng-model="Cotizacion.RutaID"></div>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-4 col-md-2 col-lg-2">
+                        <label class="control-label control-label-sm mb-0">M3</label><strong class="red">*</strong>
+                        <div class="form-group has-feedback mb-3">
+                            <input type="text" class="form-control input-sm" ng-model="Cotizacion.MetrosCubicos" maxlength="50" required />
+                            <span class="glyphicon glyphicon-asterisk form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-4 col-md-2 col-lg-2">
+                        <label class="control-label control-label-sm mb-0">M2</label><strong class="red">*</strong>
+                        <div class="form-group has-feedback mb-3">
+                            <input type="text" class="form-control input-sm" ng-model="Cotizacion.MetrosCuadrados" maxlength="50" required />
+                            <span class="glyphicon glyphicon-asterisk form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-show="Cotizacion.SegmentoID != null">
+                        <div class="title-bg rem-75">ARTICULOS</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-show="Cotizacion.SegmentoID != null">
+                        <div ModeFicha="true">
+                            <table class="table table-sm table-striped mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th class="text-left">
+                                            Categoria
+                                        </th>
+                                        <th class="text-left">
+                                            Articulo
+                                        </th>
+                                        <th class="text-left width-90">
+                                            Cantidad
+                                        </th>
+                                        <th class="text-center width-90">
+                                            M3
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center" data-title-text="Opciones">
+                                            <button ng-click="AgregarArticulo(Cotizacion)" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td data-title-text="Categoria">
+                                            <div custom-select="item.SegmentoCategoriaID as item.Descripcion for item in searchCategorias($searchTerm)" class="custom-select-sm" ng-model="Articulo.SegmentoCategoriaID" custom-select-options="ddlSearchCategorias"></div>
+                                        </td>
+                                        <td data-title-text="Articulo">
+                                            <div custom-select="item.SegmentoArticuloID as item.Descripcion for item in searchArticulos($searchTerm)" class="custom-select-sm" ng-model="Articulo.SegmentoArticuloID" custom-select-options="ddlSearchArticulos"></div>
+                                        </td>
+                                        <td data-title-text="Cantidad">
+                                            <input type="text" class="form-control input-sm text-right" ng-model="Articulo.Cantidad" placeholder="Ingrese" maxlength="4" ui-number-mask="0" />
+                                        </td>
+                                        <td data-title-text="M3" class="text-right" mf-diplay="false">
+                                            {{ Articulo.M3 * Articulo.Cantidad }}
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in Cotizacion.CotizacionesBodegajeArticulos" ng-if="item.Eliminar == false">
+                                        <td class="text-center" data-title-text="Opciones">
+                                            <button ng-click="EliminarArticulo(item, $index, Cotizacion)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td class="text-left" data-title-text="Categoria">
+                                            {{ item.SegmentoCategoriaDescripcion }}
+                                        </td>
+                                        <td class="text-left" data-title-text="Articulo">
+                                            {{ item.SegmentoArticuloDescripcion }}
+                                        </td>
+                                        <td class="text-right" data-title-text="Cantidad">
+                                            {{ item.Cantidad }}
+                                        </td>
+                                        <td class="text-right" data-title-text="M3">
+                                            {{ item.M3 * item.Cantidad }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-right" colspan="4" mf-diplay="false">
+                                            <strong class="font-15">Total M3:</strong>
+                                        </td>
+                                        <td class="text-right" data-title-text="Total">
+                                            <strong class="font-15">{{ MetrosCubicos == null ? 0: MetrosCubicos }}</strong>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="title-bg rem-75">INFORMACIÓN DE ORIGEN</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div ModeFicha="true">
+                            <table class="table table-sm mb-0" style="margin-bottom: 0px;">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th>Origen</th>
+                                        <th class="width-200">Celular</th>
+                                        <th class="width-200">Ciudad</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <button ng-click="AgregarDireccion(true)" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm" ng-model="Origen.Direccion" placeholder="Ingrese direccion de origen" maxlength="100" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm" ng-model="Origen.Celular" placeholder="Ingrese celular de contacto" maxlength="20" required />
+                                        </td>
+                                        <td>
+                                            <div custom-select="item.CiudadID as item.Nombre for item in searchCiudades($searchTerm)" class="custom-select-sm" ng-model="Origen.CiudadID"></div>
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in Cotizacion.CotizacionesBodegajeDirecciones" ng-if="item.Eliminar == false && item.Origen == true">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarDireccion(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs" ng-model="item.Direccion" placeholder="Ingresar dirección" maxlength="100" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs" ng-model="item.Celular" placeholder="Ingresar celular" maxlength="20" required />
+                                        </td>
+                                        <td>
+                                            <div custom-select="item.CiudadID as item.Nombre for item in searchCiudades($searchTerm)" class="custom-select-xs" ng-model="item.CiudadID"></div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="title-bg rem-75">INFORMACIÓN DE DESTINO</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div ModeFicha="true">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th>Destino</th>
+                                        <th class="width-200">Celular</th>
+                                        <th class="width-200">Ciudad</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <button ng-click="AgregarDireccion(false)" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm" ng-model="Destino.Direccion" placeholder="Ingrese direccion de destino" maxlength="100" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm" ng-model="Destino.Celular" placeholder="Ingrese celular de contacto" maxlength="20" required />
+                                        </td>
+                                        <td>
+                                            <div custom-select="item.CiudadID as item.Nombre for item in searchCiudades($searchTerm)" class="custom-select-sm" ng-model="Destino.CiudadID"></div>
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in Cotizacion.CotizacionesBodegajeDirecciones" ng-if="item.Eliminar == false && item.Origen == false">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarDireccion(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs" ng-model="item.Direccion" placeholder="Ingresar dirección" maxlength="100" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs" ng-model="item.Celular" placeholder="Ingresar celular" maxlength="20" required />
+                                        </td>
+                                        <td>
+                                            <div custom-select="item.CiudadID as item.Nombre for item in searchCiudades($searchTerm)" class="custom-select-xs" ng-model="item.CiudadID"></div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="title-bg rem-75">ESPECIFICACIONES DEL SERVICIO</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Fecha aproximada solicitud</label><strong class="red">*</strong>
+                        <div class="form-group has-feedback mb-3">
+                            <date-time-picker class="form-control input-sm" ng-model="Cotizacion.FechaSolicitud" placeholder="dd/mm/yyyy" format="DD/MM/YYYY"></date-time-picker>
+                            <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Fecha aproximada empaque</label>
+                        <div class="form-group has-feedback mb-3">
+                            <date-time-picker class="form-control input-sm" ng-model="Cotizacion.FechaEmpaque" placeholder="dd/mm/yyyy" format="DD/MM/YYYY HH:mm"></date-time-picker>
+                            <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Fecha aproximada transporte</label>
+                        <div class="form-group has-feedback mb-3">
+                            <date-time-picker class="form-control input-sm" ng-model="Cotizacion.FechaTransporte" placeholder="dd/mm/yyyy" format="DD/MM/YYYY HH:mm"></date-time-picker>
+                            <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="title-bg rem-75">SERVICIOS</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                        <div class="form-group mb-0" style="display: flex; align-items: center;">
+                            <label class="control-label control-label-sm mb-0">Descuento</label>&nbsp;&nbsp;<input type="checkbox" class="mt-0" ng-model="Cotizacion.RequiereAprobacionDescuento" ng-change="ValorDefault()" />
+                            <label class="control-label control-label-sm ml-10 mb-0">Diario</label>&nbsp;&nbsp;<input type="checkbox" class="mt-0" ng-model="Cotizacion.Diario" ng-change="ValorDefault()" />
+                            <input type="number" ng-model="Cotizacion.Duracion" class="form-control input-xs ml-5" placeholder="Duración" ng-show="Cotizacion.Diario == true" ng-change="ChangeServicio()" />
+                            <label class="control-label control-label-sm ml-10 width-90 mb-0">Pago anticipado</label>&nbsp;&nbsp;<input type="checkbox" class="mt-0" ng-model="Cotizacion.PagoAnticipado" />
+                            <input type="number" ng-model="Cotizacion.MesesAnticipados" class="form-control width-80 input-xs ml-5" required placeholder="Meses" ng-show="Cotizacion.PagoAnticipado == true" />
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div ModeFicha="true">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th class="text-left">Servicio</th>
+                                        <th class="text-center width-110">Cantidad</th>
+                                        <th class="text-right width-150">Valor unitario</th>
+                                        <th class="text-right width-150" ng-if="Cotizacion.RequiereAprobacionDescuento == true">Valor unitario descuento</th>
+                                        <th class="text-right width-150">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <button ng-click="AgregarServicio()" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td>
+                                            <div custom-select="item.ProductoID as item.Nombre for item in searchProductos($searchTerm)" class="custom-select-sm" ng-model="Servicio.ProductoID" custom-select-options="ddlSearchProductosCotizacion"></div>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm text-center" ng-model="Servicio.Cantidad" placeholder="Ingrese" maxlength="50" ng-change="ChangeServicio()" ui-number-mask="0" required />
+                                        </td>
+                                        <td ng-if="Cotizacion.Diario == false || Cotizacion.Diario == undefined ">
+                                            <input type="text" class="form-control input-sm text-right" ng-model="Servicio.ValorUnitario" placeholder="Ingrese un valor" maxlength="50" ng-disabled="Servicio.TipoProductoBodegaje==true" ng-change="ChangeServicio()" ui-number-mask="0" required />
+                                        </td>
+                                        <td ng-if="Cotizacion.Diario == true">
+                                            <input type="text" class="form-control input-sm text-right" ng-model="Servicio.PrecioDiario" placeholder="Ingrese un valor diario" maxlength="50" ng-disabled="Servicio.TipoProductoBodegaje==true" ng-change="ChangeServicio()" ui-number-mask="0" required />
+                                        </td>
+                                        <td ng-if="Cotizacion.RequiereAprobacionDescuento == true">
+                                            <input type="text" class="form-control input-sm text-right" ng-model="Servicio.ValorUnitarioDescuento" placeholder="Ingrese un valor" maxlength="50" ng-change="ChangeServicio()" ui-number-mask="0" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm text-right" ng-model="Servicio.ValorTotal" disabled="disabled" ui-number-mask="0" required />
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in Cotizacion.CotizacionesProductos" ng-if="item.Eliminar == false && item.ProductoID != null">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarServicio(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td><input type="text" class="form-control input-xs" maxlength="200" required placeholder="Ingrese una descripción" ng-model="item.Descripcion" /></td>
+                                        <td class="text-center">{{ item.Cantidad }}</td>
+                                        <td class="text-right" ng-if="Cotizacion.Diario == true">{{ item.PrecioDiario | currency : "" : 2 }}</td>
+                                        <td class="text-right" ng-if="Cotizacion.Diario == false || Cotizacion.Diario == undefined ">{{ item.ValorUnitario | currency : "" : 2 }}</td>
+                                        <td class="text-right" ng-if="Cotizacion.RequiereAprobacionDescuento == true">
+                                            <input type="text" class="form-control input-xs text-right" ng-model="item.ValorUnitarioDescuento" placeholder="Ingrese un valor" maxlength="50" ng-change="ChangeServicioItem(item)" ui-number-mask="0" required />
+                                        </td>
+                                        <td class="text-right">
+                                            {{ item.ValorTotal | currency : "" : 2  }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="{{Cotizacion.RequiereAprobacionDescuento == true ? '5':'4'}}" class="text-right">
+                                            <strong>TOTAL DEL SERVICIO</strong>
+                                        </td>
+                                        <td class="text-right red">
+                                            {{ Cotizacion.SubTotalServicio | currency : "" : 2  }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-show="((Cotizacion.CotizacionesProductos | filter: { Eliminar: false, TipoProductoBodegaje : true }).length > 0) || (Cotizacion.CotizacionesBodegajeBodegas | filter: { Eliminar: false }).length > 0">
+                        <div class="title-bg rem-75">RESERVACIÓN DE BODEGAS</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-show="((Cotizacion.CotizacionesProductos | filter: { Eliminar: false, TipoProductoBodegaje : true }).length > 0) || (Cotizacion.CotizacionesBodegajeBodegas | filter: { Eliminar: false }).length > 0">
+                        <div ModeFicha="true">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th colspan="2" class="text-center">Servicio</th>
+                                        <th class="text-center">Bodega</th>
+                                        <th class="text-right">Reservar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-show="(Cotizacion.CotizacionesProductos | filter: { Eliminar: 'false', TipoProductoBodegaje : 'true' }).length > 0">
+                                        <th colspan="4">
+                                            <div style="display: flex">
+                                                <select class="form-control input-sm" ng-options="item as ('Cantidad - ' + item.Cantidad + ', ' + ( item.Nombre == null ? item.Descripcion : item.Nombre ) + ' - ' + (item.ValorTotal | currency : '' : '2')) for item in Cotizacion.CotizacionesProductos | filter : { Eliminar: 'false', TipoProductoBodegaje : 'true' }" ng-model="ServicioBodega"></select>                                                
+                                                <button class="not-btn width-170" ng-click="AbrirModalBodegas()">
+                                                    Reservar la bodega <i class="fa fa-share"></i>
+                                                    <i style="cursor: pointer; font-size: 24px; padding: 5px" class="fa fa-cubes" title="Reservar bodega"></i>
+                                                </button>
+                                            </div>
+                                        </th>                                        
+                                    </tr>
+                                    <tr ng-repeat="item in Cotizacion.CotizacionesBodegajeBodegas" ng-if="item.Eliminar == false">
+                                        <td class="width-50">
+                                            <button ng-click="RemoveBodega(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>
+                                            {{ item.Cantidad }} - {{ (item.Descripcion == null ? item.Nombre : item.Descripcion) }} <strong>{{ item.ValorTotal | currency : '' : '2' }}</strong>                                            
+                                        </td>
+                                        <td>
+                                            <div ng-if="item.CotizacionBodegajeBodegaID != null">Complejo: <strong ng-bind="item.ComplejoNombre"></strong>, Bodega N°: <strong ng-bind="item.Codigo"></strong>, <br />Reserva: <strong>{{item.FechaReserva | date: 'dd/MM/yyyy hh:mm a'}}</strong>, <br />Expiración: <strong>{{item.FechaExpiracion | date: 'dd/MM/yyyy hh:mm a'}}</strong>, <div ng-if="item.DiasFaltantesExpiracion != 0">Dias restantes: <strong>{{ item.DiasFaltantesExpiracion }}</strong></div><div ng-if="item.DiasFaltantesExpiracion == 0 && item.EstadoReserva == 'Vigente'">Minutos restantes: <strong>{{ item.MinutosFaltantesExpiracion }}</strong></div></div>
+                                            <div ng-if="item.CotizacionBodegajeBodegaID == null">Complejo: <strong ng-bind="item.ComplejoNombre"></strong>, Bodega N°: <strong ng-bind="item.Codigo"></strong></div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="label label-success" style="font-size: 14px; font-weight: 100;" ng-if="item.EstadoReserva == 'Vigente'">{{ item.EstadoReserva }}</span>
+                                            <span class="label label-danger" style="font-size: 14px; font-weight: 100;" ng-if="item.EstadoReserva == 'Vencida'">{{ item.EstadoReserva }}</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="title-bg rem-75">ARCHIVOS CLIENTE</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div ModeFicha="true">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center width-200">Tipo documento</th>
+                                        <th>Cargar archivo</th>
+                                        <th class="text-center">Eliminar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <select class="form-control input-sm" ng-options="item.SerieID as item.DescripcionSerie for item in SeriesOrdenesServiciosBodegaje" ng-model="Archivo.SerieID" ng-change="ChangeSerieCotizacionBodegajeInput()"></select>
+                                        </td>
+                                        <td colspan="2">
+                                            <div ng-file-input ng-config-input="ConfigInputCotizacion"></div>
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in Cotizacion.CotizacionesBodegajeArchivos" ng-if="item.Eliminar == false">
+                                        <td class="text-center">
+                                            <label class="control-label control-label-sm">{{ item.DescripcionSerie }}</label>
+                                        </td>
+                                        <td><a href="#" class="font-15" ng-click="VerArchivo(item)">{{item.NombreArchivo}}</a></td>
+                                        <td class="text-center"><button ng-click="EliminarArchivo(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="title-bg rem-75">OBSERVACIONES INTERNAS</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <summernote lang="es-ES" config="options" ng-model="Cotizacion.ObservacionesInternas"></summernote>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="title-bg rem-75">OBSERVACIONES DE ARTICULOS</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <textarea ng-model="Cotizacion.ObservacionesArticulos" style="width: 100%; height: 170px;"></textarea>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="title-bg rem-75">OBSERVACIONES</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <summernote lang="es-ES" config="options" ng-model="Cotizacion.Observaciones"></summernote>
+                    </div>
+                </div>
+            </div>
+            <div class="box-footer" ng-if="Cotizacion.Aprobado == false">
+                <button class="btn btn-sm btn-primary pull-right" ng-click="GuardarCotizacion()" ng-if="Cotizacion.CotizacionID == null"><i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Crear</button>
+                <button class="btn btn-sm btn-primary pull-right" ng-click="ActualizarCotizacion()" ng-if="Cotizacion.CotizacionID != null"><i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Guardar</button>
+            </div>
+        </div>
+    </section>
+    <div ng-include="'/js/Areas/STRG/Complejos/ModalReservacion.html?v=456'"></div>
+    <section class="content" ng-show="ModoView == 3" style="padding: 0;">
+        <div class="box">
+            <div class="box-header with-border">
+                <div class="flex flex-center flex-between">
+                    <h3 class="box-title box-title-sm">
+                        <button class="not-btn" ng-click="AtrasModoView();" title="Volver a los contactos"><i class="iconify icon-action-undo font-23" style="color: #6c757d !important;"></i></button>
+                        <span ng-bind="Titulo"></span>
+                    </h3>
+                    <button class="not-btn" ng-click="AtrasModoView();" title="Volver a los contactos"><i class="fad fa-times" style="color: #6c757d !important; font-size: 27px;"></i></button>
+                </div>
+            </div>
+            <div class="box-body" style="padding-top: 6px" ng-class="OrdenServicio.FacturaGenerada == false ? (OrdenServicio.OrdenServicioID == null ? '' : (OrdenServicio.EstadoOrdenServicioID == 1 || Usuario.PermiteEditarOrdenServicio  == true ? '' : 'disabled')) : 'disabled'">
+                <div class="row">
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="panel-heading title-bg rem-75">
+                            <h4 class="panel-title" style="font-size: inherit; font-weight: 600;">
+                                <a data-toggle="collapse" data-target="#pnl-os-contacto">CONTACTO</a>
+                            </h4>
+                            <button data-toggle="collapse" data-target="#pnl-os-contacto" class="not-btn arrow-acordion"><i class="far"></i></button>
+                        </div>
+                        <div id="pnl-os-contacto" class="panel-collapse collapse show">
+                            <div class="panel-body border-0" style="padding: 9px 0">
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Nombres</label><strong class="red">*</strong>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" placeholder="Nombres" ng-model="OrdenServicio.Nombres" maxlength="250" required />
+                                            <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Apellidos</label><strong class="red">*</strong>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" placeholder="Apellidos" ng-model="OrdenServicio.Apellidos" maxlength="250" required />
+                                            <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Celular</label><strong class="red">*</strong>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" placeholder="Celular" ng-model="OrdenServicio.Celular" maxlength="20" required />
+                                            <span class="glyphicon glyphicon-phone form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-8 col-lg-8">
+                                        <label class="control-label control-label-sm mb-0">Email</label><strong class="red">*</strong>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" placeholder="Correo" ng-model="OrdenServicio.Email" maxlength="200" required />
+                                            <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Dirección</label>
+                                        <div class="input-group mb-3">
+                                            <direcciones ng-model="OrdenServicio.Direccion" ng-change="cargarDireciones(OrdenServicio.Direccion);"></direcciones>
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-default btn-sm" style="height: 30px;" ng-click="AbrirModalDisponibilidadBodegas(OrdenServicio.Direccion);"><i class="glyphicon glyphicon-zoom-in" style="position: initial;"></i></button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                        <label class="control-label control-label-sm mb-0">Observaciones</label>
+                                        <div class="form-group mb-3">
+                                            <textarea rows="2" maxlength="3000" class="form-control input-sm" ng-model="OrdenServicio.PreContactoObservaciones" placeholder="Ingresar observaciones" style="width: 100%" required></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-3 col-lg-3">
+                                        <label class="control-label control-label-sm mb-0">Telefono</label>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" placeholder="Telefono" ng-model="OrdenServicio.Telefono" maxlength="35" required />
+                                            <span class="glyphicon glyphicon-earphone form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel-heading title-bg rem-75">
+                            <h4 class="panel-title" style="font-size: inherit; font-weight: 600;">
+                                <a data-toggle="collapse" data-target="#pnl-os-cliente">CLIENTE</a>
+                            </h4>
+                            <button data-toggle="collapse" data-target="#pnl-os-cliente" class="not-btn arrow-acordion"><i class="far"></i></button>
+                        </div>
+                        <div id="pnl-os-cliente" class="panel-collapse collapse show">
+                            <div class="panel-body border-0" style="padding: 9px 0">
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Tipo documento</label><strong class="red">*</strong>
+                                        <div class="form-group mb-3">
+                                            <select class="form-control input-sm" ng-options="item.TipoDocumentoID as item.Nombre for item in TiposDocumentos" ng-model="OrdenServicio.ClienteTipoDocumentoID" ng-disabled="OrdenServicio.TerceroID != null"></select>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Documento</label>&nbsp;&nbsp;<span class="red font-11">(Sin dígito de verificación)</span><strong class="red">*</strong>
+                                        <div class="input-group mb-3">
+                                            <documento-box class="form-control input-sm" ng-numerico="{{(TiposDocumentos | filter:{ TipoDocumentoID: OrdenServicio.ClienteTipoDocumentoID })[0].Numerico}}" ng-model="OrdenServicio.ClienteDocumento" ng-disabled="OrdenServicio.TerceroID != null" placeholder="Ingrese documento"></documento-box>
+                                            <div class="input-group-btn input-group-not-btn">
+                                                <button class="not-btn" ng-click="BuscarTercero(OrdenServicio)"><i class="fal fa-search font-18 blue"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Tipo persona</label><strong class="red">*</strong>
+                                        <div class="form-group mb-3">
+                                            <select class="form-control input-sm" ng-options="item.TipoPersonaID as item.Nombre for item in TiposPersonas" ng-model="OrdenServicio.ClienteTipoPersonaID" ng-change="ChangeTipoPersona(OrdenServicio)"></select>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 {{ OrdenServicio.ShowTipoPersona ? 'col-md-3 col-lg-3' : 'col-md-12 col-lg-12' }}">
+                                        <label class="control-label control-label-sm mb-0">{{ OrdenServicio.ShowTipoPersona ? 'Nombres' : 'Empresa' }}</label><strong class="red">*</strong>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" ng-model="OrdenServicio.ClienteNombres" required maxlength="250" placeholder="Ingrese los nombres" />
+                                            <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-if="OrdenServicio.ShowTipoPersona">
+                                        <label class="control-label control-label-sm mb-0">Nombres 2</label>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" ng-model="OrdenServicio.ClienteNombres2" required maxlength="250" placeholder="Ingrese los nombres" />
+                                            <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-if="OrdenServicio.ShowTipoPersona">
+                                        <label class="control-label control-label-sm mb-0">Apellidos</label><strong class="red">*</strong>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" ng-model="OrdenServicio.ClienteApellidos" required maxlength="250" placeholder="Ingrese los apellidos" />
+                                            <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-if="OrdenServicio.ShowTipoPersona">
+                                        <label class="control-label control-label-sm mb-0">Apellidos 2</label>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" ng-model="OrdenServicio.ClienteApellidos2" required maxlength="250" placeholder="Ingrese los apellidos" />
+                                            <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                                        <label class="control-label control-label-sm mb-0">Dirección</label><strong class="red">*</strong>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" ng-model="OrdenServicio.ClienteDireccion" required maxlength="200" placeholder="Ingrese la dirección" />
+                                            <span class="icon glyphicon glyphicon-pushpin form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                        <label class="control-label control-label-sm mb-0">Telefono</label>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" ng-model="OrdenServicio.ClienteTelefono" required maxlength="40" placeholder="Ingrese el telefono" />
+                                            <span class="icon glyphicon glyphicon-earphone form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                        <label class="control-label control-label-sm mb-0">Celular</label>
+                                        <div class="form-group has-feedback mb-3">
+                                            <input type="text" class="form-control input-sm" ng-model="OrdenServicio.ClienteCelular" required maxlength="20" placeholder="Ingrese celular" />
+                                            <span class="icon glyphicon glyphicon-phone form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                        <label class="control-label control-label-sm mb-0">Email</label> <span class="aviso-email font-10">"Para ingresar varios emails separarlo por <strong class="font-14">;</strong> sin espacios."</span>
+                                        <div class="form-group has-feedback mb-3">
+                                            <email-box class="form-control input-sm" ng-model="OrdenServicio.ClienteEmail" maxlength="400" placeholder="Ingrese el email"></email-box>
+                                            <span class="icon glyphicon glyphicon-envelope form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                        <label class="control-label control-label-sm mb-0">Email facturación electronica</label> <span class="aviso-email font-10">"Para ingresar varios emails separarlo por <strong class="font-14">;</strong> sin espacios."</span><strong class="red">*</strong>
+                                        <div class="form-group has-feedback mb-3">
+                                            <email-box class="form-control input-sm" ng-model="OrdenServicio.ClienteEmailFacturacionElectronica" maxlength="400" placeholder="Ingrese el email"></email-box>
+                                            <span class="icon glyphicon glyphicon-envelope form-control-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Pais</label><strong class="red">*</strong>
+                                        <div class="form-group mb-3">
+                                            <div custom-select="item.PaisID as item.Nombre for item in searchPaises($searchTerm)" class="custom-select-sm" custom-select-options="ddlSearchPaisesCliente" ng-model="OrdenServicio.ClientePaisID"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4" ng-show="OrdenServicio.ClientePaisCodigoISO == 'co' || OrdenServicio.ClienteCiudadID != null">
+                                        <label class="control-label control-label-sm mb-0">Ciudad</label><strong class="red">*</strong>
+                                        <div class="form-group mb-3">
+                                            <div custom-select="item.CiudadID as item.Nombre for item in searchCiudades($searchTerm)" class="custom-select-sm" ng-model="OrdenServicio.ClienteCiudadID"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                                        <label class="control-label control-label-sm mb-0">Responsabilidad tributaria</label>
+                                        <div class="form-group mb-3">
+                                            <select class="form-control input-sm" ng-options="item.ResponsabilidadTributariaID as item.Descripcion for item in Responsabilidades" ng-model="OrdenServicio.ClienteResponsabilidadTributariaID"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Consecutivo de cotización</label>
+                        <div class="form-group has-feedback mb-3">
+                            <input type="text" class="form-control input-sm" ng-model="OrdenServicio.CotizacionConsecutivo" maxlength="100" disabled="disabled" />
+                            <span class="glyphicon glyphicon-file form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Plantilla PDF</label>
+                        <div class="form-group mb-3">
+                            <select class="form-control input-sm" ng-options="item.PlantillaDocumentoID as item.Nombre for item in OrdenServicioPlantillasDocumentos" ng-model="OrdenServicio.PlantillaDocumentoID"></select>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Medio de transporte</label><strong class="red">*</strong>
+                        <div class="form-group mb-3">
+                            <div custom-select="item.MedioTransporteID as item.Nombre for item in searchMediosTransporte($searchTerm)" class="custom-select-sm" ng-model="OrdenServicio.MedioTransporteID" custom-select-options="ddlMediosTransporteOrdenServicio"></div>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Campaña</label>
+                        <div class="form-group mb-3">
+                            <select class="form-control input-sm" ng-options="item.CampanaID as item.Nombre for item in Campanas" ng-model="OrdenServicio.CampanaID"></select>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Ruta</label><strong class="red">*</strong>
+                        <div class="form-group mb-3">
+                            <div custom-select="item.RutaID as item.Nombre for item in searchRutas($searchTerm)" class="custom-select-sm" ng-model="OrdenServicio.RutaID"></div>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-4 col-md-2 col-lg-2">
+                        <label class="control-label control-label-sm mb-0">M3</label><strong class="red">*</strong>
+                        <div class="form-group has-feedback mb-3">
+                            <input type="text" class="form-control input-sm" ng-model="OrdenServicio.MetrosCubicos" maxlength="50" required />
+                            <span class="glyphicon glyphicon-asterisk form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-4 col-md-2 col-lg-2">
+                        <label class="control-label control-label-sm mb-0">M2</label><strong class="red">*</strong>
+                        <div class="form-group has-feedback mb-3">
+                            <input type="text" class="form-control input-sm" ng-model="OrdenServicio.MetrosCuadrados" maxlength="50" required />
+                            <span class="glyphicon glyphicon-asterisk form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-show="OrdenServicio.SegmentoID != null">
+                        <div class="title-bg rem-75">ARTICULOS</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-show="OrdenServicio.SegmentoID != null">
+                        <div ModeFicha="true">
+                            <table class="table table-sm table-striped mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th class="text-left">
+                                            Categoria
+                                        </th>
+                                        <th class="text-left">
+                                            Articulo
+                                        </th>
+                                        <th class="text-left width-90">
+                                            Cantidad
+                                        </th>
+                                        <th class="text-center width-90">
+                                            M3
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center" data-title-text="Opciones">
+                                            <button ng-click="AgregarArticulo(OrdenServicio)" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td data-title-text="Categoria">
+                                            <div custom-select="item.SegmentoCategoriaID as item.Descripcion for item in searchCategoriasOrdenServicio($searchTerm)" class="custom-select-sm" ng-model="Articulo.SegmentoCategoriaID" custom-select-options="ddlSearchCategorias"></div>
+                                        </td>
+                                        <td data-title-text="Articulo">
+                                            <div custom-select="item.SegmentoArticuloID as item.Descripcion for item in searchArticulosOrdenServicio($searchTerm)" class="custom-select-sm" ng-model="Articulo.SegmentoArticuloID" custom-select-options="ddlSearchArticulos"></div>
+                                        </td>
+                                        <td data-title-text="Cantidad">
+                                            <input type="text" class="form-control input-sm text-right" ng-model="Articulo.Cantidad" placeholder="Ingrese" maxlength="10" ui-number-mask="0" />
+                                        </td>
+                                        <td data-title-text="M3" class="text-right" mf-diplay="false">
+                                            {{ Articulo.M3 * Articulo.Cantidad }}
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in OrdenServicio.CotizacionesBodegajeArticulos" ng-if="item.Eliminar == false">
+                                        <td class="text-center" data-title-text="Opciones">
+                                            <button ng-click="EliminarArticulo(item, $index, OrdenServicio)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td class="text-left" data-title-text="Categoria">
+                                            {{ item.SegmentoCategoriaDescripcion }}
+                                        </td>
+                                        <td class="text-left" data-title-text="Articulo">
+                                            {{ item.SegmentoArticuloDescripcion }}
+                                        </td>
+                                        <td class="text-right" data-title-text="Cantidad">
+                                            {{ item.Cantidad }}
+                                        </td>
+                                        <td class="text-right" data-title-text="M3">
+                                            {{ item.M3 * item.Cantidad }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-right" colspan="4" mf-diplay="false">
+                                            <strong class="font-15">Total M3:</strong>
+                                        </td>
+                                        <td class="text-right" data-title-text="Total">
+                                            <strong class="font-15">{{ MetrosCubicos == null ? 0: MetrosCubicos }}</strong>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-show="OrdenServicio.RequiereDirecciones">
+                        <div class="title-bg rem-75">DIRECCIÓN DE ORIGEN</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-show="OrdenServicio.RequiereDirecciones">
+                        <div ModeFicha="true">
+                            <table class="table table-sm mb-0" style="margin-bottom: 0px;">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th>Origen</th>
+                                        <th class="width-200">Celular</th>
+                                        <th class="width-200">Ciudad</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <button ng-click="AgregarDireccionOrdenServicio(true)" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm" ng-model="Origen.Direccion" placeholder="Ingrese direccion de origen" maxlength="100" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm" ng-model="Origen.Celular" placeholder="Ingrese celular de contacto" maxlength="20" required />
+                                        </td>
+                                        <td>
+                                            <div custom-select="item.CiudadID as item.Nombre for item in searchCiudades($searchTerm)" class="custom-select-sm" ng-model="Origen.CiudadID"></div>
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in OrdenServicio.OrdenesServiciosBodegajeDirecciones" ng-if="item.Eliminar == false && item.Origen == true">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarDireccionOrdenServicio(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs" ng-model="item.Direccion" placeholder="Ingresar dirección" maxlength="100" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs" ng-model="item.Celular" placeholder="Ingresar celular" maxlength="20" required />
+                                        </td>
+                                        <td>
+                                            <div custom-select="item.CiudadID as item.Nombre for item in searchCiudades($searchTerm)" class="custom-select-xs" ng-model="item.CiudadID"></div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-show="OrdenServicio.RequiereDirecciones">
+                        <div class="title-bg rem-75">DIRECCIÓN DE DESTINO</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-show="OrdenServicio.RequiereDirecciones">
+                        <div ModeFicha="true">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th>Destino</th>
+                                        <th class="width-200">Celular</th>
+                                        <th class="width-200">Ciudad</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <button ng-click="AgregarDireccionOrdenServicio(false)" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm" ng-model="Destino.Direccion" placeholder="Ingrese direccion de destino" maxlength="100" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm" ng-model="Destino.Celular" placeholder="Ingrese celular de contacto" maxlength="20" required />
+                                        </td>
+                                        <td>
+                                            <div custom-select="item.CiudadID as item.Nombre for item in searchCiudades($searchTerm)" class="custom-select-sm" ng-model="Destino.CiudadID"></div>
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in OrdenServicio.OrdenesServiciosBodegajeDirecciones" ng-if="item.Eliminar == false && item.Origen == false">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarDireccionOrdenServicio(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs" ng-model="item.Direccion" placeholder="Ingresar dirección" maxlength="100" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs" ng-model="item.Celular" placeholder="Ingresar celular" maxlength="20" required />
+                                        </td>
+                                        <td>
+                                            <div custom-select="item.CiudadID as item.Nombre for item in searchCiudades($searchTerm)" class="custom-select-xs" ng-model="item.CiudadID"></div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="title-bg rem-75">ESPECIFICACIONES DE SERVICIO</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                        <label class="control-label control-label-sm mb-0">Posible Solicitud</label>
+                        <div class="form-group has-feedback mb-3">
+                            <date-time-picker class="form-control input-sm" ng-model="OrdenServicio.FechaSolicitud" placeholder="dd/mm/yyyy" format="DD/MM/YYYY"></date-time-picker>
+                            <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                        <label class="control-label control-label-sm mb-0">Dias de empaque en la cotización </label>
+                        <div class="form-group has-feedback mb-3">
+                            <input type="text" class="form-control input-sm" value="{{ OrdenServicio.NumeroDiasEmpaque == null ? 0 : OrdenServicio.NumeroDiasEmpaque }}" maxlength="100" disabled="disabled" />
+                            <span class="glyphicon glyphicon-file form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"></div>
+                    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6" ng-show="OrdenServicio.RequiereDirecciones">
+                        <div ModeFicha="true">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th>Fechas de empaque</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <button ng-click="AgregarFechaEmpaque()" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td>
+                                            <div class="has-feedback">
+                                                <date-time-picker class="form-control input-sm" ng-model="Empaque.Fecha" format="DD/MM/YYYY HH:mm" placeholder="dd/mm/yyyy"></date-time-picker>
+                                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in OrdenServicio.OrdenesServiciosBodegajeFechas" ng-if="item.Eliminar == false && item.Empaque == true">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarFechaEmpaque(item, $index)" ng-disabled="item.Asignada" title="{{ item.Asignada ? 'No se puede eliminar por que ya se encuentra asignada' : '' }}" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>
+                                            <date-time-picker class="form-control input-xs" ng-model="item.Fecha" format="DD/MM/YYYY HH:mm" placeholder="dd/mm/yyyy"></date-time-picker>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6" ng-show="OrdenServicio.RequiereDirecciones">
+                        <div ModeFicha="true">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th>Fechas de transporte</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <button ng-click="AgregarFechaTransporte()" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td>
+                                            <div class="has-feedback">
+                                                <date-time-picker class="form-control input-sm" ng-model="Transporte.Fecha" format="DD/MM/YYYY HH:mm" placeholder="dd/mm/yyyy"></date-time-picker>
+                                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in OrdenServicio.OrdenesServiciosBodegajeFechas" ng-if="item.Eliminar == false && item.Empaque == false">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarFechaTransporte(item, $index)" ng-disabled="item.Asignada" title="{{ item.Asignada ? 'No se puede eliminar por que ya se encuentra asignada' : '' }}" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>
+                                            <date-time-picker class="form-control input-xs" ng-model="item.Fecha" format="DD/MM/YYYY HH:mm" placeholder="dd/mm/yyyy"></date-time-picker>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="title-bg rem-75">SERVICIOS</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
+                        <div class="form-group mb-3" style="display: flex; align-items: center;">
+                            <label class="control-label control-label-sm mb-0">Diario</label>&nbsp;&nbsp;<input type="checkbox" class="mt-0" ng-model="OrdenServicio.Diario" ng-change="ChangeServicioOS(null, true)" />
+                            <input type="number" ng-model="OrdenServicio.Duracion" class="form-control input-xs ml-5" ng-show="OrdenServicio.Diario == true" ng-change="ChangeServicioOS(null, true)" placeholder="Duración" />
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div ModeFicha="true">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th class="text-left">Descripción servicio</th>
+                                        <th class="text-center width-110"> Cantidad </th>
+                                        <th class="text-right width-150"> Valor unitario </th>
+                                        <th class="text-right width-150"> Total </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <button ng-click="AgregarServicioOS()" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td>
+                                            <div custom-select="item.ProductoID as item.Nombre for item in searchProductos($searchTerm)" class="custom-select-sm" ng-model="Servicio.ProductoID" custom-select-options="ddlSearchProductosOrdenServicio"></div>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm text-center" ng-model="Servicio.Cantidad" placeholder="Ingrese" maxlength="50" ui-number-mask="0" ng-change="ChangeServicioOS()" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm text-right" ng-model="Servicio.ValorUnitario" placeholder="Ingrese un valor" maxlength="50" ui-number-mask="0" ng-change="ChangeServicioOS()" ng-disabled="Servicio.TipoProductoBodegaje == true" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm text-right" ui-number-mask="0" ng-model="Servicio.ValorTotal" disabled="disabled" required />
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in OrdenServicio.OrdenesServiciosProductos" ng-if="item.Eliminar == false && item.ProductoID != null">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarServicioOS(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>{{ item.Descripcion }}</td>
+                                        <td class="text-center">
+                                            <input type="text" class="form-control input-xs text-center" ui-number-mask="0" ng-model="item.Cantidad" ng-change="ChangeServicioOS(item)" required />
+                                        </td>
+                                        <td class="text-right">
+                                            <input type="text" class="form-control input-xs text-right" ui-number-mask="0" ng-model="item.ValorUnitario" ng-change="ChangeServicioOS(item)" ng-disabled="item.TipoProductoBodegaje==true" required />
+                                        </td>
+                                        <td class="text-right">
+                                            {{ item.ValorTotal | currency : "" : 2  }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="4" class="text-right">
+                                            <strong>TOTAL DEL SERVICIO</strong>
+                                        </td>
+                                        <td class="text-right" style="color: red;">
+                                            {{ OrdenServicio.SubTotalServicio | currency : "" : 2  }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-show="((OrdenServicio.OrdenesServiciosProductos | filter: { Eliminar: 'false', TipoProductoBodegaje : 'true' }).length > 0) || (OrdenServicio.OrdenesServiciosBodegajeBodegas  | filter: { Eliminar: 'false' }).length > 0">
+                        <div class="title-bg rem-75">RESERVACIÓN DE BODEGAS</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div ModeFicha="true">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th colspan="2" class="text-center">Servicio</th>
+                                        <th class="text-center">Bodega</th>
+                                        <th class="text-right">Reservar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-show="(OrdenServicio.OrdenesServiciosProductos | filter: { Eliminar: 'false', TipoProductoBodegaje : true }).length > 0">
+                                        <th colspan="4">
+                                            <div style="display: flex">
+                                                <select class="form-control input-sm" ng-options="item as ('Cantidad - ' + item.Cantidad + ', ' + ( item.Nombre == null ? item.Descripcion : item.Nombre ) + ' - ' + (item.ValorTotal | currency : '' : '2')) for item in OrdenServicio.OrdenesServiciosProductos | filter: { Eliminar: 'false', TipoProductoBodegaje : 'true' }" ng-model="ServicioBodega"></select>
+                                                <button class="not-btn width-170" ng-click="AbrirModalBodegasOS()">
+                                                    Reservar la bodega <i class="fa fa-share"></i>
+                                                    <i style="cursor: pointer; font-size: 24px; padding: 5px" class="fa fa-cubes" title="Reservar bodega"></i>
+                                                </button>
+                                            </div>
+                                        </th>
+                                    </tr>
+                                    <tr ng-repeat="item in OrdenServicio.OrdenesServiciosBodegajeBodegas" ng-if="item.Eliminar == false">
+                                        <td class="width-50">
+                                            <button ng-click="RemoveBodegaOS(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>
+                                            {{ item.Cantidad }} - {{ item.Nombre == null ? item.Descripcion : item.Nombre }} <strong>{{ item.ValorTotal | currency : '' : '2' }}</strong>
+                                        </td>
+                                        <td>
+                                            <div ng-if="item.OrdenServicioBodegajeBodegaID != null">Complejo: <strong ng-bind="item.ComplejoNombre"></strong>, Bodega N°: <strong ng-bind="item.Codigo"></strong>, <br />Reserva: <strong>{{item.FechaReserva | date: 'dd/MM/yyyy hh:mm a'}}</strong>, <br />Expiración: <strong>{{item.FechaExpiracion | date: 'dd/MM/yyyy hh:mm a'}}</strong>, <div ng-if="item.DiasFaltantesExpiracion != 0">Dias restantes: <strong>{{ item.DiasFaltantesExpiracion }}</strong></div><div ng-if="item.DiasFaltantesExpiracion == 0 && item.EstadoReserva == 'Vigente'">Minutos restantes: <strong>{{ item.MinutosFaltantesExpiracion }}</strong></div></div>
+                                            <div ng-if="item.OrdenServicioBodegajeBodegaID == null">Complejo: <strong ng-bind="item.ComplejoNombre"></strong>, Bodega N°: <strong ng-bind="item.Codigo"></strong></div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="label label-success" style="font-size: 14px; font-weight: 100;" ng-if="item.EstadoReserva == 'Vigente'">{{ item.EstadoReserva }}</span>
+                                            <span class="label label-danger" style="font-size: 14px; font-weight: 100;" ng-if="item.EstadoReserva == 'Vencida'">{{ item.EstadoReserva }}</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="title-bg rem-75">ARCHIVOS CLIENTE</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div ModeFicha="true">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center width-200">Tipo documento</th>
+                                        <th>Cargar archivo</th>
+                                        <th class="text-center">Eliminar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <select class="form-control input-sm" ng-class="OrdenServicio.EstadoOrdenServicioID == 3 ? 'not-disabled' : ''" ng-options="item.SerieID as item.DescripcionSerie for item in SeriesOrdenesServiciosBodegaje" ng-model="Archivo.SerieID" ng-change="ChangeSerieOrdenServicioBodegajeInput()"></select>
+                                        </td>
+                                        <td colspan="2">
+                                            <div ng-file-input ng-config-input="ConfigInputOrdenServicio"></div>
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in OrdenServicio.OrdenesServiciosBodegajeArchivos" ng-if="item.Eliminar == false">
+                                        <td class="text-center">
+                                            <label class="control-label control-label-sm">{{ item.DescripcionSerie }}</label>
+                                        </td>
+                                        <td><a href="#" class="font-15" ng-click="VerArchivo(item)">{{item.NombreArchivo}}</a></td>
+                                        <td class="text-center"><button ng-click="EliminarArchivoOS(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="title-bg rem-75">MATERIALES</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div ModeFicha="true">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th>Descripción Material</th>
+                                        <th class="width-150">Cantidad</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <button ng-click="AgregarMateriales()" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td>
+                                            <div custom-select="item.ProductoID as item.Nombre for item in searchMateriales($searchTerm)" class="custom-select-sm" ng-model="Material.ProductoID" custom-select-options="ddlSearchProductosMateriales"></div>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm text-center" ng-model="Material.Cantidad" placeholder="Cantidad" maxlength="50" ui-number-mask="0" />
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in OrdenServicio.OrdenesServiciosBodegajeMateriales" ng-if="item.Eliminar == false">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarMateriales(item, $index)" class="not-btn" ng-disabled="item.RemisionSalidaID != null"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>{{ item.Nombre }}</td>
+                                        <td class="text-center">
+                                            <input type="text" class="form-control input-xs text-center" ng-model="item.Cantidad" placeholder="Cantidad" maxlength="50" ui-number-mask="0" />
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="title-bg rem-75">PAGO ANTICIPADO BODEGA</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Pago anticipado</label>
+                        <div class="input-group mb-3">
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-eject"></span>
+                            </span>
+                            <select class="form-control input-sm" ng-options="item.ID as item.Nombre for item in SIoNo" ng-model="OrdenServicio.PagoAnticipado"></select>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Fecha final anticipo</label>
+                        <div class="form-group has-feedback mb-3">
+                            <date-time-picker class="form-control input-sm" ng-model="OrdenServicio.FechaPago" format="DD/MM/YYYY" placeholder="dd/mm/yyyy"></date-time-picker>
+                            <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+                        <label class="control-label control-label-sm mb-0">Anticipo</label>
+                        <div class="form-group mb-3">
+                            <input type="text" class="form-control input-sm" ng-model="OrdenServicio.Anticipo" placeholder="Valor anticipo" maxlength="20" ui-number-mask="0" required />
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="title-bg rem-75">OBSERVACIONES INTERNAS</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <summernote lang="es-ES" config="options" ng-model="OrdenServicio.ObservacionesInternas"></summernote>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="title-bg rem-75">OBSERVACIONES DE ARTICULOS</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <summernote lang="es-ES" config="options" ng-model="OrdenServicio.ObservacionesArticulos"></summernote>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="title-bg rem-75">OBSERVACIONES</div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <summernote lang="es-ES" config="options" ng-model="OrdenServicio.Observaciones"></summernote>
+                    </div>
+                </div>
+            </div>
+            <div class="box-footer" ng-if="OrdenServicio.FacturaGenerada == false">
+                <button class="btn btn-sm btn-primary pull-right" ng-click="GuardarOrdenServicio()" ng-if="OrdenServicio.OrdenServicioID == null"><i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Crear</button>
+                <button class="btn btn-sm btn-primary pull-right" ng-click="ActualizarOrdenServicio()" ng-if="OrdenServicio.OrdenServicioID != null" ng-disabled="OrdenServicio.EstadoOrdenServicioID == 1 ? '' : (OrdenServicio.EstadoOrdenServicioID == 2 && Usuario.PermiteEditarOrdenServicio  == true ? '' : 'disable')"><i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Guardar</button>
+            </div>
+        </div>
+    </section>
+    <mail ng-model="MailModel" ng-mail-options="MailOptions"></mail>    
+</div>

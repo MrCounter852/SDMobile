@@ -1,0 +1,408 @@
+﻿
+<script src="/js/Areas/CRM/PreContactos/AvaluosLinea/ControllerAvaluosLinea.js"></script>
+
+<div ng-controller="ControllerAvaluosLinea" class="Crm-View" ng-init="Init()">
+    <div class="row" ng-show="ModoView == 1">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <div class="box mb-8 pb-0">
+                <div class="box-header with-border">
+                    <h3 class="box-title box-title-sm w100p">
+                        <button class="not-btn"><i class="fal fa-file-invoice font-23 blue"></i></button>
+                        Cupones de pago ({{ PreContacto.PreFacturas.length }})
+                        <button class="not-btn pull-right" ng-click="PreContacto.ShowPreFacturas = PreContacto.ShowPreFacturas ? false : true"><i class="fad font-23 blue" ng-class="PreContacto.ShowPreFacturas ? 'fa-chevron-double-up' : 'fa-chevron-double-down'"></i></button>
+                        <div class="mr-10 btn-agregar"><button class="btn btn-sm btn-primary btn-rigth" ng-click="AbrirNuevaPrefactura()">Nuevo cupón <i class="fal fa-plus"></i></button></div>
+                    </h3>
+                </div>
+                <div class="box-body" style="padding: 6px 6px;" ng-show="PreContacto.ShowPreFacturas" ng-class="PreContacto.ShowPreFacturas ? 'fade in' : 'fade out'">
+                    <div class="table-responsive content">
+                        <div class="content-card-xl">
+                            <div class="mdc-card demo-card-left" ng-class="item.MostrarViews ? 'width-view' : ''" context-menu="MenuPreFacturas" ng-repeat="item in PreContacto.PreFacturas">
+                                <div class="display-flex">
+                                    <div class="content-cot">
+                                        <div class="mdc-card-wrapper-text-section pb-5 pt-5">
+                                            <div class="demo-card-title">Cupón N°.{{ item.Consecutivo }}</div>
+                                        </div>
+                                        <div class="mdc-card-media mdc-card-cotizacion pointer" ng-click="viewer.Open('API_FAC/api/PDFs/DocumentoD?TipoDocumentoID=4&DocumentoID=' + item.PreFacturaID)">
+                                            <i class="fal fa-file-invoice" ng-class="item.PagadaPSE ? 'green' : ''"></i>
+                                        </div>
+                                        <div class="mdc-card-wrapper-text-section" style="padding: 7px 16px 0 16px;">
+                                            <div class="demo-card-subhead ws-n" ng-class="item.PagadaPSE ? 'green' : ''"><div class="demo-card-subtitle">Estado: </div>{{ item.PagadaPSE ? 'Pagada' : 'No pagada' }}</div>
+                                            <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Cliente: </div> {{ item.PreFacturaNombre}} {{item.PreFacturaApellido}}</div>
+                                            <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Valor: </div> {{ item.ValorPreFactura | currency : '' : 0 }}</div>
+                                            <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Fecha: </div> {{ item.FechaCreacion | date : 'dd-MM-yyyy' }}</div>
+                                        </div>
+                                        <div class="mdc-card-wrapper-text-section text-center" style="padding: 5px 16px 6px 16px;">
+                                            <button class="not-btn mr-2" title="Edición del cupón" ng-click="AbrirEditarPrefactura(item)"><i class="fal fa-edit font-23 blue"></i></button>
+                                            <button class="not-btn mr-2" title="Eliminar el cupón" ng-click="EliminarPreFactura(item)"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                            <button class="not-btn" title="Visualizar views de la cotizacion" ng-if="item.CotizacionesVistas.length > 0" ng-click="item.MostrarViews = item.MostrarViews ? false : true"><i class="fal fa-eye font-23 red"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="content-view" ng-if="item.MostrarViews" title="Views realizadas por el cliente">
+                                        <div class="mdc-card-wrapper-text-section pb-5 pt-5">
+                                            <div class="demo-card-title">Vistas ({{ item.CotizacionesVistas.length }})</div>
+                                        </div>
+                                        <div class="mdc-card-wrapper-overflow scroll-sedi">
+                                            <div class="fecha-view" ng-repeat="elem in item.CotizacionesVistas">{{ elem.Fecha | date : 'dd-MM-yyyy hh:mm a' }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer with-border" ng-if="MostrarCerrarProceso">
+                        <div class="mr-10 btn-agregar"><button class="btn btn-sm btn-primary btn-rigth" ng-click="AbrirModalCerrarProceso()"><i class="glyphicon glyphicon-floppy-save"></i>Cerrar proceso</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <section class="content" ng-show="ModoView == 2" style="padding: 0;">
+        <div class="box-sedi-2">
+            <div class="content-flex flex-between flex-wrap gap-7" style="padding: 8px 0">
+                <div class="flex flex-center gap-7">
+                    <button class="not-btn" ng-click="AtrasModoView()" title="Atras"><i class="fal fa-arrow-alt-left font-23 blue"></i></button>
+                    <h3 class="box-title font-18">
+                        {{ Titulo }}
+                    </h3>
+                </div>
+                <div class="flex flex-center flex-wrap gap-7 flex-center-h">
+                    <button class="not-btn pull-right" ng-click="AtrasModoView()" title="Cerrar"><i class="fad fa-times" style="color: #6c757d !important; font-size: 27px;"></i></button>
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-column flex-wrap-start gap-7 mt-7">
+            <div>
+                <span class="style-title-sedi">Cliente</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="row">
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Tipo de documento</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <select class="form-control input-sm" ng-options="item.TipoDocumentoID as item.Nombre for item in TipoDocumentos" ng-model="PreFactura.TipoDocumentoID" ng-disabled="PreFactura.ValidacionDocumento||IsEditing"></select>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Número de documento<strong class="red">*</strong></label>
+                                <div class="input-group">
+                                    <documento-box class="form-control input-sm" ng-numerico="{{(TipoDocumentos | filter:{ TipoDocumentoID: PreFactura.TipoDocumentoID })[0].Numerico}}" ng-model="PreFactura.Documento" placeholder="Buscar documento" ng-disabled="PreFactura.TerceroID == null ? PreFactura.ValidacionDocumento : true" maxlength="20"></documento-box>
+                                    <div class="input-group-addon" ng-if="PreFactura.TerceroID != null">
+                                        <span ng-bind="PreFactura.Digito"></span>
+                                    </div>
+                                    <div class="input-group-btn input-group-not-btn">
+                                        <button class="not-btn" ng-click="BuscarTercero(false)" ng-disabled="PreFactura.ValidacionDocumento||IsEditing"><i class="fal fa-search font-18 blue"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Tipo de persona</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <select class="form-control input-sm" ng-options="item.TipoPersonaID as item.Nombre for item in TipoPersonas" ng-model="PreFactura.TipoPersonaID" ng-change="ChangeTipoPersona(PreFactura)" ng-disabled="!PreFactura.ValidacionDocumento"></select>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Responsabilidad tributaria</label><strong class="red">*</strong>
+                                <div class="form-group">
+                                    <select class="form-control input-sm" ng-options="item.ResponsabilidadTributariaID as item.Descripcion for item in ResponsabilidadesTributarias" ng-model="PreFactura.ResponsabilidadTributariaID" ng-disabled="!PreFactura.ValidacionDocumento"></select>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 {{ (TipoPersonas | filter:{ TipoPersonaID: PreFactura.TipoPersonaID }: true)[0].Empresa == false ? 'col-md-3 col-lg-3' : 'col-md-12 col-lg-12'}}">
+                                <label class="control-label control-label-sm mb-0">{{ (TipoPersonas | filter:{ TipoPersonaID: PreFactura.TipoPersonaID }: true)[0].Empresa == false ? 'Primer nombre' : 'Razon social'}}</label> <strong class="red">*</strong>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="PreFactura.Nombres" maxlength="250" ng-disabled="!PreFactura.ValidacionDocumento" ng-upper-clean />
+                                    <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-show="(TipoPersonas | filter:{ TipoPersonaID: PreFactura.TipoPersonaID }: true)[0].Empresa == false">
+                                <label class="control-label control-label-sm mb-0">Otros nombres</label>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="PreFactura.Nombres2" maxlength="250" ng-disabled="!PreFactura.ValidacionDocumento" ng-upper-clean />
+                                    <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-show="(TipoPersonas | filter:{ TipoPersonaID: PreFactura.TipoPersonaID }: true)[0].Empresa == false">
+                                <label class="control-label control-label-sm mb-0">Primer apellido</label> <strong class="red">*</strong>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="PreFactura.Apellidos" maxlength="250" ng-disabled="!PreFactura.ValidacionDocumento" ng-upper-clean />
+                                    <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-show="(TipoPersonas | filter:{ TipoPersonaID: PreFactura.TipoPersonaID }: true)[0].Empresa == false">
+                                <label class="control-label control-label-sm mb-0">Otros apellidos</label>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="PreFactura.Apellidos2" maxlength="250" ng-disabled="!PreFactura.ValidacionDocumento" ng-upper-clean />
+                                    <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                <label class="control-label control-label-sm mb-0">Nombre comercial</label>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="PreFactura.NombreComercial" maxlength="500" ng-disabled="!PreFactura.ValidacionDocumento" ng-upper-clean />
+                                    <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="style-title-sedi">Información de contacto (cliente)</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="row">
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">País</label>
+                                <div class="form-group">
+                                    <div custom-select="item.PaisID as item.Nombre for item in searchPaises($searchTerm)" custom-select-options="ddlSearchPaises" class="custom-select-sm" ng-model="PreFactura.PaisID" ng-disabled="!PreFactura.ValidacionDocumento"></div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Ciudad</label>
+                                <div class="form-group">
+                                    <div custom-select="item.CiudadID as item.Nombre for item in searchCiudades($searchTerm)" custom-select-options="ddlSearchCiudades" class="custom-select-sm" ng-model="PreFactura.CiudadID" ng-disabled="!PreFactura.ValidacionDocumento"></div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                                <label class="control-label control-label-sm mb-0">Dirección</label>
+                                <div class="form-group">
+                                    <button class="btn btn-sm btn-success btn-address" ng-click="AbrirModalDireccion();" style="width: 100%; margin-bottom: 0px;" ng-disabled="!PreFactura.ValidacionDocumento"><i class="fad fa-location"></i>&nbsp;{{ PreFactura.Direccion == '' || PreFactura.Direccion == null ? 'Seleccionar' : PreFactura.Direccion }}</button>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-9 col-lg-9">
+                                <label class="control-label control-label-sm mb-0">Email</label> <span class="aviso-email font-10">"Para ingresar varios emails separarlo por <strong class="font-14">;</strong> sin espacios."</span>
+                                <div class="form-group has-feedback">
+                                    <email-box class="form-control input-sm" ng-model="PreFactura.Email" ng-disabled="!PreFactura.ValidacionDocumento" maxlength="400" placeholder="Email"></email-box>
+                                    <span class="icon glyphicon glyphicon-envelope form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Celular</label>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="PreFactura.Celular" maxlength="20" ng-disabled="!PreFactura.ValidacionDocumento" ui-co-mobile-phone-number />
+                                    <span class="glyphicon glyphicon-phone form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-9 col-lg-9">
+                                <label class="control-label control-label-sm mb-0">Email facturación electronica</label><strong class="red">*</strong> <span class="aviso-email font-10">"Para ingresar varios emails separarlo por <strong class="font-14">;</strong> sin espacios."</span>
+                                <div class="form-group has-feedback">
+                                    <email-box class="form-control input-sm" ng-model="PreFactura.EmailFacturacionElectronica" maxlength="400" placeholder="Email facturación electronica" ng-disabled="!PreFactura.ValidacionDocumento"></email-box>
+                                    <span class="icon glyphicon glyphicon-envelope form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Teléfono</label>
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control input-sm" ng-model="PreFactura.Telefono" maxlength="40" ng-disabled="!PreFactura.ValidacionDocumento" />
+                                    <span class="glyphicon glyphicon-phone-alt form-control-feedback"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="style-title-sedi">Prefactura</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="row">
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Fecha emision</label><strong class="red">*</strong>
+                                <div class="form-group mb-0 has-feedback">
+                                    <date-time-picker class="form-control input-sm" ng-model="PreFactura.FechaCreacion" format="DD/MM/YYYY" placeholder="dd/mm/yyyy" ng-disabled="!PreFactura.ValidacionDocumento&&!IsEditing"></date-time-picker>
+                                    <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Fecha vencimiento</label><strong class="red">*</strong>
+                                <div class="form-group mb-0 has-feedback">
+                                    <date-time-picker class="form-control input-sm" ng-model="PreFactura.FechaVencimiento" format="DD/MM/YYYY" placeholder="dd/mm/yyyy" ng-disabled="!PreFactura.ValidacionDocumento&&!IsEditing"></date-time-picker>
+                                    <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                                <label class="control-label control-label-sm mb-0">Tipo</label><strong class="red">*</strong>
+                                <div class="form-group mb-0">
+                                    <select class="form-control input-sm" ng-disabled="PreFactura.PreFacturaID != null || (!PreFactura.ValidacionDocumento&&!IsEditing)" ng-options="item.TipoPreFacturaID as item.Prefijo for item in TiposPreFacturas" ng-model="PreFactura.TipoPreFacturaID" ng-change="ChangeTipoPrefactura()"></select>
+                                </div>
+                            </div>                            
+                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6" ng-if="CC_FACTURA">
+                                <label class="control-label control-label-sm mb-0">Centro de Costo</label>
+                                <div class="form-group mb-0">
+                                    <div custom-select="item.CentroCostoID as item.CodigoNombre for item in searchCentroCosto($searchTerm)" class="custom-select-sm" ng-model="PreFactura.CentroCostoID" custom-select-options="ddlSearchCentroCosto" ng-disabled="!PreFactura.ValidacionDocumento&&!IsEditing"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="style-title-sedi">Conceptos</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div ModeFicha="true">
+                            <table class="table table-sm table-striped table-factura">
+                                <thead>
+                                    <tr>
+                                        <th class="width-70">Opciones</th>
+                                        <th class="text-center width-90">Cantidad</th>
+                                        <th class="text-center">Descripcion</th>
+                                        <th class="text-center width-130">Valor unitario</th>
+                                        <th class="text-center width-120">Descuento</th>
+                                        <th class="text-center width-120">Valor total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td data-title-text="Opciones" class="text-center width-70">
+                                            <button class="not-btn" ng-click="AgregarProducto();" ng-disabled="(!PreFactura.TipoPersonaID||!PreFactura.ValidacionDocumento)&&!IsEditing">
+                                                <i class="fal fa-plus-circle blue font-23"></i>
+                                            </button>
+                                        </td>
+                                        <td data-title-text="Cantidad">
+                                            <input type="text" class="form-control input-xs text-right" placeholder="0" ng-model="PreFacturaDetalle.Cantidad" ng-change="CalcularProductoPreFactura()" ui-number-mask="2" ng-disabled="(!PreFactura.TipoPersonaID||!PreFactura.ValidacionDocumento)&&!IsEditing"/>
+                                        </td>
+                                        <td data-title-text="Descripción">
+                                            <div class="input-group" style="margin-bottom: 0px;">
+                                                <div custom-select="item.ProductoID as item.Nombre for item in searchProductos($searchTerm)" class="custom-select-xs" ng-model="PreFacturaDetalle.ProductoID" 
+                                                     custom-select-options="ddlProductoOptions" ng-show="PreFacturaDetalle.ModoTexto != true" ng-disabled="(!PreFactura.TipoPersonaID||!PreFactura.ValidacionDocumento)&&!IsEditing"></div>
+                                                <input type="text" class="form-control input-xs" placeholder="Ingrese la descripción" ng-model="PreFacturaDetalle.ProductoNombre" ng-show="PreFacturaDetalle.ModoTexto == true" maxlength="500" >
+                                                <span class="input-group-btn" ng-show="PreFacturaDetalle.ProductoID != null">
+                                                    <button class="not-btn" style="height: 24px; padding: 1px 5px;" ng-click="CambiarModoProducto();">
+                                                        <i class="fad fa-exchange {{ PreFacturaDetalle.ModoTexto ? 'green' : 'blue' }} font-23"></i>
+                                                    </button>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td data-title-text="Valor unitario">
+                                            <input type="text" class="form-control input-xs text-right" ng-model="PreFacturaDetalle.ValorUnitario" ng-disabled="(!PreFactura.TipoPersonaID||!PreFactura.ValidacionDocumento)&&!IsEditing" placeholder="0" ng-change="CalcularProductoPreFactura()" ui-number-mask="2" />
+                                        </td>
+                                        <td data-title-text="Descuento">
+                                            <input type="text" class="form-control input-xs text-right" ng-model="PreFacturaDetalle.Descuento" ng-disabled="(!PreFactura.TipoPersonaID||!PreFactura.ValidacionDocumento)&&!IsEditing" placeholder="0" ng-change="CalcularProductoPreFactura()" ui-number-mask="2" />
+                                        </td>
+                                        <td class="text-right" data-title-text="Valor Total">
+                                            <span class="font-13">{{ PreFacturaDetalle.ValorTotal == undefined ? 0 : PreFacturaDetalle.ValorTotal | currency : '' : 2 }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in PreFactura.PreFacturasDetalles" ng-if="item.Eliminar == false">
+                                        <td class="text-center width-70" data-title-text="Opciones">
+                                            <button class="not-btn" ng-click="EliminarProducto($index, item)" ng-disabled="(!PreFactura.TipoPersonaID||!PreFactura.ValidacionDocumento)&&!IsEditing">
+                                                <i class="fal fa-trash-alt red font-23"></i>
+                                            </button>
+                                        </td>
+                                        <td class="text-center" data-title-text="Cantidad">
+                                            <input type="text" class="form-control input-xs text-right" ng-model="item.Cantidad" placeholder="0" ng-change="CalcularProductoPreFactura(item)" ui-number-mask="2" ng-disabled="(!PreFactura.TipoPersonaID||!PreFactura.ValidacionDocumento)&&!IsEditing"/>
+                                        </td>
+                                        <td data-title-text="Descripción">
+                                            <input type="text" class="form-control input-xs" placeholder="Ingrese la descripción" ng-model="item.ProductoNombre" maxlength="500" ng-disabled="(!PreFactura.TipoPersonaID||!PreFactura.ValidacionDocumento)&&!IsEditing">
+                                        </td>
+                                        <td class="text-right" data-title-text="Valor unitario">
+                                            <input type="text" class="form-control input-xs text-right" ng-model="item.ValorUnitario" placeholder="0" ng-change="CalcularProductoPreFactura(item)" ui-number-mask="2" ng-disabled="(!PreFactura.TipoPersonaID||!PreFactura.ValidacionDocumento)&&!IsEditing"/>
+                                        </td>
+                                        <td class="text-right" data-title-text="Descuento">
+                                            <input type="text" class="form-control input-xs text-right" ng-model="item.Descuento" placeholder="0" ng-change="CalcularProductoPreFactura(item)" ui-number-mask="2" ng-disabled="(!PreFactura.TipoPersonaID||!PreFactura.ValidacionDocumento)&&!IsEditing"/>
+                                        </td>
+                                        <td class="text-right" data-title-text="Valor total">
+                                            <span class="font-13">{{ item.ValorTotal | currency : "" : 2 }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td mf-diplay="false" colspan="5" class="text-right"><strong>SubTotal</strong></td>
+                                        <td data-title-text="SubTotal" class="text-right">
+                                            <span class="font-13">{{ PreFactura.ValorNeto | currency : "" : 2 }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in PreFactura.Impuestos">
+                                        <td mf-diplay="false" class="text-right" colspan="5"><strong class="frozen-r-label">{{ item.ImpuestoNombre }}: </strong></td>
+                                        <td data-title-text="{{ item.ImpuestoNombre }}: " class="text-right font-13" ng-class="PreFactura.EstadoPrefacturaID == 1 ? 'frozen-r-52' : 'frozen-r-0'">
+                                            <span class="font-13"> {{ item.ValorImpuesto | currency : "" : PreFactura.TipoPreFactura.NumeroDecimales }} </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td mf-diplay="false" colspan="5" class="text-right"><strong>Total</strong></td>
+                                        <td data-title-text="Total" class="text-right">
+                                            <span class="font-13">{{ PreFactura.ValorTotal | currency : "" : 2 }}</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="style-title-sedi">Observaciones</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <textarea rows="4" maxlength="3000" class="form-control input-sm" ng-model="PreFactura.Observaciones" placeholder="Ingresar observaciones" style="width: 100%" required></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="box-sedi-2">
+                <div class="content-flex flex-between flex-wrap gap-8">
+                    <div class="flex flex-center">
+                        <div class="form-check form-check-left">
+                            <input type="checkbox" class="form-check-input" id="checked_PSE" ng-model="PreFactura.PSE" ng-disabled="!PreFactura.ValidacionDocumento&&!IsEditing">
+                            <label class="form-check-label control-label control-label-sm" for="checked_PSE" style="font-weight: 700;">PSE</label>
+                        </div>
+                        <div class="form-check form-check-left ml-8">
+                            <input type="checkbox" class="form-check-input" id="checked_NoFacturar" ng-model="PreFactura.NoFacturar" ng-true-value="false" ng-false-value="true" ng-disabled="!PreFactura.ValidacionDocumento&&!IsEditing">
+                            <label class="form-check-label control-label control-label-sm" for="checked_NoFacturar" style="font-weight: 700;">¿Generar factura?</label>
+                        </div>
+                    </div>
+                    <div></div>
+                    <div class="btn-group">
+                        <button class="btn btn-xs btn-primary" ng-click="GuardarActualizarPreFactura()">
+                            <i class="fad fa-save"></i> Guardar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div id="modalCerrarProceso" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><i class="fal fa-times"></i></button>
+                    <h4 class="modal-title modal-title-sm"><i class="glyphicon glyphicon-floppy-save blue"></i>&nbsp;&nbsp;Cerrar proceso</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <h4>¿Desea seguir con nosotros?</h4>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 mt-5">
+                            <button class="btn btn-sm btn-success pr-10 pl-10 mr-5 ml-5" ng-class="{'active': CerrarProceso.Estado}" ng-click="CambiarEstadoProceso(true)">Si</button>
+                            <button class="btn btn-sm btn-danger p-5" ng-class="{'active': CerrarProceso.Estado==false}" ng-click="CambiarEstadoProceso(false)">No</button>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 mt-5 mb-5" ng-if="CerrarProceso.Estado">
+                            <label class="control-label control-label-sm" style="width: 100%; border-bottom: 1px solid #ddd; margin-bottom: 0px; font-size: 13px;">Datos del inmueble</label>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-5 col-lg-5" ng-if="CerrarProceso.Estado">
+                            <label class="control-label control-label-sm mb-0">Asesor de captación</label><strong class="red">*</strong>
+                            <div class="form-group mb-3">
+                                <div custom-select="item.AsesorID as item.NombreCompleto for item in searchAsesores($searchTerm)" class="custom-select-sm" ng-model="CerrarProceso.AsesorID"></div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3" ng-if="CerrarProceso.Estado">
+                            <label class="control-label control-label-sm mb-0">Tipo de oferta</label><strong class="red">*</strong>
+                            <div class="form-group">
+                                <select class="form-control input-sm" ng-model="CerrarProceso.TipoOfertaID" ng-options="item.TipoOfertaID as item.Nombre for item in TiposOfertas" required></select>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4" ng-if="CerrarProceso.Estado">
+                            <label class="control-label control-label-sm mb-0">Dirección del inmueble</label><strong class="red">*</strong>
+                            <div class="form-group">
+                                <input type="text" class="form-control input-sm" ng-model="CerrarProceso.InmuebleDireccion" maxlength="700" required placeholder="Direccion de inmueble" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-sm btn-primary pull-right" ng-click="GuardarCerrarProceso()" ng-if="CerrarProceso.Estado!=null"><i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Cerrar proceso</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <file-viewer ng-viewer="viewer"></file-viewer>
+</div>

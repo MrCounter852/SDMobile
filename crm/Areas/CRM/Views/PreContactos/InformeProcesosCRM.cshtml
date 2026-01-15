@@ -1,0 +1,250 @@
+﻿@{
+    ViewBag.Title = "InformeProcesosCRM";
+}
+
+<link href="@Url.VersionedContent("~/css/frameworks/erp/StyleModal.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/css/frameworks/ng-table/ng-table.min.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/css/frameworks/AngularCustomSelect/AngularCustomSelect.css")" rel="stylesheet" />
+<link href="@Url.VersionedContent("~/css/frameworks/dateTimePiker/bootstrap-datetimepicker.css")" rel="stylesheet" />
+
+<script src="@Url.VersionedContent("~/js/frameworks/AngularCustomSelect/customSelect.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/dateTimePiker/moment-with-locales.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/dateTimePiker/bootstrap-datetimepicker.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/dateTimePiker/bootstrap-datetimepicker.angular.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/hotkeys/hotkeys.min.js")"></script>
+<script src="@Url.VersionedContent("~/js/frameworks/xlsx-ar/xlsx.ar.js")"></script>
+<script src="@Url.VersionedContent("~/js/Areas/CRM/PreContactos/ControllerInformeProcesosCRM.js")"></script>
+
+<style data-print="true" type="text/css">
+    .table > tbody > tr > td, .table > tbody > tr > th, .table > tfoot > tr > td, .table > tfoot > tr > th, .table > thead > tr > td, .table > thead > tr > th {
+        padding: 2px 5px;
+    }
+
+    .table-9 > tbody > tr > td, .table-9 > tbody > tr > th, .table-9 > tfoot > tr > td, .table-9 > tfoot > tr > th, .table-9 > thead > tr > td, .table-9 > thead > tr > th {
+        font-size: 9px;
+        white-space: nowrap;
+        border: 1px solid #ddd !important;
+    }
+
+    table > thead > tr > th, table > tbody > tr > td {
+        color: #000;
+    }
+
+    .table-hover > tbody > tr:hover td {
+        background-color: #c8def0 !important;
+    }
+
+    .table-striped > tbody > tr:nth-of-type(odd) td {
+        background-color: #f9f9f9;
+    }
+</style>
+
+<div ng-init="Init();" ng-controller="ControllerInformeProcesosComerciales">
+    <section class="content">
+        <div class="box mb-0">
+            <div class="box-header with-border">
+                <div class="flex flex-center flex-between flex-wrap gap-8">
+                    <div class="pn-filter flex flex-center flex-grow">
+                        <h3 class="box-title box-title-sm">
+                            <button class="not-btn" ng-click="AbrirModalFiltrar();" title="Filtrar resultados"><i class="fal fa-filter font-23 blue"></i></button>
+                            <button class="not-btn btn-filter" ng-if="Filtrado" ng-click="QuitarFiltros();" title="Eliminar todos los filtros"><i class="fal fa-times red"></i></button>
+                            Informe procesos comerciales
+                        </h3>
+                    </div>
+                    <div class="pn-options flex flex-center flex-wrap gap-8">
+                        <div class="mat-paginator-range-actions" ng-if="ProcesosCRM[0].TotalRows != undefined && ProcesosCRM[0].TotalRows > search.Rows">
+                            <div class="mat-paginator-range-label" style="white-space: nowrap"> {{ ((search.Page - 1) * search.Rows) + 1 }} – {{ (search.Page * search.Rows) < ProcesosCRM[0].TotalRows ? (search.Page * search.Rows) : ProcesosCRM[0].TotalRows }} de {{ ProcesosCRM[0].TotalRows }} </div>
+                            <button mat-icon-button="" type="button" class="mat-focus-indicator mat-tooltip-trigger mat-paginator-navigation-previous mat-icon-button mat-button-base" ng-click="Anterior()" title="Anterior (alt + a)" data-toggle="tooltip" data-placement="top" data-container="body" data-trigger="hover">
+                                <span class="mat-button-wrapper">
+                                    <svg viewBox="6 5 12 14" focusable="true" class="mat-paginator-icon">
+                                        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
+                                    </svg>
+                                </span>
+                            </button>
+                            <button mat-icon-button="" type="button" class="mat-focus-indicator mat-tooltip-trigger mat-paginator-navigation-next mat-icon-button mat-button-base" ng-click="Siguiente()" title="Siguiente (alt + s)" data-toggle="tooltip" data-placement="top" data-container="body" data-trigger="hover">
+                                <span class="mat-button-wrapper">
+                                    <svg viewBox="6 5 12 14" focusable="true" class="mat-paginator-icon">
+                                        <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path>
+                                    </svg>
+                                </span>
+                            </button>
+                        </div>
+                        <button class="btn btn-xs btn-success" ng-if="ProcesosCRM.length > 0" title="Excel" ng-click="ExportarExcel()"><i class="fal fa-file-excel"></i> Descargar</button>
+                    </div>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="table-responsive" style="max-height: calc(100vh - 145px)">
+                    <table id="table" class="table table-sm table-striped table-nowrap ng-table table-9 mb-0">
+                        <thead class="thead-frozen">
+                            <tr class="ng-table-sort-header">
+                                <th class="text-center">Fecha registro</th>
+                                <th class="text-center">Fecha cierre</th>
+                                <th class="text-center">Tipo contacto</th>
+                                <th class="text-center">Estado actividades</th>
+                                <th class="text-center">Ultima actividad</th>
+                                <th class="text-center">Contacto</th>
+                                <th class="text-center">Telefono</th>
+                                <th class="text-center">Celular</th>
+                                <th class="text-center">Email</th>
+                                <th class="text-center">Dirección</th>
+                                <th class="text-center">Cliente</th>
+                                <th class="text-center">Cliente celular</th>
+                                <th class="text-center">Observaciones</th>
+                                <th class="text-center">Forma contacto</th>
+                                <th class="text-center">Forma como nos conocieron</th>
+                                <th class="text-center">Detalle como nos conocio</th>
+                                <th class="text-center">Estado proceso</th>
+                                <th class="text-center">Causal inviabilidad</th>
+                                <th class="text-center">Fecha inviabilidad</th>
+                                <th class="text-center">Observaciones inviabilidad</th>
+                                <th class="text-center">Valor negocio</th>
+                                <th class="text-center">Estado tiempo</th>
+                                <th class="text-center">Asesor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in ProcesosCRM" context-tr-active>                                
+                                <td>{{ item.Fecha | date : 'dd/MM/yyyy' }}</td>
+                                <td>{{ item.FechaCierre | date : 'dd/MM/yyyy' }}</td>
+                                <td>{{ item.OrigenPreContactoNombre }}</td>
+                                <td>{{ item.EstadoGeneral }}</td>
+                                <td>{{ item.UltimaFechaActividad | date : 'dd/MM/yyyy' }}</td>
+                                <td>{{ item.NombreCompleto }}</td>
+                                <td>{{ item.Telefono }}</td>
+                                <td>{{ item.Celular }}</td>
+                                <td>{{ item.Email }}</td>
+                                <td>{{ item.Direccion }}</td>
+                                <td>{{ item.ClienteNombreCompleto }}</td>
+                                <td>{{ item.ClienteCelular }}</td>
+                                <td>{{ item.Observaciones }}</td>
+                                <td>{{ item.FormaContactoNombre }}</td>
+                                <td>{{ item.FormaComoNosConocioDescripcion }}</td>
+                                <td>{{ item.FormaComoNosConocioDetalleNombre }}</td>
+                                <td>{{ item.EstadoProcesoNombre }}</td>
+                                <td>{{ item.CausalInviabilidadNombre }}</td>
+                                <td>{{ item.FechaInviabilidad | date : 'dd/MM/yyyy' }}</td>
+                                <td>{{ item.ObservacionesInviabilidad }}</td>
+                                <td class="text-right">{{ item.ValorNegocio | currency : '' : 0 }}</td>
+                                <td>{{ item.EstadoLineaTiempoNombre }}</td>
+                                <td>{{ item.AsesorNombreCompleto }}</td>
+                            </tr>
+                            <tr ng-if="ProcesosCRM.length == 0">
+                                <td colspan="49" class="text-center">
+                                    <b>No se encontraron resultados de la busqueda</b>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="tfoot-frozen">
+                            <tr>
+                                <td colspan="49" class="text-left bold">{{ ProcesosCRM[0].TotalRows }} Registros</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div id="modalFiltrar" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><i class="fal fa-times"></i></button>
+                    <h4 class="modal-title modal-title-sm"><i class="glyphicon glyphicon-filter"></i>&nbsp;&nbsp;Filtrar informe</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                            <label class="control-label control-label-sm mb-0">Asesor</label>
+                            <div class="form-group mb-3">
+                                <div class="custom-select-sm" custom-select="item.AsesorID as item.NombreCompleto for item in searchFilterAsesores($searchTerm)" ng-model="search.AsesorID"></div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                            <label class="control-label control-label-sm mb-0">Fecha inicio</label>
+                            <div class="has-feedback form-group mb-3">
+                                <date-time-picker class="form-control input-sm" ng-model="search.FechaInicial" format="DD/MM/YYYY" placeholder="dd/mm/yyyy" required></date-time-picker>
+                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                            <label class="control-label control-label-sm mb-0">Fecha final</label>
+                            <div class="has-feedback form-group mb-3">
+                                <date-time-picker class="form-control input-sm" ng-model="search.FechaFinal" format="DD/MM/YYYY" placeholder="dd/mm/yyyy" required></date-time-picker>
+                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                            <label class="control-label control-label-sm mb-0">Contacto</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input class="form-control input-sm" type="text" placeholder="Buscar por nombre" maxlength="250" ng-model="search.NombreCompleto" required />
+                                <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                            <label class="control-label control-label-sm mb-0">Fecha inicio cierre</label>
+                            <div class="has-feedback form-group mb-3">
+                                <date-time-picker class="form-control input-sm" ng-model="search.FechaInicialCierre" format="DD/MM/YYYY" placeholder="dd/mm/yyyy" required></date-time-picker>
+                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                            <label class="control-label control-label-sm mb-0">Fecha final cierre</label>
+                            <div class="has-feedback form-group mb-3">
+                                <date-time-picker class="form-control input-sm" ng-model="search.FechaFinalCierre" format="DD/MM/YYYY" placeholder="dd/mm/yyyy" required></date-time-picker>
+                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                            <label class="control-label control-label-sm mb-0">Cliente</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input class="form-control input-sm" type="text" placeholder="Buscar por nombre" maxlength="250" ng-model="search.ClienteNombreCompleto" required />
+                                <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                            <label class="control-label control-label-sm mb-0">Celular</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input class="form-control input-sm" type="text" placeholder="Buscar por  celular" maxlength="250" ng-model="search.Celular" required />
+                                <span class="glyphicon glyphicon-phone form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div id="CamposFilter" class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                            <label class="control-label control-label-sm mb-0">E-mail</label>
+                            <div class="form-group has-feedback mb-3">
+                                <input class="form-control input-sm" type="text" placeholder="Buscar por email" maxlength="250" ng-model="search.Email" required />
+                                <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                            <label class="control-label control-label-sm mb-0">Estado</label>
+                            <div class="form-group mb-3">
+                                <select class="form-control input-sm" ng-options="item.EstadoProcesoID as item.Nombre for item in FilterEstadosProcesos" ng-model="search.EstadoProcesoID"></select>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                            <label class="control-label control-label-sm mb-0">Estado de actividades</label>
+                            <div class="form-group mb-3">
+                                <select class="form-control input-sm" ng-model="search.EstadoGeneral" ng-options="item.ID as item.Nombre for item in EstadosGenerales"></select>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-3 col-lg-3">
+                            <label class="control-label control-label-sm mb-0">Tipo contacto</label>
+                            <div class="form-group mb-3">
+                                <select class="form-control input-sm" ng-model="search.OrigenPreContactoID" ng-options="item.OrigenPreContactoID as item.Nombre for item in OrigenesPreContactos"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-danger pull-right" ng-click="CerrarModalFiltrar()"><i class="glyphicon glyphicon-remove"></i>&nbsp;&nbsp;Cancelar</button>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-success pull-right" ng-click="Consultar();CerrarModalFiltrar();"><i class="glyphicon glyphicon-ok"></i>&nbsp;&nbsp;Aplicar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

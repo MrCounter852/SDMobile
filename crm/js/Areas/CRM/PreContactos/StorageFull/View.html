@@ -1,0 +1,1827 @@
+﻿
+<script src="/js/Areas/CRM/PreContactos/StorageFull/ControllerStorageFull.js?v=1213"></script>
+
+<div ng-controller="ControllerStorageFull" class="Crm-View" ng-init="Init()">
+    <div class="flex flex-column gap-8" ng-show="ModoView == 1">
+        <div class="box-sedi-2" ng-if="PreContacto.IsFormatoVinculacion == true">
+            <div class="content-flex flex-center flex-between">
+                <div class="flex flex-center gap-7">
+                    <button class="flex flex-center not-btn"><i class="fab fa-wpforms font-23 blue"></i></button>
+                    <h3 class="box-title box-title-sm">
+                        {{ PreContacto.FormatoVinculacion.FormatoVinculacionID == null ? 'Formato de vinculación' : ('Formato de vinculación N°.' + PreContacto.FormatoVinculacion.Consecutivo) }}
+                    </h3>
+                </div>
+                <div class="flex flex-center gap-7">
+                    <label class="flex flex-center control-label control-label-sm label-sedi1 mb-0 text-nowrap" ng-if="PreContacto.FormatoVinculacion.FormatoVinculacionID != undefined" ng-class="PreContacto.FormatoVinculacion.EnFirmaElectronica == false ? 'label-danger' : (PreContacto.FormatoVinculacion.EstadoFirmasSignio == 'Firmada' ? 'label-success' : ((PreContacto.FormatoVinculacion.EstadoFirmasSignio == 'Eliminada' || PreContacto.FormatoVinculacion.EstadoFirmasSignio == 'Rechazada') ? 'label-danger' : 'label-warning'))">
+                        {{ PreContacto.FormatoVinculacion.EstadoFirmasSignio == null ? 'Sin firmar' : PreContacto.FormatoVinculacion.EstadoFirmasSignio }}
+                    </label>
+                    <div class="btn-group flex flex-center">
+                        <div class="dropdown">
+                            <button class="not-btn dropdown-toggle flex flex-center" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a ng-if="PreContacto.FormatoVinculacion.FormatoVinculacionID != undefined" style="border-bottom: 1px #ddd solid" class="dropdown-item" href="#" ng-click="VerFormatoVinculacion()"><i class="fal fa-file-pdf mr-10 red"></i>Ver documento</a>
+                                <a ng-if="PreContacto.FormatoVinculacion.FormatoVinculacionID != undefined" class="dropdown-item" href="#" ng-click="AbrirHistoricoFirmas(4, PreContacto.FormatoVinculacion.FormatoVinculacionID)"><i class="fal fa-file-signature blue mr-10"></i>Historico firmas</a>
+                                <a class="dropdown-item" href="#" ng-click="AbrirEnlace()"><i class="fab fa-wpforms mr-10"></i>Abrir formulario</a>
+                                <a class="dropdown-item" href="#" ng-click="CopiarEnlace()"><i class="fal fa-link mr-10"></i>Copiar enlace</a>
+                                <a class="dropdown-item" href="#" ng-click="CompartirWhatsApp()"><i class="fab fa-whatsapp green mr-10"></i>WhatsApp</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box-sedi-2" ng-if="PreContacto.IsFormatoVinculacion == true && PreContacto.FormatoVinculacion.FormatoVinculacionID != null">
+            <div class="content-flex flex-center flex-between">
+                <div class="flex flex-center gap-7">
+                    <button class="flex flex-center not-btn"><i class="fal fa-file-prescription font-23 blue"></i></button>
+                    <h3 class="box-title box-title-sm">
+                        {{ PreContacto.FormatoSeguro.FormatoSeguroID == null ? 'Formato de seguro' : ('Formato de seguro N°.' + PreContacto.FormatoSeguro.Consecutivo) }}
+                    </h3>
+                </div>
+                <div class="flex flex-center gap-7">
+                    <div class="flex flex-center gap-7">
+                        <label class="flex flex-center control-label control-label-sm label-sedi1 mb-0 text-nowrap" ng-if="PreContacto.FormatoSeguro.FormatoSeguroID != undefined" ng-class="PreContacto.FormatoSeguro.EnFirmaElectronica == false ? 'label-danger' : (PreContacto.FormatoSeguro.EstadoFirmaSignio == 'Firmada' ? 'label-success' : ((PreContacto.FormatoSeguro.EstadoFirmaSignio == 'Eliminada' || PreContacto.FormatoSeguro.EstadoFirmaSignio == 'Rechazada') ? 'label-danger' : 'label-warning'))">
+                            {{ PreContacto.FormatoSeguro.EstadoFirmaSignio == null ? 'Sin firmar' : PreContacto.FormatoSeguro.EstadoFirmaSignio }}
+                        </label>
+                        <label class="flex flex-center control-label control-label-sm label-sedi1 mb-0 text-nowrap label-info" ng-if="PreContacto.FormatoVinculacion.TomaSeguro != undefined">
+                            {{ PreContacto.FormatoVinculacion.TomaSeguro == true ? 'Si toma seguro' : 'No toma seguro' }}
+                        </label>
+                    </div>
+                    <div class="btn-group flex flex-center">
+                        <div class="dropdown">
+                            <button class="not-btn flex flex-center dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a ng-if="PreContacto.FormatoSeguro.FormatoSeguroID != undefined" class="dropdown-item" href="#" ng-click="VerFormatoSeguro()"><i class="fal fa-file-pdf mr-10 red"></i>Ver documento</a>
+                                <!--<a ng-if="PreContacto.FormatoSeguro.FormatoSeguroID != undefined" style="border-top: 1px #ddd solid" class="dropdown-item" href="#" ng-click="AbrirHistoricoFirmas(5, PreContacto.FormatoSeguro.FormatoSeguroID)"><i class="fal fa-file-signature blue mr-10"></i>Historico firmas</a>
+                                <a ng-if="PreContacto.FormatoVinculacion.TomaSeguro == true" class="dropdown-item" href="#" ng-click="AbrirEnlaceFormatoSeguro()"><i class="fab fa-wpforms mr-10"></i>Abrir formulario</a>
+                                <a ng-if="PreContacto.FormatoVinculacion.TomaSeguro == true" class="dropdown-item" href="#" ng-click="CopiarEnlaceFormatoSeguro()"><i class="fal fa-link mr-10"></i>Copiar enlace</a>
+                                <a ng-if="PreContacto.FormatoVinculacion.TomaSeguro == true" class="dropdown-item" href="#" ng-click="CompartirWhatsAppFormatoSeguro()"><i class="fab fa-whatsapp green mr-10"></i>WhatsApp</a>-->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box mb-0" ng-class="PreContacto.ShowCotizaciones ? '' : 'pb-0'">
+            <div class="box-header with-border">
+                <div class="flex flex-center flex-between">
+                    <div class="flex flex-center gap-8">
+                        <button class="not-btn-sedi"><i class="fal fa-file-pdf font-23 blue"></i></button>
+                        <h3 class="box-title box-title-sm w100p">
+                            Cotizaciones ({{ PreContacto.Cotizaciones.length }})
+                        </h3>
+                    </div>
+                    <div class="flex flex-center gap-8">
+                        <button class="btn btn-xs btn-primary" ng-click="AbrirNuevaCotizacion()">Nueva cotización <i class="fal fa-plus"></i></button>
+                        <button class="not-btn-sedi" ng-click="PreContacto.ShowCotizaciones = PreContacto.ShowCotizaciones ? false : true"><i class="fad font-23 blue" ng-class="PreContacto.ShowCotizaciones ? 'fa-chevron-double-up' : 'fa-chevron-double-down'"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="box-body" style="padding: 6px 0px;" ng-show="PreContacto.ShowCotizaciones" ng-class="PreContacto.ShowCotizaciones ? 'fade in' : 'fade out'">
+                <div class="table-responsive content">
+                    <div class="content-card">
+                        <div class="mdc-card demo-card-left" ng-class="item.MostrarViews ? 'width-view' : ''" context-menu="MenuCotizaciones" ng-repeat="item in PreContacto.Cotizaciones">
+                            <div class="display-flex">
+                                <div class="content-cot">
+                                    <div class="mdc-card-wrapper-text-section pb-5 pt-5">
+                                        <div class="demo-card-title" style="text-align: center;">Cotización N°.{{ item.Consecutivo }}</div>
+                                    </div>
+                                    <div class="mdc-card-media mdc-card-cotizacion pointer" ng-click="visualizarCotizacion(item);">
+                                        <i class="fal fa-file-invoice" ng-class="item.Aprobado ? 'green' : ''"></i>
+                                    </div>
+                                    <div class="mdc-card-wrapper-text-section" style="padding: 7px 16px 0 16px;">
+                                        <div class="demo-card-subhead ws-ellip rem-lh-1" ng-class="item.Aprobado ? 'green' : ''"><div class="demo-card-subtitle">Estado: </div> {{ item.Aprobado ? 'Aprobado' : 'Sin aprobar' }}</div>
+                                        <div class="demo-card-subhead ws-n"><div class="demo-card-subtitle">Valor: </div> {{ item.ValorCotizacion | currency : '' : 0 }}</div>
+                                        <div class="demo-card-subhead ws-n"><div class="demo-card-subtitle">Fecha: </div> {{ item.FechaElaboracion | date : 'dd-MM-yyyy' }}</div>
+                                    </div>
+                                    <div class="mdc-card-wrapper-text-section text-center" style="padding: 5px 16px 6px 16px;">
+                                        <button class="not-btn" title="Editar la cotización" ng-click="AbrirEditarCotizacion(item)"><i class="fal fa-edit font-23 blue"></i></button>
+                                        <button class="not-btn mr-2" title="Generar orden de servicio" ng-if="item.Aprobado == true" ng-click="AbrirNuevaOrdenServicio(item)"><i class="fal fa-clone font-23 orange"></i></button>
+                                        <!--<button class="not-btn mr-2" title="Enviar por email" ng-click="AbrirModalMailCotizacion(item)"><i class="fal fa-envelope-open-text font-23 green"></i></button>-->
+                                        <button class="not-btn" title="Visualizar views de la cotizacion" ng-if="item.CotizacionesVistas.length > 0" ng-click="item.MostrarViews = item.MostrarViews ? false : true"><i class="fal fa-eye font-23 red"></i></button>
+                                    </div>
+                                </div>
+                                <div class="content-view" ng-if="item.MostrarViews" title="Views realizadas por el cliente">
+                                    <div class="mdc-card-wrapper-text-section pb-5 pt-5">
+                                        <div class="demo-card-title" style="text-align: center;">Vistas ({{ item.CotizacionesVistas.length }})</div>
+                                    </div>
+                                    <div class="mdc-card-wrapper-overflow scroll-sedi">
+                                        <div class="fecha-view" ng-repeat="elem in item.CotizacionesVistas">{{ elem.Fecha | date : 'dd-MM-yyyy hh:mm a' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box mb-0" ng-class="PreContacto.ShowOrdenesServicios ? '' : 'pb-0'" ng-if="PreContacto.OrdenesServicios.length > 0">
+            <div class="box-header with-border">
+                <div class="flex flex-center flex-between">
+                    <div class="flex flex-center gap-8">
+                        <button class="not-btn-sedi"><i class="fal fa-file-spreadsheet font-23 blue"></i></button>
+                        <h3 class="box-title box-title-sm w100p">
+                            Ordenes Servicios ({{ PreContacto.OrdenesServicios.length }})
+                        </h3>
+                    </div>
+                    <div class="flex flex-center gap-8">
+                        <button class="not-btn-sedi" ng-click="PreContacto.ShowOrdenesServicios = PreContacto.ShowOrdenesServicios ? false : true"><i class="fad font-23 blue" ng-class="PreContacto.ShowOrdenesServicios ? 'fa-chevron-double-up' : 'fa-chevron-double-down'"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="box-body" style="padding: 6px 0px;" ng-show="PreContacto.ShowOrdenesServicios" ng-class="PreContacto.ShowOrdenesServicios ? 'fade in' : 'fade out'">
+                <div class="table-responsive content">
+                    <div class="content-card">
+                        <div class="mdc-card demo-card-left" context-menu="MenuOrdenesServicios" ng-repeat="item in PreContacto.OrdenesServicios">
+                            <div class="mdc-card-wrapper-text-section pb-0 pt-5 c-alias">
+                                <div class="demo-card-title">Orden N°.{{ item.Consecutivo }}</div>
+                            </div>
+                            <div class="mdc-card-media mdc-card-cotizacion pointer" ng-click="viewer.Open('API_STRG/api/PDFs/DocumentoD?TipoDocumentoID=3&DocumentoID=' + item.OrdenServicioID)">
+                                <i class="fal fa-file-spreadsheet" ng-class="item.EstadoOrdenServicioID == 4 ? 'red' : (item.EstadoOrdenServicioID == 2 ? 'green' : '')"></i>
+                            </div>
+                            <div class="mdc-card-wrapper-text-section c-alias" style="padding: 10px 16px 0 16px;">
+                                <div class="demo-card-subhead ws-ellip rem-lh-1" ng-class="item.EstadoOrdenServicioID == 4 ? 'red' : (item.EstadoOrdenServicioID == 2 ? 'green' : '')"><div class="demo-card-subtitle">Estado: </div> {{ item.EstadoOrdenServicioNombre }}</div>
+                                <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Valor: </div> {{ item.ValorOrdenServicio | currency : '' : 0 }}</div>
+                                <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Fecha: </div> {{ item.FechaElaboracion | date : 'dd-MM-yyyy' }}</div>
+                            </div>
+                            <div class="mdc-card-wrapper-text-section text-center" style="padding: 8px 16px;">
+                                <button class="not-btn" title="Editar la orden de servicio" ng-click="AbrirEditarOrdenServicio(item)"><i class="fal fa-edit font-23 blue"></i></button>
+                                <button class="not-btn mr-2" title="Enviar por email" ng-click="AbrirModalMailOrdenServicio(item)"><i class="fal fa-envelope-open-text font-23 green"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box mb-0" ng-class="PreContacto.ShowCodigoBarras ? '' : 'pb-0'" ng-if="PreContacto.PreFacturas.length > 0">
+            <div class="box-header with-border">
+                <div class="flex flex-center flex-between">
+                    <div class="flex flex-center gap-8">
+                        <button class="not-btn-sedi"><i class="fal fa-file-code font-23 blue"></i></button>
+                        <h3 class="box-title box-title-sm w100p">
+                            Código de barras ({{ PreContacto.PreFacturas.length }})
+                        </h3>
+                    </div>
+                    <div class="flex flex-center gap-8">
+                        <button class="not-btn-sedi" ng-click="PreContacto.ShowCodigoBarras = PreContacto.ShowCodigoBarras ? false : true"><i class="fad font-23 blue" ng-class="PreContacto.ShowCodigoBarras ? 'fa-chevron-double-up' : 'fa-chevron-double-down'"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="box-body" style="padding: 6px 0px;" ng-show="PreContacto.ShowCodigoBarras" ng-class="PreContacto.ShowCodigoBarras ? 'fade in' : 'fade out'">
+                <div class="table-responsive content">
+                    <div class="content-card">
+                        <div class="mdc-card demo-card-left" ng-repeat="item in PreContacto.PreFacturas">
+                            <div class="mdc-card-wrapper-text-section pb-0 pt-5">
+                                <div class="demo-card-title">Código N°.{{ item.Consecutivo }}</div>
+                            </div>
+                            <div class="mdc-card-media mdc-card-cotizacion pointer" ng-click="viewer.Open('API_FAC/api/PDFs/DocumentoD?TipoDocumentoID=4&DocumentoID=' + item.PreFacturaID)">
+                                <i class="fal fa-file-code"></i>
+                            </div>
+                            <div class="mdc-card-wrapper-text-section" style="padding: 10px 16px 0 16px;">
+                                <div class="demo-card-subhead ws-ellip rem-lh-1" title="{{ item.NombreCompleto }}">{{ item.NombreCompleto }}</div>
+                                <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Valor: </div> {{ item.ValorPreFactura | currency : '' : 0 }}</div>
+                                <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Fecha: </div> {{ item.FechaCreacion | date : 'dd-MM-yyyy' }}</div>
+                            </div>
+                            <div class="mdc-card-wrapper-text-section text-center" style="padding: 8px 16px">
+                                <button class="not-btn mr-2" ng-click="AbrirModalMailPreFactura(item)"><i class="fal fa-envelope-open-text font-23 green"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box mb-0" ng-class="PreContacto.ShowFacturas ? '' : 'pb-0'" ng-if="PreContacto.Facturas.length > 0">
+            <div class="box-header with-border">
+                <div class="flex flex-center flex-between">
+                    <div class="flex flex-center gap-8">
+                        <button class="not-btn-sedi"><i class="fal fa-file-invoice-dollar font-23 blue"></i></button>
+                        <h3 class="box-title box-title-sm w100p">
+                            Facturas ({{ PreContacto.Facturas.length }})
+                        </h3>
+                    </div>
+                    <div class="flex flex-center gap-8">
+                        <button class="not-btn-sedi" ng-click="PreContacto.ShowFacturas = PreContacto.ShowFacturas ? false : true"><i class="fad font-23 blue" ng-class="PreContacto.ShowFacturas ? 'fa-chevron-double-up' : 'fa-chevron-double-down'"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="box-body" style="padding: 6px 0px;" ng-show="PreContacto.ShowFacturas" ng-class="PreContacto.ShowFacturas ? 'fade in' : 'fade out'">
+                <div class="table-responsive content">
+                    <div class="content-card">
+                        <div class="mdc-card demo-card-left" ng-repeat="item in PreContacto.Facturas">
+                            <div class="mdc-card-wrapper-text-section pb-5 pt-5">
+                                <div class="demo-card-title">Factura N°.{{ item.Prefijo }}{{ item.Consecutivo }}</div>
+                            </div>
+                            <div class="mdc-card-media mdc-card-cotizacion pointer" ng-click="viewer.Open('API_FAC/api/PDFs/DocumentoD?TipoDocumentoID=1&DocumentoID=' + item.FacturaID)">
+                                <i class="fal fa-file-invoice-dollar"></i>
+                            </div>
+                            <div class="mdc-card-wrapper-text-section" style="padding: 10px 16px 0 16px;">
+                                <div class="demo-card-subhead ws-ellip rem-lh-1" title="{{ item.NombreCompleto }}">{{ item.NombreCompleto }}</div>
+                                <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Valor: </div> {{ item.ValorFactura | currency : '' : 0 }}</div>
+                                <div class="demo-card-subhead ws-ellip rem-lh-1"><div class="demo-card-subtitle">Fecha: </div> {{ item.FechaCreacion | date : 'dd-MM-yyyy' }}</div>
+                            </div>
+                            <div class="mdc-card-wrapper-text-section text-center" style="padding: 8px 16px;">
+                                <button class="not-btn mr-2" ng-click="AbrirModalMailFactura(item)"><i class="fal fa-envelope-open-text font-23 green"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <file-viewer ng-viewer="viewer"></file-viewer>
+    <bodegas ng-model="BodegasModel" ng-bodegas-options="BodegasOptions"></bodegas>
+    <section class="content flex flex-column gap-7" ng-show="ModoView == 2">
+        <div class="box-sedi-2">
+            <div class="content-flex flex-wrap flex-between gap-7" style="padding: 8px 0">
+                <div class="flex flex-center gap-7">
+                    <button class="not-btn-sedi" ng-click="AtrasModoView();" title="Volver a los contactos"><i class="iconify icon-action-undo font-23" style="color: #6c757d !important;"></i></button>
+                    <h3 class="box-title box-title-sm" ng-bind="Titulo"></h3>
+                </div>
+                <button class="not-btn-sedi" ng-click="AtrasModoView();" title="Volver a los contactos"><i class="fad fa-times" style="color: #6c757d !important; font-size: 27px;"></i></button>
+            </div>
+        </div>
+        <div class="flex flex-column gap-7" ng-class="Cotizacion.Aprobado == false ? '' : 'disabled'">
+            <div>
+                <span class="style-title-sedi">Contacto</span>
+                <div class="box-sedi-2">
+                    <div class="content-flex flex-wrap-start" style="gap: 5px 8px">
+                        <div style="flex: 1 170px">
+                            <label class="control-label control-label-sm mb-0">Nombres</label><strong class="red">*</strong>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" placeholder="Nombres" ng-model="Cotizacion.Nombres" maxlength="250" required />
+                                <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 170px">
+                            <label class="control-label control-label-sm mb-0">Apellidos</label><strong class="red">*</strong>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" placeholder="Apellidos" ng-model="Cotizacion.Apellidos" maxlength="250" required />
+                                <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 120px">
+                            <label class="control-label control-label-sm mb-0">Celular</label><strong class="red">*</strong>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" placeholder="Celular" ng-model="Cotizacion.Celular" maxlength="20" required />
+                                <span class="glyphicon glyphicon-phone form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 120px">
+                            <label class="control-label control-label-sm mb-0">Telefono</label>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" placeholder="Telefono" ng-model="Cotizacion.Telefono" maxlength="35" required />
+                                <span class="glyphicon glyphicon-earphone form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 450px">
+                            <label class="control-label control-label-sm mb-0">Email</label><strong class="red">*</strong>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" placeholder="Correo" ng-model="Cotizacion.Email" maxlength="200" required />
+                                <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 200px">
+                            <label class="control-label control-label-sm mb-0">Dirección</label>
+                            <div class="input-group mb-0">
+                                <direcciones ng-model="Cotizacion.Direccion" ng-change="cargarDireciones(Cotizacion.Direccion);"></direcciones>
+                                <span class="input-group-btn">
+                                    <button class="btn btn-default btn-sm" style="height: 30px;" ng-click="AbrirModalDisponibilidadBodegas(Cotizacion.Direccion);"><i class="glyphicon glyphicon-zoom-in" style="position: initial;"></i></button>
+                                </span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 900px">
+                            <label class="control-label control-label-sm mb-0">Observaciones</label>
+                            <textarea rows="2" maxlength="3000" class="form-control input-sm" ng-model="Cotizacion.PreContactoObservaciones" placeholder="Ingresar observaciones" required></textarea>
+                        </div>
+                        <div style="flex: 1 215px">
+                            <div class="flex flex-center gap-5">
+                                <input type="checkbox" class="checkbox-sedi-20" ng-model="Cotizacion.PDFCliente" /><label class="control-label control-label-sm mb-0">Mostrar informacion cliente en PDF</label>
+                            </div>
+                        </div>
+                        <div style="flex: 1 160px">
+                            <div class="flex flex-center gap-5">
+                                <input type="checkbox" class="checkbox-sedi-20" ng-model="Cotizacion.MostrarCliente" /><label class="control-label control-label-sm mb-0">Mostrar datos del cliente</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-if="Cotizacion.MostrarCliente == true">
+                <span class="style-title-sedi">Cliente</span>
+                <div class="box-sedi-2">
+                    <div class="content-flex flex-wrap-start" style="gap: 5px 8px">
+                        <div style="flex: 1 200px">
+                            <label class="control-label control-label-sm mb-0">Tipo documento</label>
+                            <select class="form-control input-sm" ng-options="item.TipoDocumentoID as item.Nombre for item in TiposDocumentos" ng-model="Cotizacion.ClienteTipoDocumentoID"></select>
+                        </div>
+                        <div style="flex: 1 205px">
+                            <label class="control-label control-label-sm mb-0">Documento</label>&nbsp;&nbsp;<span class="red font-11">(Sin dígito de verificación)</span>
+                            <div class="input-group mb-0">
+                                <documento-box class="form-control input-sm" ng-numerico="{{(TiposDocumentos | filter:{ TipoDocumentoID: Cotizacion.ClienteTipoDocumentoID })[0].Numerico}}" ng-model="Cotizacion.ClienteDocumento" placeholder="Ingrese documento"></documento-box>
+                                <div class="input-group-btn input-group-not-btn">
+                                    <button class="not-btn" ng-click="BuscarTercero(Cotizacion)"><i class="fal fa-search font-18 blue"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="flex: 1 160px">
+                            <label class="control-label control-label-sm mb-0">Tipo persona</label>
+                            <select class="form-control input-sm" ng-options="item.TipoPersonaID as item.Nombre for item in TiposPersonas" ng-model="Cotizacion.ClienteTipoPersonaID" ng-change="ChangeTipoPersona(Cotizacion)"></select>
+                        </div>
+                        <div ng-style="{ 'flex': Cotizacion.ShowTipoPersona == true ? '1 170px' : '1 500px' }">
+                            <label class="control-label control-label-sm mb-0">{{ Cotizacion.ShowTipoPersona ? 'Nombres' : 'Empresa' }}</label>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" ng-model="Cotizacion.ClienteNombres" required maxlength="250" placeholder="Ingrese los nombres" />
+                                <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 170px" ng-if="Cotizacion.ShowTipoPersona">
+                            <label class="control-label control-label-sm mb-0">Nombres 2</label>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" ng-model="Cotizacion.ClienteNombres2" required maxlength="250" placeholder="Ingrese los nombres" />
+                                <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 170px" ng-if="Cotizacion.ShowTipoPersona">
+                            <label class="control-label control-label-sm mb-0">Apellidos</label>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" ng-model="Cotizacion.ClienteApellidos" required maxlength="250" placeholder="Ingrese los apellidos" />
+                                <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 170px" ng-if="Cotizacion.ShowTipoPersona">
+                            <label class="control-label control-label-sm mb-0">Apellidos 2</label>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" ng-model="Cotizacion.ClienteApellidos2" required maxlength="250" placeholder="Ingrese los apellidos" />
+                                <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 270px">
+                            <label class="control-label control-label-sm mb-0">Dirección</label>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" ng-model="Cotizacion.ClienteDireccion" required maxlength="200" placeholder="Ingrese la dirección" />
+                                <span class="icon glyphicon glyphicon-pushpin form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 150px">
+                            <label class="control-label control-label-sm mb-0">Telefono</label>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" ng-model="Cotizacion.ClienteTelefono" required maxlength="40" placeholder="Ingrese el telefono" />
+                                <span class="icon glyphicon glyphicon-earphone form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 150px">
+                            <label class="control-label control-label-sm mb-0">Celular</label>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" ng-model="Cotizacion.ClienteCelular" required maxlength="20" placeholder="Ingrese celular" />
+                                <span class="icon glyphicon glyphicon-phone form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 200px">
+                            <label class="control-label control-label-sm mb-0">Responsabilidad tributaria</label>
+                            <select class="form-control input-sm" ng-options="item.ResponsabilidadTributariaID as item.Descripcion for item in Responsabilidades" ng-model="Cotizacion.ClienteResponsabilidadTributariaID"></select>
+                        </div>
+                        <div style="flex: 1 500px">
+                            <label class="control-label control-label-sm mb-0">Email</label> <span class="aviso-email font-10">"Para ingresar varios emails separarlo por <strong class="font-14">;</strong> sin espacios."</span>
+                            <div class="has-feedback">
+                                <email-box class="form-control input-sm" ng-model="Cotizacion.ClienteEmail" maxlength="400" placeholder="Ingrese el email"></email-box>
+                                <span class="icon glyphicon glyphicon-envelope form-control-feedback"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="style-title-sedi">Datos de la cotización</span>
+                <div class="box-sedi-2">
+                    <div class="content-flex flex-wrap-start" style="gap: 5px 8px">
+                        <div style="flex: 1 250px">
+                            <label class="control-label control-label-sm mb-0">Asesor venta o comercial</label><strong class="red">*</strong>
+                            <div ng-if="Usuario.Asignable == true">
+                                <div custom-select="item.AsesorID as item.NombreCompleto for item in searchAsesores($searchTerm)" class="custom-select-sm" ng-model="Cotizacion.AsesorID"></div>
+                            </div>
+                            <div class="has-feedback" ng-if="Usuario.Asignable == false">
+                                <input type="text" class="form-control input-sm" placeholder="Asesor" ng-model="Cotizacion.AsesorNombreCompleto" maxlength="300" ng-disabled="true" />
+                                <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 220px">
+                            <label class="control-label control-label-sm mb-0">Medio de transporte</label><strong class="red">*</strong>
+                            <div custom-select="item.MedioTransporteID as item.Nombre for item in searchMediosTransporte($searchTerm)" class="custom-select-sm" ng-model="Cotizacion.MedioTransporteID" custom-select-options="ddlMediosTransporte"></div>
+                        </div>
+                        <div style="flex: 1 170px">
+                            <label class="control-label control-label-sm mb-0">Campaña</label>
+                            <select class="form-control input-sm" ng-options="item.CampanaID as item.Nombre for item in Campanas" ng-model="Cotizacion.CampanaID"></select>
+                        </div>
+                        <div style="flex: 1 200px">
+                            <label class="control-label control-label-sm mb-0">Plantilla</label><strong class="red">*</strong>
+                            <select class="form-control input-sm" ng-options="item.PlantillaDocumentoID as item.Nombre for item in CotizacionesPlantillasDocumentos" ng-model="Cotizacion.PlantillaDocumentoID"></select>
+                        </div>
+                        <div style="flex: 1 200px">
+                            <label class="control-label control-label-sm mb-0">Segmento</label><strong class="red">*</strong>
+                            <select class="form-control input-sm" ng-options="item.SegmentoID as item.Descripcion for item in Segmentos" ng-model="Cotizacion.SegmentoID"></select>
+                        </div>
+                        <div style="flex: 1 200px">
+                            <label class="control-label control-label-sm mb-0">Convenio</label>
+                            <select class="form-control input-sm" ng-options="item.ConvenioID as item.Nombre for item in Convenios" ng-model="Cotizacion.ConvenioID"></select>
+                        </div>
+                        <div style="flex: 1 185px" ng-if="Cotizacion.ConTransporte">
+                            <label class="control-label control-label-sm mb-0">Cantidad de vehiculos transporte</label><strong class="red">*</strong>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" ng-model="Cotizacion.NumeroCamiones" maxlength="100" placeholder="Ingrese cantidad vehiculos" required ui-number-mask="0" />
+                                <span class="glyphicon glyphicon-glass form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 125px" ng-if="Cotizacion.ConTransporte">
+                            <label class="control-label control-label-sm mb-0">Cantidad de operarios</label><strong class="red">*</strong>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" ng-model="Cotizacion.NumeroOperarios" maxlength="100" placeholder="Ingrese la cantidad de operarios" required ui-number-mask="0" />
+                                <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 205px" ng-if="Cotizacion.ConEmpaque">
+                            <label class="control-label control-label-sm mb-0">Cantidad de operarios para empaque</label><strong class="red">*</strong>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" ng-model="Cotizacion.NumeroOperariosEmpaque" maxlength="100" placeholder="Ingrese operarios requeridos" required ui-number-mask="0" />
+                                <span class="glyphicon glyphicon-glass form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 185px" ng-if="Cotizacion.ConEmpaque">
+                            <label class="control-label control-label-sm mb-0">Cantidad de dias para empaque</label><strong class="red">*</strong>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" ng-model="Cotizacion.NumeroDiasEmpaque" maxlength="100" placeholder="Ingrese cuantos dias" required ui-number-mask="0" />
+                                <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 155px">
+                            <label class="control-label control-label-sm mb-0">Fecha aproximada servicio</label><strong class="red">*</strong>
+                            <div class="has-feedback">
+                                <date-time-picker class="form-control input-sm" ng-model="Cotizacion.FechaSolicitud" placeholder="dd/mm/yyyy" format="DD/MM/YYYY"></date-time-picker>
+                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 160px">
+                            <label class="control-label control-label-sm mb-0">Fecha aproximada empaque</label>
+                            <div class="has-feedback">
+                                <date-time-picker class="form-control input-sm" ng-model="Cotizacion.FechaEmpaque" placeholder="dd/mm/yyyy" format="DD/MM/YYYY HH:mm"></date-time-picker>
+                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 160px" ng-if="Cotizacion.MedioTransporteID == 2">
+                            <label class="control-label control-label-sm mb-0">Fecha aproximada transporte</label>
+                            <div class="has-feedback">
+                                <date-time-picker class="form-control input-sm" ng-model="Cotizacion.FechaTransporte" placeholder="dd/mm/yyyy" format="DD/MM/YYYY HH:mm"></date-time-picker>
+                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 400px">
+                            <label class="control-label control-label-sm mb-0">De acuerdo a</label><strong class="red">*</strong>
+                            <div custom-select="item.OrigenCotizacionID as item.Nombre for item in searchOrigenesCotizaciones($searchTerm)" class="custom-select-sm" ng-model="Cotizacion.OrigenCotizacionID"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="style-title-sedi">Alcance de la cotización</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="table-responsive mb-0" ModeFicha="true">
+                            <table class="table table-sm table-condensed table-striped mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th class="width-200">Tipo de servicio</th>
+                                        <th>Variable del servicio</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <button ng-click="AgregarVariable()" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td>
+                                            <div custom-select="item.TipoProductoID as item.Nombre for item in searchTiposProductos($searchTerm)" class="custom-select-sm" ng-model="Variable.TipoProducto" custom-select-options="ddlSearchTiposProductosCotizacion"></div>
+                                        </td>
+                                        <td>
+                                            <div custom-select="item.TipoProductoVariableID as item.Descripcion for item in searchTiposProductosVariables($searchTerm)" class="custom-select-sm" ng-model="Variable.TipoProductoVariableID" custom-select-options="ddlSearchTiposProductosCotizacionVariables"></div>
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in Cotizacion.CotizacionesBodegajeAlcances" ng-if="item.Eliminar == false">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarVariable(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>{{ item.TipoProductoNombre }}</td>
+                                        <td>{{ item.TipoProductoVariableDescripcion }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-if="Cotizacion.RequiereDirecciones == true">
+                <span class="style-title-sedi">Información de origen</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="table-responsive mb-0" ModeFicha="true">
+                            <table class="table table-sm mb-0" style="margin-bottom: 0px;">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th>Origen</th>
+                                        <th class="width-200">Telefono</th>
+                                        <th class="width-200">Celular</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <button ng-click="AgregarDireccion(true)" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm" ng-model="Origen.Direccion" placeholder="Ingrese direccion de origen" maxlength="100" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm" ng-model="Origen.Telefono" placeholder="Ingrese telefono de contacto" maxlength="20" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm" ng-model="Origen.Celular" placeholder="Ingrese celular de contacto" maxlength="20" required />
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in Cotizacion.CotizacionesBodegajeDirecciones" ng-if="item.Eliminar == false && item.Origen == true">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarDireccion(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs" ng-model="item.Direccion" placeholder="Ingresar dirección" maxlength="100" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs" ng-model="item.Telefono" placeholder="Ingresar telefono" maxlength="20" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs" ng-model="item.Celular" placeholder="Ingresar celular" maxlength="20" required />
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-if="Cotizacion.RequiereDirecciones == true">
+                <span class="style-title-sedi">Información de destino</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="table-responsive mb-0" ModeFicha="true">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th>Destino</th>
+                                        <th class="width-200">Telefono</th>
+                                        <th class="width-200">Celular</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <button ng-click="AgregarDireccion(false)" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm" ng-model="Destino.Direccion" placeholder="Ingrese direccion de destino" maxlength="100" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm" ng-model="Destino.Telefono" placeholder="Ingrese telefono de contacto" maxlength="20" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm" ng-model="Destino.Celular" placeholder="Ingrese celular de contacto" maxlength="20" required />
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in Cotizacion.CotizacionesBodegajeDirecciones" ng-if="item.Eliminar == false && item.Origen == false">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarDireccion(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs" ng-model="item.Direccion" placeholder="Ingresar dirección" maxlength="100" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs" ng-model="item.Telefono" placeholder="Ingresar telefono" maxlength="20" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs" ng-model="item.Celular" placeholder="Ingresar celular" maxlength="20" required />
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="style-title-sedi">Servicios</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="flex flex-center gap-8">
+                            <div class="flex flex-center gap-5">
+                                <label class="control-label control-label-sm mb-0">Descuento</label><input type="checkbox" class="checkbox-sedi-15" ng-model="Cotizacion.RequiereAprobacionDescuento" ng-change="ValorDefault()" />
+                            </div>
+                            <div class="flex flex-center gap-5">
+                                <label class="control-label control-label-sm mb-0">Diario</label><input type="checkbox" class="checkbox-sedi-15" ng-model="Cotizacion.Diario" ng-change="ValorDefault()" />
+                            </div>
+                            <input type="number" ng-model="Cotizacion.Duracion" class="form-control input-xs width-80" required placeholder="Duración" ng-if="Cotizacion.Diario == true" ng-change="ChangeServicio()" />
+                            <div class="flex flex-center gap-5">
+                                <label class="control-label control-label-sm width-90 mb-0">Pago anticipado</label><input type="checkbox" class="checkbox-sedi-15" ng-model="Cotizacion.PagoAnticipado" />
+                            </div>
+                            <input type="number" ng-model="Cotizacion.MesesAnticipados" class="form-control width-80 input-xs" required placeholder="Meses" ng-if="Cotizacion.PagoAnticipado == true" />
+                        </div>
+                        <div class="table-responsive mb-0" ModeFicha="true">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th class="text-left">Servicio</th>
+                                        <th class="text-center width-110">Cantidad</th>
+                                        <th class="text-right width-150">Valor unitario</th>
+                                        <th class="text-right width-150" ng-if="Cotizacion.RequiereAprobacionDescuento == true">Valor unitario descuento</th>
+                                        <th class="text-right width-150">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <button ng-click="AgregarServicio()" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td>
+                                            <div custom-select="item.ProductoID as item.Nombre for item in searchProductos($searchTerm)" class="custom-select-sm" ng-model="Servicio.ProductoID" custom-select-options="ddlSearchProductosCotizacion"></div>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm text-center" ng-model="Servicio.Cantidad" placeholder="Ingrese" maxlength="50" ng-change="ChangeServicio()" ui-number-mask="0" required />
+                                        </td>
+                                        <td ng-if="Cotizacion.Diario == false || Cotizacion.Diario == undefined ">
+                                            <input type="text" class="form-control input-sm text-right" ng-model="Servicio.ValorUnitario" placeholder="Ingrese un valor" maxlength="50" ng-disabled="Servicio.TipoProductoBodegaje==true" ng-change="ChangeServicio()" ui-number-mask="Cotizacion.CantidadDecimales" required />
+                                        </td>
+                                        <td ng-if="Cotizacion.Diario == true">
+                                            <input type="text" class="form-control input-sm text-right" ng-model="Servicio.PrecioDiario" placeholder="Ingrese un valor diario" maxlength="50" ng-disabled="Servicio.TipoProductoBodegaje==true" ng-change="ChangeServicio()" ui-number-mask="Cotizacion.CantidadDecimales" required />
+                                        </td>
+                                        <td ng-if="Cotizacion.RequiereAprobacionDescuento == true">
+                                            <input type="text" class="form-control input-sm text-right" ng-model="Servicio.ValorUnitarioDescuento" placeholder="Ingrese un valor" maxlength="50" ng-change="ChangeServicio()" ui-number-mask="Cotizacion.CantidadDecimales" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm text-right" ng-model="Servicio.ValorTotal" disabled="disabled" ui-number-mask="Cotizacion.CantidadDecimales" required />
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in Cotizacion.CotizacionesProductos" ng-if="item.Eliminar == false && item.ProductoID != null">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarServicio(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td><input type="text" class="form-control input-xs" maxlength="200" required placeholder="Ingrese una descripción" ng-model="item.Descripcion" /></td>
+                                        <td class="text-center">{{ item.Cantidad }}</td>
+                                        <td class="text-right" ng-if="Cotizacion.Diario == true">{{ item.PrecioDiario | currency : "" : Cotizacion.CantidadDecimales }}</td>
+                                        <td class="text-right" ng-if="Cotizacion.Diario == false || Cotizacion.Diario == undefined ">{{ item.ValorUnitario | currency : "" : Cotizacion.CantidadDecimales }}</td>
+                                        <td class="text-right" ng-if="Cotizacion.RequiereAprobacionDescuento == true">
+                                            <input type="text" class="form-control input-xs text-right" ng-model="item.ValorUnitarioDescuento" placeholder="Ingrese un valor" maxlength="50" ng-change="ChangeServicioItem(item)" ui-number-mask="Cotizacion.CantidadDecimales" required />
+                                        </td>
+                                        <td class="text-right">
+                                            {{ item.ValorTotal | currency : "" : Cotizacion.CantidadDecimales  }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="{{Cotizacion.RequiereAprobacionDescuento == true ? '5':'4'}}" class="text-right">
+                                            <strong>SUBTOTAL DEL SERVICIO</strong>
+                                        </td>
+                                        <td class="text-right red">
+                                            {{ Cotizacion.SubTotalServicio | currency : "" : Cotizacion.CantidadDecimales  }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-show="((Cotizacion.CotizacionesProductos | filter: { Eliminar: false, TipoProductoBodegaje : true }).length > 0) || (Cotizacion.CotizacionesBodegajeBodegas | filter: { Eliminar: false }).length > 0">
+                <span class="style-title-sedi">Reservación de bodegas</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="table-responsive mb-0" ModeFicha="true">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th colspan="2" class="text-center">Servicio</th>
+                                        <th class="text-center">Bodega</th>
+                                        <th class="text-right width-150">Reservar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-show="(Cotizacion.CotizacionesProductos | filter: { Eliminar: 'false', TipoProductoBodegaje : 'true' }).length > 0">
+                                        <th colspan="4">
+                                            <div style="display: flex">
+                                                <select class="form-control input-sm" ng-options="item as ('Cantidad - ' + item.Cantidad + ', ' + (item.Descripcion == null ? item.Nombre : item.Descripcion) + ' - ' + (item.ValorTotal | currency : '' : '2')) for item in Cotizacion.CotizacionesProductos | filter:{ Eliminar: 'false', TipoProductoBodegaje : 'true' }" ng-model="ServicioBodega"></select>
+                                                <button class="not-btn width-170" ng-click="AbrirModalBodegas()">
+                                                    Reservar la bodega <i class="fa fa-share"></i>
+                                                    <i style="cursor: pointer; font-size: 24px; padding: 5px" class="fa fa-cubes" title="Reservar bodega"></i>
+                                                </button>
+                                            </div>
+                                        </th>
+                                    </tr>
+                                    <tr ng-repeat="item in Cotizacion.CotizacionesBodegajeBodegas" ng-if="item.Eliminar == false">
+                                        <td class="width-50">
+                                            <button ng-click="RemoveBodega(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>
+                                            {{ item.Cantidad }} - {{ (item.Descripcion == null ? item.Nombre : item.Descripcion) }} <strong>{{ item.ValorTotal | currency : '' : '2' }}</strong>
+                                        </td>
+                                        <td>
+                                            <div ng-if="item.CotizacionBodegajeBodegaID != null">Complejo: <strong ng-bind="item.ComplejoNombre"></strong>, Bodega N°: <strong ng-bind="item.Codigo"></strong>, <br />Reserva: <strong>{{item.FechaReserva | date: 'dd/MM/yyyy hh:mm a'}}</strong>, <br />Expiración: <strong>{{item.FechaExpiracion | date: 'dd/MM/yyyy hh:mm a'}}</strong>, <div ng-if="item.DiasFaltantesExpiracion != 0">Dias restantes: <strong>{{ item.DiasFaltantesExpiracion }}</strong></div><div ng-if="item.DiasFaltantesExpiracion == 0 && item.EstadoReserva == 'Vigente'">Minutos restantes: <strong>{{ item.MinutosFaltantesExpiracion }}</strong></div></div>
+                                            <div ng-if="item.CotizacionBodegajeBodegaID == null">Complejo: <strong ng-bind="item.ComplejoNombre"></strong>, Bodega N°: <strong ng-bind="item.Codigo"></strong></div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="label label-success" style="font-size: 14px; font-weight: 100;" ng-if="item.EstadoReserva == 'Vigente'">{{item.EstadoReserva}}</span>
+                                            <span class="label label-danger" style="font-size: 14px; font-weight: 100;" ng-if="item.EstadoReserva == 'Vencida'">{{item.EstadoReserva}}</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="style-title-sedi">Servicios no contemplados</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="table-responsive mb-0" ModeFicha="true">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr class="text-right">
+                                        <th class="width-40"></th>
+                                        <th class="text-left">Servicio no contemplado</th>
+                                        <th class="text-center width-100">Cantidad</th>
+                                        <th class="text-right width-150">Valor unitario</th>
+                                        <th class="text-right width-150">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <button ng-click="AgregarNoServicio()" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td>
+                                            <textarea msd-elastic maxlength="400" class="form-control input-sm" ng-model="NoServicio.Descripcion" rows="1" placeholder="Ingrese servicio no contemplado" required></textarea>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm text-center" ng-model="NoServicio.Cantidad" placeholder="Ingrese" maxlength="50" ng-change="ChangeNoServicio()" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm text-right" ng-model="NoServicio.ValorUnitario" placeholder="Ingrese un valor" maxlength="50" ui-number-mask="Cotizacion.CantidadDecimales" ng-change="ChangeNoServicio()" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm text-right" ng-model="NoServicio.ValorTotal" ui-number-mask="Cotizacion.CantidadDecimales" disabled="disabled" required />
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in Cotizacion.CotizacionesProductos" ng-if="item.Eliminar == false && item.ProductoID == null">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarNoServicio(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td><input type="text" class="form-control input-xs" maxlength="200" required placeholder="Ingrese una descripción" ng-model="item.Descripcion" /></td>
+                                        <td class="text-center">{{ item.Cantidad }}</td>
+                                        <td class="text-right">{{ item.ValorUnitario | currency : "" : Cotizacion.CantidadDecimales }}</td>
+                                        <td class="text-right">{{ item.ValorTotal | currency : "" : Cotizacion.CantidadDecimales  }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="4" class="text-right">
+                                            <strong>SUBTOTAL DEL SERVICIO NO CONTEMPLADO</strong>
+                                        </td>
+                                        <td class="text-right red">
+                                            {{ Cotizacion.SubTotalNoServicio | currency : "" : Cotizacion.CantidadDecimales  }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="4" class="text-right">
+                                            <strong>TOTAL COTIZACION</strong>
+                                        </td>
+                                        <td class="text-right red">
+                                            {{ Cotizacion.TotalServicio | currency : "" : Cotizacion.CantidadDecimales  }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="style-title-sedi">Archivos cliente</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="table-responsive mb-0" ModeFicha="true">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center width-200">Tipo documento</th>
+                                        <th>Cargar archivo</th>
+                                        <th class="text-center">Eliminar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <select class="form-control input-sm" ng-options="item.SerieID as item.DescripcionSerie for item in SeriesOrdenesServiciosBodegaje" ng-model="Archivo.SerieID" ng-change="ChangeSerieCotizacionBodegajeInput()"></select>
+                                        </td>
+                                        <td colspan="2">
+                                            <div ng-file-input ng-config-input="ConfigInputCotizacion"></div>
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in Cotizacion.CotizacionesBodegajeArchivos" ng-if="item.Eliminar == false">
+                                        <td class="text-center">
+                                            <label class="control-label control-label-sm">{{ item.DescripcionSerie }}</label>
+                                        </td>
+                                        <td><a href="#" class="font-15" ng-click="VerArchivo(item)">{{item.NombreArchivo}}</a></td>
+                                        <td class="text-center"><button ng-click="EliminarArchivo(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="style-title-sedi">Materiales</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="table-responsive mb-0" ModeFicha="true">
+                            <table class="table table-sm table-striped mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th>Descripción Material</th>
+                                        <th class="width-150">Cantidad</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <button ng-click="AgregarMaterialesCotizacion()" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td>
+                                            <div custom-select="item.ProductoID as item.Nombre for item in searchProductos($searchTerm)" class="custom-select-sm" ng-model="Material.ProductoID" custom-select-options="ddlSearchProductosMateriales"></div>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm text-center" ng-model="Material.Cantidad" placeholder="Cantidad" maxlength="50" ui-number-mask="0" />
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in Cotizacion.CotizacionesBodegajeMateriales" ng-if="item.Eliminar == false">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarMaterialesCotizacion(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>{{ item.Nombre }}</td>
+                                        <td class="text-center">
+                                            <input type="text" class="form-control input-xs text-center" ng-model="item.Cantidad" placeholder="Cantidad" maxlength="50" ui-number-mask="0" />
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="style-title-sedi">Observaciones de articulos</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <textarea ng-model="Cotizacion.ObservacionesArticulos" rows="3" class="form-control input-sm" required></textarea>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="style-title-sedi">Observaciones</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <summernote lang="es-ES" config="options" ng-model="Cotizacion.Observaciones"></summernote>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box-sedi-2" ng-if="Cotizacion.Aprobado == false">
+            <div class="content-flex flex-between flex-wrap gap-5">
+                <div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-primary" ng-click="GuardarCotizacion()" ng-if="Cotizacion.CotizacionID == null">
+                        <i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Crear
+                    </button>
+                    <button class="btn btn-sm btn-primary" ng-click="ActualizarCotizacion()" ng-if="Cotizacion.CotizacionID != null">
+                        <i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div ng-include="'/js/Areas/STRG/Complejos/ModalReservacion.html?v=456'"></div>
+    <section class="content flex flex-column gap-7" ng-show="ModoView == 3" style="padding: 0;">
+        <div class="box-sedi-2">
+            <div class="content-flex flex-wrap flex-between gap-7" style="padding: 8px 0">
+                <div class="flex flex-center gap-7">
+                    <button class="not-btn-sedi" ng-click="AtrasModoView();" title="Volver a los contactos"><i class="iconify icon-action-undo font-23" style="color: #6c757d !important;"></i></button>
+                    <h3 class="box-title box-title-sm" ng-bind="Titulo"></h3>
+                </div>
+                <button class="not-btn-sedi" ng-click="AtrasModoView();" title="Volver a los contactos"><i class="fad fa-times" style="color: #6c757d !important; font-size: 27px;"></i></button>
+            </div>
+        </div>
+        <div class="flex flex-column gap-7" ng-class="OrdenServicio.EstadoOrdenServicioID == 1 ? '' : 'disabled'">
+            <div>
+                <span class="style-title-sedi">Contacto</span>
+                <div class="box-sedi-2">
+                    <div class="content-flex flex-wrap-start" style="gap: 5px 8px">
+                        <div style="flex: 1 170px">
+                            <label class="control-label control-label-sm mb-0">Nombres</label><strong class="red">*</strong>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" placeholder="Nombres" ng-model="OrdenServicio.Nombres" maxlength="250" required />
+                                <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 170px">
+                            <label class="control-label control-label-sm mb-0">Apellidos</label><strong class="red">*</strong>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" placeholder="Apellidos" ng-model="OrdenServicio.Apellidos" maxlength="250" required />
+                                <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 120px">
+                            <label class="control-label control-label-sm mb-0">Celular</label><strong class="red">*</strong>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" placeholder="Celular" ng-model="OrdenServicio.Celular" maxlength="20" required />
+                                <span class="glyphicon glyphicon-phone form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 120px">
+                            <label class="control-label control-label-sm mb-0">Telefono</label>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" placeholder="Telefono" ng-model="OrdenServicio.Telefono" maxlength="35" required />
+                                <span class="glyphicon glyphicon-earphone form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 450px">
+                            <label class="control-label control-label-sm mb-0">Email</label><strong class="red">*</strong>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" placeholder="Correo" ng-model="OrdenServicio.Email" maxlength="200" required />
+                                <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 200px">
+                            <label class="control-label control-label-sm mb-0">Dirección</label>
+                            <div class="input-group mb-0">
+                                <direcciones ng-model="OrdenServicio.Direccion" ng-change="cargarDireciones(OrdenServicio.Direccion);"></direcciones>
+                                <span class="input-group-btn">
+                                    <button class="btn btn-default btn-sm" style="height: 30px;" ng-click="AbrirModalDisponibilidadBodegas(OrdenServicio.Direccion);"><i class="glyphicon glyphicon-zoom-in" style="position: initial;"></i></button>
+                                </span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 900px">
+                            <label class="control-label control-label-sm mb-0">Observaciones</label>
+                            <textarea rows="2" maxlength="3000" class="form-control input-sm" ng-model="OrdenServicio.PreContactoObservaciones" placeholder="Ingresar observaciones" required></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="style-title-sedi">Cliente</span>
+                <div class="box-sedi-2">
+                    <div class="content-flex flex-wrap-start" style="gap: 5px 8px">
+                        <div style="flex: 1 200px">
+                            <label class="control-label control-label-sm mb-0">Tipo documento</label><strong class="red">*</strong>
+                            <select class="form-control input-sm" ng-options="item.TipoDocumentoID as item.Nombre for item in TiposDocumentos" ng-model="OrdenServicio.ClienteTipoDocumentoID" ng-disabled="OrdenServicio.TerceroID != null || OrdenServicio.TieneFormatoVinculacion == true"></select>
+                        </div>
+                        <div style="flex: 1 205px">
+                            <label class="control-label control-label-sm mb-0">Documento</label>&nbsp;&nbsp;<span class="red font-11">(Sin dígito de verificación)</span><strong class="red">*</strong>
+                            <div class="input-group mb-0">
+                                <documento-box class="form-control input-sm" ng-numerico="{{(TiposDocumentos | filter:{ TipoDocumentoID: OrdenServicio.ClienteTipoDocumentoID })[0].Numerico}}" ng-model="OrdenServicio.ClienteDocumento" ng-disabled="OrdenServicio.TerceroID != null || OrdenServicio.TieneFormatoVinculacion == true" placeholder="Ingrese documento"></documento-box>
+                                <div class="input-group-btn input-group-not-btn">
+                                    <button class="not-btn" ng-click="BuscarTercero(OrdenServicio)" ng-disabled="OrdenServicio.TieneFormatoVinculacion == true"><i class="fal fa-search font-18 blue"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="flex: 1 160px">
+                            <label class="control-label control-label-sm mb-0">Tipo persona</label><strong class="red">*</strong>
+                            <select class="form-control input-sm" ng-options="item.TipoPersonaID as item.Nombre for item in TiposPersonas" ng-model="OrdenServicio.ClienteTipoPersonaID" ng-change="ChangeTipoPersona(OrdenServicio)" ng-disabled="OrdenServicio.TieneFormatoVinculacion == true"></select>
+                        </div>
+                        <div ng-style="{ 'flex': OrdenServicio.ShowTipoPersona == true ? '1 170px' : '1 500px' }">
+                            <label class="control-label control-label-sm mb-0">{{ OrdenServicio.ShowTipoPersona ? 'Nombres' : 'Empresa' }}</label><strong class="red">*</strong>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" ng-model="OrdenServicio.ClienteNombres" required maxlength="250" placeholder="Ingrese los nombres" ng-upper-clean ng-disabled="OrdenServicio.TieneFormatoVinculacion == true" />
+                                <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 170px" ng-if="OrdenServicio.ShowTipoPersona">
+                            <label class="control-label control-label-sm mb-0">Nombres 2</label>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" ng-model="OrdenServicio.ClienteNombres2" required maxlength="250" placeholder="Ingrese los nombres" ng-upper-clean ng-disabled="OrdenServicio.TieneFormatoVinculacion == true" />
+                                <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 170px" ng-if="OrdenServicio.ShowTipoPersona">
+                            <label class="control-label control-label-sm mb-0">Apellidos</label><strong class="red">*</strong>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" ng-model="OrdenServicio.ClienteApellidos" required maxlength="250" placeholder="Ingrese los apellidos" ng-upper-clean ng-disabled="OrdenServicio.TieneFormatoVinculacion == true" />
+                                <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 170px" ng-if="OrdenServicio.ShowTipoPersona">
+                            <label class="control-label control-label-sm mb-0">Apellidos 2</label>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" ng-model="OrdenServicio.ClienteApellidos2" required maxlength="250" placeholder="Ingrese los apellidos" ng-upper-clean ng-disabled="OrdenServicio.TieneFormatoVinculacion == true" />
+                                <span class="icon glyphicon glyphicon-pencil form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 270px">
+                            <label class="control-label control-label-sm mb-0">Dirección</label><strong class="red">*</strong>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" ng-model="OrdenServicio.ClienteDireccion" required maxlength="200" placeholder="Ingrese la dirección" ng-disabled="OrdenServicio.TieneFormatoVinculacion == true" />
+                                <span class="icon glyphicon glyphicon-pushpin form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 150px">
+                            <label class="control-label control-label-sm mb-0">Telefono</label>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" ng-model="OrdenServicio.ClienteTelefono" required maxlength="40" placeholder="Ingrese el telefono" ng-disabled="OrdenServicio.TieneFormatoVinculacion == true" />
+                                <span class="icon glyphicon glyphicon-earphone form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 150px">
+                            <label class="control-label control-label-sm mb-0">Celular</label>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" ng-model="OrdenServicio.ClienteCelular" required maxlength="20" placeholder="Ingrese celular" ng-disabled="OrdenServicio.TieneFormatoVinculacion == true" />
+                                <span class="icon glyphicon glyphicon-phone form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 200px">
+                            <label class="control-label control-label-sm mb-0">Responsabilidad tributaria</label>
+                            <select class="form-control input-sm" ng-options="item.ResponsabilidadTributariaID as item.Descripcion for item in Responsabilidades" ng-model="OrdenServicio.ClienteResponsabilidadTributariaID"></select>
+                        </div>
+                        <div style="flex: 1 200px">
+                            <label class="control-label control-label-sm mb-0">Pais</label><strong class="red">*</strong>
+                            <div custom-select="item.PaisID as item.Nombre for item in searchPaises($searchTerm)" class="custom-select-sm" custom-select-options="ddlSearchPaisesCliente" ng-model="OrdenServicio.ClientePaisID" ng-disabled="OrdenServicio.TieneFormatoVinculacion == true"></div>
+                        </div>
+                        <div style="flex: 1 200px">
+                            <label class="control-label control-label-sm mb-0">Ciudad</label><strong class="red">*</strong>
+                            <div custom-select="item.CiudadID as item.Nombre for item in searchCiudades($searchTerm)" class="custom-select-sm" ng-model="OrdenServicio.ClienteCiudadID" ng-disabled="OrdenServicio.TieneFormatoVinculacion == true"></div>
+                        </div>
+                        <div style="flex: 1 500px">
+                            <label class="control-label control-label-sm mb-0">Email</label> <span class="aviso-email font-10">"Para ingresar varios emails separarlo por <strong class="font-14">;</strong> sin espacios."</span>
+                            <div class="has-feedback">
+                                <email-box class="form-control input-sm" ng-model="OrdenServicio.ClienteEmail" maxlength="400" placeholder="Ingrese el email" ng-disabled="OrdenServicio.TieneFormatoVinculacion == true"></email-box>
+                                <span class="icon glyphicon glyphicon-envelope form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 500px">
+                            <label class="control-label control-label-sm mb-0">Email facturación electronica</label> <span class="aviso-email font-10">"Para ingresar varios emails separarlo por <strong class="font-14">;</strong> sin espacios."</span><strong class="red">*</strong>
+                            <div class="has-feedback">
+                                <email-box class="form-control input-sm" ng-model="OrdenServicio.ClienteEmailFacturacionElectronica" maxlength="400" placeholder="Ingrese el email" ng-disabled="OrdenServicio.TieneFormatoVinculacion == true"></email-box>
+                                <span class="icon glyphicon glyphicon-envelope form-control-feedback"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="style-title-sedi">Datos orden de servicio</span>
+                <div class="box-sedi-2">
+                    <div class="content-flex flex-wrap-start" style="gap: 5px 8px">
+                        <div style="flex: 1 150px">
+                            <label class="control-label control-label-sm mb-0">Consecutivo de cotización</label>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" ng-model="OrdenServicio.CotizacionConsecutivo" maxlength="100" disabled="disabled" />
+                                <span class="glyphicon glyphicon-file form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 200px">
+                            <label class="control-label control-label-sm mb-0">Plantilla</label>
+                            <select class="form-control input-sm" ng-options="item.PlantillaDocumentoID as item.Nombre for item in OrdenServicioPlantillasDocumentos" ng-model="OrdenServicio.PlantillaDocumentoID"></select>
+                        </div>
+                        <div style="flex: 1 250px">
+                            <label class="control-label control-label-sm mb-0">Medio de transporte</label><strong class="red">*</strong>
+                            <div custom-select="item.MedioTransporteID as item.Nombre for item in searchMediosTransporte($searchTerm)" class="custom-select-sm" ng-model="OrdenServicio.MedioTransporteID" custom-select-options="ddlMediosTransporteOrdenServicio"></div>
+                        </div>
+                        <div style="flex: 1 200px">
+                            <label class="control-label control-label-sm mb-0">Campaña</label>
+                            <select class="form-control input-sm" ng-options="item.CampanaID as item.Nombre for item in Campanas" ng-model="OrdenServicio.CampanaID"></select>
+                        </div>
+                        <div style="flex: 1 115px">
+                            <label class="control-label control-label-sm mb-0">Inicio contrato</label>
+                            <div class="has-feedback">
+                                <date-time-picker class="form-control input-sm" ng-model="OrdenServicio.FechaSolicitud" placeholder="dd/mm/yyyy" format="DD/MM/YYYY"></date-time-picker>
+                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 185px">
+                            <label class="control-label control-label-sm mb-0">Dias de empaque en la cotización </label>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" value="{{ OrdenServicio.NumeroDiasEmpaque == null ? 0 : OrdenServicio.NumeroDiasEmpaque }}" maxlength="100" disabled="disabled" />
+                                <span class="glyphicon glyphicon-file form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 425px">
+                            <label class="control-label control-label-sm mb-0"><strong class="red">Importante:</strong> Si la fecha de transporte y empaque es la misma, debe poner únicamente la fecha de transporte</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-if="OrdenServicio.RequiereDirecciones == true">
+                <span class="style-title-sedi">Dirección de origen</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="table-responsive mb-0" ModeFicha="true">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th>Origen</th>
+                                        <th class="width-200">Telefono</th>
+                                        <th class="width-200">Celular</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <button ng-click="AgregarDireccionOrdenServicio(true)" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm" ng-model="Origen.Direccion" placeholder="Ingrese direccion de origen" maxlength="100" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm" ng-model="Origen.Telefono" placeholder="Ingrese telefono de contacto" maxlength="20" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm" ng-model="Origen.Celular" placeholder="Ingrese celular de contacto" maxlength="20" required />
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in OrdenServicio.OrdenesServiciosBodegajeDirecciones" ng-if="item.Eliminar == false && item.Origen == true">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarDireccionOrdenServicio(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs" ng-model="item.Direccion" placeholder="Ingresar dirección" maxlength="100" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs" ng-model="item.Telefono" placeholder="Ingresar telefono" maxlength="20" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs" ng-model="item.Celular" placeholder="Ingresar celular" maxlength="20" required />
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-if="OrdenServicio.RequiereDirecciones == true">
+                <span class="style-title-sedi">Dirección de destino</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="table-responsive mb-0" ModeFicha="true">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th>Destino</th>
+                                        <th class="width-200">Telefono</th>
+                                        <th class="width-200">Celular</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <button ng-click="AgregarDireccionOrdenServicio(false)" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm" ng-model="Destino.Direccion" placeholder="Ingrese direccion de destino" maxlength="100" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm" ng-model="Destino.Telefono" placeholder="Ingrese telefono de contacto" maxlength="20" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm" ng-model="Destino.Celular" placeholder="Ingrese celular de contacto" maxlength="20" required />
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in OrdenServicio.OrdenesServiciosBodegajeDirecciones" ng-if="item.Eliminar == false && item.Origen == false">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarDireccionOrdenServicio(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs" ng-model="item.Direccion" placeholder="Ingresar dirección" maxlength="100" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs" ng-model="item.Telefono" placeholder="Ingresar telefono" maxlength="20" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs" ng-model="item.Celular" placeholder="Ingresar celular" maxlength="20" required />
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-wrap-start" style="gap: 5px 8px" ng-if="OrdenServicio.RequiereDirecciones">
+                <div class="box-sedi-2" style="flex: 1 300px">
+                    <div class="content-block">
+                        <div class="table-responsive mb-0" ModeFicha="true">
+                            <table class="table table-sm table-striped mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th>Fechas de empaque</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <button ng-click="AgregarFechaEmpaque()" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td>
+                                            <div class="has-feedback">
+                                                <date-time-picker class="form-control input-sm" ng-model="Empaque.Fecha" format="DD/MM/YYYY HH:mm" placeholder="dd/mm/yyyy"></date-time-picker>
+                                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in OrdenServicio.OrdenesServiciosBodegajeFechas" ng-if="item.Eliminar == false && item.Empaque == true">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarFechaEmpaque(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>{{ item.Fecha | date : "dd/MM/yyyy HH:mm"}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="box-sedi-2" style="flex: 1 300px">
+                    <div class="content-block">
+                        <div class="table-responsive mb-0" ModeFicha="true">
+                            <table class="table table-sm table-striped mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th>Fechas de transporte</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <button ng-click="AgregarFechaTransporte()" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td>
+                                            <div class="has-feedback">
+                                                <date-time-picker class="form-control input-sm" ng-model="Transporte.Fecha" format="DD/MM/YYYY HH:mm" placeholder="dd/mm/yyyy"></date-time-picker>
+                                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in OrdenServicio.OrdenesServiciosBodegajeFechas" ng-if="item.Eliminar == false && item.Empaque == false">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarFechaTransporte(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>{{ item.Fecha | date : "dd/MM/yyyy HH:mm"}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="style-title-sedi">Servicios</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="flex flex-center gap-5" style="max-width: 140px">
+                            <label class="control-label control-label-sm mb-0">Diario</label><input type="checkbox" class="checkbox-sedi-15" ng-model="OrdenServicio.Diario" ng-change="ChangeServicioOS(null, true)" />
+                            <input type="number" ng-model="OrdenServicio.Duracion" class="form-control input-xs" ng-show="OrdenServicio.Diario == true" ng-change="ChangeServicioOS(null, true)" placeholder="Duración" />
+                        </div>
+                        <div class="table-responsive mb-0" ModeFicha="true">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th class="text-left">Descripción servicio</th>
+                                        <th class="text-center width-110"> Cantidad </th>
+                                        <th class="text-right width-150"> Valor unitario </th>
+                                        <th class="text-right width-150"> Total </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <button ng-click="AgregarServicioOS()" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td>
+                                            <div custom-select="item.ProductoID as item.Nombre for item in searchProductos($searchTerm)" class="custom-select-sm" ng-model="Servicio.ProductoID" custom-select-options="ddlSearchProductosOrdenServicio"></div>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm text-center" ng-model="Servicio.Cantidad" placeholder="Ingrese" maxlength="50" ui-number-mask="0" ng-change="ChangeServicioOS()" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm text-right" ng-model="Servicio.ValorUnitario" placeholder="Ingrese un valor" maxlength="50" ui-number-mask="OrdenServicio.CantidadDecimales" ng-change="ChangeServicioOS()" ng-disabled="Servicio.TipoProductoBodegaje == true" required />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm text-right" ui-number-mask="OrdenServicio.CantidadDecimales" ng-model="Servicio.ValorTotal" disabled="disabled" required />
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in OrdenServicio.OrdenesServiciosProductos" ng-if="item.Eliminar == false && item.ProductoID != null">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarServicioOS(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>{{ item.Descripcion }}</td>
+                                        <td class="text-center">
+                                            <input type="text" class="form-control input-xs text-center" ui-number-mask="0" ng-model="item.Cantidad" ng-change="ChangeServicioOS(item)" required />
+                                        </td>
+                                        <td class="text-right">
+                                            <input type="text" class="form-control input-xs text-right" ui-number-mask="OrdenServicio.CantidadDecimales" ng-model="item.ValorUnitario" ng-change="ChangeServicioOS(item)" ng-disabled="item.TipoProductoBodegaje == true" required />
+                                        </td>
+                                        <td class="text-right">
+                                            {{ item.ValorTotal | currency : "" : OrdenServicio.CantidadDecimales  }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="4" class="text-right">
+                                            <strong>SUBTOTAL DEL SERVICIO</strong>
+                                        </td>
+                                        <td class="text-right" style="color: red;">
+                                            {{ OrdenServicio.SubTotalServicio | currency : "" : OrdenServicio.CantidadDecimales  }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-show="((OrdenServicio.OrdenesServiciosProductos | filter: { Eliminar: 'false', TipoProductoBodegaje : 'true' }).length > 0) || (OrdenServicio.OrdenesServiciosBodegajeBodegas  | filter: { Eliminar: 'false' }).length > 0">
+                <span class="style-title-sedi">Reservación de bodegas</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="table-responsive mb-0" ModeFicha="true">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th colspan="2" class="text-center">Servicio</th>
+                                        <th class="text-center">Bodega</th>
+                                        <th class="text-right width-160">Reservar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-show="(OrdenServicio.OrdenesServiciosProductos | filter: { Eliminar: 'false', TipoProductoBodegaje : 'true' }).length > 0">
+                                        <th colspan="4">
+                                            <div style="display: flex">
+                                                <select class="form-control input-sm" ng-options="item as ('Cantidad - ' + item.Cantidad + ', ' + (item.Nombre == null ? item.Descripcion : item.Nombre) + ' - ' + (item.ValorTotal | currency : '' : '2')) for item in OrdenServicio.OrdenesServiciosProductos | filter:{ Eliminar: 'false', TipoProductoBodegaje : 'true' }" ng-model="ServicioBodega"></select>
+                                                <button class="not-btn width-170" ng-click="AbrirModalBodegasOS()">
+                                                    Reservar la bodega <i class="fa fa-share"></i>
+                                                    <i style="cursor: pointer; font-size: 24px; padding: 5px" class="fa fa-cubes" title="Reservar bodega"></i>
+                                                </button>
+                                            </div>
+                                        </th>
+                                    </tr>
+                                    <tr ng-repeat="item in OrdenServicio.OrdenesServiciosBodegajeBodegas" ng-if="item.Eliminar == false">
+                                        <td class="width-50">
+                                            <button ng-click="RemoveBodegaOS(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>
+                                            {{ item.Cantidad }} - {{ item.Nombre == null ? item.Descripcion : item.Nombre }} <strong>{{ item.ValorTotal | currency : '' : '2' }}</strong>
+                                        </td>
+                                        <td>
+                                            <div ng-if="item.OrdenServicioBodegajeBodegaID != null">Complejo: <strong ng-bind="item.ComplejoNombre"></strong>, Bodega N°: <strong ng-bind="item.Codigo"></strong>, <br />Reserva: <strong>{{item.FechaReserva | date: 'dd/MM/yyyy hh:mm a'}}</strong>, <br />Expiración: <strong>{{item.FechaExpiracion | date: 'dd/MM/yyyy hh:mm a'}}</strong>, <div ng-if="item.DiasFaltantesExpiracion != 0">Dias restantes: <strong>{{ item.DiasFaltantesExpiracion }}</strong></div><div ng-if="item.DiasFaltantesExpiracion == 0 && item.EstadoReserva == 'Vigente'">Minutos restantes: <strong>{{ item.MinutosFaltantesExpiracion }}</strong></div></div>
+                                            <div ng-if="item.OrdenServicioBodegajeBodegaID == null">Complejo: <strong ng-bind="item.ComplejoNombre"></strong>, Bodega N°: <strong ng-bind="item.Codigo"></strong></div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="label label-success" style="font-size: 14px; font-weight: 100;" ng-if="item.EstadoReserva == 'Vigente'">{{ item.EstadoReserva }}</span>
+                                            <span class="label label-danger" style="font-size: 14px; font-weight: 100;" ng-if="item.EstadoReserva == 'Vencida'">{{ item.EstadoReserva }}</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="style-title-sedi">Servicios no contemplados</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="table-responsive mb-0" ModeFicha="true">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr class="text-right">
+                                        <th class="width-40"></th>
+                                        <th class="text-left">Servicio no contemplado</th>
+                                        <th class="text-center width-100">Cantidad</th>
+                                        <th class="text-right width-150">Valor unitario</th>
+                                        <th class="text-right width-150">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-show="(OrdenServicio.OrdenesServiciosProductos | filter : { Eliminar: 'false', ProductoID: null }).length == 0">
+                                        <th colspan="7" class="text-center">
+                                            No hay servicios
+                                        </th>
+                                    </tr>
+                                    <tr ng-repeat="item in OrdenServicio.OrdenesServiciosProductos" ng-if="item.Eliminar == false && item.ProductoID == null">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarNoServicioOS(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td><input type="text" class="form-control input-xs" maxlength="200" required placeholder="Ingrese una descripción" ng-model="item.Descripcion" /></td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs text-center" ui-number-mask="0" ng-model="item.Cantidad" ng-change="ChangeNoServicioOS(item)" />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-xs text-right" ui-number-mask="OrdenServicio.CantidadDecimales" ng-model="item.ValorUnitario" ng-change="ChangeNoServicioOS(item)" />
+                                        </td>
+                                        <td class="text-right">{{ item.ValorTotal | currency : "" : OrdenServicio.CantidadDecimales  }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="4" class="text-right">
+                                            <strong>SUBTOTAL DEL SERVICIO NO CONTEMPLADO</strong>
+                                        </td>
+                                        <td class="text-right red">
+                                            {{ OrdenServicio.SubTotalNoServicio | currency : "" : OrdenServicio.CantidadDecimales  }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="4" class="text-right">
+                                            <strong>TOTAL ORDEN SERVICIO</strong>
+                                        </td>
+                                        <td class="text-right red">
+                                            {{ OrdenServicio.TotalServicio | currency : "" : OrdenServicio.CantidadDecimales  }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-if="OrdenServicio.ConvenioID != null || OrdenServicio.SoporteConvenioRuta != null">
+                <span class="style-title-sedi">Soporte de convenio</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="table-responsive mb-0" ModeFicha="true">
+                            <table class="table table-sm mb-0">
+                                <tbody>
+                                    <tr ng-if="OrdenServicio.SoporteConvenioRuta != null">
+                                        <th>Archivo</th>
+                                        <th class="text-center width-60">Eliminar</th>
+                                    </tr>
+                                    <tr ng-if="OrdenServicio.SoporteConvenioRuta != null">
+                                        <td>
+                                            <a href="#" class="font-15" ng-click="viewer.Open(OrdenServicio.SoporteConvenioRuta)">Soporte_convenio</a>
+                                        </td>
+                                        <td class="text-center">
+                                            <button class="not-btn" ng-click="EliminarArchivoSoporteConvenio()"><i class="fal fa-trash-alt red font-23"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2">
+                                            <div ng-file-input ng-config-input="ConfigInputSoporteConvenio"></div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="style-title-sedi">Archivos cliente</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="table-responsive mb-0" ModeFicha="true">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center width-200">Tipo archivo</th>
+                                        <th>Cargar archivo</th>
+                                        <th class="text-center">Eliminar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <select class="form-control input-sm" ng-options="item.SerieID as item.DescripcionSerie for item in SeriesOrdenesServiciosBodegaje" ng-model="Archivo.SerieID" ng-change="ChangeSerieOrdenServicioBodegajeInput()"></select>
+                                        </td>
+                                        <td colspan="2">
+                                            <div ng-file-input ng-config-input="ConfigInputOrdenServicio"></div>
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in OrdenServicio.OrdenesServiciosBodegajeArchivos" ng-if="item.Eliminar == false">
+                                        <td class="text-center">
+                                            <select class="form-control input-xs" ng-options="item.SerieID as item.DescripcionSerie for item in SeriesOrdenesServiciosBodegaje" ng-model="item.SerieID"></select>
+                                        </td>
+                                        <td><a href="#" class="font-15" ng-click="VerArchivo(item)">{{item.NombreArchivo}}</a></td>
+                                        <td class="text-center"><button ng-click="EliminarArchivoOS(item, $index)" class="not-btn"><i class="fal fa-trash-alt font-23 red"></i></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="style-title-sedi">Materiales</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div class="table-responsive mb-0" ModeFicha="true">
+                            <table class="table table-sm table-striped mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="width-40"></th>
+                                        <th>Descripción Material</th>
+                                        <th class="width-150">Cantidad</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <button ng-click="AgregarMateriales()" class="not-btn"><i class="fal fa-plus-circle font-23 blue"></i></button>
+                                        </td>
+                                        <td>
+                                            <div custom-select="item.ProductoID as item.Nombre for item in searchProductos($searchTerm)" class="custom-select-sm" ng-model="Material.ProductoID" custom-select-options="ddlSearchProductosMateriales"></div>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control input-sm text-center" ng-model="Material.Cantidad" placeholder="Cantidad" maxlength="50" ui-number-mask="0" />
+                                        </td>
+                                    </tr>
+                                    <tr ng-repeat="item in OrdenServicio.OrdenesServiciosBodegajeMateriales" ng-if="item.Eliminar == false">
+                                        <td class="text-center">
+                                            <button ng-click="EliminarMateriales(item, $index)" class="not-btn" ng-disabled="item.RemisionSalidaID != null"><i class="fal fa-trash-alt font-23 red"></i></button>
+                                        </td>
+                                        <td>{{ item.Nombre }}</td>
+                                        <td class="text-center">
+                                            <input type="text" class="form-control input-xs text-center" ng-model="item.Cantidad" placeholder="Cantidad" maxlength="50" ui-number-mask="0" />
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="style-title-sedi">Pago anticipado bodega</span>
+                <div class="box-sedi-2">
+                    <div class="content-flex flex-wrap-start" style="gap: 5px 8px">
+                        <div style="flex: 1 161px">
+                            <label class="control-label control-label-sm mb-0">Pago anticipado</label>
+                            <div class="input-group mb-0">
+                                <span class="input-group-addon">
+                                    <span class="glyphicon glyphicon-eject"></span>
+                                </span>
+                                <select class="form-control input-sm" ng-options="item.ID as item.Nombre for item in SIoNo" ng-model="OrdenServicio.PagoAnticipado"></select>
+                            </div>
+                        </div>
+                        <div style="flex: 1 120px">
+                            <label class="control-label control-label-sm mb-0">Fecha inicio anticipo</label><strong class="red" ng-if="OrdenServicio.PagoAnticipado == true">*</strong>
+                            <div class="has-feedback">
+                                <date-time-picker class="form-control input-sm" ng-model="OrdenServicio.AnticipoFechaInicio" ng-disabled="OrdenServicio.PagoAnticipado != true" format="DD/MM/YYYY" placeholder="dd/mm/yyyy"></date-time-picker>
+                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 120px">
+                            <label class="control-label control-label-sm mb-0">Duración en meses</label><strong class="red" ng-if="OrdenServicio.PagoAnticipado == true">*</strong>
+                            <div class="has-feedback">
+                                <input type="text" class="form-control input-sm" ng-model="OrdenServicio.AnticipoMeses" ng-disabled="OrdenServicio.PagoAnticipado != true" placeholder="Meses" maxlength="50" ui-number-mask="0" />
+                                <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 1 375px" class="hidden-xs"></div>
+                    </div>
+                </div>
+            </div>
+            <div ng-if="OrdenServicio.CotizacionObservaciones.length > 2">
+                <span class="style-title-sedi">Observaciones de la cotización</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <div ng-bind-html="OrdenServicio.CotizacionObservaciones"></div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <span class="style-title-sedi">Observaciones</span>
+                <div class="box-sedi-2">
+                    <div class="content-block">
+                        <summernote lang="es-ES" config="options" ng-model="OrdenServicio.Observaciones"></summernote>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box-sedi-2" ng-if="OrdenServicio.EstadoOrdenServicioID == 1">
+            <div class="content-flex flex-between flex-wrap gap-5">
+                <div class="flex flex-center">
+                    <button class="btn btn-sm btn-danger pull-left" ng-click="AbrirModalCambioBodega()">
+                        <i class="fal fa-warehouse-alt"></i>&nbsp;&nbsp;FEB cambio de bodega
+                    </button>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-primary pull-right" ng-click="GuardarOrdenServicio()" ng-if="OrdenServicio.OrdenServicioID == null">
+                        <i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Crear
+                    </button>
+                    <button class="btn btn-sm btn-primary pull-right" ng-click="ActualizarOrdenServicio()" ng-if="OrdenServicio.OrdenServicioID != null">
+                        <i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+    <mail ng-model="MailModel" ng-mail-options="MailOptions"></mail>
+    <div id="modalHistoricoFirmas" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" data-target="#modalHistoricoFirmas"><i class="fal fa-times"></i></button>
+                    <h4 class="modal-title modal-title-sm"><i class="fal fa-file-contract"></i>&nbsp;&nbsp;Historico firmas</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <label class="control-label control-label-sm mb-0">Cliente:&nbsp;&nbsp;</label>{{ PreContacto.FormatoVinculacion.NombreCompleto }}
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <label class="control-label control-label-sm mb-0">Transacciones signio</label>
+                            <div class="table-responsive" style="max-height: 300px">
+                                <table class="table table-sm mb-0">
+                                    <thead class="thead-frozen">
+                                        <tr>
+                                            <th>N° solicitud</th>
+                                            <th>Tipo formulario</th>
+                                            <th>Estado firmas</th>
+                                            <th>Fecha registro</th>
+                                            <th>Usuario</th>
+                                            <th>Estado</th>
+                                            <th class="width-60">Opciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr ng-repeat="item in TransaccionesSignio">
+                                            <td>
+                                                <i ng-show="item.MostrarProgress" class="far fa-spinner font-15 mr-5 fa-spin"></i>
+                                                <a href="#" ng-click="VerTransaccionSignio(item)">{{ item.TransaccionID }}</a>
+                                            </td>
+                                            <td>{{ item.OrigenTransaccionSignioID == 4 ? 'Formato de vinculación' : (item.OrigenTransaccionSignioID == 5 ? 'Formato de seguro' : 'No hay') }}</td>
+                                            <td><label class="control-label control-label-sm label-tipo1 mb-0 ml-0" ng-class="item.EstadoTransaccion == 'Firmada' ? 'label-success' : (item.EstadoTransaccion == 'Eliminada' || item.EstadoTransaccion == 'Rechazada' ? 'label-danger' : 'label-warning')">{{ item.EstadoTransaccion == null ? 'En Elaboración' : item.EstadoTransaccion }}</label></td>
+                                            <td>{{ item.FechaRegistro | date : 'dd/MM/yyyy hh:mm a' }}</td>
+                                            <td>{{ item.UsuarioRegistro }}</td>
+                                            <td class="text-center">
+                                                <label class="control-label control-label-sm label-tipo1 mb-0 ml-0" ng-class="item.Activo ? 'label-success' : 'label-danger'">{{ item.Activo ? 'Activo' : 'Inactivo' }}</label>
+                                            </td>
+                                            <td class="text-center">
+                                                <button class="not-btn" ng-disabled="item.Activo == false || item.EstadoTransaccion == 'Eliminada'" ng-click="EliminarTransaccionSignio(item)">
+                                                    <i class="fal fa-trash-alt red"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr ng-if="TransaccionesSignio.length == 0">
+                                            <td colspan="7" class="text-center">
+                                                <b>No se encontraron registros en la tabla</b>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row content-signio" ng-show="Transaccion != null">
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <div class="panel-heading title-bg rem-75">
+                                <h4 class="panel-title" style="font-size: inherit; font-weight: 600;">
+                                    <a class="ml-5" style="font-weight: 100; text-decoration: none; color: #337ab7"><strong>SOLICITUD N° {{ Transaccion.id_transaccion }}</strong></a>
+                                </h4>
+                                <button class="close pull-right" ng-click="Transaccion = null"><i class="fal fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
+                            <label class="control-label control-label-sm mb-0 blue">Cliente&nbsp;&nbsp;</label>{{ PreContacto.FormatoVinculacion.NombreCompleto }}
+                        </div>
+                        <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
+                            <label class="control-label control-label-sm mb-0 blue">Fecha registro&nbsp;&nbsp;</label>{{ Sobre.FechaRegistro | date : 'dd/MM/yyyy hh:mm a' }}
+                        </div>
+                        <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
+                            <label class="control-label control-label-sm mb-0 blue">Estado:&nbsp;&nbsp;</label><label class="control-label control-label-sm label-tipo1 mb-0 ml-0" ng-class="Sobre.Activo ? 'label-success' : 'label-danger'">{{ Sobre.Activo ? 'Activo' : 'Inactivo' }}</label>
+                        </div>
+                        <div class="col-xs-12 col-sm-7 col-md-8 col-lg-8">
+                            <label class="control-label control-label-sm mb-0 blue">Usuario registro:&nbsp;&nbsp;</label>{{ Sobre.UsuarioRegistro }}
+                        </div>
+                        <div class="col-xs-12 col-sm-5 col-md-4 col-lg-4">
+                            <label class="control-label control-label-sm mb-0 blue">Estado firmas:&nbsp;&nbsp;</label><span class="red">{{ Transaccion.estado }}</span>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="Transaccion.nombre">
+                            <label class="control-label control-label-sm mb-0 blue">Nombre:&nbsp;&nbsp;</label>{{ Transaccion.nombre }}
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" ng-if="Transaccion.mensaje">
+                            <label class="control-label control-label-sm mb-0 blue">Mensaje:&nbsp;&nbsp;</label><div ng-bind-html="Transaccion.mensaje"></div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <label class="control-label control-label-sm mb-0 blue">Ciclo aprobación:&nbsp;&nbsp;</label>{{ Transaccion.ciclo_aprobacion ? 'Si' : 'No' }}
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6" ng-repeat="item in Transaccion.documentos">
+                            <label class="control-label control-label-sm mb-0">Documento N°.{{ $index + 1 }}:&nbsp;&nbsp;</label><a href="#" ng-click="viewer.Open(item.path)"><label class="control-label control-label-sm mb-0">{{ item.nombre }}</label></a>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 pl-0 pr-0">
+                            <div class="flex-row">
+                                <div class="flex-300" ng-repeat="item in Transaccion.contactos | orderBy : 'orden' " style="border: 1px solid #ddd; padding: 5px; border-radius: 6px;">
+                                    <div class="title-bg">
+                                        <h4><strong ng-if="item.Aprobador" class="red">Aprobador - </strong>FIRMANTE N°.{{ $index + 1 }}</h4>
+                                    </div>
+                                    <div><label class="title">{{ item.nombre }}</label></div>
+                                    <div><label class="title blue">Documento </label><strong>{{ item.tipo_identificacion }}.</strong> {{ item.identificacion }}</div>
+                                    <div><label class="title blue">Email </label>{{ item.email }}</div>
+                                    <div><label class="title blue">Orden </label>{{ item.orden }}</div>
+                                    <div><label class="title blue">Fecha firma </label>{{ item.FechaFirma == null ? 'Sin firmar' : (item.FechaFirma | date : 'dd/MM/yyyy hh:mm a') }}</div>
+                                    <div><label class="control-label ml-0 mb-0 label-tipo1 text-center" style="width: 100%; padding: 4px" ng-class="item.Firmado ? 'label-success' : 'label-warning'">{{ item.Firmado ? 'Firmado' : 'Pendiente de firma' }}</label></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="modalCambioBodega" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" data-target="#modalCambioBodega"><i class="fal fa-times"></i></button>
+                    <h4 class="modal-title modal-title-sm"><i class="fal fa-file-contract"></i>&nbsp;&nbsp;Generación FEB para cambio de bodega</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-5 col-md-3 col-lg-3">
+                            <label class="control-label control-label-sm mb-0">Tipo documento</label><strong class="red">*</strong>
+                            <div class="form-group mb-3">
+                                <select class="form-control input-sm" ng-options="item.TipoDocumentoID as item.Nombre for item in TiposDocumentos" ng-model="CambioBodega.TipoDocumentoID"></select>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-5 col-md-3 col-lg-3">
+                            <label class="control-label control-label-sm mb-0">Documento: </label><strong class="red">*</strong>
+                            <div class="form-group flex mb-3">
+                                <input type="text" class="form-control input-sm" placeholder="Ingrese el documento del cliente" ng-model="CambioBodega.Documento" />
+                                <button class="btn btn-sm btn-primary" ng-click="BuscarBodegasCambio()">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <div class="table-responsive" ng-repeat="item in CambioBodega.ContratosBodegas">
+                                <label class="control-label control-label-sm mb-0">Contrato N° {{ item.Consecutivo }}</label>
+                                <table class="table table-sm">
+                                    <thead class="thead-frozen">
+                                        <tr>
+                                            <th>Contrato N°</th>
+                                            <th>Cliente</th>
+                                            <th>Documento</th>
+                                            <th>Fecha inicio</th>
+                                            <th>Sucursal</th>
+                                            <th>Estado</th>
+                                            <th>Bloqueo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>{{ item.Consecutivo }}</td>
+                                            <td>{{ item.NombreCompleto }}</td>
+                                            <td>{{ item.TipoDocumento }}. {{ item.Documento }}</td>
+                                            <td>{{ item.FechaInicio | date : 'dd/MM/yyyy hh:mm a' }}</td>
+                                            <td>{{ item.Sucursal }}</td>
+                                            <td>{{ item.Estado }}</td>
+                                            <td>{{ item.CausalBloqueoFacturacion }}</td>
+                                        </tr>
+                                        <tr ng-repeat="elem in item.Bodegas">
+                                            <td style="padding-left: 25px"><strong>Bodega: </strong>{{ elem.Codigo }}</td>
+                                            <td colspan="2"><strong>Sede: </strong>{{ elem.ComplejoNombre }}</td>
+                                            <td><strong>Piso: </strong>{{ elem.ComplejoNombre }}</td>
+                                            <td><strong>M3: </strong>{{ elem.Piso }}</td>
+                                            <td><strong>Estado: </strong>{{ elem.BodegaEstado }}</td>
+                                            <td class="text-center" style="padding: 0px"><input type="checkbox" style="width: 20px; height: 20px" ng-init="InitCambioBodega(elem)" ng-change="ChangeCambioBodega(elem)" ng-model="elem.Seleccionar" /></td>
+                                        </tr>
+                                        <tr ng-if="item.Bodegas.length == 0">
+                                            <td colspan="7" class="text-center">
+                                                <b>No se encontraron bodegas activas</b>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-sm btn-primary pull-right" ng-click="GenerarFEBCambioDeBodega()" ng-disabled="ContratosBodegasSeleccionadas.length == 0">
+                        <i class="glyphicon glyphicon-floppy-save"></i>&nbsp;&nbsp;Validar y generar FEB
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
