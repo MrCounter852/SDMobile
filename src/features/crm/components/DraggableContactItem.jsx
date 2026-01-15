@@ -9,7 +9,7 @@ import Animated, {
   withTiming,
   runOnJS,
 } from "react-native-reanimated";
-import ContactItem from "./ContactItem";
+import TimelineContactItem from "./TimelineContactItem";
 
 const DRAG_ACTIVATION_DELAY = 300; // ms for long press
 const SPRING_CONFIG = {
@@ -113,7 +113,7 @@ const DraggableContactItem = ({
   return (
     <GestureDetector gesture={composedGesture}>
       <Animated.View style={[styles.container, animatedStyle]}>
-        <ContactItem
+        <TimelineContactItem
           item={item}
           onPress={null} // Handled by gesture
           onLongPress={null} // Handled by gesture
