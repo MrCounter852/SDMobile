@@ -12,6 +12,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useGlobal } from "../../../core/global";
+import FocusAwareStatusBar from "../../../components/FocusAwareStatusBar";
+import { COLORS } from "../../../core/theme";
 
 // Services
 const GestionComercialService = require("../services/crmService").default;
@@ -532,79 +534,103 @@ const GestionComercial = ({ navigation }) => {
   );
 
   return (
-    <SafeAreaView style={styles.mainContainer} edges={["top", "left", "right"]}>
+    <View style={styles.mainContainer}>
+      <FocusAwareStatusBar
+        barStyle="light-content"
+        backgroundColor={COLORS.primary}
+      />
+
       {isSelectionMode ? (
-        <View style={styles.selectedHeader}>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => {
-              setIsSelectionMode(false);
-              setSelectedContact(null);
-            }}
-          >
-            <Ionicons name="arrow-back" size={24} color="#337ab7" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={handleViewDetails}
-          >
-            <Ionicons name="eye-outline" size={24} color="#337ab7" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={handleViewActivities}
-          >
-            <Ionicons name="calendar-outline" size={24} color="#337ab7" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() =>
-              Alert.alert("Flag", "Funcionalidad de flag pendiente")
-            }
-          >
-            <Ionicons name="flag-outline" size={24} color="#337ab7" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => setColorPickerVisible(true)}
-          >
-            <Ionicons name="ellipsis-vertical" size={24} color="#337ab7" />
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.headerSubtitle}>Centro de</Text>
-            <Text style={styles.title}>Gestión comercial</Text>
-          </View>
-          <View style={styles.headerButtons}>
+        <SafeAreaView edges={["top"]} style={styles.selectionHeaderContainer}>
+          <View style={styles.selectedHeader}>
             <TouchableOpacity
-              style={[
-                styles.headerButton,
-                hasFilters && styles.headerButtonActive,
-              ]}
-              onPress={() => setFilterModalVisible(true)}
+              style={styles.selectionButton}
+              onPress={() => {
+                setIsSelectionMode(false);
+                setSelectedContact(null);
+              }}
+            >
+              <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.selectionButton}
+              onPress={handleViewDetails}
+            >
+              <Ionicons name="eye-outline" size={24} color={COLORS.primary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.selectionButton}
+              onPress={handleViewActivities}
             >
               <Ionicons
-                name={hasFilters ? "filter" : "filter-outline"}
-                size={22}
-                color={hasFilters ? "#337ab7" : "#3A3A3C"}
+                name="calendar-outline"
+                size={24}
+                color={COLORS.primary}
               />
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => navigation.navigate("NewLeadScreen")}
+              style={styles.selectionButton}
+              onPress={() =>
+                Alert.alert("Flag", "Funcionalidad de flag pendiente")
+              }
             >
-              <LinearGradient
-                colors={["#337ab7", "#00ACC4"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.addButton}
-              >
-                <Ionicons name="add" size={24} color="#fff" />
-              </LinearGradient>
+              <Ionicons name="flag-outline" size={24} color={COLORS.primary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.selectionButton}
+              onPress={() => setColorPickerVisible(true)}
+            >
+              <Ionicons
+                name="ellipsis-vertical"
+                size={24}
+                color={COLORS.primary}
+              />
             </TouchableOpacity>
           </View>
-        </View>
+        </SafeAreaView>
+      ) : (
+        <LinearGradient
+          colors={[COLORS.primary, COLORS.secondary, COLORS.accent]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.headerGradient}
+        >
+          <SafeAreaView edges={["top"]}>
+            <View style={styles.headerPattern}>
+              <View style={styles.patternCircle1} />
+              <View style={styles.patternCircle2} />
+            </View>
+            <View style={styles.headerContent}>
+              <View>
+                <Text style={styles.headerSubtitle}>Centro de</Text>
+                <Text style={styles.headerTitle}>Gestión comercial</Text>
+              </View>
+              <View style={styles.headerButtons}>
+                <TouchableOpacity
+                  style={[
+                    styles.headerButton,
+                    hasFilters && styles.headerButtonActive,
+                  ]}
+                  onPress={() => setFilterModalVisible(true)}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons
+                    name={hasFilters ? "filter" : "filter-outline"}
+                    size={20}
+                    color="#FFF"
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.addButton}
+                  onPress={() => navigation.navigate("NewLeadScreen")}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="add" size={24} color="#FFF" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </SafeAreaView>
+        </LinearGradient>
       )}
 
       {!isSelectionMode && activeTags.length > 0 && (
@@ -679,38 +705,63 @@ const GestionComercial = ({ navigation }) => {
         onColorSelect={handleColorSelect}
         selectedContacts={selectedContact ? [selectedContact] : []}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: "#F2F2F7",
+    backgroundColor: COLORS.background,
   },
-  header: {
+  // Header con gradiente
+  headerGradient: {
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    overflow: "hidden",
+  },
+  headerPattern: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  patternCircle1: {
+    position: "absolute",
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    top: -80,
+    right: -50,
+  },
+  patternCircle2: {
+    position: "absolute",
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "rgba(136,231,130,0.12)",
+    bottom: -40,
+    left: -30,
+  },
+  headerContent: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: "#fff",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
   },
   headerSubtitle: {
-    fontSize: 13,
-    color: "#8E8E93",
+    fontSize: 14,
+    color: "rgba(255,255,255,0.75)",
     fontWeight: "500",
     marginBottom: 2,
   },
-  title: {
-    fontSize: 24,
+  headerTitle: {
+    fontSize: 26,
     fontWeight: "800",
-    color: "#337ab7",
+    color: "#FFF",
     letterSpacing: -0.5,
   },
   headerButtons: {
@@ -719,38 +770,45 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   headerButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#F2F2F7",
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.2)",
     justifyContent: "center",
     alignItems: "center",
   },
   headerButtonActive: {
-    backgroundColor: "#E5F1FF",
-    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.3)",
   },
   addButton: {
     width: 44,
     height: 44,
-    borderRadius: 22,
+    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.2)",
     justifyContent: "center",
     alignItems: "center",
-    elevation: 4,
-    shadowColor: "#337ab7",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+  },
+  // Header modo selección
+  selectionHeaderContainer: {
+    backgroundColor: "#fff",
   },
   selectedHeader: {
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    padding: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: "#e9ecef",
-    height: 75,
+    borderBottomColor: "#E2E8F0",
+  },
+  selectionButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: "#F1F5F9",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 
