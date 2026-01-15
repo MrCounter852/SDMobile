@@ -16,6 +16,7 @@ const EDGE_THRESHOLD = 90;
 const MAX_SCROLL_SPEED = 10; // Reduced for smoother scrolling
 const CANCEL_ZONE_BOTTOM = 120; // Height from bottom of screen where cancel zone is
 const TIMELINE_DRAG_SCALE = 0.7;
+const TARGET_UPDATE_THRESHOLD = 50; // Min px movement to recalculate target column
 
 /**
  * Custom hook for managing drag-and-drop state across timeline columns
@@ -125,43 +126,70 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
     return null;
   };
 
+  // Track last calculated position to avoid recalculating on every pixel
+  const lastTargetCalcX = useSharedValue(0);
+
   /**
    * React to drag changes to update target column and cancel zone
+   * OPTIMIZED: Only recalculates target column when position changes significantly
    */
   useAnimatedReaction(
     () => ({
-      x: dragX.value,
-      y: dragY.value,
       isDragging: isDraggingShared.value,
-      currentScrollOffset: scrollOffset.value,
-      scale: timelineScale.value,
-      ids: columnIdsShared.value,
-      count: columnCount.value,
+      y: dragY.value,
     }),
-    (data) => {
-      if (!data.isDragging) return;
-
-      // Update target column
-      const targetId = getTargetColumnUI(
-        data.x, 
-        data.currentScrollOffset, 
-        data.scale, 
-        data.ids, 
-        data.count, 
-        columnWidth
-      );
-      
-      if (targetId !== null && targetId !== targetColumnIdShared.value) {
-        targetColumnIdShared.value = targetId;
+    (data, prevData) => {
+      if (!data.isDragging) {
+        // Reset when not dragging
+        lastTargetCalcX.value = 0;
+        return;
       }
 
-      // Check cancel zone
+      // Check cancel zone - simple Y comparison
       const overCancel = data.y > SCREEN_HEIGHT - CANCEL_ZONE_BOTTOM;
       if (overCancel !== cancelZoneHover.value) {
         cancelZoneHover.value = overCancel;
         if (overCancel) {
           runOnJS(Vibration.vibrate)(30);
         }
+      }
+    }
+  );
+
+  /**
+   * Separate reaction for target column - runs less frequently
+   */
+  useAnimatedReaction(
+    () => ({
+      x: dragX.value,
+      isDragging: isDraggingShared.value,
+      currentScrollOffset: scrollOffset.value,
+    }),
+    (data) => {
+      if (!data.isDragging) return;
+
+      // Only recalculate if X position changed significantly OR scroll changed
+      const adjustedX = data.x + data.currentScrollOffset;
+      const lastAdjustedX = lastTargetCalcX.value;
+      
+      if (Math.abs(adjustedX - lastAdjustedX) < TARGET_UPDATE_THRESHOLD) {
+        return; // Skip calculation if position change is too small
+      }
+      
+      lastTargetCalcX.value = adjustedX;
+
+      // Update target column
+      const targetId = getTargetColumnUI(
+        data.x, 
+        data.currentScrollOffset, 
+        timelineScale.value, 
+        columnIdsShared.value, 
+        columnCount.value, 
+        columnWidth
+      );
+      
+      if (targetId !== null && targetId !== targetColumnIdShared.value) {
+        targetColumnIdShared.value = targetId;
       }
     }
   );

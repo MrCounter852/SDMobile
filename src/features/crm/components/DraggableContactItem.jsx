@@ -70,9 +70,8 @@ const DraggableContactItem = ({
     })
     .onUpdate((event) => {
       "worklet";
-      if (isActive.value && onDragMove) {
-        onDragMove(event.absoluteX, event.absoluteY);
-      }
+      // Direct worklet call - no conditions, no bridge crossing
+      onDragMove(event.absoluteX, event.absoluteY);
     })
     .onEnd((event) => {
       "worklet";

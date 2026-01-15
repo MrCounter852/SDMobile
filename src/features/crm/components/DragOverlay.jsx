@@ -1,18 +1,24 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { StyleSheet, View, Text, Dimensions } from "react-native";
 import Animated, {
   useAnimatedStyle,
-  useDerivedValue,
+  useSharedValue,
   useAnimatedReaction,
   runOnJS,
+  withTiming,
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
+// Overlay dimensions for offset calculation
+const OVERLAY_WIDTH = 280;
+const OVERLAY_HEIGHT = 80;
+
 /**
  * Floating overlay that shows a preview of the dragged contact
  * Position animations on UI thread, text content via React state
+ * OPTIMIZED: Uses direct shared value access without derived values
  */
 const DragOverlay = ({
   overlayNombre,
@@ -35,43 +41,55 @@ const DragOverlay = ({
     color: "#8E8E93",
   });
 
-  // Convert containerOffsetY to derived value for use in worklet
-  const offsetY = useDerivedValue(() => containerOffsetY, [containerOffsetY]);
+  // Store offsetY as shared value - only updated when prop changes
+  const offsetYShared = useSharedValue(containerOffsetY);
 
-  // Update display data when overlay values change (at drag start)
+  // Update shared value when prop changes (rare - usually once on mount)
   useAnimatedReaction(
-    () => ({
-      nombre: overlayNombre.value,
-      celular: overlayCelular.value,
-      estado: overlayEstado.value,
-      color: overlayColor.value,
-      isDragging: isDraggingShared.value,
-    }),
-    (current, previous) => {
-      if (current.isDragging && !previous?.isDragging) {
-        // Drag just started, update display data
-        runOnJS(setDisplayData)({
-          nombre: current.nombre || "Contacto",
-          celular: current.celular || "",
-          estado: current.estado || "",
-          color: current.color || "#8E8E93",
-        });
+    () => containerOffsetY,
+    (current) => {
+      if (offsetYShared.value !== current) {
+        offsetYShared.value = current;
       }
     },
-    []
+    [containerOffsetY]
   );
 
-  // Animated style that follows the drag position
+  // Update display data when drag starts (only once per drag)
+  useAnimatedReaction(
+    () => isDraggingShared.value,
+    (isDragging, wasDragging) => {
+      if (isDragging && !wasDragging) {
+        // Drag just started, update display data
+        runOnJS(setDisplayData)({
+          nombre: overlayNombre.value || "Contacto",
+          celular: overlayCelular.value || "",
+          estado: overlayEstado.value || "",
+          color: overlayColor.value || "#8E8E93",
+        });
+      }
+    }
+  );
+
+  // OPTIMIZED: Minimal animated style - only essential values
   const animatedStyle = useAnimatedStyle(() => {
-    const shouldShow = isDraggingShared.value && !cancelZoneHover.value;
+    // Early return with hidden state if not dragging
+    if (!isDraggingShared.value) {
+      return {
+        opacity: 0,
+        transform: [{ translateX: 0 }, { translateY: 0 }, { scale: 1 }],
+      };
+    }
+
+    const shouldShow = !cancelZoneHover.value;
 
     return {
+      opacity: shouldShow ? dragOpacity.value : 0,
       transform: [
-        { translateX: dragX.value - 140 },
-        { translateY: dragY.value - offsetY.value - 80 },
+        { translateX: dragX.value - OVERLAY_WIDTH / 2 },
+        { translateY: dragY.value - offsetYShared.value - OVERLAY_HEIGHT },
         { scale: dragScale.value },
       ],
-      opacity: shouldShow ? dragOpacity.value : 0,
     };
   });
 
