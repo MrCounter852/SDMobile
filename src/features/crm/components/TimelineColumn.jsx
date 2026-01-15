@@ -12,8 +12,6 @@ import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   useAnimatedProps,
-  interpolate,
-  Extrapolation,
 } from "react-native-reanimated";
 import DraggableContactItem from "./DraggableContactItem";
 
@@ -48,12 +46,11 @@ const TimelineColumn = ({
     return isDragging && isTarget && !isSource ? 1 : 0;
   }, [columnId]);
 
-  // Single animated style for the entire column highlight - just border
-  const columnHighlightStyle = useAnimatedStyle(() => {
-    const progress = isTargetValue.value;
+  // Optimized: Use a separate overlay for highlighting instead of changing borderWidth
+  // Changing borderWidth causes expensive re-layout; opacity changes run on GPU with no layout cost
+  const highlightOverlayStyle = useAnimatedStyle(() => {
     return {
-      borderWidth: interpolate(progress, [0, 1], [0, 3], Extrapolation.CLAMP),
-      borderColor: progress > 0.5 ? "#337ab7" : "transparent",
+      opacity: isTargetValue.value,
     };
   });
 
@@ -157,7 +154,12 @@ const TimelineColumn = ({
   );
 
   return (
-    <Animated.View style={[styles.container, columnHighlightStyle]}>
+    <View style={styles.container}>
+      {/* Highlight overlay - uses opacity only for GPU-accelerated animation */}
+      <Animated.View
+        style={[styles.highlightOverlay, highlightOverlayStyle]}
+        pointerEvents="none"
+      />
       <View style={styles.header}>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.title} numberOfLines={1}>
@@ -198,7 +200,7 @@ const TimelineColumn = ({
           <Text style={styles.footerValue}>{formattedTotal}</Text>
         </View>
       </View>
-    </Animated.View>
+    </View>
   );
 };
 
@@ -215,8 +217,17 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 5,
-    borderWidth: 0,
-    borderColor: "transparent",
+  },
+  highlightOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 24,
+    borderWidth: 3,
+    borderColor: "#337ab7",
+    zIndex: 10,
   },
   header: {
     flexDirection: "row",
