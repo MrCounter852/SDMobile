@@ -49,6 +49,7 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
   const sourceColumnIdShared = useSharedValue(null);
   const targetColumnIdShared = useSharedValue(null);
   const isAutoScrolling = useSharedValue(false);
+  const autoScrollDirection = useSharedValue(0); // -1: left, 0: none, 1: right
 
   const timelineScale = useSharedValue(1);
 
@@ -83,25 +84,32 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
     "worklet";
     if (!isDraggingShared.value || !scrollViewRef) {
         if (isAutoScrolling.value) isAutoScrolling.value = false;
+        if (autoScrollDirection.value !== 0) autoScrollDirection.value = 0;
         autoScrollFrameCounter.value = 0;
         return;
     }
 
     const x = dragX.value;
     let speed = 0;
+    let direction = 0;
 
     if (x > 0 && x < EDGE_THRESHOLD) {
       const ratio = (EDGE_THRESHOLD - x) / EDGE_THRESHOLD;
       speed = -ratio * MAX_SCROLL_SPEED;
+      direction = -1; // scrolling left
     } else if (x > SCREEN_WIDTH - EDGE_THRESHOLD) {
       const ratio = (x - (SCREEN_WIDTH - EDGE_THRESHOLD)) / EDGE_THRESHOLD;
       speed = ratio * MAX_SCROLL_SPEED;
+      direction = 1; // scrolling right
     }
 
-    // Update auto-scrolling state
+    // Update auto-scrolling state and direction
     const isScrolling = speed !== 0;
     if (isAutoScrolling.value !== isScrolling) {
       isAutoScrolling.value = isScrolling;
+    }
+    if (autoScrollDirection.value !== direction) {
+      autoScrollDirection.value = direction;
     }
 
     if (speed !== 0) {
@@ -356,7 +364,8 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
     overlayCelular,
     overlayEstado,
     overlayColor,
-    isAutoScrolling, // Export the new shared value
+    isAutoScrolling,
+    autoScrollDirection, // -1: left, 0: none, 1: right
     startDrag,
     updateDrag,
     endDrag,

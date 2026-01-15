@@ -16,6 +16,7 @@ const OVERLAY_HEIGHT = 80;
  * Floating overlay that shows a preview of the dragged contact
  * Position animations on UI thread, text content via React state
  * OPTIMIZED: Minimal animated calculations, no derived values
+ * Hides during auto-scroll to prevent lag on low-end devices
  */
 const DragOverlay = ({
   overlayNombre,
@@ -28,6 +29,7 @@ const DragOverlay = ({
   dragOpacity,
   isDraggingShared,
   cancelZoneHover,
+  isAutoScrollingShared,
   containerOffsetY = 0,
 }) => {
   // React state for text content (updated at drag start)
@@ -62,12 +64,13 @@ const DragOverlay = ({
     }
   );
 
-  // OPTIMIZED: Minimal animated style - precomputed constants
+  // OPTIMIZED: Minimal animated style - hides during auto-scroll
   const animatedStyle = useAnimatedStyle(() => {
     "worklet";
-    // Use bitwise operations for faster conditional
     const isDragging = isDraggingShared.value;
-    const isHidden = !isDragging || cancelZoneHover.value;
+    const isAutoScrolling = isAutoScrollingShared?.value ?? false;
+    // Hide if not dragging, in cancel zone, OR during auto-scroll
+    const isHidden = !isDragging || cancelZoneHover.value || isAutoScrolling;
 
     return {
       opacity: isHidden ? 0 : dragOpacity.value,

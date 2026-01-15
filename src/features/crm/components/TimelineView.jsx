@@ -20,6 +20,7 @@ import { useGlobal } from "../../../core/global";
 import TimelineColumn from "./TimelineColumn";
 import DragOverlay from "./DragOverlay";
 import CancelDropZone from "./CancelDropZone";
+import AutoScrollIndicator from "./AutoScrollIndicator";
 import useDragAndDrop from "../hooks/useDragAndDrop";
 
 const GestionComercialService = require("../services/crmService").default;
@@ -115,6 +116,7 @@ const TimelineView = React.memo(
       endDrag,
       cancelDrag,
       isAutoScrolling,
+      autoScrollDirection,
       updateScrollOffset,
       updateContainerHeight,
     } = useDragAndDrop(
@@ -406,7 +408,14 @@ const TimelineView = React.memo(
             dragOpacity={dragOpacity}
             isDraggingShared={isDraggingShared}
             cancelZoneHover={cancelZoneHover}
+            isAutoScrollingShared={isAutoScrolling}
             containerOffsetY={containerOffsetY}
+          />
+
+          {/* Auto-scroll direction indicators */}
+          <AutoScrollIndicator
+            isDraggingShared={isDraggingShared}
+            autoScrollDirection={autoScrollDirection}
           />
 
           {/* Cancel drop zone at bottom */}
