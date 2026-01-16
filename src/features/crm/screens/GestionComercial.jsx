@@ -20,6 +20,7 @@ const GestionComercialService = require("../services/crmService").default;
 
 // Components
 import FilterModal from "../components/FilterModal";
+import CalendarFilterModal from "../components/CalendarFilterModal";
 import ColorPickerModal from "../components/ColorPickerModal";
 import TableView from "../components/TableView";
 import TimelineView from "../components/TimelineView";
@@ -615,7 +616,15 @@ const GestionComercial = ({ navigation }) => {
                   activeOpacity={0.8}
                 >
                   <Ionicons
-                    name={hasFilters ? "filter" : "filter-outline"}
+                    name={
+                      currentTab === "Calendario"
+                        ? hasFilters
+                          ? "calendar"
+                          : "calendar-outline"
+                        : hasFilters
+                        ? "filter"
+                        : "filter-outline"
+                    }
                     size={20}
                     color="#FFF"
                   />
@@ -683,21 +692,35 @@ const GestionComercial = ({ navigation }) => {
         </Tab.Screen>
       </Tab.Navigator>
 
-      <FilterModal
-        visible={filterModalVisible}
-        onClose={() => setFilterModalVisible(false)}
-        onApplyFilters={handleApplyFilters}
-        initialFilters={searchFilters}
-        mode={getCurrentMode()}
-        origenes={origenes}
-        tiposCalendarioActividades={tiposCalendarioActividades}
-        asesores={asesores}
-        onSearchAsesores={onSearchAsesores}
-        sucursales={sucursales}
-        formasContacto={formasContacto}
-        estadosProcesos={estadosProcesos}
-        loading={filterDataLoading}
-      />
+      {currentTab === "Calendario" ? (
+        <CalendarFilterModal
+          visible={filterModalVisible}
+          onClose={() => setFilterModalVisible(false)}
+          onApplyFilters={handleApplyFilters}
+          initialFilters={searchFilters}
+          tiposCalendarioActividades={tiposCalendarioActividades}
+          asesores={asesores}
+          onSearchAsesores={onSearchAsesores}
+          sucursales={sucursales}
+          loading={filterDataLoading}
+        />
+      ) : (
+        <FilterModal
+          visible={filterModalVisible}
+          onClose={() => setFilterModalVisible(false)}
+          onApplyFilters={handleApplyFilters}
+          initialFilters={searchFilters}
+          mode={getCurrentMode()}
+          origenes={origenes}
+          tiposCalendarioActividades={tiposCalendarioActividades}
+          asesores={asesores}
+          onSearchAsesores={onSearchAsesores}
+          sucursales={sucursales}
+          formasContacto={formasContacto}
+          estadosProcesos={estadosProcesos}
+          loading={filterDataLoading}
+        />
+      )}
 
       <ColorPickerModal
         visible={colorPickerVisible}

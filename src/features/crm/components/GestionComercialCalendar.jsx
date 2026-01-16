@@ -1,12 +1,22 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { View, StyleSheet, ActivityIndicator, Text } from "react-native";
+import {
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+  FlatList,
+} from "react-native";
 import {
   LocaleConfig,
   Timeline,
   CalendarProvider,
   WeekCalendar,
 } from "react-native-calendars";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useGlobal } from "../../../core/global";
+import { COLORS } from "../../../core/theme";
+
 const GestionComercialService = require("../services/crmService").default;
 
 // Configure Spanish locale
@@ -115,6 +125,20 @@ const getWeekRange = (dateStr) => {
 };
 
 /**
+ * Get range for the whole month of a given date
+ */
+const getMonthRange = (dateStr) => {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const firstDay = new Date(y, m - 1, 1);
+  const lastDay = new Date(y, m, 0);
+
+  return {
+    start: formatDateDMY(firstDay),
+    end: formatDateDMY(lastDay),
+  };
+};
+
+/**
  * Commercial Management Calendar Component
  * Simplified to show permanent Week/Timeline view.
  */
@@ -126,6 +150,7 @@ const GestionComercialCalendar = ({
   const { user } = useGlobal();
   const todayStr = useMemo(() => getLocalTodayStr(), []);
   const [selectedDate, setSelectedDate] = useState(todayStr);
+  const [viewMode, setViewMode] = useState("timeline"); // 'timeline' or 'list'
   const [initialScrollDone, setInitialScrollDone] = useState(false);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -136,29 +161,49 @@ const GestionComercialCalendar = ({
 
     setLoading(true);
     try {
-      const range = getWeekRange(selectedDate);
+      // Use different range based on view mode
+      const range =
+        viewMode === "list"
+          ? getMonthRange(selectedDate)
+          : getWeekRange(selectedDate);
+
       const filters = {
         ...searchFilters,
-        UsuarioID: user?.UsuarioID,
-        SucursalID: user?.SucursalID,
-        FechaInicial: range.start,
-        FechaFinal: range.end,
+        // Map AsesorID to UsuarioID and allow null for "Todos"
+        UsuarioID: Object.prototype.hasOwnProperty.call(
+          searchFilters,
+          "AsesorID"
+        )
+          ? searchFilters.AsesorID
+          : user?.UsuarioID,
+        // Prioritize SucursalID from filters
+        SucursalID: Object.prototype.hasOwnProperty.call(
+          searchFilters,
+          "SucursalID"
+        )
+          ? searchFilters.SucursalID
+          : user?.SucursalID,
+        // Priority to manually selected dates from FilterModal (which can be null),
+        // fallback to current view range only if property is missing
+        FechaInicial: Object.prototype.hasOwnProperty.call(
+          searchFilters,
+          "FechaInicial"
+        )
+          ? searchFilters.FechaInicial
+          : range.start,
+        FechaFinal: Object.prototype.hasOwnProperty.call(
+          searchFilters,
+          "FechaFinal"
+        )
+          ? searchFilters.FechaFinal
+          : range.end,
         Token: user?.Token,
       };
 
-      console.log(
-        "[Calendar] Loading data with filters:",
-        JSON.stringify(filters)
-      );
       const response = await GestionComercialService.consultarMiCalendarioTabla(
         filters
       );
-      console.log(
-        "[Calendar] Raw response (rows count):",
-        response?.rows?.length || 0
-      );
 
-      // Handle the { total, rows, result } structure
       const rowData =
         response?.rows || (Array.isArray(response) ? response : []);
       setEvents(rowData);
@@ -266,7 +311,7 @@ const GestionComercialCalendar = ({
         ) {
           marks[dateKey].dots.push({
             key: String(event.CalendarioActividadID),
-            color: event.statusColors?.primary || "#337ab7",
+            color: event.statusColors?.primary || COLORS.primary,
             selectedDotColor: "#fff",
           });
         }
@@ -282,15 +327,15 @@ const GestionComercialCalendar = ({
     marks[selectedDate] = {
       ...marks[selectedDate],
       selected: true,
-      selectedColor: "#337ab7",
+      selectedColor: COLORS.primary,
     };
     return marks;
   }, [baseMarks, selectedDate]);
 
-  // Filter events for the currently selected day timeline
-  const timelineEvents = useMemo(() => {
+  // Data for the timeline (just selected day)
+  const dayEvents = useMemo(() => {
     const selDate = selectedDate.trim();
-    const res = activities
+    return activities
       .filter((event) => {
         const start = event.startDateStr.trim();
         const end = event.endDateStr.trim();
@@ -323,33 +368,76 @@ const GestionComercialCalendar = ({
           cierre: event.cierre,
           proceso: event.proceso,
           startFormatted: `${formatDateDMY(
-            new Date(event.startDateStr)
+            new Date(event.startDateStr + "T12:00:00")
           )} ${event.startTimeStr.substring(0, 5)}`,
           endFormatted: `${formatDateDMY(
-            new Date(event.endDateStr)
+            new Date(event.endDateStr + "T12:00:00")
           )} ${event.endTimeStr.substring(0, 5)}`,
           summary: "",
           color: "transparent",
           primaryColor: event.statusColors?.primary,
           secondaryColor: event.statusColors?.secondary,
+          original: event,
         };
-      });
-    console.log(`[Calendar] Timeline events for ${selDate}:`, res.length);
-    return res;
+      })
+      .sort((a, b) => a.start.localeCompare(b.start));
   }, [activities, selectedDate]);
+
+  // Data for the scrolling list (grouped by date)
+  const listData = useMemo(() => {
+    if (viewMode !== "list") return [];
+
+    const grouped = activities.reduce((acc, event) => {
+      const date = event.startDateStr;
+      if (!acc[date]) acc[date] = [];
+      acc[date].push({
+        ...event,
+        id: String(event.CalendarioActividadID),
+        startFormatted: `${formatDateDMY(
+          new Date(event.startDateStr + "T12:00:00")
+        )} ${event.startTimeStr.substring(0, 5)}`,
+        endFormatted: `${formatDateDMY(
+          new Date(event.endDateStr + "T12:00:00")
+        )} ${event.endTimeStr.substring(0, 5)}`,
+        primaryColor: event.statusColors?.primary,
+        secondaryColor: event.statusColors?.secondary,
+        title: event.cleanTitle,
+        contact: event.Contacto,
+      });
+      return acc;
+    }, {});
+
+    return Object.keys(grouped)
+      .sort()
+      .map((date) => ({
+        date,
+        dayName:
+          LocaleConfig.locales["es"].dayNames[
+            new Date(date + "T12:00:00").getDay()
+          ],
+        dayNumber: date.split("-")[2],
+        data: grouped[date].sort((a, b) =>
+          a.startTimeStr.localeCompare(b.startTimeStr)
+        ),
+      }));
+  }, [activities, viewMode]);
+
   const handleEventPress = useCallback(
     (event) => {
-      const original = activities.find((e) =>
-        e.cleanTitle.includes(event.title)
-      );
+      const original = dayEvents.find((e) => e.id === event.id)?.original;
       if (original)
         navigation.navigate("ActivityDetail", { activity: original });
     },
-    [activities, navigation]
+    [dayEvents, navigation]
   );
 
-  // Custom event renderer for better appearance
-  const renderEvent = useCallback((event) => {
+  const handleGoToToday = () => {
+    setSelectedDate(todayStr);
+    setInitialScrollDone(false);
+  };
+
+  // Custom activity card renderer (used in both views)
+  const renderActivityCard = useCallback((event, isListMode = false) => {
     return (
       <View
         style={[
@@ -357,68 +445,99 @@ const GestionComercialCalendar = ({
           {
             backgroundColor: event.secondaryColor,
             borderLeftColor: event.primaryColor,
-            height: "100%", // Forzar a ocupar todo el alto dado por el Timeline
           },
+          isListMode && styles.listEventCard,
         ]}
       >
         <View style={styles.eventContent}>
-          <Text style={styles.eventTitleText}>{event.title}</Text>
+          <View style={styles.eventHeader}>
+            <Text style={styles.eventTitleText} numberOfLines={2}>
+              {event.title}
+            </Text>
+            {isListMode && (
+              <Text
+                style={[styles.eventTimeTag, { color: event.primaryColor }]}
+              >
+                {event.startTimeStr.substring(0, 5)}
+              </Text>
+            )}
+          </View>
 
           {event.descripcion && (
-            <Text style={styles.eventDescriptionText} numberOfLines={3}>
+            <Text style={styles.eventDescriptionText} numberOfLines={2}>
               {event.descripcion}
             </Text>
           )}
 
-          <View style={styles.detailsContainer}>
+          <View style={styles.detailsGrid}>
             {event.cliente && (
-              <Text style={styles.eventDetailLabel}>🏢 {event.cliente}</Text>
+              <View style={styles.detailItem}>
+                <Ionicons name="business" size={12} color={COLORS.secondary} />
+                <Text style={styles.detailItemText} numberOfLines={1}>
+                  {event.cliente}
+                </Text>
+              </View>
             )}
 
             {event.contact && (
-              <Text style={styles.eventContactText}>👤 {event.contact}</Text>
+              <View style={styles.detailItem}>
+                <Ionicons name="person" size={12} color={COLORS.secondary} />
+                <Text style={styles.detailItemText} numberOfLines={1}>
+                  {event.contact}
+                </Text>
+              </View>
             )}
 
             {event.visitante && (
-              <Text style={styles.eventExtraText}>
-                👋 Vis: {event.visitante}
-              </Text>
-            )}
-
-            {event.celular && (
-              <Text style={styles.eventExtraText}>📞 {event.celular}</Text>
-            )}
-
-            {event.email && (
-              <Text style={styles.eventExtraText}>✉️ {event.email}</Text>
+              <View style={styles.detailItem}>
+                <Ionicons
+                  name="people-outline"
+                  size={12}
+                  color={COLORS.secondary}
+                />
+                <Text style={styles.detailItemText} numberOfLines={1}>
+                  Vis: {event.visitante}
+                </Text>
+              </View>
             )}
 
             {event.direccion && (
-              <Text style={styles.eventExtraText}>📍 {event.direccion}</Text>
-            )}
-
-            {event.complejo && (
-              <Text style={styles.eventExtraText}>🏗️ {event.complejo}</Text>
+              <View style={styles.detailItem}>
+                <Ionicons name="location" size={12} color={COLORS.secondary} />
+                <Text style={styles.detailItemText} numberOfLines={1}>
+                  {event.direccion}
+                </Text>
+              </View>
             )}
 
             {event.inmueble && (
-              <Text style={styles.eventInmuebleText}>🏠 {event.inmueble}</Text>
-            )}
-
-            {event.proceso && (
-              <Text style={styles.eventBadgeText}>
-                #️⃣ Proceso: {event.proceso}
-              </Text>
+              <View style={styles.detailItem}>
+                <Ionicons name="home" size={12} color={COLORS.secondary} />
+                <Text style={styles.detailItemText} numberOfLines={1}>
+                  {event.inmueble}
+                </Text>
+              </View>
             )}
 
             {event.cierre && (
-              <Text style={styles.eventClosureText}>🏁 {event.cierre}</Text>
+              <View style={styles.detailItem}>
+                <Ionicons name="flag" size={12} color="#d9534f" />
+                <Text style={[styles.detailItemText, { color: "#d9534f" }]}>
+                  {event.cierre}
+                </Text>
+              </View>
             )}
           </View>
 
-          <Text style={[styles.eventTimeText, { color: event.primaryColor }]}>
-            Inicio: {event.startFormatted} - Fin: {event.endFormatted}
-          </Text>
+          <View style={styles.cardFooter}>
+            <Text style={styles.footerTimeText}>
+              {event.startFormatted.split(" ")[1]} -{" "}
+              {event.endFormatted.split(" ")[1]}
+            </Text>
+            {event.proceso && (
+              <Text style={styles.procesoBadge}>#{event.proceso}</Text>
+            )}
+          </View>
         </View>
       </View>
     );
@@ -429,76 +548,154 @@ const GestionComercialCalendar = ({
     const [year, month] = selectedDate.split("-");
     const monthIndex = parseInt(month) - 1;
     const monthName = LocaleConfig.locales["es"].monthNames[monthIndex];
-    return `${monthName} ${year}`;
+    return `${monthName}, ${year}`;
   }, [selectedDate]);
 
-  // Constant theme to avoid re-renders
-  const calendarThemeObj = useMemo(
-    () => ({
-      todayTextColor: "#337ab7",
-      selectedDayBackgroundColor: "#337ab7",
-      dotColor: "#337ab7",
-      selectedDotColor: "#fff",
-      arrowColor: "#337ab7",
-    }),
-    []
-  );
-
   return (
-    <CalendarProvider date={selectedDate} onDateChanged={setSelectedDate}>
+    <CalendarProvider
+      date={selectedDate}
+      onDateChanged={(date) => {
+        setSelectedDate(date);
+        setInitialScrollDone(false);
+      }}
+    >
       <View style={styles.container}>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitleText}>{getYearMonthTitle}</Text>
+        {/* Header with Month and Actions */}
+        <View style={styles.topHeader}>
+          <TouchableOpacity
+            onPress={handleGoToToday}
+            style={styles.todayButton}
+          >
+            <Ionicons name="today-outline" size={18} color={COLORS.primary} />
+            <Text style={styles.todayButtonText}>Hoy</Text>
+          </TouchableOpacity>
+
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.headerTitleText}>{getYearMonthTitle}</Text>
+          </View>
+
+          <View style={styles.viewToggleContainer}>
+            <TouchableOpacity
+              onPress={() => setViewMode("timeline")}
+              style={[
+                styles.toggleButton,
+                viewMode === "timeline" && styles.toggleButtonActive,
+              ]}
+            >
+              <Ionicons
+                name="time-outline"
+                size={18}
+                color={viewMode === "timeline" ? "#fff" : COLORS.primary}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setViewMode("list")}
+              style={[
+                styles.toggleButton,
+                viewMode === "list" && styles.toggleButtonActive,
+              ]}
+            >
+              <Ionicons
+                name="list-outline"
+                size={18}
+                color={viewMode === "list" ? "#fff" : COLORS.primary}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
-        <View style={styles.flex1}>
-          <WeekCalendar
-            firstDay={1}
-            markedDates={markedDates}
-            theme={calendarThemeObj}
-          />
-          <Timeline
-            key={`timeline-${selectedDate}`}
-            date={selectedDate}
-            events={timelineEvents}
-            format24h={false}
-            start={0}
-            end={24}
-            onEventPress={handleEventPress}
-            renderEvent={renderEvent}
-            showNowIndicator={selectedDate === todayStr}
-            scrollToNow={selectedDate === todayStr && !initialScrollDone}
-            onScroll={() => !initialScrollDone && setInitialScrollDone(true)}
-            initialTime={{ hour: new Date().getHours(), minute: 0 }}
-            onRefresh={() => loadCalendarData(true)}
-            refreshing={loading}
-            styles={timelineStyles}
-          />
+
+        {viewMode === "timeline" && (
+          <View style={styles.calendarContainer}>
+            <WeekCalendar
+              firstDay={1}
+              markedDates={markedDates}
+              theme={{
+                selectedDayBackgroundColor: COLORS.primary,
+                todayTextColor: COLORS.primary,
+                dotColor: COLORS.primary,
+                selectedDotColor: "#fff",
+                daySelectionAnimation: { type: "fade", duration: 200 },
+              }}
+            />
+          </View>
+        )}
+
+        <View style={styles.contentContainer}>
+          {viewMode === "timeline" ? (
+            <Timeline
+              key={`timeline-${selectedDate}`}
+              date={selectedDate}
+              events={dayEvents}
+              format24h={false}
+              start={0}
+              end={24}
+              onEventPress={handleEventPress}
+              renderEvent={(e) => renderActivityCard(e, false)}
+              showNowIndicator={selectedDate === todayStr}
+              scrollToNow={selectedDate === todayStr && !initialScrollDone}
+              onScroll={() => !initialScrollDone && setInitialScrollDone(true)}
+              initialTime={{ hour: new Date().getHours(), minute: 0 }}
+              styles={timelineStyles}
+            />
+          ) : (
+            <FlatList
+              data={listData}
+              keyExtractor={(item) => item.date}
+              renderItem={({ item }) => (
+                <View style={styles.dateGroup}>
+                  <View style={styles.dateHeader}>
+                    <Text style={styles.dateHeaderText}>
+                      {item.dayName}, {item.dayNumber}
+                    </Text>
+                  </View>
+                  {item.data.map((event) => (
+                    <TouchableOpacity
+                      key={event.id}
+                      activeOpacity={0.7}
+                      onPress={() => handleEventPress(event)}
+                    >
+                      {renderActivityCard(event, true)}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+              contentContainerStyle={styles.listContent}
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                  <MaterialCommunityIcons
+                    name="calendar-blank-outline"
+                    size={64}
+                    color={COLORS.lightGray}
+                  />
+                  <Text style={styles.emptyText}>No hay actividades</Text>
+                  <Text style={styles.emptySubText}>
+                    No hay compromisos registrados para este periodo.
+                  </Text>
+                </View>
+              }
+              onRefresh={() => loadCalendarData(true)}
+              refreshing={loading}
+            />
+          )}
         </View>
-        {/* Loader shifted to be absolute and not interfere with calendar height calculation */}
+
         {loading && (
-          <ActivityIndicator
-            style={styles.loader}
-            size="large"
-            color="#337ab7"
-          />
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color={COLORS.primary} />
+          </View>
         )}
       </View>
     </CalendarProvider>
   );
 };
 
-const calendarTheme = {
-  todayTextColor: "#337ab7",
-  selectedDayBackgroundColor: "#337ab7",
-};
-
 const timelineStyles = {
-  container: { backgroundColor: "transparent" },
-  line: { backgroundColor: "#eee", height: 1 },
-  timeLabel: { backgroundColor: "#fff", zIndex: 10 },
-  nowIndicatorLine: { backgroundColor: "#88E782", height: 2, zIndex: 20 },
+  container: { backgroundColor: COLORS.background },
+  line: { backgroundColor: "#E2E8F0", height: 1 },
+  timeLabel: { fontSize: 10, color: COLORS.gray, fontWeight: "500" },
+  nowIndicatorLine: { backgroundColor: COLORS.success, height: 2, zIndex: 20 },
   nowIndicatorKnob: {
-    backgroundColor: "#88E782",
+    backgroundColor: COLORS.success,
     width: 10,
     height: 10,
     borderRadius: 5,
@@ -507,108 +704,217 @@ const timelineStyles = {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  flex1: { flex: 1 },
-  loader: {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    marginLeft: -20,
-    marginTop: -20,
-    zIndex: 10,
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
   },
-  headerTitleContainer: {
-    paddingVertical: 10,
+  topHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: "#F1F5F9",
+  },
+  headerTitleContainer: {
+    flex: 1,
     alignItems: "center",
   },
   headerTitleText: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "700",
-    color: "#337ab7",
+    color: COLORS.dark,
     textTransform: "capitalize",
   },
-  eventCard: {
+  todayButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F1F5F9",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    gap: 4,
+  },
+  todayButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: COLORS.primary,
+  },
+  viewToggleContainer: {
+    flexDirection: "row",
+    backgroundColor: "#F1F5F9",
+    borderRadius: 8,
+    padding: 2,
+  },
+  toggleButton: {
+    width: 32,
+    height: 32,
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: 6,
-    borderLeftWidth: 5,
+  },
+  toggleButtonActive: {
+    backgroundColor: COLORS.primary,
+    elevation: 2,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    shadowRadius: 2,
+  },
+  calendarContainer: {
+    backgroundColor: "#fff",
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  contentContainer: {
+    flex: 1,
+  },
+  listContent: {
+    padding: 16,
+    paddingBottom: 40,
+  },
+  // Base Card Styles
+  eventCard: {
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+    marginBottom: 12,
     marginLeft: 40,
-    overflow: "hidden", // Para que el fondo no se salga de los bordes redondeados
+    overflow: "hidden",
+  },
+  listEventCard: {
+    marginLeft: 0,
+    marginBottom: 16,
+    borderLeftWidth: 6,
   },
   eventContent: {
-    paddingVertical: 12,
-    paddingHorizontal: 12,
+    padding: 12,
+  },
+  eventHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 4,
   },
   eventTitleText: {
+    flex: 1,
     fontSize: 14,
-    fontWeight: "800",
-    color: "#1C1C1E",
+    fontWeight: "700",
+    color: COLORS.dark,
     lineHeight: 18,
-    marginBottom: 4,
+  },
+  eventTimeTag: {
+    fontSize: 12,
+    fontWeight: "800",
+    backgroundColor: "rgba(255,255,255,0.6)",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginLeft: 8,
   },
   eventDescriptionText: {
     fontSize: 12,
-    color: "#555",
-    marginBottom: 8,
+    color: COLORS.gray,
+    marginBottom: 10,
     lineHeight: 16,
     fontStyle: "italic",
   },
-  detailsContainer: {
-    marginTop: 4,
-    borderTopWidth: 0.5,
-    borderTopColor: "#f0f0f0",
-    paddingTop: 4,
+  // Details Grid
+  detailsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(0,0,0,0.03)",
+    paddingTop: 8,
+    marginBottom: 8,
   },
-  eventDetailLabel: {
-    fontSize: 11,
-    color: "#2e6da4",
-    fontWeight: "700",
-    marginBottom: 2,
+  detailItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.4)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    gap: 4,
+    maxWidth: "100%",
   },
-  eventContactText: {
+  detailItemText: {
     fontSize: 11,
-    color: "#4a4a4a",
-    marginTop: 2,
-    fontWeight: "700",
-  },
-  eventExtraText: {
-    fontSize: 11,
-    color: "#6e6e6e",
-    marginTop: 2,
+    color: COLORS.dark,
     fontWeight: "500",
   },
-  eventInmuebleText: {
-    fontSize: 10,
-    color: "#337ab7",
+  // Footer
+  cardFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginTop: 4,
-    fontWeight: "600",
   },
-  eventBadgeText: {
+  footerTimeText: {
     fontSize: 10,
-    color: "#8e8e93",
-    marginTop: 4,
-    fontWeight: "500",
-  },
-  eventClosureText: {
-    fontSize: 10,
-    color: "#d9534f",
-    marginTop: 4,
     fontWeight: "700",
+    color: COLORS.lightGray,
     textTransform: "uppercase",
   },
-  eventTimeText: {
-    fontSize: 11,
-    fontWeight: "900",
-    textTransform: "uppercase",
+  procesoBadge: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: COLORS.primary,
+    backgroundColor: "rgba(51, 122, 183, 0.1)",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  // Utilities
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 80,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: COLORS.gray,
+    marginTop: 16,
+  },
+  emptySubText: {
+    fontSize: 14,
+    color: COLORS.lightGray,
     marginTop: 8,
-    alignSelf: "flex-end",
+    textAlign: "center",
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(248, 250, 252, 0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 100,
+  },
+  // List View specific
+  dateGroup: {
+    marginBottom: 20,
+  },
+  dateHeader: {
+    marginBottom: 12,
+    paddingBottom: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
+  },
+  dateHeaderText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: COLORS.primary,
+    textTransform: "capitalize",
+    paddingLeft: 4,
   },
 });
 
