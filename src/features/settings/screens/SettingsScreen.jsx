@@ -8,10 +8,28 @@ import {
   Linking,
   AppState,
   Platform,
+  ScrollView,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { checkPermissionsAsync } from "../../notifications/services/notificationConfig";
+import FocusAwareStatusBar from "../../../components/FocusAwareStatusBar";
+
+// Paleta de colores de la marca (según DESIGN_PATTERNS.md)
+const COLORS = {
+  primary: "#337ab7",
+  secondary: "#0086C8",
+  accent: "#00ACC4",
+  success: "#00CDA7",
+  highlight: "#88E782",
+  dark: "#1E293B",
+  gray: "#64748B",
+  lightGray: "#94A3B8",
+  background: "#F8FAFC",
+  white: "#FFFFFF",
+};
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
@@ -20,20 +38,7 @@ const SettingsScreen = () => {
 
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: () => (
-        <Text style={{ color: "#337ab7", fontSize: 18, fontWeight: "bold" }}>
-          Configuración
-        </Text>
-      ),
-      headerLeft: () => (
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#337ab7" />
-        </TouchableOpacity>
-      ),
-      headerRight: () => null,
+      headerShown: false,
     });
   }, [navigation]);
 
@@ -75,50 +80,138 @@ const SettingsScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Notificaciones</Text>
+      <FocusAwareStatusBar
+        barStyle="light-content"
+        backgroundColor={COLORS.primary}
+      />
 
-        <View style={styles.row}>
-          <View style={styles.rowInfo}>
-            <View style={styles.iconContainer}>
-              <Ionicons name="notifications-outline" size={24} color="#333" />
-            </View>
-            <View>
-              <Text style={styles.rowTitle}>Permitir Notificaciones</Text>
-              <Text style={styles.rowSubtitle}>
-                {notificationsEnabled
-                  ? "Recibirás notificaciones en este dispositivo"
-                  : "Las notificaciones están desactivadas"}
-              </Text>
+      {/* Header con Gradiente */}
+      <LinearGradient
+        colors={[COLORS.primary, COLORS.secondary, COLORS.accent]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <SafeAreaView edges={["top"]}>
+          <View style={styles.headerContent}>
+            {/* Círculos decorativos */}
+            <View style={styles.patternCircle1} />
+            <View style={styles.patternCircle2} />
+
+            <View style={styles.headerRow}>
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => navigation.goBack()}
+              >
+                <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>Configuración</Text>
+              <View style={{ width: 40 }} />
             </View>
           </View>
-          <Switch
-            value={notificationsEnabled}
-            onValueChange={handleOpenSettings} // On Android/iOS we can't programmatically enable, must go to settings
-            disabled={false}
-          />
+        </SafeAreaView>
+      </LinearGradient>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Sección de Notificaciones */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Ionicons
+              name="notifications-outline"
+              size={20}
+              color={COLORS.primary}
+            />
+            <Text style={styles.sectionTitle}>Notificaciones</Text>
+          </View>
+
+          <View style={styles.card}>
+            <View style={styles.settingRow}>
+              <View style={styles.settingInfo}>
+                <View style={styles.settingIconContainer}>
+                  <Ionicons
+                    name={
+                      notificationsEnabled
+                        ? "notifications"
+                        : "notifications-off-outline"
+                    }
+                    size={22}
+                    color={
+                      notificationsEnabled ? COLORS.success : COLORS.lightGray
+                    }
+                  />
+                </View>
+                <View style={styles.settingTextContainer}>
+                  <Text style={styles.settingTitle}>
+                    Permitir Notificaciones
+                  </Text>
+                  <Text style={styles.settingSubtitle}>
+                    {notificationsEnabled
+                      ? "Recibirás notificaciones en este dispositivo"
+                      : "Las notificaciones están desactivadas"}
+                  </Text>
+                </View>
+              </View>
+              <Switch
+                value={notificationsEnabled}
+                onValueChange={handleOpenSettings}
+                disabled={false}
+                trackColor={{ false: "#E2E8F0", true: "rgba(0,205,167,0.4)" }}
+                thumbColor={notificationsEnabled ? COLORS.success : "#F1F5F9"}
+                ios_backgroundColor="#E2E8F0"
+              />
+            </View>
+
+            {!notificationsEnabled && (
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleOpenSettings}
+                activeOpacity={0.7}
+              >
+                <LinearGradient
+                  colors={[COLORS.primary, COLORS.accent]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.actionButtonGradient}
+                >
+                  <Text style={styles.actionButtonText}>
+                    Ir a Configuración del Sistema
+                  </Text>
+                  <Feather
+                    name="external-link"
+                    size={16}
+                    color={COLORS.white}
+                  />
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
-        {!notificationsEnabled && (
-          <TouchableOpacity
-            style={styles.settingsButton}
-            onPress={handleOpenSettings}
-          >
-            <Text style={styles.settingsButtonText}>
-              Ir a Configuración del Sistema
-            </Text>
-            <Ionicons name="settings-outline" size={16} color="#007AFF" />
-          </TouchableOpacity>
-        )}
-      </View>
+        {/* Nota informativa */}
+        <View style={styles.infoCard}>
+          <View style={styles.infoIconContainer}>
+            <Ionicons
+              name="information-circle-outline"
+              size={22}
+              color={COLORS.secondary}
+            />
+          </View>
+          <Text style={styles.infoText}>
+            Si desactivas las notificaciones, es posible que no te enteres de
+            nuevos mensajes o eventos importantes mientras la aplicación no esté
+            en pantalla.
+          </Text>
+        </View>
 
-      <View style={styles.section}>
-        <Text style={styles.infoText}>
-          Nota: Si desactivas las notificaciones, es posible que no te enteres
-          de nuevos mensajes o eventos importantes mientras la aplicación no
-          esté en pantalla.
-        </Text>
-      </View>
+        {/* Versión de la app */}
+        <View style={styles.versionContainer}>
+          <Text style={styles.versionText}>SEDI Mobile v1.0.0</Text>
+        </View>
+      </ScrollView>
     </View>
   );
 };
@@ -126,81 +219,167 @@ const SettingsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f7fa",
-    padding: 20,
+    backgroundColor: COLORS.background,
   },
-  headerButton: {
-    marginRight: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+  headerGradient: {
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    overflow: "hidden",
   },
-  section: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+  headerContent: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 24,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 16,
-    color: "#333",
+  patternCircle1: {
+    position: "absolute",
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    top: -60,
+    right: -40,
   },
-  row: {
+  patternCircle2: {
+    position: "absolute",
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    bottom: -30,
+    left: -30,
+  },
+  headerRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-  rowInfo: {
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: COLORS.white,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    gap: 8,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: COLORS.gray,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  card: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  settingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  settingInfo: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-    marginRight: 10,
-  },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#f0f0f0",
-    alignItems: "center",
-    justifyContent: "center",
     marginRight: 12,
   },
-  rowTitle: {
+  settingIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: "rgba(0,134,200,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 14,
+  },
+  settingTextContainer: {
+    flex: 1,
+  },
+  settingTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#333",
+    color: COLORS.dark,
   },
-  rowSubtitle: {
+  settingSubtitle: {
     fontSize: 13,
-    color: "#666",
+    color: COLORS.gray,
     marginTop: 2,
   },
-  settingsButton: {
-    marginTop: 15,
+  actionButton: {
+    marginTop: 16,
+    borderRadius: 14,
+    overflow: "hidden",
+  },
+  actionButtonGradient: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 10,
-    backgroundColor: "#f0f8ff",
-    borderRadius: 8,
+    paddingVertical: 14,
     gap: 8,
   },
-  settingsButtonText: {
-    color: "#007AFF",
+  actionButtonText: {
+    color: COLORS.white,
     fontWeight: "600",
-    fontSize: 14,
+    fontSize: 15,
+  },
+  infoCard: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "rgba(0,134,200,0.08)",
+    borderRadius: 14,
+    padding: 16,
+    gap: 12,
+  },
+  infoIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "rgba(0,134,200,0.15)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   infoText: {
+    flex: 1,
     fontSize: 13,
-    color: "#888",
-    fontStyle: "italic",
-    textAlign: "center",
+    color: COLORS.gray,
+    lineHeight: 20,
+  },
+  versionContainer: {
+    alignItems: "center",
+    marginTop: 32,
+    marginBottom: 16,
+  },
+  versionText: {
+    fontSize: 12,
+    color: COLORS.lightGray,
+    fontWeight: "500",
   },
 });
 
