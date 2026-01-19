@@ -772,6 +772,8 @@ const styles = StyleSheet.create({
   },
   // Base Card Styles
   eventCard: {
+    flex: 1,
+    height: "100%",
     borderRadius: 12,
     borderLeftWidth: 4,
     shadowColor: "#000",
@@ -779,7 +781,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
-    marginBottom: 12,
+    marginBottom: 0,
     marginLeft: 40,
     overflow: "hidden",
   },
