@@ -93,6 +93,7 @@ const NewLeadScreen = () => {
 
   const [form, setForm] = useState({
     OrigenPreContactoID: preContacto?.OrigenPreContactoID || 4, // Default to Arrendatarios
+    OrigenPreContactoNombre: preContacto?.OrigenPreContactoNombre || "",
     Nombres: preContacto?.Nombres || "",
     Apellidos: preContacto?.Apellidos || "",
     Celular: preContacto?.Celular || contact?.Telefono || "",
@@ -100,23 +101,38 @@ const NewLeadScreen = () => {
 
     // Conditional Fields
     FormaContactoID: preContacto?.FormaContactoID || "",
+    FormaContactoNombre: preContacto?.FormaContactoNombre || "",
     FormaComoNosConocioID: preContacto?.FormaComoNosConocioID || "",
+    FormaComoNosConocioNombre: preContacto?.FormaComoNosConocioNombre || "",
     FormaComoNosConocioDetalleID:
       preContacto?.FormaComoNosConocioDetalleID || "",
+    FormaComoNosConocioDetalleNombre:
+      preContacto?.FormaComoNosConocioDetalleNombre || "",
     PalabraBusqueda: preContacto?.PalabraBusqueda || "",
 
     AsesorID: preContacto?.AsesorID || user?.AsesorID || "",
+    AsesorNombreCompleto:
+      preContacto?.AsesorNombreCompleto || user?.NombreCompleto || "",
     Telefono: preContacto?.Telefono || "",
 
     InmuebleID: preContacto?.InmuebleID || "",
+    InmuebleNombre:
+      preContacto?.InmuebleDescripcion || preContacto?.InmuebleDireccion || "",
     TipoOfertaID: preContacto?.TipoOfertaID || "",
+    TipoOfertaNombre: preContacto?.TipoOfertaNombre || "",
     CondicionInmuebleID: preContacto?.CondicionInmuebleID || "",
+    CondicionInmuebleNombre: preContacto?.CondicionInmuebleNombre || "",
     TipoInmuebleID: preContacto?.TipoInmuebleID || "",
+    TipoInmuebleNombre: preContacto?.TipoInmuebleNombre || "",
     AntiguedadInmuebleID: preContacto?.AntiguedadInmuebleID || "",
+    AntiguedadInmuebleNombre: preContacto?.AntiguedadInmuebleNombre || "",
     TipoAvaluoID: preContacto?.TipoAvaluoID || "",
+    TipoAvaluoNombre: preContacto?.TipoAvaluoNombre || "",
     CiudadID: preContacto?.CiudadID || "",
+    CiudadNombre: preContacto?.CiudadNombre || "",
     Direccion: preContacto?.Direccion || "",
     LocalidadID: preContacto?.LocalidadID || "",
+    LocalidadNombre: preContacto?.LocalidadNombre || "",
     Area: preContacto?.Area || "",
     InmuebleDireccion: preContacto?.InmuebleDireccion || "",
 
@@ -142,20 +158,22 @@ const NewLeadScreen = () => {
     DetallarCliente: preContacto?.DetallarCliente || false,
 
     // Detailed Client Info...
-    ClienteTipoDocumentoID: "",
-    ClienteDocumento: "",
-    ClienteNombres: "",
-    ClienteNombres2: "",
-    ClienteApellidos: "",
-    ClienteApellidos2: "",
-    ClienteDireccion: "",
-    ClienteTelefono: "",
-    ClienteCelular: "",
-    ClienteEmail: "",
-    ClienteEmailFacturacionElectronica: "",
-    ClienteTipoPersonaID: "",
-    ClienteResponsabilidadTributariaID: "",
-    ClienteNombreRazonSocial: "",
+    ClienteTipoDocumentoID: preContacto?.ClienteTipoDocumentoID || "",
+    ClienteDocumento: preContacto?.ClienteDocumento || "",
+    ClienteNombres: preContacto?.ClienteNombres || "",
+    ClienteNombres2: preContacto?.ClienteNombres2 || "",
+    ClienteApellidos: preContacto?.ClienteApellidos || "",
+    ClienteApellidos2: preContacto?.ClienteApellidos2 || "",
+    ClienteDireccion: preContacto?.ClienteDireccion || "",
+    ClienteTelefono: preContacto?.ClienteTelefono || "",
+    ClienteCelular: preContacto?.ClienteCelular || "",
+    ClienteEmail: preContacto?.ClienteEmail || "",
+    ClienteEmailFacturacionElectronica:
+      preContacto?.ClienteEmailFacturacionElectronica || "",
+    ClienteTipoPersonaID: preContacto?.ClienteTipoPersonaID || "",
+    ClienteResponsabilidadTributariaID:
+      preContacto?.ClienteResponsabilidadTributariaID || "",
+    ClienteNombreRazonSocial: preContacto?.ClienteNombreRazonSocial || "",
   });
 
   const [selectedLocalidades, setSelectedLocalidades] = useState({});
@@ -165,7 +183,7 @@ const NewLeadScreen = () => {
   const [lastLoadedOrigenId, setLastLoadedOrigenId] = useState(null);
   const [servicio, setServicio] = useState({ TipoProductoID: "", Nombre: "" });
   const [procesosServiciosIniciales, setProcesosServiciosIniciales] = useState(
-    preContacto?.ProcesosServiciosIniciales || []
+    preContacto?.ProcesosServiciosIniciales || [],
   );
   const [tiposProductos, setTiposProductos] = useState([]);
   const [tiposProductosLoaded, setTiposProductosLoaded] = useState(false);
@@ -174,9 +192,8 @@ const NewLeadScreen = () => {
     if (!origenId) return;
     setLoadingConfig(true);
     try {
-      const data = await GestionComercialService.consultarCombosOrigenes(
-        origenId
-      );
+      const data =
+        await GestionComercialService.consultarCombosOrigenes(origenId);
       setFormConfig(data || []);
     } catch (error) {
       console.error("NewLeadScreen:loadFormConfig", error);
@@ -207,7 +224,7 @@ const NewLeadScreen = () => {
     const tipo = tiposPersona.find(
       (t) =>
         t?.TipoPersonaID === form.ClienteTipoPersonaID ||
-        t?.id === form.ClienteTipoPersonaID
+        t?.id === form.ClienteTipoPersonaID,
     );
     return tipo?.Empresa || tipo?.esEmpresa || false;
   }, [form.ClienteTipoPersonaID, tiposPersona]);
@@ -237,7 +254,7 @@ const NewLeadScreen = () => {
     setForm((prev) => {
       const updated = { ...prev, ClienteTipoPersonaID: value };
       const tipo = tiposPersona.find(
-        (t) => t?.TipoPersonaID === value || t?.id === value
+        (t) => t?.TipoPersonaID === value || t?.id === value,
       );
       if (tipo?.Empresa || tipo?.esEmpresa) {
         updated.ClienteNombres2 = "";
@@ -310,7 +327,7 @@ const NewLeadScreen = () => {
     } catch (error) {
       console.error("NewLeadScreen:loadInitialData", error);
       setErrorMessage(
-        "No pudimos cargar la información inicial. Intenta nuevamente."
+        "No pudimos cargar la información inicial. Intenta nuevamente.",
       );
     } finally {
       setLoading(false);
@@ -331,7 +348,7 @@ const NewLeadScreen = () => {
         return [];
       }
     },
-    [user?.SucursalID]
+    [user?.SucursalID],
   );
 
   const loadAsesores = useCallback(async () => {
@@ -523,7 +540,7 @@ const NewLeadScreen = () => {
     try {
       const detalles =
         await GestionComercialService.consultarFormasComoNosConocioDetalles(
-          formaId
+          formaId,
         );
       const data = detalles || [];
       setFormasConocioDetalle(data);
@@ -544,7 +561,7 @@ const NewLeadScreen = () => {
       setLoadingConfig(true);
       try {
         const response = await GestionComercialService.consultarCombosOrigenes(
-          form.OrigenPreContactoID
+          form.OrigenPreContactoID,
         );
         // Web uses response.data for CamposPreContactos
         setFormConfig(response.data || []);
@@ -705,7 +722,7 @@ const NewLeadScreen = () => {
       if (!form.TipoInmuebleID) errors.TipoInmuebleID = true;
       // Web no valida explícitamente Estrato/Localidad en ValidarCampos, pero se mantienen si son críticos para mobile UI
       const hasEstrato = [1, 2, 3, 4, 5, 6].some(
-        (num) => form[`Estrato${num}`]
+        (num) => form[`Estrato${num}`],
       );
       if (!hasEstrato) errors.Estrato = true;
       if (Object.keys(selectedLocalidades).length === 0)
@@ -757,7 +774,7 @@ const NewLeadScreen = () => {
     if (hasStaticErrors || !isMainValid || !isFiscalValid) {
       Alert.alert(
         "Error",
-        "Por favor complete los campos requeridos marcados con *"
+        "Por favor complete los campos requeridos marcados con *",
       );
       return;
     }
@@ -794,7 +811,7 @@ const NewLeadScreen = () => {
         "Error",
         `No pudimos ${
           isEditing ? "actualizar" : "guardar"
-        } el contacto. Intenta nuevamente.`
+        } el contacto. Intenta nuevamente.`,
       );
     } finally {
       setSaving(false);
@@ -816,11 +833,11 @@ const NewLeadScreen = () => {
     const selected = tiposProductos.find(
       (t) =>
         t.TipoProductoID === servicio.TipoProductoID ||
-        t.id === servicio.TipoProductoID
+        t.id === servicio.TipoProductoID,
     );
     if (!selected) return;
     const exists = procesosServiciosIniciales.find(
-      (s) => s.TipoProductoID === servicio.TipoProductoID && !s.Eliminar
+      (s) => s.TipoProductoID === servicio.TipoProductoID && !s.Eliminar,
     );
     if (exists) {
       Alert.alert("Error", "El servicio ya está agregado");

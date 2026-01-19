@@ -47,6 +47,7 @@ const SearchDataSection = ({
             label="Asesor"
             required
             selectedValue={form.AsesorID}
+            displayValue={form.AsesorNombreCompleto}
             onValueChange={(value) => {
               setForm({ ...form, AsesorID: value });
               if (staticErrors.AsesorID) {
@@ -95,6 +96,7 @@ const SearchDataSection = ({
               label="Tipo de oferta"
               required
               selectedValue={form.TipoOfertaID}
+              displayValue={form.TipoOfertaNombre}
               onValueChange={(v) => setForm({ ...form, TipoOfertaID: v })}
               onLoadData={loadTiposOferta}
               placeholder="Seleccionar..."
@@ -105,6 +107,7 @@ const SearchDataSection = ({
               label="Condición inmueble"
               required={form.OrigenPreContactoID != 2}
               selectedValue={form.CondicionInmuebleID}
+              displayValue={form.CondicionInmuebleNombre}
               onValueChange={(v) =>
                 setForm({ ...form, CondicionInmuebleID: v })
               }
@@ -124,6 +127,7 @@ const SearchDataSection = ({
               label="Tipo de inmueble"
               required
               selectedValue={form.TipoInmuebleID}
+              displayValue={form.TipoInmuebleNombre}
               onValueChange={(v) => setForm({ ...form, TipoInmuebleID: v })}
               onLoadData={loadTiposInmueble}
               placeholder="Seleccionar..."
@@ -134,6 +138,7 @@ const SearchDataSection = ({
               label="Antigüedad"
               required={form.OrigenPreContactoID != 2}
               selectedValue={form.AntiguedadInmuebleID}
+              displayValue={form.AntiguedadInmuebleNombre}
               onValueChange={(v) =>
                 setForm({ ...form, AntiguedadInmuebleID: v })
               }
@@ -147,6 +152,7 @@ const SearchDataSection = ({
           label="Tipo de inmueble"
           required
           selectedValue={form.TipoInmuebleID}
+          displayValue={form.TipoInmuebleNombre}
           onValueChange={(v) => setForm({ ...form, TipoInmuebleID: v })}
           onLoadData={loadTiposInmueble}
           placeholder="Seleccionar..."
@@ -258,6 +264,7 @@ const SearchDataSection = ({
           label="Tipo de avalúo"
           required
           selectedValue={form.TipoAvaluoID}
+          displayValue={form.TipoAvaluoNombre}
           onValueChange={(v) => setForm({ ...form, TipoAvaluoID: v })}
           onLoadData={loadTiposAvaluo}
           placeholder="Seleccionar..."
@@ -269,6 +276,7 @@ const SearchDataSection = ({
           label="Localidad"
           required
           selectedValue={form.LocalidadID}
+          displayValue={form.LocalidadNombre}
           onValueChange={(v) => setForm({ ...form, LocalidadID: v })}
           onLoadData={loadLocalidades}
           placeholder="Seleccionar..."
@@ -408,7 +416,7 @@ const SearchDataSection = ({
                 selectedValue={servicio.TipoProductoID}
                 onValueChange={(v) => {
                   const selected = loadTiposProductos().find(
-                    (t) => t.TipoProductoID === v || t.id === v
+                    (t) => t.TipoProductoID === v || t.id === v,
                   );
                   setServicio({
                     TipoProductoID: v,

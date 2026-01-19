@@ -44,6 +44,7 @@ const CustomModalPicker = ({
   label,
   required,
   selectedValue,
+  displayValue, // NEW: Pre-loaded display text for edit mode
   onValueChange,
   items = [],
   onLoadData,
@@ -74,7 +75,7 @@ const CustomModalPicker = ({
     for (const pool of pools) {
       if (!Array.isArray(pool)) continue;
       const found = pool.find(
-        (item) => resolveItemValue(item) === selectedValue
+        (item) => resolveItemValue(item) === selectedValue,
       );
       if (found) {
         return found;
@@ -114,7 +115,7 @@ const CustomModalPicker = ({
         setRemoteLoading(false);
       }
     },
-    [onSearch, hasRemoteSearch]
+    [onSearch, hasRemoteSearch],
   );
 
   const loadData = useCallback(async () => {
@@ -212,7 +213,7 @@ const CustomModalPicker = ({
               selectedItem.NombreCompleto ||
               selectedItem.Descripcion ||
               selectedItem
-            : placeholder || "Seleccione"}
+            : displayValue || placeholder || "Seleccione"}
         </Text>
         <Ionicons
           name="chevron-down"

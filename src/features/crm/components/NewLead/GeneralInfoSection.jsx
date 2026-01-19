@@ -26,6 +26,7 @@ const GeneralInfoSection = ({
         label="Tipo de contacto"
         required
         selectedValue={form.OrigenPreContactoID}
+        displayValue={form.OrigenPreContactoNombre}
         onValueChange={(value) => {
           setForm({
             ...form,
@@ -104,6 +105,7 @@ const GeneralInfoSection = ({
             label="Ciudad"
             required
             selectedValue={form.CiudadID}
+            displayValue={form.CiudadNombre}
             onValueChange={(value) => {
               setForm({ ...form, CiudadID: value });
               if (staticErrors.CiudadID) {
@@ -166,6 +168,7 @@ const GeneralInfoSection = ({
         label="Forma de contacto"
         required
         selectedValue={form.FormaContactoID}
+        displayValue={form.FormaContactoNombre}
         onValueChange={(value) => {
           setForm({ ...form, FormaContactoID: value });
           if (staticErrors.FormaContactoID) {
@@ -183,6 +186,7 @@ const GeneralInfoSection = ({
             label="¿Cómo nos conoció?"
             required
             selectedValue={form.FormaComoNosConocioID}
+            displayValue={form.FormaComoNosConocioNombre}
             onValueChange={(value) => {
               setForm({
                 ...form,
@@ -206,6 +210,7 @@ const GeneralInfoSection = ({
           <CustomModalPicker
             label="Detalle"
             selectedValue={form.FormaComoNosConocioDetalleID}
+            displayValue={form.FormaComoNosConocioDetalleNombre}
             onValueChange={(value) =>
               setForm({ ...form, FormaComoNosConocioDetalleID: value })
             }
