@@ -146,14 +146,20 @@ class LeadService {
     return this.normalizeList(response);
   }
 
-  async consultarAsesores(term = '') {
+  async consultarAsesores(options = '') {
+    // Soporta tanto string como objeto {NombreCompleto, Rows, SucursalID, ...}
+    const isObject = typeof options === 'object' && options !== null;
+    const nombreCompleto = isObject ? (options.NombreCompleto ?? '') : options;
+    const rows = isObject ? (options.Rows ?? 20) : 20; // Default 20 to avoid negative OFFSET
+    const sucursalID = isObject ? (options.SucursalID ?? this.global.user?.SucursalID) : this.global.user?.SucursalID;
+
     const response = await this.makeRequest('/Asesores/AsesoresConsultar', {
       body: this.withToken({
-        Rows: 0,
-        Page: 0,
+        Rows: rows,
+        Page: 1, // Page 1 instead of 0 to avoid negative OFFSET
         Activo: true,
-        NombreCompleto: term,
-        SucursalID: this.global.user?.SucursalID,
+        NombreCompleto: nombreCompleto,
+        SucursalID: sucursalID,
       }),
       api: 'CRM',
     });
