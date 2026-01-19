@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -25,6 +25,7 @@ import { Picker } from "@react-native-picker/picker";
 import DateTimePickerComponent from "@react-native-community/datetimepicker";
 import { useGlobal } from "../../../core/global";
 import FocusAwareStatusBar from "../../../components/FocusAwareStatusBar";
+import PropertySelectionModal from "../../../components/PropertySelectionModal";
 
 const GestionComercialService = require("../services/crmService").default;
 
@@ -352,7 +353,16 @@ const InviableAlert = ({ contact }) => {
   );
 };
 
-const ActivityForm = ({ contact, onRefresh }) => {
+const ActivityForm = ({
+  contact,
+  onRefresh,
+  setShowInmuebleModal,
+  inmueblesDisponibles,
+  loadingInmuebles,
+  searchTerm,
+  setSearchTerm,
+  onRegisterOnSelect,
+}) => {
   const { user } = useGlobal();
   const [loading, setLoading] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(true);
@@ -425,7 +435,7 @@ const ActivityForm = ({ contact, onRefresh }) => {
 
   const handleTipoActividadChange = (id) => {
     const selectedType = activityTypes.find(
-      (t) => t.TipoCalendarioActividadID === id
+      (t) => t.TipoCalendarioActividadID === id,
     );
 
     if (selectedType) {
@@ -460,6 +470,14 @@ const ActivityForm = ({ contact, onRefresh }) => {
   const updateForm = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
+
+  useEffect(() => {
+    if (onRegisterOnSelect) {
+      onRegisterOnSelect((item) => {
+        setForm((prev) => ({ ...prev, InmuebleID: item.InmuebleID }));
+      });
+    }
+  }, [onRegisterOnSelect]);
 
   const handleSave = async () => {
     if (
@@ -649,6 +667,17 @@ const ActivityForm = ({ contact, onRefresh }) => {
               placeholder="ejemplo1@mail.com; ejemplo2@mail.com"
               icon="mail-outline"
             />
+            <Text style={styles.helperText}>
+              Para ingresar varios emails separarlo por ; sin espacios.
+            </Text>
+
+            <CustomInput
+              label="Link de Reunión"
+              value={form.Link}
+              onChangeText={(v) => updateForm("Link", v)}
+              placeholder="Enlace de Zoom, Teams, etc."
+              icon="videocam-outline"
+            />
 
             {form.TipoActividadID === 1 && (
               <TouchableOpacity
@@ -717,8 +746,7 @@ const ActivityForm = ({ contact, onRefresh }) => {
 
           {(showVisitanteFields ||
             showComplejoSelector ||
-            showInmuebleSelector ||
-            form.Link) && (
+            showInmuebleSelector) && (
             <View style={styles.formCard}>
               <View style={styles.cardHeader}>
                 <View style={styles.cardHeaderIcon}>
@@ -766,21 +794,26 @@ const ActivityForm = ({ contact, onRefresh }) => {
               )}
 
               {showInmuebleSelector && (
-                <CustomInput
-                  label="ID Inmueble"
-                  value={form.InmuebleID}
-                  onChangeText={(v) => updateForm("InmuebleID", v)}
-                  icon="home-outline"
-                />
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>ID Inmueble</Text>
+                  <TouchableOpacity
+                    style={styles.selectBox}
+                    onPress={() => setShowInmuebleModal(true)}
+                  >
+                    <Text
+                      style={[
+                        styles.selectBoxText,
+                        !form.InmuebleID && styles.selectBoxPlaceholder,
+                      ]}
+                    >
+                      {form.InmuebleID
+                        ? `Inmueble #${form.InmuebleID}`
+                        : "Seleccionar inmueble..."}
+                    </Text>
+                    <Ionicons name="search" size={20} color={COLORS.primary} />
+                  </TouchableOpacity>
+                </View>
               )}
-
-              <CustomInput
-                label="Link de Reunión"
-                value={form.Link}
-                onChangeText={(v) => updateForm("Link", v)}
-                placeholder="Enlace de Zoom, Teams, etc."
-                icon="videocam-outline"
-              />
             </View>
           )}
 
@@ -1025,7 +1058,7 @@ const ActivityList = ({ contact, refreshKey }) => {
         {
           CalendarioActividadOrigenID: 2,
           CodigoOrigen: contact.ProcesoID,
-        }
+        },
       );
       setItems(resp.rows || []);
     } catch (e) {
@@ -1308,19 +1341,75 @@ const ActivityFollowupScreen = () => {
 
   const ActivitiesTab = () => {
     const [refreshKey, setRefreshKey] = useState(0);
+    const [showInmuebleModal, setShowInmuebleModal] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [loadingInmuebles, setLoadingInmuebles] = useState(false);
+    const [inmueblesDisponibles, setInmueblesDisponibles] = useState([]);
+
+    const loadInmuebles = useCallback(async (search = "") => {
+      setLoadingInmuebles(true);
+      try {
+        const id = Number(contact.OrigenPreContactoID);
+        const tipoOferta = id === 5 ? 2 : 1;
+        const data =
+          await GestionComercialService.consultarInmueblesDisponibles({
+            TipoOfertaID: tipoOferta,
+            FullSearch: search,
+          });
+        setInmueblesDisponibles(data || []);
+      } catch (error) {
+        console.error("ActivityFollowupScreen:loadInmuebles", error);
+      } finally {
+        setLoadingInmuebles(false);
+      }
+    }, []);
+
+    useEffect(() => {
+      if (showInmuebleModal) {
+        loadInmuebles(searchTerm);
+      }
+    }, [showInmuebleModal, searchTerm, loadInmuebles]);
+
+    const onSelectRef = useRef(null);
+
     return (
-      <ScrollView
-        style={styles.tabContainer}
-        contentContainerStyle={{ paddingBottom: 40 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <ActivityForm
-          contact={contact}
-          onRefresh={() => setRefreshKey((k) => k + 1)}
+      <View style={{ flex: 1 }}>
+        <PropertySelectionModal
+          visible={showInmuebleModal}
+          onClose={() => setShowInmuebleModal(false)}
+          inmueblesDisponibles={inmueblesDisponibles}
+          loadingInmuebles={loadingInmuebles}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          onSelectInmueble={(item) => {
+            if (onSelectRef.current) {
+              onSelectRef.current(item);
+            }
+            setShowInmuebleModal(false);
+          }}
+          selectedInmuebleID={null}
         />
-        <View style={styles.tabSectionDivider} />
-        <ActivityList contact={contact} refreshKey={refreshKey} />
-      </ScrollView>
+        <ScrollView
+          style={styles.tabContainer}
+          contentContainerStyle={{ paddingBottom: 40 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <ActivityForm
+            contact={contact}
+            onRefresh={() => setRefreshKey((k) => k + 1)}
+            setShowInmuebleModal={setShowInmuebleModal}
+            inmueblesDisponibles={inmueblesDisponibles}
+            loadingInmuebles={loadingInmuebles}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            onRegisterOnSelect={(fn) => {
+              onSelectRef.current = fn;
+            }}
+          />
+          <View style={styles.tabSectionDivider} />
+          <ActivityList contact={contact} refreshKey={refreshKey} />
+        </ScrollView>
+      </View>
     );
   };
 
@@ -1592,6 +1681,34 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   required: { color: COLORS.danger, marginLeft: 2 },
+  helperText: {
+    fontSize: 10,
+    color: COLORS.gray,
+    marginTop: -4,
+    marginBottom: 12,
+    fontStyle: "italic",
+    paddingLeft: 4,
+  },
+  selectBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: COLORS.background,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingHorizontal: 12,
+    height: 48,
+  },
+  selectBoxText: {
+    fontSize: 14,
+    color: COLORS.dark,
+    fontWeight: "600",
+  },
+  selectBoxPlaceholder: {
+    color: COLORS.lightGray,
+    fontWeight: "400",
+  },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",

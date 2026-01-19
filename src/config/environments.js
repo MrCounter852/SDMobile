@@ -26,7 +26,7 @@ const getEnvironmentConfig = () => {
   // For example, check process.env.NODE_ENV, or use a custom variable
 
   // Default to development if __DEV__ is true (React Native dev mode)
-  /*
+  /*  
   if (__DEV__) {
     return environments.development;
   }

@@ -678,8 +678,9 @@ class GestionComercialService {
         InmuebleID: filtros?.InmuebleID || null,
         SucursalID: filtros?.SucursalID || null,
         FullSearch: filtros?.FullSearch || null,
+        Token: this.global.user?.Token,
       }),
-    }, false, false, true); // useGBI
+    });
   }
 
   // Consultar complejos
