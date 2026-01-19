@@ -67,7 +67,19 @@ class GestionComercialService {
           statusText: response.statusText,
           body: errorText
         });
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Try to parse error message from API response
+        let errorMessage = `Error del servidor (${response.status})`;
+        try {
+          const errorJson = JSON.parse(errorText);
+          if (errorJson.Message) {
+            // Extract clean message, remove "Error de modelo:" prefix if present
+            errorMessage = errorJson.Message.replace(/^Error de modelo:\s*|^Error:\s*/i, '').trim();
+          }
+        } catch (e) {
+          // If parsing fails, use raw text
+          errorMessage = errorText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -361,6 +373,8 @@ class GestionComercialService {
       method: 'POST',
       body: JSON.stringify({
         ...data,
+        DirIP: '0.0.0.0', // Required field (mobile doesn't have real IP)
+        Usuario: this.global.user?.UsuarioID,
         Token: this.global.user?.Token,
       }),
     });
