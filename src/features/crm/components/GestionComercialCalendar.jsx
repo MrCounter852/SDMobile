@@ -623,6 +623,8 @@ const GestionComercialCalendar = ({
               format24h={false}
               start={0}
               end={24}
+              timelineLeftInset={50}
+              overlapEventsSpacing={8}
               onEventPress={handleEventPress}
               renderEvent={(e) => renderActivityCard(e, false)}
               showNowIndicator={selectedDate === todayStr}
@@ -782,7 +784,6 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
     marginBottom: 0,
-    marginLeft: 40,
     overflow: "hidden",
   },
   listEventCard: {
