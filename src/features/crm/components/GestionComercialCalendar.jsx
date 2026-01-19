@@ -70,7 +70,7 @@ const getLocalTodayStr = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
     2,
-    "0"
+    "0",
   )}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
@@ -88,7 +88,7 @@ const getWeekNumber = (dateStr) => {
       ((d.getTime() - week1.getTime()) / 86400000 -
         3 +
         ((week1.getDay() + 6) % 7)) /
-        7
+        7,
     )
   );
 };
@@ -98,7 +98,7 @@ const getWeekNumber = (dateStr) => {
  */
 const formatDateDMY = (date) => {
   return `${String(date.getDate()).padStart(2, "0")}/${String(
-    date.getMonth() + 1
+    date.getMonth() + 1,
   ).padStart(2, "0")}/${date.getFullYear()}`;
 };
 
@@ -169,17 +169,12 @@ const GestionComercialCalendar = ({
 
       const filters = {
         ...searchFilters,
-        // Map AsesorID to UsuarioID and allow null for "Todos"
-        UsuarioID: Object.prototype.hasOwnProperty.call(
-          searchFilters,
-          "AsesorID"
-        )
-          ? searchFilters.AsesorID
-          : user?.UsuarioID,
+        // Use UsuarioID directly (AsesorID and UsuarioID are different fields)
+        UsuarioID: user?.UsuarioID,
         // Prioritize SucursalID from filters
         SucursalID: Object.prototype.hasOwnProperty.call(
           searchFilters,
-          "SucursalID"
+          "SucursalID",
         )
           ? searchFilters.SucursalID
           : user?.SucursalID,
@@ -187,22 +182,21 @@ const GestionComercialCalendar = ({
         // fallback to current view range only if property is missing
         FechaInicial: Object.prototype.hasOwnProperty.call(
           searchFilters,
-          "FechaInicial"
+          "FechaInicial",
         )
           ? searchFilters.FechaInicial
           : range.start,
         FechaFinal: Object.prototype.hasOwnProperty.call(
           searchFilters,
-          "FechaFinal"
+          "FechaFinal",
         )
           ? searchFilters.FechaFinal
           : range.end,
         Token: user?.Token,
       };
 
-      const response = await GestionComercialService.consultarMiCalendarioTabla(
-        filters
-      );
+      const response =
+        await GestionComercialService.consultarMiCalendarioTabla(filters);
 
       const rowData =
         response?.rows || (Array.isArray(response) ? response : []);
@@ -286,18 +280,18 @@ const GestionComercialCalendar = ({
       const start = new Date(
         event.startParts[0],
         event.startParts[1] - 1,
-        event.startParts[2]
+        event.startParts[2],
       );
       const end = new Date(
         event.endParts[0],
         event.endParts[1] - 1,
-        event.endParts[2]
+        event.endParts[2],
       );
       const curr = new Date(start);
 
       while (curr <= end) {
         const dateKey = `${curr.getFullYear()}-${String(
-          curr.getMonth() + 1
+          curr.getMonth() + 1,
         ).padStart(2, "0")}-${String(curr.getDate()).padStart(2, "0")}`;
 
         if (!marks[dateKey]) {
@@ -306,7 +300,7 @@ const GestionComercialCalendar = ({
 
         if (
           !marks[dateKey].dots.some(
-            (d) => d.key === String(event.CalendarioActividadID)
+            (d) => d.key === String(event.CalendarioActividadID),
           )
         ) {
           marks[dateKey].dots.push({
@@ -368,10 +362,10 @@ const GestionComercialCalendar = ({
           cierre: event.cierre,
           proceso: event.proceso,
           startFormatted: `${formatDateDMY(
-            new Date(event.startDateStr + "T12:00:00")
+            new Date(event.startDateStr + "T12:00:00"),
           )} ${event.startTimeStr.substring(0, 5)}`,
           endFormatted: `${formatDateDMY(
-            new Date(event.endDateStr + "T12:00:00")
+            new Date(event.endDateStr + "T12:00:00"),
           )} ${event.endTimeStr.substring(0, 5)}`,
           summary: "",
           color: "transparent",
@@ -394,10 +388,10 @@ const GestionComercialCalendar = ({
         ...event,
         id: String(event.CalendarioActividadID),
         startFormatted: `${formatDateDMY(
-          new Date(event.startDateStr + "T12:00:00")
+          new Date(event.startDateStr + "T12:00:00"),
         )} ${event.startTimeStr.substring(0, 5)}`,
         endFormatted: `${formatDateDMY(
-          new Date(event.endDateStr + "T12:00:00")
+          new Date(event.endDateStr + "T12:00:00"),
         )} ${event.endTimeStr.substring(0, 5)}`,
         primaryColor: event.statusColors?.primary,
         secondaryColor: event.statusColors?.secondary,
@@ -417,7 +411,7 @@ const GestionComercialCalendar = ({
           ],
         dayNumber: date.split("-")[2],
         data: grouped[date].sort((a, b) =>
-          a.startTimeStr.localeCompare(b.startTimeStr)
+          a.startTimeStr.localeCompare(b.startTimeStr),
         ),
       }));
   }, [activities, viewMode]);
@@ -428,7 +422,7 @@ const GestionComercialCalendar = ({
       if (original)
         navigation.navigate("ActivityDetail", { activity: original });
     },
-    [dayEvents, navigation]
+    [dayEvents, navigation],
   );
 
   const handleGoToToday = () => {
