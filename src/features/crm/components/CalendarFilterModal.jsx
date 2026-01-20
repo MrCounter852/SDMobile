@@ -24,6 +24,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { useGlobal } from "../../../core/global";
 import SearchableModal from "../../../components/SearchableModal";
 import { FILTER_OPTIONS } from "./FilterConstants";
 
@@ -93,6 +94,7 @@ const CalendarFilterModal = ({
   loading = false,
   onSearchAsesores,
 }) => {
+  const { user, permisos } = useGlobal();
   const [filters, setFilters] = useState(initialFilters || {});
   const [showDatePicker, setShowDatePicker] = useState(null); // 'FechaInicial', 'FechaFinal'
 
@@ -378,45 +380,60 @@ const CalendarFilterModal = ({
                   </View>
                 </FilterSection>
 
-                {/* Organización */}
-                <FilterSection title="Organización" icon="business-outline">
-                  <Text style={styles.subSectionTitle}>Sucursal</Text>
-                  <ChipSelector
-                    options={sucursalesOptions}
-                    selectedValue={filters.SucursalID}
-                    onSelect={(id) =>
-                      setFilters((prev) => ({ ...prev, SucursalID: id }))
-                    }
-                  />
+                {/* Organización Section */}
+                {(permisos?.FiltroSucursal === true ||
+                  permisos?.FiltroAsesor === true) && (
+                  <FilterSection title="Organización" icon="business-outline">
+                    {permisos?.FiltroSucursal === true && (
+                      <>
+                        <Text style={styles.subSectionTitle}>Sucursal</Text>
+                        <ChipSelector
+                          options={sucursalesOptions}
+                          selectedValue={filters.SucursalID}
+                          onSelect={(id) =>
+                            setFilters((prev) => ({ ...prev, SucursalID: id }))
+                          }
+                        />
+                      </>
+                    )}
 
-                  <View style={{ height: 16 }} />
-                  <Text style={styles.subSectionTitle}>Asesor</Text>
-                  <TouchableOpacity
-                    style={styles.searchableSelector}
-                    onPress={() => setAdvisorModalVisible(true)}
-                  >
-                    <Ionicons
-                      name="person-outline"
-                      size={18}
-                      color={COLORS.gray}
-                    />
-                    <Text
-                      style={[
-                        styles.searchableSelectorText,
-                        filters.AsesorID === null && {
-                          color: COLORS.lightGray,
-                        },
-                      ]}
-                    >
-                      {selectedAdvisorName}
-                    </Text>
-                    <Ionicons
-                      name="chevron-down"
-                      size={18}
-                      color={COLORS.lightGray}
-                    />
-                  </TouchableOpacity>
-                </FilterSection>
+                    {permisos?.FiltroSucursal === true &&
+                      permisos?.FiltroAsesor === true && (
+                        <View style={{ height: 16 }} />
+                      )}
+
+                    {permisos?.FiltroAsesor === true && (
+                      <>
+                        <Text style={styles.subSectionTitle}>Asesor</Text>
+                        <TouchableOpacity
+                          style={styles.searchableSelector}
+                          onPress={() => setAdvisorModalVisible(true)}
+                        >
+                          <Ionicons
+                            name="person-outline"
+                            size={18}
+                            color={COLORS.gray}
+                          />
+                          <Text
+                            style={[
+                              styles.searchableSelectorText,
+                              filters.AsesorID === null && {
+                                color: COLORS.lightGray,
+                              },
+                            ]}
+                          >
+                            {selectedAdvisorName}
+                          </Text>
+                          <Ionicons
+                            name="chevron-down"
+                            size={18}
+                            color={COLORS.lightGray}
+                          />
+                        </TouchableOpacity>
+                      </>
+                    )}
+                  </FilterSection>
+                )}
               </>
             )}
           </ScrollView>

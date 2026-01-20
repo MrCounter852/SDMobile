@@ -11,6 +11,7 @@ export const useGlobal = create((set, get) => ({
     sucursal: null,
     asesorID: null,
     accesos: [],
+    permisos: {}, // Special CRM permissions
     menuOptions: [],
     signalrConnected: false,
     cdnEndPoint: null,
@@ -93,6 +94,11 @@ export const useGlobal = create((set, get) => ({
         cdnLlavePublica: data.user?.CDNLlavePublica || null,
         cdnLlavePrivada: data.user?.CDNLlavePrivada || null
     }),
+    setPermisos: (permisos) => set((state) => ({ 
+        permisos: { ...state.permisos, ...permisos },
+        // Also sync to user object for components using user.Permiso
+        user: { ...state.user, ...permisos } 
+    })),
     setMenuOptions: (menuOptions) => set({ menuOptions }),
     logout: async () => {
         // Clear secure storage
@@ -122,6 +128,7 @@ export const useGlobal = create((set, get) => ({
             sucursal: null,
             asesorID: null,
             accesos: [],
+            permisos: {},
             menuOptions: [],
             signalrConnected: false,
             cdnEndPoint: null,

@@ -967,12 +967,55 @@ class GestionComercialService {
     return this.makeRequest(endpoint, {
       method: 'POST',
       body: JSON.stringify({
-        UsuarioID: filtros?.UsuarioID,
-        Ruta: filtros?.Ruta,
-        ModuloID: filtros?.ModuloID,
+        UsuarioID: filtros?.UsuarioID || this.global.user?.UsuarioID,
+        Ruta: filtros?.Ruta || '/CRM/PreContactos/Gestion',
+        ModuloID: filtros?.ModuloID || 8, // CRM
         Token: this.global.user?.Token,
       }),
     }, false, true); // useSIS
+  }
+
+  // Load and map CRM permissions to global state
+  async loadCrmPermissions() {
+    try {
+      const response = await this.consultarPermisosEspecialesUsuario();
+      if (response && response.rows) {
+        const mapping = {
+          1: 'FiltroSucursal',
+          2: 'FiltroAsesor',
+          3: 'Asignable',
+          4: 'PermiteEdicionInmueble',
+          5: 'PermiteEliminarActividades',
+          6: 'PermitePublicacionPortales',
+          7: 'EliminacionLeads',
+          8: 'EliminacionInmuebles',
+          9: 'PermiteEdicionActividades',
+          10: 'EdicionEstadoProceso',
+          11: 'EdicionLineaTiempo',
+          // 12 is not implemented
+          13: 'PermiteQuitarFirmaActa',
+          14: 'PermiteQuitarInventario',
+          15: 'PermiteCargarInventario',
+          16: 'PermiteEditarOrdenServicio',
+        };
+
+        const mappedPermissions = {};
+        response.rows.forEach(item => {
+          const key = mapping[item.PermisoEspecialMenuID];
+          if (key) {
+            mappedPermissions[key] = item.Acceso === true;
+          }
+        });
+
+        console.log('[CRM Service] Permissions Loaded:', mappedPermissions);
+        this.global.setPermisos(mappedPermissions);
+        return mappedPermissions;
+      }
+      return {};
+    } catch (error) {
+      console.error('[CRM Service] Error loading permissions:', error);
+      return {};
+    }
   }
 
   // Consultar estados de procesos

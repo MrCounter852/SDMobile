@@ -25,15 +25,19 @@ const ActiveFilterTags = ({ tags = [], onClear }) => {
           <TouchableOpacity
             key={tag.key}
             style={styles.tagItem}
-            onPress={() => onClear(tag.key)}
+            onPress={() => tag.removable !== false && onClear(tag.key)}
+            disabled={tag.removable === false}
+            activeOpacity={tag.removable === false ? 1 : 0.7}
           >
             <Text style={styles.tagLabel}>{tag.label}</Text>
-            <Ionicons
-              name="close-circle"
-              size={16}
-              color="#337ab7"
-              style={styles.closeIcon}
-            />
+            {tag.removable !== false && (
+              <Ionicons
+                name="close-circle"
+                size={16}
+                color="#337ab7"
+                style={styles.closeIcon}
+              />
+            )}
           </TouchableOpacity>
         ))}
       </ScrollView>

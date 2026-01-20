@@ -32,7 +32,7 @@ const Tab = createMaterialTopTabNavigator();
 
 // Main Component
 const GestionComercial = ({ navigation }) => {
-  const { user } = useGlobal();
+  const { user, permisos } = useGlobal();
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [currentTab, setCurrentTab] = useState("Tabla");
   const [searchFilters, setSearchFilters] = useState({
@@ -142,6 +142,9 @@ const GestionComercial = ({ navigation }) => {
         setEstadosProcesos(
           estadosProcesosResponse.rows || estadosProcesosResponse || [],
         );
+
+        // Load special permissions
+        await GestionComercialService.loadCrmPermissions();
       } catch (error) {
         console.error("Error loading filter data:", error);
       } finally {
@@ -288,6 +291,7 @@ const GestionComercial = ({ navigation }) => {
         tags.push({
           key: "AsesorID",
           label: `Asesor: ${asesor.NombreCompleto}`,
+          removable: permisos?.FiltroAsesor === true,
         });
       }
     }
@@ -297,7 +301,11 @@ const GestionComercial = ({ navigation }) => {
         (s) => s.SucursalID === searchFilters.SucursalID,
       );
       if (sucursal) {
-        tags.push({ key: "SucursalID", label: `Sucursal: ${sucursal.Nombre}` });
+        tags.push({
+          key: "SucursalID",
+          label: `Sucursal: ${sucursal.Nombre}`,
+          removable: permisos?.FiltroSucursal === true,
+        });
       }
     }
 
