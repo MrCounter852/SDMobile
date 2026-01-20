@@ -223,18 +223,11 @@ const FilterModal = ({
   );
 
   const asesoresOptions = useMemo(() => {
-    const list = asesores.map((a) => {
-      console.log("FilterModal: Prop Asesor:", {
-        AsesorID: a.AsesorID,
-        UsuarioID: a.UsuarioID,
-        Nombre: a.NombreCompleto,
-      });
-      return {
-        ID: a.AsesorID,
-        UsuarioID: a.UsuarioID,
-        Nombre: a.NombreCompleto,
-      };
-    });
+    const list = asesores.map((a) => ({
+      ID: a.AsesorID,
+      UsuarioID: a.UsuarioID,
+      Nombre: a.NombreCompleto,
+    }));
 
     return [{ ID: null, UsuarioID: null, Nombre: "Todos" }, ...list];
   }, [asesores]);

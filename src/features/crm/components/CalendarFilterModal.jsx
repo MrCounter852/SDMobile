@@ -199,30 +199,16 @@ const CalendarFilterModal = ({
   const filteredAsesores = useMemo(() => {
     const list =
       remoteAsesores.length > 0
-        ? remoteAsesores.map((a) => {
-            console.log("CalendarFilterModal: Remote Asesor:", {
-              AsesorID: a.AsesorID,
-              UsuarioID: a.UsuarioID,
-              Nombre: a.NombreCompleto || a.Nombre,
-            });
-            return {
-              ID: a.AsesorID,
-              UsuarioID: a.UsuarioID,
-              Nombre: a.NombreCompleto || a.Nombre,
-            };
-          })
-        : asesores.map((a) => {
-            console.log("CalendarFilterModal: Prop Asesor:", {
-              AsesorID: a.AsesorID,
-              UsuarioID: a.UsuarioID,
-              Nombre: a.NombreCompleto,
-            });
-            return {
-              ID: a.AsesorID,
-              UsuarioID: a.UsuarioID,
-              Nombre: a.NombreCompleto,
-            };
-          });
+        ? remoteAsesores.map((a) => ({
+            ID: a.AsesorID,
+            UsuarioID: a.UsuarioID,
+            Nombre: a.NombreCompleto || a.Nombre,
+          }))
+        : asesores.map((a) => ({
+            ID: a.AsesorID,
+            UsuarioID: a.UsuarioID,
+            Nombre: a.NombreCompleto,
+          }));
 
     const result = [{ ID: null, UsuarioID: null, Nombre: "Todos" }, ...list];
 
