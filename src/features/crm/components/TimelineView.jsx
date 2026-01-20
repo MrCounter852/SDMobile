@@ -66,30 +66,57 @@ const TimelineView = React.memo(
 
     const ROWS_PER_PAGE = 15;
 
+    // Ref to access current timeline data in stable callbacks
+    const timelineDataRef = useRef(timelineData);
+    React.useEffect(() => {
+      timelineDataRef.current = timelineData;
+    }, [timelineData]);
+
     // Handle moving contact to a new column via drag-and-drop
-    const handleMoveToColumn = useCallback(async (contact, targetColumnId) => {
-      try {
-        await GestionComercialService.moverLineaTiempo({
-          ProcesoID: contact.ProcesoID,
-          ProcesoLineaTiempoID: targetColumnId,
-        });
-        // Refresh after successful move
-        loadTimeline(1, true);
-      } catch (error) {
-        console.error("[TimelineView] Error moving contact:", error);
-        Alert.alert(
-          "Error",
-          error.message ||
-            "No se pudo mover el contacto. El backend rechazó la operación."
-        );
-        throw error; // Re-throw so the hook knows it failed
-      }
+    const handleMoveToColumn = useCallback((contact, targetColumnId) => {
+      const targetColumn = timelineDataRef.current.find(
+        (col) => col.ProcesoLineaTiempoID === targetColumnId,
+      );
+      const columnName = targetColumn?.Nombre || "esta columna";
+      const contactName =
+        contact.NombreCompleto || contact.Nombre || "este contacto";
+
+      Alert.alert(
+        "Mover línea de tiempo",
+        `¿Desea mover a ${contactName} a la columna ${columnName}?`,
+        [
+          {
+            text: "Cancelar",
+            style: "cancel",
+          },
+          {
+            text: "Mover",
+            onPress: async () => {
+              try {
+                await GestionComercialService.moverLineaTiempo({
+                  ProcesoID: contact.ProcesoID,
+                  ProcesoLineaTiempoID: targetColumnId,
+                });
+                // Refresh after successful move
+                loadTimeline(1, true);
+              } catch (error) {
+                console.error("[TimelineView] Error moving contact:", error);
+                Alert.alert(
+                  "Error",
+                  error.message ||
+                    "No se pudo mover el contacto. El backend rechazó la operación.",
+                );
+              }
+            },
+          },
+        ],
+      );
     }, []);
 
     // Extract column IDs for the drag hook
     const columnIds = useMemo(
       () => timelineData.map((col) => col.ProcesoLineaTiempoID),
-      [timelineData]
+      [timelineData],
     );
 
     // Initialize drag-and-drop hook with new interface
@@ -123,7 +150,7 @@ const TimelineView = React.memo(
       columnIds,
       COLUMN_WIDTH,
       handleMoveToColumn,
-      scrollViewRef
+      scrollViewRef,
     );
 
     const loadTimeline = async (pageNum = 1, isRefresh = false) => {
@@ -156,9 +183,8 @@ const TimelineView = React.memo(
           SucursalID: user?.SucursalID,
         };
 
-        const response = await GestionComercialService.consultarLineasTiempo(
-          filters
-        );
+        const response =
+          await GestionComercialService.consultarLineasTiempo(filters);
 
         const newColumns = Array.isArray(response)
           ? response
@@ -166,7 +192,7 @@ const TimelineView = React.memo(
 
         const totalProcessesReceived = newColumns.reduce(
           (acc, col) => acc + (col.Procesos?.length || 0),
-          0
+          0,
         );
 
         if (pageNum === 1) {
@@ -175,7 +201,7 @@ const TimelineView = React.memo(
           lastPageLoaded.current = 1;
 
           const anyHasMore = newColumns.some(
-            (col) => (col.Procesos?.length || 0) < (col.TotalProcesos || 0)
+            (col) => (col.Procesos?.length || 0) < (col.TotalProcesos || 0),
           );
           setHasMore(anyHasMore || totalProcessesReceived === ROWS_PER_PAGE);
         } else {
@@ -183,16 +209,16 @@ const TimelineView = React.memo(
             const nextData = [...prevData];
             newColumns.forEach((nc) => {
               const existingIndex = nextData.findIndex(
-                (oc) => oc.ProcesoLineaTiempoID === nc.ProcesoLineaTiempoID
+                (oc) => oc.ProcesoLineaTiempoID === nc.ProcesoLineaTiempoID,
               );
               if (existingIndex > -1) {
                 const existingIds = new Set(
                   nextData[existingIndex].Procesos?.map((p) => p.ProcesoID) ||
-                    []
+                    [],
                 );
                 const incomingProcesos = nc.Procesos || [];
                 const uniqueNewProcesos = incomingProcesos.filter(
-                  (p) => !existingIds.has(p.ProcesoID)
+                  (p) => !existingIds.has(p.ProcesoID),
                 );
 
                 nextData[existingIndex] = {
@@ -214,7 +240,7 @@ const TimelineView = React.memo(
 
             // Re-check hasMore based on the newly merged data
             const anyHasMore = nextData.some(
-              (col) => (col.Procesos?.length || 0) < (col.TotalProcesos || 0)
+              (col) => (col.Procesos?.length || 0) < (col.TotalProcesos || 0),
             );
             setHasMore(anyHasMore || totalProcessesReceived === ROWS_PER_PAGE);
             return nextData;
@@ -251,7 +277,7 @@ const TimelineView = React.memo(
             refreshTrigger,
           };
         }
-      }, [searchFilters, refreshTrigger, user?.SucursalID])
+      }, [searchFilters, refreshTrigger, user?.SucursalID]),
     );
 
     const handleRefresh = useCallback(() => {
@@ -270,7 +296,7 @@ const TimelineView = React.memo(
       (contact) => {
         navigation.navigate("ContactDetail", { contact });
       },
-      [navigation]
+      [navigation],
     );
 
     // Animated style for the whole timeline zoom-out effect
@@ -303,7 +329,7 @@ const TimelineView = React.memo(
       (contact, columnId, position) => {
         startDrag(contact, columnId, position);
       },
-      [startDrag]
+      [startDrag],
     );
 
     const handleDragMove = useCallback(
@@ -311,14 +337,14 @@ const TimelineView = React.memo(
         "worklet";
         updateDrag(absoluteX, absoluteY);
       },
-      [updateDrag]
+      [updateDrag],
     );
 
     const handleDragEnd = useCallback(
       (absoluteX, absoluteY) => {
         endDrag(absoluteX, absoluteY);
       },
-      [endDrag]
+      [endDrag],
     );
 
     // Measure container position on screen for accurate overlay positioning
@@ -426,7 +452,7 @@ const TimelineView = React.memo(
         </View>
       </GestureHandlerRootView>
     );
-  }
+  },
 );
 
 const styles = StyleSheet.create({
