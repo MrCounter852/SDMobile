@@ -279,6 +279,8 @@ class GestionComercialService {
         Nombre: filtros?.Nombre || null,
         Token: this.global.user?.Token,
       }),
+    }).then(response => {
+      return response;
     });
   }
 

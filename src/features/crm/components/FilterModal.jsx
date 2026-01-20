@@ -180,12 +180,12 @@ const FilterModal = ({
     () => [
       { ID: "1,4", Nombre: "Nuevo y En gestión" },
       ...estadosProcesos.map((e) => ({
-        ID: e.ProcesoEstadoID?.toString(),
+        ID: e.EstadoProcesoID?.toString(),
         Nombre: e.Nombre,
       })),
       { ID: null, Nombre: "Todos" },
     ],
-    [estadosProcesos]
+    [estadosProcesos],
   );
 
   const estadosGenerales = useMemo(() => FILTER_OPTIONS.estadosGenerales, []);
@@ -199,7 +199,7 @@ const FilterModal = ({
       { ID: "4", Nombre: "Pendientes o próximas" },
       { ID: null, Nombre: "Todas" },
     ],
-    []
+    [],
   );
 
   const origenesOptions = useMemo(
@@ -207,7 +207,7 @@ const FilterModal = ({
       { ID: null, Nombre: "Todos" },
       ...origenes.map((o) => ({ ID: o.OrigenPreContactoID, Nombre: o.Nombre })),
     ],
-    [origenes]
+    [origenes],
   );
 
   const tiposActividadesOptions = useMemo(
@@ -218,7 +218,7 @@ const FilterModal = ({
         Nombre: t.Nombre,
       })),
     ],
-    [tiposCalendarioActividades]
+    [tiposCalendarioActividades],
   );
 
   const asesoresOptions = useMemo(
@@ -226,7 +226,7 @@ const FilterModal = ({
       { ID: null, Nombre: "Todos" },
       ...asesores.map((a) => ({ ID: a.AsesorID, Nombre: a.NombreCompleto })),
     ],
-    [asesores]
+    [asesores],
   );
 
   const sucursalesOptions = useMemo(
@@ -234,7 +234,7 @@ const FilterModal = ({
       { ID: null, Nombre: "Todas" },
       ...sucursales.map((s) => ({ ID: s.SucursalID, Nombre: s.Nombre })),
     ],
-    [sucursales]
+    [sucursales],
   );
 
   const formasContactoOptions = useMemo(
@@ -245,7 +245,7 @@ const FilterModal = ({
         Nombre: f.Nombre,
       })),
     ],
-    [formasContacto]
+    [formasContacto],
   );
 
   const filteredAsesores = useMemo(() => {
@@ -267,7 +267,7 @@ const FilterModal = ({
       return result.filter(
         (a) =>
           a.ID === null ||
-          a.Nombre.toLowerCase().includes(advisorSearch.toLowerCase())
+          a.Nombre.toLowerCase().includes(advisorSearch.toLowerCase()),
       );
     }
 
@@ -299,7 +299,7 @@ const FilterModal = ({
         }
       }, 500);
     },
-    [onSearchAsesores]
+    [onSearchAsesores],
   );
 
   const selectedAdvisorName = useMemo(() => {
