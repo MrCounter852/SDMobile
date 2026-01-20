@@ -169,8 +169,13 @@ const GestionComercialCalendar = ({
 
       const filters = {
         ...searchFilters,
-        // Use UsuarioID directly (AsesorID and UsuarioID are different fields)
-        UsuarioID: user?.UsuarioID,
+        // Use UsuarioID from filters if present (supports null for "All"), otherwise fallback to logged-in user
+        UsuarioID: Object.prototype.hasOwnProperty.call(
+          searchFilters,
+          "UsuarioID",
+        )
+          ? searchFilters.UsuarioID
+          : user?.UsuarioID,
         // Prioritize SucursalID from filters
         SucursalID: Object.prototype.hasOwnProperty.call(
           searchFilters,

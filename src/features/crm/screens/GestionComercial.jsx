@@ -46,6 +46,7 @@ const GestionComercial = ({ navigation }) => {
     TipoCalendarioActividadID: null,
     // New fields from web modal
     AsesorID: user?.AsesorID || null,
+    UsuarioID: user?.UsuarioID || null,
     NombreCompleto: "",
     FormaContactoID: null,
     FechaInicialCierre: null,
@@ -62,7 +63,7 @@ const GestionComercial = ({ navigation }) => {
   const [hasFilters, setHasFilters] = useState(false);
   const [origenes, setOrigenes] = useState([]);
   const [tiposCalendarioActividades, setTiposCalendarioActividades] = useState(
-    []
+    [],
   );
   const [asesores, setAsesores] = useState([]);
   const [sucursales, setSucursales] = useState([]);
@@ -94,6 +95,7 @@ const GestionComercial = ({ navigation }) => {
       setSearchFilters((prev) => ({
         ...prev,
         AsesorID: prev.AsesorID || user?.AsesorID || null,
+        UsuarioID: prev.UsuarioID || user?.UsuarioID || null,
         SucursalID: prev.SucursalID || user?.SucursalID || null,
       }));
     }
@@ -107,7 +109,7 @@ const GestionComercial = ({ navigation }) => {
           await GestionComercialService.consultarOrigenesPreContactosSucursales(
             {
               SucursalID: user?.SucursalID,
-            }
+            },
           );
         setOrigenes(origenesResponse.rows || []);
 
@@ -138,7 +140,7 @@ const GestionComercial = ({ navigation }) => {
         const estadosProcesosResponse =
           await GestionComercialService.consultarEstadosProcesos();
         setEstadosProcesos(
-          estadosProcesosResponse.rows || estadosProcesosResponse || []
+          estadosProcesosResponse.rows || estadosProcesosResponse || [],
         );
       } catch (error) {
         console.error("Error loading filter data:", error);
@@ -165,7 +167,7 @@ const GestionComercial = ({ navigation }) => {
       } else {
         isInitialMount.current = false;
       }
-    }, [handleDeselectContact])
+    }, [handleDeselectContact]),
   );
 
   const handleApplyFilters = useCallback(
@@ -183,11 +185,11 @@ const GestionComercial = ({ navigation }) => {
           (key) =>
             filters[key] !== null &&
             filters[key] !== "" &&
-            filters[key] !== defaultValues[key]
-        )
+            filters[key] !== defaultValues[key],
+        ),
       );
     },
-    [getCurrentMode]
+    [getCurrentMode],
   );
 
   const handleRefresh = useCallback(() => {
@@ -208,7 +210,7 @@ const GestionComercial = ({ navigation }) => {
         return [];
       }
     },
-    [searchFilters.SucursalID, user?.SucursalID]
+    [searchFilters.SucursalID, user?.SucursalID],
   );
 
   const handleSelectContact = useCallback((contact) => {
@@ -260,7 +262,7 @@ const GestionComercial = ({ navigation }) => {
 
     if (searchFilters.OrigenPreContactoID) {
       const origen = origenes.find(
-        (o) => o.OrigenPreContactoID === searchFilters.OrigenPreContactoID
+        (o) => o.OrigenPreContactoID === searchFilters.OrigenPreContactoID,
       );
       if (origen) {
         tags.push({ key: "OrigenPreContactoID", label: origen.Nombre });
@@ -271,7 +273,7 @@ const GestionComercial = ({ navigation }) => {
       const tipo = tiposCalendarioActividades.find(
         (t) =>
           t.TipoCalendarioActividadID ===
-          searchFilters.TipoCalendarioActividadID
+          searchFilters.TipoCalendarioActividadID,
       );
       if (tipo) {
         tags.push({ key: "TipoCalendarioActividadID", label: tipo.Nombre });
@@ -280,7 +282,7 @@ const GestionComercial = ({ navigation }) => {
 
     if (searchFilters.AsesorID) {
       const asesor = asesores.find(
-        (a) => a.AsesorID === searchFilters.AsesorID
+        (a) => a.AsesorID === searchFilters.AsesorID,
       );
       if (asesor) {
         tags.push({
@@ -292,7 +294,7 @@ const GestionComercial = ({ navigation }) => {
 
     if (searchFilters.SucursalID) {
       const sucursal = sucursales.find(
-        (s) => s.SucursalID === searchFilters.SucursalID
+        (s) => s.SucursalID === searchFilters.SucursalID,
       );
       if (sucursal) {
         tags.push({ key: "SucursalID", label: `Sucursal: ${sucursal.Nombre}` });
@@ -301,7 +303,7 @@ const GestionComercial = ({ navigation }) => {
 
     if (searchFilters.FormaContactoID) {
       const forma = formasContacto.find(
-        (f) => f.FormaContactoID === searchFilters.FormaContactoID
+        (f) => f.FormaContactoID === searchFilters.FormaContactoID,
       );
       if (forma) {
         tags.push({ key: "FormaContactoID", label: forma.Nombre });
@@ -376,7 +378,7 @@ const GestionComercial = ({ navigation }) => {
         searchFilters.EstadoProcesoID !== "1,4"
       ) {
         const estado = FILTER_OPTIONS.estados.find(
-          (e) => e.ID === searchFilters.EstadoProcesoID
+          (e) => e.ID === searchFilters.EstadoProcesoID,
         );
         tags.push({
           key: "EstadoProcesoID",
@@ -386,7 +388,7 @@ const GestionComercial = ({ navigation }) => {
 
       if (searchFilters.EstadoGeneral) {
         const estadoG = FILTER_OPTIONS.estadosGenerales.find(
-          (e) => e.ID === searchFilters.EstadoGeneral
+          (e) => e.ID === searchFilters.EstadoGeneral,
         );
         tags.push({
           key: "EstadoGeneral",
@@ -399,7 +401,7 @@ const GestionComercial = ({ navigation }) => {
         searchFilters.EstadoActividadID !== "3,4"
       ) {
         const estadoA = FILTER_OPTIONS.estadosActividades.find(
-          (e) => e.ID === searchFilters.EstadoActividadID
+          (e) => e.ID === searchFilters.EstadoActividadID,
         );
         tags.push({
           key: "EstadoActividadID",
@@ -452,12 +454,12 @@ const GestionComercial = ({ navigation }) => {
 
       handleApplyFilters(newFilters);
     },
-    [searchFilters, handleApplyFilters]
+    [searchFilters, handleApplyFilters],
   );
 
   const activeTags = useMemo(
     () => getActiveFilterTags(),
-    [getActiveFilterTags]
+    [getActiveFilterTags],
   );
 
   // Stabilize query filters to prevent unnecessary re-renders in children
@@ -487,7 +489,7 @@ const GestionComercial = ({ navigation }) => {
       searchFilters.SucursalID,
       searchFilters.FechaInicialPosibleServicio,
       searchFilters.FechaFinalPosibleServicio,
-    ]
+    ],
   );
 
   // Memoized render functions for Tab.Screen children to prevent remounting
@@ -508,7 +510,7 @@ const GestionComercial = ({ navigation }) => {
       selectedContact,
       handleSelectContact,
       handleDeselectContact,
-    ]
+    ],
   );
 
   const renderTimelineScreen = useCallback(
@@ -520,7 +522,7 @@ const GestionComercial = ({ navigation }) => {
         onSelectContact={handleSelectContact}
       />
     ),
-    [queryFilters, refreshTrigger, handleSelectContact]
+    [queryFilters, refreshTrigger, handleSelectContact],
   );
 
   const renderCalendarScreen = useCallback(
@@ -531,7 +533,7 @@ const GestionComercial = ({ navigation }) => {
         refreshTrigger={refreshTrigger}
       />
     ),
-    [queryFilters, refreshTrigger]
+    [queryFilters, refreshTrigger],
   );
 
   return (
@@ -622,8 +624,8 @@ const GestionComercial = ({ navigation }) => {
                           ? "calendar"
                           : "calendar-outline"
                         : hasFilters
-                        ? "filter"
-                        : "filter-outline"
+                          ? "filter"
+                          : "filter-outline"
                     }
                     size={20}
                     color="#FFF"

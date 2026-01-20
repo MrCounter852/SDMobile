@@ -150,6 +150,7 @@ const FilterModal = ({
       EstadoActividadID: "3,4",
       TipoCalendarioActividadID: null,
       AsesorID: null,
+      UsuarioID: null,
       NombreCompleto: "",
       FormaContactoID: null,
       FechaInicialCierre: null,
@@ -221,13 +222,22 @@ const FilterModal = ({
     [tiposCalendarioActividades],
   );
 
-  const asesoresOptions = useMemo(
-    () => [
-      { ID: null, Nombre: "Todos" },
-      ...asesores.map((a) => ({ ID: a.AsesorID, Nombre: a.NombreCompleto })),
-    ],
-    [asesores],
-  );
+  const asesoresOptions = useMemo(() => {
+    const list = asesores.map((a) => {
+      console.log("FilterModal: Prop Asesor:", {
+        AsesorID: a.AsesorID,
+        UsuarioID: a.UsuarioID,
+        Nombre: a.NombreCompleto,
+      });
+      return {
+        ID: a.AsesorID,
+        UsuarioID: a.UsuarioID,
+        Nombre: a.NombreCompleto,
+      };
+    });
+
+    return [{ ID: null, UsuarioID: null, Nombre: "Todos" }, ...list];
+  }, [asesores]);
 
   const sucursalesOptions = useMemo(
     () => [
@@ -253,14 +263,16 @@ const FilterModal = ({
       remoteAsesores.length > 0
         ? remoteAsesores.map((a) => ({
             ID: a.AsesorID,
+            UsuarioID: a.UsuarioID,
             Nombre: a.NombreCompleto || a.Nombre,
           }))
         : asesores.map((a) => ({
             ID: a.AsesorID,
+            UsuarioID: a.UsuarioID,
             Nombre: a.NombreCompleto,
           }));
 
-    const result = [{ ID: null, Nombre: "Todos" }, ...list];
+    const result = [{ ID: null, UsuarioID: null, Nombre: "Todos" }, ...list];
 
     // Si hay búsqueda local (por si acaso no hay onSearch), filtramos
     if (!onSearchAsesores && advisorSearch) {
@@ -879,7 +891,11 @@ const FilterModal = ({
               item.ID === selectedId && styles.modalItemSelected,
             ]}
             onPress={() => {
-              setFilters((prev) => ({ ...prev, AsesorID: item.ID }));
+              setFilters((prev) => ({
+                ...prev,
+                AsesorID: item.ID,
+                UsuarioID: item.UsuarioID,
+              }));
               setAdvisorModalVisible(false);
               setAdvisorSearch("");
             }}

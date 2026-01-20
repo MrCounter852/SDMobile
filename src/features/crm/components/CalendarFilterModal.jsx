@@ -138,6 +138,7 @@ const CalendarFilterModal = ({
       EstadoActividadID: null, // Match web default (All)
       TipoCalendarioActividadID: null,
       AsesorID: null, // Reset to all
+      UsuarioID: null,
       FechaInicial: null,
       FechaFinal: null,
     };
@@ -192,28 +193,44 @@ const CalendarFilterModal = ({
         }
       }, 500);
     },
-    [onSearchAsesores]
+    [onSearchAsesores],
   );
 
   const filteredAsesores = useMemo(() => {
     const list =
       remoteAsesores.length > 0
-        ? remoteAsesores.map((a) => ({
-            ID: a.AsesorID,
-            Nombre: a.NombreCompleto || a.Nombre,
-          }))
-        : asesores.map((a) => ({
-            ID: a.AsesorID,
-            Nombre: a.NombreCompleto,
-          }));
+        ? remoteAsesores.map((a) => {
+            console.log("CalendarFilterModal: Remote Asesor:", {
+              AsesorID: a.AsesorID,
+              UsuarioID: a.UsuarioID,
+              Nombre: a.NombreCompleto || a.Nombre,
+            });
+            return {
+              ID: a.AsesorID,
+              UsuarioID: a.UsuarioID,
+              Nombre: a.NombreCompleto || a.Nombre,
+            };
+          })
+        : asesores.map((a) => {
+            console.log("CalendarFilterModal: Prop Asesor:", {
+              AsesorID: a.AsesorID,
+              UsuarioID: a.UsuarioID,
+              Nombre: a.NombreCompleto,
+            });
+            return {
+              ID: a.AsesorID,
+              UsuarioID: a.UsuarioID,
+              Nombre: a.NombreCompleto,
+            };
+          });
 
-    const result = [{ ID: null, Nombre: "Todos" }, ...list];
+    const result = [{ ID: null, UsuarioID: null, Nombre: "Todos" }, ...list];
 
     if (!onSearchAsesores && advisorSearch) {
       return result.filter(
         (a) =>
           a.ID === null ||
-          a.Nombre.toLowerCase().includes(advisorSearch.toLowerCase())
+          a.Nombre.toLowerCase().includes(advisorSearch.toLowerCase()),
       );
     }
 
@@ -222,7 +239,7 @@ const CalendarFilterModal = ({
 
   const estadosActividadesOptions = useMemo(
     () => FILTER_OPTIONS.estadosActividades,
-    []
+    [],
   );
 
   const tiposActividadesOptions = useMemo(
@@ -233,7 +250,7 @@ const CalendarFilterModal = ({
         Nombre: t.Nombre,
       })),
     ],
-    [tiposCalendarioActividades]
+    [tiposCalendarioActividades],
   );
 
   const sucursalesOptions = useMemo(
@@ -241,7 +258,7 @@ const CalendarFilterModal = ({
       { ID: null, Nombre: "Todas" },
       ...sucursales.map((s) => ({ ID: s.SucursalID, Nombre: s.Nombre })),
     ],
-    [sucursales]
+    [sucursales],
   );
 
   const selectedAdvisorName = useMemo(() => {
@@ -476,7 +493,11 @@ const CalendarFilterModal = ({
                 item.ID === selectedId && styles.modalItemSelected,
               ]}
               onPress={() => {
-                setFilters((prev) => ({ ...prev, AsesorID: item.ID }));
+                setFilters((prev) => ({
+                  ...prev,
+                  AsesorID: item.ID,
+                  UsuarioID: item.UsuarioID,
+                }));
                 setAdvisorModalVisible(false);
                 setAdvisorSearch("");
               }}
