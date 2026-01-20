@@ -106,7 +106,7 @@ const Login = () => {
         loginData.token,
         selectedEmpresa.BaseDatosID,
         selectedEmpresa.EmpresaID,
-        selectedSucursal.SucursalID
+        selectedSucursal.SucursalID,
       );
       await SecureStore.setItemAsync("accessToken", oauthData.accessToken);
       await SecureStore.setItemAsync("erpToken", oauthData.accessToken);
@@ -133,7 +133,7 @@ const Login = () => {
         });
         await SecureStore.setItemAsync(
           "usuarioID",
-          usuarioID?.toString() || ""
+          usuarioID?.toString() || "",
         );
         await SecureStore.setItemAsync("rolID", rolID?.toString() || "");
       } catch (error) {
@@ -437,7 +437,7 @@ const Login = () => {
 
               {/* Footer */}
               <View style={styles.footer}>
-                <Text style={styles.footerText}>SediMobile v1.0</Text>
+                <Text style={styles.footerText}>SediMobile v0.1.0-alpha.1</Text>
                 <Text style={styles.footerSubtext}>
                   © 2026 SEDI ERP - Todos los derechos reservados
                 </Text>

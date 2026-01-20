@@ -257,7 +257,7 @@ const Perfil = ({ navigation }) => {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>SediMobile v1.0</Text>
+          <Text style={styles.footerText}>SediMobile v0.1.0-alpha.1</Text>
         </View>
       </ScrollView>
     </View>
