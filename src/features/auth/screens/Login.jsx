@@ -13,6 +13,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Dimensions,
+  Platform,
 } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -348,39 +349,46 @@ const Login = () => {
         {/* Buttons */}
         {selectedSucursal && (
           <View style={styles.buttonRow}>
-            <TouchableOpacity
-              onPress={handleBack}
-              activeOpacity={0.8}
-              style={styles.secondaryButtonWrapper}
-            >
-              <View style={styles.secondaryButton}>
-                <Feather name="arrow-left" size={18} color={COLORS.primary} />
-                <Text style={styles.secondaryButtonText}>Atrás</Text>
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={COLORS.primary} />
+                <Text style={styles.loadingText}>Iniciando sesión...</Text>
               </View>
-            </TouchableOpacity>
+            ) : (
+              <>
+                <TouchableOpacity
+                  onPress={handleBack}
+                  activeOpacity={0.8}
+                  style={styles.secondaryButtonWrapper}
+                >
+                  <View style={styles.secondaryButton}>
+                    <Feather
+                      name="arrow-left"
+                      size={18}
+                      color={COLORS.primary}
+                    />
+                    <Text style={styles.secondaryButtonText}>Atrás</Text>
+                  </View>
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={handleStartSession}
-              disabled={loading}
-              activeOpacity={0.9}
-              style={styles.primaryButtonWrapper}
-            >
-              <LinearGradient
-                colors={[COLORS.primary, COLORS.accent]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.primaryButtonSmall}
-              >
-                {loading ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <>
+                <TouchableOpacity
+                  onPress={handleStartSession}
+                  disabled={loading}
+                  activeOpacity={0.9}
+                  style={styles.primaryButtonWrapper}
+                >
+                  <LinearGradient
+                    colors={[COLORS.primary, COLORS.accent]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.primaryButtonSmall}
+                  >
                     <Text style={styles.primaryButtonText}>Iniciar</Text>
                     <Feather name="log-in" size={18} color="#FFF" />
-                  </>
-                )}
-              </LinearGradient>
-            </TouchableOpacity>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         )}
       </View>
@@ -406,7 +414,11 @@ const Login = () => {
 
       <SafeAreaView style={styles.safeArea}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <KeyboardAvoidingView behavior="padding" style={styles.flexOne}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.flexOne}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+          >
             <ScrollView
               contentContainerStyle={styles.scrollContainer}
               keyboardShouldPersistTaps="handled"
@@ -742,6 +754,18 @@ const styles = StyleSheet.create({
   footerSubtext: {
     fontSize: 11,
     color: COLORS.lightGray,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 15,
+    color: COLORS.primary,
+    fontWeight: "600",
   },
 });
 
