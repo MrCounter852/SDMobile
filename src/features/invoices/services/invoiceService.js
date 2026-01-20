@@ -56,12 +56,7 @@ class FacturasCompraService {
           errorBody = "Could not read error body";
         }
         
-        console.group("❌ API Request Error");
-        console.log("Endpoint:", endpoint);
-        console.log("Status:", response.status, response.statusText);
-        console.log("Payload:", options.body ? JSON.parse(options.body) : "No body");
-        console.log("Error Body:", errorBody);
-        console.groupEnd();
+
 
         throw new Error(`HTTP error! status: ${response.status} - ${errorBody}`);
       }
@@ -119,7 +114,7 @@ class FacturasCompraService {
       FacturasCompraAdjuntos: facturaData.FacturasCompraAdjuntos || [],
     };
 
-    console.log("aprobarFactura Payload:", JSON.stringify(payload, null, 2));
+
 
     return this.makeRequest('/FacturasCompra/FacturasCompraAprobar', {
       method: 'POST',

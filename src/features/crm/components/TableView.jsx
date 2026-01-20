@@ -40,9 +40,6 @@ const TableView = React.memo(
 
       // Evitar cargar la misma página si no es un refresh
       if (!isRefresh && pageNum <= page && pageNum !== 1) {
-        console.log(
-          `[TableView] Intentando cargar página ${pageNum} pero ya estamos en ${page}. Cancelando.`
-        );
         return;
       }
 
@@ -64,24 +61,12 @@ const TableView = React.memo(
           delete filters.OrigenPreContactoID;
         }
 
-        console.log(
-          `[TableView] Requesting Page ${pageNum}:`,
-          JSON.stringify(filters, null, 2)
-        );
-
-        const response = await GestionComercialService.consultarPreContactos(
-          filters
-        );
+        const response =
+          await GestionComercialService.consultarPreContactos(filters);
 
         const newContacts = response.rows || [];
         const total = parseInt(response.total || 0, 10);
         const rowsCount = newContacts.length;
-
-        console.log(`[TableView] Success Page ${pageNum}:`, {
-          totalRecibido: total,
-          itemsNuevos: rowsCount,
-          ultimaPagina: page,
-        });
 
         if (pageNum === 1) {
           setContacts(newContacts);
@@ -91,7 +76,7 @@ const TableView = React.memo(
           setContacts((prev) => {
             const existingIds = new Set(prev.map((c) => c.ProcesoID));
             const uniqueNewContacts = newContacts.filter(
-              (c) => !existingIds.has(c.ProcesoID)
+              (c) => !existingIds.has(c.ProcesoID),
             );
             const combined = [...prev, ...uniqueNewContacts];
 
@@ -101,9 +86,6 @@ const TableView = React.memo(
             const stillHasMore = rowsCount === 30 || combined.length < total;
             setHasMore(stillHasMore);
 
-            console.log(
-              `[TableView] Update: totalAcumulado=${combined.length}, totalDB=${total}, hasMore=${stillHasMore}`
-            );
             return combined;
           });
           setPage(pageNum);
@@ -134,7 +116,7 @@ const TableView = React.memo(
             refreshTrigger,
           };
         }
-      }, [searchFilters, refreshTrigger, user?.SucursalID])
+      }, [searchFilters, refreshTrigger, user?.SucursalID]),
     );
 
     const handleRefresh = () => {
@@ -223,7 +205,7 @@ const TableView = React.memo(
         />
       </View>
     );
-  }
+  },
 );
 
 const styles = StyleSheet.create({

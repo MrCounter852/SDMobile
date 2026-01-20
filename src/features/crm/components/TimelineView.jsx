@@ -59,11 +59,6 @@ const TimelineView = React.memo(
       searchFilters,
     };
 
-    // Debug: Log mount/unmount
-    React.useEffect(() => {
-      return () => {};
-    }, []);
-
     const ROWS_PER_PAGE = 15;
 
     // Ref to access current timeline data in stable callbacks
@@ -100,7 +95,6 @@ const TimelineView = React.memo(
                 // Refresh after successful move
                 loadTimeline(1, true);
               } catch (error) {
-                console.error("[TimelineView] Error moving contact:", error);
                 Alert.alert(
                   "Error",
                   error.message ||

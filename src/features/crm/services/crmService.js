@@ -78,10 +78,10 @@ class GestionComercialService {
       }
     }
 
-    console.log(`[Service] Request to: ${url}`, config.body);
+
     try {
       const response = await fetch(url, config);
-      console.log(`[Service] Response status: ${response.status}`);
+
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -1007,7 +1007,7 @@ class GestionComercialService {
           }
         });
 
-        console.log('[CRM Service] Permissions Loaded:', mappedPermissions);
+
         this.global.setPermisos(mappedPermissions);
         return mappedPermissions;
       }

@@ -84,10 +84,6 @@ const ContactInfoScreen = () => {
   }, [navigation]);
 
   const loadData = async () => {
-    console.log(
-      "ContactInfoScreen: loadData start",
-      contact.CuentaMensajeriaContactoID,
-    );
     setLoading(true);
     try {
       const relaciones = await leadService.consultarRelacionesContacto({
@@ -97,7 +93,7 @@ const ContactInfoScreen = () => {
         SucursalID: user?.SucursalID,
         Token: user?.Token,
       });
-      console.log("ContactInfoScreen: relaciones loaded", relaciones);
+
       setBusquedas(relaciones || {});
     } catch (error) {
       console.error("ContactInfoScreen: Error loading contact info:", error);

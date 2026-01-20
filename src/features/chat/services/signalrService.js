@@ -150,14 +150,14 @@ class SignalRService {
 
         // Solo intentar reconectar si el usuario sigue autenticado
         if (state.authenticated) {
-            console.log('[SignalR] Connection lost. Showing splash and attempting reconnect...');
+
             state.setSignalRConnected(false);
             state.setInitialized(false); // Mostrar splash screen
 
             // Iniciar reconexión si no está ya en proceso
             if (!this.reconnectInterval) {
                 this.reconnectInterval = setInterval(() => {
-                    console.log('[SignalR] Attempting to reconnect...');
+
                     this.connect();
                 }, 5000); // Intentar cada 5 segundos
             }

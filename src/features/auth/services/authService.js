@@ -64,7 +64,7 @@ export const getOauthToken = async (accessToken, baseDatosID, empresaID, sucursa
   });
 
   const data = await response.json();
-  console.log(data.Expires)
+
   if (response.ok && data.AccessToken) {
     return { accessToken: data.AccessToken };
   } else {
