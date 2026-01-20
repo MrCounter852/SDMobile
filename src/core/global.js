@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import * as SecureStore from 'expo-secure-store';
 
 export const useGlobal = create((set, get) => ({
     initialized: false,
@@ -16,15 +17,64 @@ export const useGlobal = create((set, get) => ({
     cdnLlavePublica: null,
     cdnLlavePrivada: null,
 
-    init: () => {
+    init: async () => {
         const useChatStore = require('../features/chat/store/chatStore').default;
         const ChatApiService = require('../features/chat/services/chatService').default;
+        const { loginUser, getOauthToken, getSessionData } = require('../features/auth/services/authService');
 
         useChatStore.getState().init();
         // Fire-and-forget cache maintenance (non-blocking)
         ChatApiService.manageCache();
 
-        set({ initialized: true });
+        try {
+            // Attempt auto-login
+            const credentialsStr = await SecureStore.getItemAsync('auth_credentials');
+            const selectionStr = await SecureStore.getItemAsync('auth_selection');
+
+            if (credentialsStr && selectionStr) {
+                const { email, password } = JSON.parse(credentialsStr);
+                const { empresa, sucursal } = JSON.parse(selectionStr);
+
+                if (email && password && empresa && sucursal) {
+                    const result = await loginUser(email, password);
+                    const oauthData = await getOauthToken(
+                        result.token,
+                        empresa.BaseDatosID,
+                        empresa.EmpresaID,
+                        sucursal.SucursalID
+                    );
+
+                    const sessionData = await getSessionData(oauthData.accessToken);
+                    const usuarioID = sessionData.Session?.Usuario?.UsuarioID;
+                    const rolID = sessionData.Session?.Usuario?.RolID;
+                    const user = sessionData.Session?.Usuario || {};
+                    const accesos = sessionData.Session?.Accesos || [];
+
+                    get().login({
+                        user: {
+                            email: email,
+                            ...user,
+                        },
+                        usuarioID,
+                        rolID,
+                        empresa,
+                        sucursal,
+                        accesos,
+                    });
+                }
+            }
+        } catch (error) {
+            console.error("Auto-login failed:", error);
+            // If auto-login fails, clear stored credentials to force manual login
+            await SecureStore.deleteItemAsync('auth_credentials');
+            await SecureStore.deleteItemAsync('auth_selection');
+            await SecureStore.deleteItemAsync('accessToken');
+            await SecureStore.deleteItemAsync('erpToken');
+            await SecureStore.deleteItemAsync('usuarioID');
+            await SecureStore.deleteItemAsync('rolID');
+        } finally {
+            set({ initialized: true });
+        }
     },
     setInitialized: (status) => set({ initialized: status }),
     setSignalRConnected: (status) => set({ signalrConnected: status }),
@@ -44,7 +94,15 @@ export const useGlobal = create((set, get) => ({
         cdnLlavePrivada: data.user?.CDNLlavePrivada || null
     }),
     setMenuOptions: (menuOptions) => set({ menuOptions }),
-    logout: () => {
+    logout: async () => {
+        // Clear secure storage
+        await SecureStore.deleteItemAsync('auth_credentials');
+        await SecureStore.deleteItemAsync('auth_selection');
+        await SecureStore.deleteItemAsync('accessToken');
+        await SecureStore.deleteItemAsync('erpToken');
+        await SecureStore.deleteItemAsync('usuarioID');
+        await SecureStore.deleteItemAsync('rolID');
+
         // Clear chat storage
         const ChatStorageService = require('../features/chat/services/chatStorageService').default;
         ChatStorageService.clearAll();

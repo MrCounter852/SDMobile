@@ -110,6 +110,20 @@ const Login = () => {
       );
       await SecureStore.setItemAsync("accessToken", oauthData.accessToken);
       await SecureStore.setItemAsync("erpToken", oauthData.accessToken);
+
+      // Save credentials and selection for auto-login
+      await SecureStore.setItemAsync(
+        "auth_credentials",
+        JSON.stringify({ email, password }),
+      );
+      await SecureStore.setItemAsync(
+        "auth_selection",
+        JSON.stringify({
+          empresa: selectedEmpresa,
+          sucursal: selectedSucursal,
+        }),
+      );
+
       try {
         const sessionData = await getSessionData(oauthData.accessToken);
         const usuarioID = sessionData.Session?.Usuario?.UsuarioID;
