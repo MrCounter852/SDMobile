@@ -16,8 +16,8 @@ const EDGE_THRESHOLD = 90;
 const MAX_SCROLL_SPEED = 20; // Reduced for smoother scrolling
 const CANCEL_ZONE_BOTTOM = 120; // Height from bottom of screen where cancel zone is
 const TIMELINE_DRAG_SCALE = 0.7;
-const TARGET_UPDATE_THRESHOLD = 80; // Min px movement to recalculate target column
-const FRAME_SKIP_COUNT = 2; // Only update target every N frames during auto-scroll
+const TARGET_UPDATE_THRESHOLD = 20; // More sensitive target detection
+const FRAME_SKIP_COUNT = 1; // Faster updates during auto-scroll
 
 /**
  * Custom hook for managing drag-and-drop state across timeline columns
@@ -137,7 +137,7 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
     if (count === 0) return null;
     
     const scaledX = x / scale;
-    const adjustedX = scaledX + currentScrollOffset;
+    const adjustedX = scaledX + currentScrollOffset - 16; // Account for 16px start padding
     const index = Math.floor(adjustedX / width);
     
     if (index >= 0 && index < count) {
@@ -223,7 +223,7 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
     if (!cols || cols.length === 0) return null;
     
     const scaledX = x / timelineScale.value;
-    const adjustedX = scaledX + scrollOffset.value;
+    const adjustedX = scaledX + scrollOffset.value - 16; // Account for 16px start padding
     const index = Math.floor(adjustedX / columnWidth);
     
     if (index >= 0 && index < cols.length) {
@@ -299,7 +299,10 @@ const useDragAndDrop = (columnIds, columnWidth = 324, onMoveContact, scrollViewR
         return;
       }
 
-      const finalTargetId = getTargetColumnFromPosition(absoluteX);
+      // Use the visually highlighted target and fallback to position calculation
+      const highlightedTargetId = targetColumnIdShared.value;
+      const calculatedTargetId = getTargetColumnFromPosition(absoluteX);
+      const finalTargetId = highlightedTargetId || calculatedTargetId;
 
       dragScale.value = 1;
       dragOpacity.value = 1;

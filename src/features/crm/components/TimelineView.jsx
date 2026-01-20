@@ -25,7 +25,7 @@ import useDragAndDrop from "../hooks/useDragAndDrop";
 import { COLORS } from "../../../core/theme";
 const GestionComercialService = require("../services/crmService").default;
 
-const COLUMN_WIDTH = 324; // 300 width + 24 margin
+const COLUMN_WIDTH = 320; // 300 width + 20 total margin (10 each side)
 
 const TimelineView = React.memo(
   ({ navigation, searchFilters, refreshTrigger, onSelectContact }) => {

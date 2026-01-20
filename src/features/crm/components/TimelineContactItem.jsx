@@ -2,20 +2,34 @@ import React, { memo, useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Vibration } from "react-native";
+import { useGlobal } from "../../../core/global";
+import { COLORS } from "../../../core/theme";
 
 /**
- * Optimized version of ContactItem for Timeline view
- * - No shadows (elevation, shadowColor, etc.) for better GPU performance
- * - Simpler styling for faster rendering in scrollable lists
+ * Modernized version of TimelineContactItem
+ * - Follows DESIGN_PATTERNS.md
+ * - Compact but comprehensive information
+ * - Premium aesthetics with shadow and rounded corners
  */
 const TimelineContactItem = ({ item, onPress, onLongPress, isSelected }) => {
+  const { user } = useGlobal();
+
   // Normalize data to handle inconsistent field names from different API endpoints
   const d = useMemo(() => {
-    const getEstadoNombre = (item) => {
-      if (item.EstadoProcesoNombre) return item.EstadoProcesoNombre;
-      if (item.EstadoProcesoID === 1) return "Nuevo";
-      if (item.EstadoProcesoID === 4) return "En gestión";
-      return item.Estado || "N/A";
+    const estado = (
+      item.EstadoProcesoNombre ||
+      item.Estado ||
+      "Nuevo"
+    ).toLowerCase();
+
+    // Previous color logic restoration
+    const getStatusColor = () => {
+      if (item.Color) return item.Color;
+      if (estado.includes("nuevo")) return COLORS.primary;
+      if (estado.includes("gesti")) return COLORS.accent;
+      if (estado.includes("cerra")) return COLORS.highlight;
+      if (estado.includes("invia")) return COLORS.secondary;
+      return COLORS.lightGray;
     };
 
     return {
@@ -28,232 +42,60 @@ const TimelineContactItem = ({ item, onPress, onLongPress, isSelected }) => {
             ? `${item.Nombres || item.nombres} ${
                 item.Apellidos || item.apellidos || ""
               }`.trim()
-            : "Contacto sin nombre")
+            : "Contacto sin nombre"),
       ),
-      estado: String(getEstadoNombre(item)),
-      celular: String(
-        item.Celular ||
-          item.celular ||
-          item.Telefono ||
-          item.telefono ||
-          "Sin celular"
-      ),
-      asesor: String(
-        item.AsesorNombreCompleto || item.asesorNombreCompleto || ""
-      ),
-      fecha: String(
+      celular: item.Celular || item.celular || null,
+      email: item.Email || item.email || null,
+      asesor: item.AsesorNombreCompleto || item.asesorNombreCompleto || null,
+      fecha:
         item.Fecha ||
-          item.fecha ||
-          item.FechaRegistro ||
-          item.fechaRegistro ||
-          ""
-      ),
+        item.fecha ||
+        item.FechaRegistro ||
+        item.fechaRegistro ||
+        null,
+      fechaCierre: item.FechaCierre || item.fechaCierre || null,
+      fechaCambio:
+        item.FechaCambioLineaTiempo || item.fechaCambioLineaTiempo || null,
       valor: item.ValorNegocio || item.valorNegocio || 0,
-      seguimientos: String(
-        item.CountSeguimientos || item.countSeguimientos || 0
+      seguimientos: parseInt(
+        item.CountSeguimientos || item.countSeguimientos || 0,
       ),
-      actividades: String(item.CountActividades || item.countActividades || 0),
+      actividades: parseInt(
+        item.CountActividades || item.countActividades || 0,
+      ),
       estadoGeneral: String(item.EstadoGeneral || item.estadoGeneral || ""),
-      color: item.Color || item.color || null,
+      color: getStatusColor(),
+      lineaTiempoAutomatica: item.LineaTiempoAutomatica ?? true,
       origenID: item.OrigenPreContactoID || null,
     };
   }, [item]);
 
-  // Render specific content based on OrigenPreContactoID
-  const renderOriginSpecificContent = () => {
-    // Arrendatarios (4) & Ventas (5): Show property details
-    if (d.origenID === 4 || d.origenID === 5) {
-      const habitaciones = item.Habitaciones || 0;
-      const banos = item.Banos || 0;
-      const garajes = item.Garajes || 0;
-      const tipoInmueble = item.TipoInmuebleNombre || "";
-      const tipoOferta = item.TipoOfertaNombre || "";
+  const canEditTimeline = useMemo(() => {
+    return user?.EdicionLineaTiempo === true;
+  }, [user]);
 
-      return (
-        <View style={styles.originContent}>
-          {(tipoInmueble || tipoOferta) && (
-            <View style={styles.detailRow}>
-              <View style={styles.iconCircle}>
-                <Ionicons name="home-outline" size={12} color="#8E8E93" />
-              </View>
-              <Text style={styles.detailText}>
-                {tipoInmueble && tipoOferta
-                  ? `${tipoInmueble} - ${tipoOferta}`
-                  : tipoInmueble || tipoOferta}
-              </Text>
-            </View>
-          )}
-          {(habitaciones > 0 || banos > 0 || garajes > 0) && (
-            <View style={styles.propertyDetails}>
-              {habitaciones > 0 && (
-                <View style={styles.propertyBadge}>
-                  <Ionicons name="bed-outline" size={14} color="#337ab7" />
-                  <Text style={styles.propertyText}>
-                    {String(habitaciones)}
-                  </Text>
-                </View>
-              )}
-              {banos > 0 && (
-                <View style={styles.propertyBadge}>
-                  <Ionicons name="water-outline" size={14} color="#337ab7" />
-                  <Text style={styles.propertyText}>{String(banos)}</Text>
-                </View>
-              )}
-              {garajes > 0 && (
-                <View style={styles.propertyBadge}>
-                  <Ionicons name="car-outline" size={14} color="#337ab7" />
-                  <Text style={styles.propertyText}>{String(garajes)}</Text>
-                </View>
-              )}
-            </View>
-          )}
-        </View>
-      );
-    }
-
-    // Avaluos (7): Show TipoAvaluoNombre
-    if (d.origenID === 7) {
-      const tipoAvaluo = item.TipoAvaluoNombre || "";
-      if (tipoAvaluo) {
-        return (
-          <View style={styles.originContent}>
-            <View style={styles.detailRow}>
-              <View style={styles.iconCircle}>
-                <Ionicons
-                  name="document-text-outline"
-                  size={12}
-                  color="#8E8E93"
-                />
-              </View>
-              <Text style={styles.detailText}>{String(tipoAvaluo)}</Text>
-            </View>
-          </View>
-        );
-      }
-    }
-
-    // Captaciones (2): Show TipoOfertaNombre
-    if (d.origenID === 2) {
-      const tipoOferta = item.TipoOfertaNombre || "";
-      if (tipoOferta) {
-        return (
-          <View style={styles.originContent}>
-            <View style={styles.detailRow}>
-              <View style={styles.iconCircle}>
-                <Ionicons name="pricetag-outline" size={12} color="#8E8E93" />
-              </View>
-              <Text style={styles.detailText}>{String(tipoOferta)}</Text>
-            </View>
-          </View>
-        );
-      }
-    }
-
-    // Clientes (3): Show custom fields ValorCampo1, ValorCampo2
-    if (d.origenID === 3) {
-      const campo1 = item.ValorCampo1 || "";
-      const campo2 = item.ValorCampo2 || "";
-      if (campo1 || campo2) {
-        return (
-          <View style={styles.originContent}>
-            {campo1 && (
-              <View style={styles.detailRow}>
-                <View style={styles.iconCircle}>
-                  <Ionicons
-                    name="information-circle-outline"
-                    size={12}
-                    color="#8E8E93"
-                  />
-                </View>
-                <Text style={styles.detailText} numberOfLines={1}>
-                  {String(campo1)}
-                </Text>
-              </View>
-            )}
-            {campo2 && (
-              <View style={styles.detailRow}>
-                <View style={styles.iconCircle}>
-                  <Ionicons
-                    name="information-circle-outline"
-                    size={12}
-                    color="#8E8E93"
-                  />
-                </View>
-                <Text style={styles.detailText} numberOfLines={1}>
-                  {String(campo2)}
-                </Text>
-              </View>
-            )}
-          </View>
-        );
-      }
-    }
-
-    // Storage estandar (6): Show custom fields ValorCampo1, ValorCampo3
-    if (d.origenID === 6) {
-      const campo1 = item.ValorCampo1 || "";
-      const campo3 = item.ValorCampo3 || "";
-      if (campo1 || campo3) {
-        return (
-          <View style={styles.originContent}>
-            {campo1 && (
-              <View style={styles.detailRow}>
-                <View style={styles.iconCircle}>
-                  <Ionicons name="cube-outline" size={12} color="#8E8E93" />
-                </View>
-                <Text style={styles.detailText} numberOfLines={1}>
-                  {String(campo1)}
-                </Text>
-              </View>
-            )}
-            {campo3 && (
-              <View style={styles.detailRow}>
-                <View style={styles.iconCircle}>
-                  <Ionicons name="cube-outline" size={12} color="#8E8E93" />
-                </View>
-                <Text style={styles.detailText} numberOfLines={1}>
-                  {String(campo3)}
-                </Text>
-              </View>
-            )}
-          </View>
-        );
-      }
-    }
-
-    return null;
-  };
-
-  const statusColor = useMemo(() => {
-    if (d.color) return d.color;
-    const est = String(d.estado).toLowerCase();
-    if (est.includes("nuevo")) return "#337ab7";
-    if (est.includes("gesti")) return "#00ACC4";
-    if (est.includes("cerra")) return "#88E782";
-    if (est.includes("invia")) return "#0086C8";
-    return "#8E8E93";
-  }, [d.color, d.estado]);
-
-  const formattedDate = useMemo(() => {
-    if (!d.fecha) return "N/A";
+  const formattedDate = (dateStr) => {
+    if (!dateStr) return null;
     try {
-      const date = new Date(d.fecha);
-      if (isNaN(date.getTime())) return String(d.fecha);
-      return date.toLocaleDateString("es-CO", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return String(dateStr);
+
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const strTime = date.toLocaleTimeString("es-CO", {
         hour: "2-digit",
         minute: "2-digit",
+        hour12: true,
       });
+
+      return `${day}/${month} ${strTime}`;
     } catch (e) {
-      return String(d.fecha);
+      return String(dateStr);
     }
-  }, [d.fecha]);
+  };
 
   const formattedCurrency = useMemo(() => {
-    if (d.valor === null || d.valor === undefined) return "N/A";
-    if (d.valor === 0) return "$0";
+    if (d.valor === null || d.valor === undefined || d.valor === 0) return null;
     try {
       return new Intl.NumberFormat("es-CO", {
         style: "currency",
@@ -261,9 +103,15 @@ const TimelineContactItem = ({ item, onPress, onLongPress, isSelected }) => {
         minimumFractionDigits: 0,
       }).format(d.valor);
     } catch (e) {
-      return "N/A";
+      return String(d.valor);
     }
   }, [d.valor]);
+
+  const getActividadColor = () => {
+    if (d.estadoGeneral === "V") return COLORS.highlight; // green
+    if (d.estadoGeneral === "A") return "#FFB020"; // warning yellow
+    return "#FF4842"; // error red
+  };
 
   return (
     <TouchableOpacity
@@ -275,247 +123,277 @@ const TimelineContactItem = ({ item, onPress, onLongPress, isSelected }) => {
         onLongPress && onLongPress(item);
       }}
     >
+      {/* Corner Status Indicator */}
+      <View style={[styles.statusStrip, { backgroundColor: d.color }]} />
+
       <View style={styles.content}>
         <View style={styles.header}>
-          <View style={styles.nameContainer}>
-            <Text
-              style={[styles.name, { flex: 1 }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {String(d.nombre)}
-            </Text>
-            {d.estado !== "N/A" && (
-              <View
-                style={[styles.statusBadge, { backgroundColor: statusColor }]}
-              >
-                <Text style={styles.statusText}>{String(d.estado)}</Text>
-              </View>
-            )}
-          </View>
+          <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+            {d.nombre}
+          </Text>
           <View style={styles.actions}>
+            {/* Seguimientos Badge */}
             {d.seguimientos > 0 && (
-              <View style={styles.badge}>
+              <View style={styles.miniBadge}>
                 <Ionicons
-                  name="chatbubble-ellipses-outline"
-                  size={14}
-                  color="#337ab7"
+                  name="chatbubble-ellipses"
+                  size={12}
+                  color={COLORS.secondary}
                 />
-                <Text style={styles.badgeText}>{String(d.seguimientos)}</Text>
+                <Text style={styles.miniBadgeText}>
+                  {d.seguimientos < 10 ? d.seguimientos : "+"}
+                </Text>
               </View>
             )}
+
+            {/* Actividades Badge */}
             {d.actividades > 0 && (
-              <View style={styles.badge}>
+              <View
+                style={[
+                  styles.miniBadge,
+                  { backgroundColor: `${getActividadColor()}15` },
+                ]}
+              >
                 <Ionicons
-                  name="calendar-outline"
-                  size={14}
-                  color={
-                    d.estadoGeneral === "V"
-                      ? "#88E782"
-                      : d.estadoGeneral === "A"
-                      ? "#00ACC4"
-                      : "#337ab7"
-                  }
+                  name="calendar"
+                  size={12}
+                  color={getActividadColor()}
                 />
-                <Text style={styles.badgeText}>{String(d.actividades)}</Text>
+                <Text
+                  style={[styles.miniBadgeText, { color: getActividadColor() }]}
+                >
+                  {d.actividades < 10 ? d.actividades : "+"}
+                </Text>
               </View>
+            )}
+
+            {/* Lock Action */}
+            {canEditTimeline && (
+              <Ionicons
+                name={
+                  d.lineaTiempoAutomatica === false
+                    ? "lock-closed"
+                    : "lock-open-outline"
+                }
+                size={14}
+                color={
+                  d.lineaTiempoAutomatica === false
+                    ? "#FF4842"
+                    : COLORS.lightGray
+                }
+              />
             )}
           </View>
         </View>
 
-        <View style={styles.details}>
-          <View style={styles.detailRow}>
-            <View style={styles.iconCircle}>
-              <Ionicons name="call-outline" size={12} color="#8E8E93" />
-            </View>
-            <Text style={styles.detailText}>{String(d.celular)}</Text>
-          </View>
-
-          {!!d.asesor && (
-            <View style={styles.detailRow}>
-              <View style={styles.iconCircle}>
-                <Ionicons name="person-outline" size={12} color="#8E8E93" />
+        <View style={styles.detailGrid}>
+          {/* Valor & Asesor Row */}
+          <View style={styles.fieldRow}>
+            {!!formattedCurrency && (
+              <View style={styles.field}>
+                <View style={[styles.iconBox, { backgroundColor: "#E8F5E9" }]}>
+                  <Ionicons name="cash-outline" size={10} color="#2E7D32" />
+                </View>
+                <Text style={styles.valueTextBold}>{formattedCurrency}</Text>
               </View>
-              <Text
-                style={[styles.detailText, { flex: 1 }]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {String(d.asesor)}
-              </Text>
-            </View>
-          )}
-
-          {/* Origin-specific content */}
-          {renderOriginSpecificContent()}
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.footer}>
-          <View style={styles.footerLeft}>
-            <Ionicons name="time-outline" size={12} color="#AEAEB2" />
-            <Text style={styles.dateText}>{formattedDate}</Text>
+            )}
+            {!!d.asesor && (
+              <View style={[styles.field, { flex: 1 }]}>
+                <View style={styles.iconBox}>
+                  <Ionicons
+                    name="person-outline"
+                    size={10}
+                    color={COLORS.secondary}
+                  />
+                </View>
+                <Text style={styles.labelText} numberOfLines={1}>
+                  {d.asesor}
+                </Text>
+              </View>
+            )}
           </View>
-          {d.valor > 0 && (
-            <Text style={styles.valueText}>{formattedCurrency}</Text>
-          )}
+
+          {/* Dates Section */}
+          <View style={styles.datesGrid}>
+            <View style={styles.dateItem}>
+              <Ionicons
+                name="add-circle-outline"
+                size={10}
+                color={COLORS.lightGray}
+              />
+              <Text style={styles.dateText}>{formattedDate(d.fecha)}</Text>
+            </View>
+            {!!d.fechaCierre && (
+              <View style={styles.dateItem}>
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={10}
+                  color="#2E7D32"
+                />
+                <Text style={styles.dateText}>
+                  {formattedDate(d.fechaCierre)}
+                </Text>
+              </View>
+            )}
+            {!!d.fechaCambio && (
+              <View style={styles.dateItem}>
+                <Ionicons
+                  name="swap-horizontal-outline"
+                  size={10}
+                  color="#FF4842"
+                />
+                <Text style={styles.dateText}>
+                  {formattedDate(d.fechaCambio)}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* Contact Info Row */}
+          <View style={styles.fieldRow}>
+            {!!d.celular && (
+              <View style={styles.field}>
+                <View style={[styles.iconBox, { backgroundColor: "#E3F2FD" }]}>
+                  <Ionicons
+                    name="call-outline"
+                    size={10}
+                    color={COLORS.primary}
+                  />
+                </View>
+                <Text style={styles.labelText}>{d.celular}</Text>
+              </View>
+            )}
+            {!!d.email && (
+              <View style={[styles.field, { flex: 1 }]}>
+                <View style={[styles.iconBox, { backgroundColor: "#F3E5F5" }]}>
+                  <Ionicons name="mail-outline" size={10} color="#7B1FA2" />
+                </View>
+                <Text style={styles.labelText} numberOfLines={1}>
+                  {d.email}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
       </View>
-
-      {/* Re-implemented color indicator with proper clipping and border radius support */}
-      <View style={[styles.colorIndicator, { backgroundColor: statusColor }]} />
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#fff",
-    marginHorizontal: 4, // Reduced margin for timeline columns
-    marginVertical: 4, // Reduced margin
-    borderRadius: 12, // Slightly smaller radius
-    // NO SHADOWS - removed for performance
+    backgroundColor: COLORS.white,
+    marginHorizontal: 6,
+    marginVertical: 4,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#E5E5EA",
-    minHeight: 100,
+    borderColor: "#F1F5F9",
+    // Premium soft shadow
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
     overflow: "hidden",
+    minHeight: 110,
   },
-  content: {
-    padding: 12, // Slightly reduced padding
-    paddingLeft: 18, // Space for the 6px indicator
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 10,
-  },
-  nameContainer: {
-    flex: 1,
-    marginRight: 8,
-  },
-  name: {
-    fontSize: 15, // Slightly smaller
-    fontWeight: "700",
-    color: "#1C1C1E",
-    marginBottom: 4,
-    letterSpacing: -0.3,
-  },
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "flex-start",
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  statusText: {
-    fontSize: 9, // Slightly smaller
-    fontWeight: "800",
-    color: "#fff",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  actions: {
-    flexDirection: "row",
-    gap: 6,
-  },
-  badge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F2F2F7",
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  badgeText: {
-    fontSize: 11,
-    color: "#3A3A3C",
-    marginLeft: 3,
-    fontWeight: "600",
-  },
-  details: {
-    marginBottom: 10,
-    gap: 4,
-  },
-  detailRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  iconCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: "#F8F8FA",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 6,
-  },
-  detailText: {
-    fontSize: 13,
-    color: "#3A3A3C",
-    fontWeight: "400",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#F2F2F7",
-    marginBottom: 10,
-  },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  footerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  dateText: {
-    fontSize: 11,
-    color: "#AEAEB2",
-    marginLeft: 4,
-    fontWeight: "500",
-  },
-  valueText: {
-    fontSize: 14,
-    color: "#337ab7",
-    fontWeight: "700",
-  },
-  colorIndicator: {
+  statusStrip: {
     position: "absolute",
     left: 0,
     top: 0,
     bottom: 0,
-    width: 6,
+    width: 4,
   },
-  selectedContainer: {
-    backgroundColor: "#e0f7fa",
+  content: {
+    padding: 12,
+    paddingLeft: 16,
   },
-  originContent: {
-    marginTop: 4,
-    gap: 4,
-  },
-  propertyDetails: {
+  header: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 10,
+  },
+  name: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: COLORS.dark,
+    flex: 1,
+    marginRight: 8,
+  },
+  actions: {
+    flexDirection: "row",
     gap: 6,
-    marginTop: 2,
+    alignItems: "center",
   },
-  propertyBadge: {
+  miniBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#E5F1FF",
-    paddingHorizontal: 6,
-    paddingVertical: 3,
+    backgroundColor: "#F1F5F9",
+    paddingHorizontal: 5,
+    paddingVertical: 2,
     borderRadius: 6,
     gap: 3,
   },
-  propertyText: {
+  miniBadgeText: {
+    fontSize: 9,
+    fontWeight: "800",
+    color: COLORS.secondary,
+  },
+  detailGrid: {
+    gap: 6,
+  },
+  fieldRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  field: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  iconBox: {
+    width: 18,
+    height: 18,
+    borderRadius: 6,
+    backgroundColor: "#F8FAFC",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  labelText: {
     fontSize: 11,
-    color: "#337ab7",
+    color: COLORS.gray,
+    fontWeight: "500",
+  },
+  valueTextBold: {
+    fontSize: 12,
+    color: "#2E7D32",
+    fontWeight: "700",
+  },
+  datesGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    paddingVertical: 4,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "#F8FAFC",
+  },
+  dateItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  dateText: {
+    fontSize: 10,
+    color: COLORS.lightGray,
     fontWeight: "600",
+  },
+  selectedContainer: {
+    borderColor: COLORS.primary,
+    backgroundColor: "#F0F7FF",
   },
 });
 
-export default TimelineContactItem;
+export default memo(TimelineContactItem);
