@@ -103,7 +103,9 @@ const CrmGbiArrendatarios = ({
           {safeParseArray(contactDetail.ProcesosDocumentos).map((item, idx) => (
             <View key={idx} style={styles.txRow}>
               <Ionicons
-                name={item.Ruta ? "document-check" : "document-outline"}
+                name={
+                  item.Ruta ? "document-attach-outline" : "document-outline"
+                }
                 size={16}
                 color={item.Ruta ? COLORS.success : COLORS.gray}
               />
@@ -203,8 +205,8 @@ const CrmGbiArrendatarios = ({
                       backgroundColor: item.Anulado
                         ? COLORS.danger
                         : item.Ruta
-                        ? COLORS.success
-                        : COLORS.accent,
+                          ? COLORS.success
+                          : COLORS.accent,
                     },
                   ]}
                 >
@@ -212,8 +214,8 @@ const CrmGbiArrendatarios = ({
                     {item.Anulado
                       ? "Anulado"
                       : item.Ruta
-                      ? "Generado"
-                      : "Pendiente"}
+                        ? "Generado"
+                        : "Pendiente"}
                   </Text>
                 </View>
               </View>
