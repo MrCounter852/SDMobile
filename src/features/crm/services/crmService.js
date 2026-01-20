@@ -41,6 +41,19 @@ class GestionComercialService {
     };
   }
 
+  // Utility to remove empty strings, nulls, and undefined from request body
+  cleanObject(obj) {
+    if (!obj || typeof obj !== 'object') return obj;
+    const cleaned = {};
+    Object.keys(obj).forEach(key => {
+      const value = obj[key];
+      if (value !== null && value !== undefined && value !== '') {
+        cleaned[key] = value;
+      }
+    });
+    return cleaned;
+  }
+
   async makeRequest(endpoint, options = {}, useCRM = true, useSIS = false, useGBI = false, useSTRG = false, useFAC = false) {
     const API_BASE_FAC = `${getEnvironmentConfig().BASE_URL_NS}/API_FAC/api`;
     let baseUrl = API_BASE_CRM;
@@ -55,7 +68,17 @@ class GestionComercialService {
       headers,
       ...options,
     };
-    console.log(`[Service] Request to: ${url}`, options.body);
+
+    if (config.body) {
+      try {
+        const bodyObj = typeof config.body === 'string' ? JSON.parse(config.body) : config.body;
+        config.body = JSON.stringify(this.cleanObject(bodyObj));
+      } catch (e) {
+        // Not JSON, leave as is
+      }
+    }
+
+    console.log(`[Service] Request to: ${url}`, config.body);
     try {
       const response = await fetch(url, config);
       console.log(`[Service] Response status: ${response.status}`);
@@ -122,6 +145,18 @@ class GestionComercialService {
       FullSearch: filtros?.FullSearch ?? null,
       SortColumn: filtros?.SortColumn ?? null,
       SortDirection: filtros?.SortDirection ?? null,
+      // Nuevos campos de búsqueda detallada
+      NombreCompleto: filtros?.NombreCompleto ?? null,
+      Documento: filtros?.Documento ?? null,
+      Telefono: filtros?.Telefono ?? null,
+      Celular: filtros?.Celular ?? null,
+      Email: filtros?.Email ?? null,
+      ClienteNombreCompleto: filtros?.ClienteNombreCompleto ?? null,
+      FormaContactoID: filtros?.FormaContactoID ?? null,
+      FechaInicialCierre: filtros?.FechaInicialCierre ?? null,
+      FechaFinalCierre: filtros?.FechaFinalCierre ?? null,
+      FechaInicialPosibleServicio: filtros?.FechaInicialPosibleServicio ?? null,
+      FechaFinalPosibleServicio: filtros?.FechaFinalPosibleServicio ?? null,
       Token: this.global.user?.Token,
     };
     return this.makeRequest(endpoint, {
