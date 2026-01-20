@@ -191,6 +191,19 @@ class GestionComercialService {
       FechaFinal: filtros?.FechaFinal ?? null,
       FullSearch: filtros?.FullSearch ?? null,
       ProcesoLineaTiempoID: filtros?.ProcesoLineaTiempoID ?? null,
+      // Nuevos campos de búsqueda detallada para Timeline
+      EstadoGeneral: filtros?.EstadoGeneral ?? null,
+      NombreCompleto: filtros?.NombreCompleto ?? null,
+      Documento: filtros?.Documento ?? null,
+      Telefono: filtros?.Telefono ?? null,
+      Celular: filtros?.Celular ?? null,
+      Email: filtros?.Email ?? null,
+      ClienteNombreCompleto: filtros?.ClienteNombreCompleto ?? null,
+      FormaContactoID: filtros?.FormaContactoID ?? null,
+      FechaInicialCierre: filtros?.FechaInicialCierre ?? null,
+      FechaFinalCierre: filtros?.FechaFinalCierre ?? null,
+      FechaInicialPosibleServicio: filtros?.FechaInicialPosibleServicio ?? null,
+      FechaFinalPosibleServicio: filtros?.FechaFinalPosibleServicio ?? null,
       Token: this.global.user?.Token,
     };
     return this.makeRequest(endpoint, {
