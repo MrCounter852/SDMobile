@@ -8,7 +8,6 @@ import React, {
 import {
   View,
   Text,
-  TextInput,
   ScrollView,
   TouchableOpacity,
   Alert,
@@ -17,11 +16,8 @@ import {
   Platform,
   StatusBar,
   ActivityIndicator,
-  Modal,
-  FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Picker } from "@react-native-picker/picker";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useGlobal } from "../../../core/global";
 import { Ionicons } from "@expo/vector-icons";
@@ -29,14 +25,12 @@ import { LinearGradient } from "expo-linear-gradient";
 // Usamos require().default para asegurar la compatibilidad con el sistema de exportación
 const GestionComercialService = require("../services/leadService").default;
 import PropertySelectionModal from "../../../components/PropertySelectionModal";
-import CustomModalPicker from "../../../components/shared/CustomModalPicker";
 
 import {
   COLORS,
   CustomInput,
   SectionHeader,
 } from "../components/FormComponents";
-import DynamicForm from "../components/DynamicForm";
 import GeneralInfoSection from "../components/NewLead/GeneralInfoSection";
 import SearchDataSection from "../components/NewLead/SearchDataSection";
 import ClientDetailSection from "../components/NewLead/ClientDetailSection";

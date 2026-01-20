@@ -99,6 +99,7 @@ const FilterModal = ({
   estadosProcesos = [],
   loading = false,
   onSearchAsesores,
+  onAdvisorSelected, // Callback to notify parent when a new advisor is selected
 }) => {
   const { user, permisos } = useGlobal();
   const [filters, setFilters] = useState(initialFilters || {});
@@ -906,6 +907,14 @@ const FilterModal = ({
                 AsesorID: item.ID,
                 UsuarioID: item.UsuarioID,
               }));
+              // Notify parent component about the selected advisor
+              if (onAdvisorSelected) {
+                onAdvisorSelected({
+                  AsesorID: item.ID,
+                  UsuarioID: item.UsuarioID,
+                  NombreCompleto: item.Nombre,
+                });
+              }
               setAdvisorModalVisible(false);
               setAdvisorSearch("");
             }}

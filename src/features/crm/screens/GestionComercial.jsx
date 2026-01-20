@@ -216,6 +216,18 @@ const GestionComercial = ({ navigation }) => {
     [searchFilters.SucursalID, user?.SucursalID],
   );
 
+  const handleAdvisorSelected = useCallback(
+    (advisor) => {
+      // Check if advisor already exists in the asesores array
+      const exists = asesores.some((a) => a.AsesorID === advisor.AsesorID);
+      if (!exists) {
+        // Add the new advisor to the asesores array so it can be found for tags
+        setAsesores((prev) => [...prev, advisor]);
+      }
+    },
+    [asesores],
+  );
+
   const handleSelectContact = useCallback((contact) => {
     setSelectedContact(contact);
     setIsSelectionMode(true);
@@ -425,6 +437,10 @@ const GestionComercial = ({ navigation }) => {
     searchFilters,
     origenes,
     tiposCalendarioActividades,
+    asesores,
+    sucursales,
+    formasContacto,
+    permisos,
   ]);
 
   const clearFilter = useCallback(
@@ -725,6 +741,7 @@ const GestionComercial = ({ navigation }) => {
           tiposCalendarioActividades={tiposCalendarioActividades}
           asesores={asesores}
           onSearchAsesores={onSearchAsesores}
+          onAdvisorSelected={handleAdvisorSelected}
           sucursales={sucursales}
           formasContacto={formasContacto}
           estadosProcesos={estadosProcesos}
