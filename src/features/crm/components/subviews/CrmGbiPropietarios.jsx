@@ -1,7 +1,16 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { InfoSection, DataItem, styles, COLORS } from "./CrmSubViewComponents";
+
+// Helper function for "En desarrollo" alerts
+const showDevAlert = (actionName) => {
+  Alert.alert(
+    "En desarrollo",
+    `La funcionalidad "${actionName}" está en desarrollo.`,
+    [{ text: "OK" }],
+  );
+};
 
 const CrmGbiPropietarios = ({
   contactDetail,
@@ -18,24 +27,113 @@ const CrmGbiPropietarios = ({
             safeParseArray(contactDetail.Cotizaciones).length
           })`}
           icon="calculator-outline"
-        >
-          {safeParseArray(contactDetail.Cotizaciones).map((item, idx) => (
-            <View key={idx} style={styles.txRow}>
+          headerAction={
+            <TouchableOpacity
+              style={localStyles.headerButton}
+              onPress={() => showDevAlert("Nueva propuesta")}
+            >
               <Ionicons
-                name="file-tray-full-outline"
-                size={16}
+                name="add-circle-outline"
+                size={20}
                 color={COLORS.primary}
               />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.txText}>Propuesta #{item.Consecutivo}</Text>
-                <Text style={localStyles.subText}>
-                  Estado: {item.Aprobado ? "Aprobado" : "Sin aprobar"} |{" "}
-                  {formatDate(item.FechaElaboracion, false)}
-                </Text>
+            </TouchableOpacity>
+          }
+        >
+          {safeParseArray(contactDetail.Cotizaciones).map((item, idx) => (
+            <View key={idx} style={localStyles.card}>
+              <View style={styles.txRow}>
+                <Ionicons
+                  name="file-tray-full-outline"
+                  size={20}
+                  color={item.Aprobado ? COLORS.success : COLORS.primary}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.txText}>
+                    Propuesta #{item.Consecutivo}
+                  </Text>
+                  <Text style={localStyles.subText}>
+                    {formatDate(item.FechaElaboracion, false)}
+                  </Text>
+                </View>
+                <View style={{ alignItems: "flex-end" }}>
+                  <Text style={styles.txValue}>
+                    {formatCurrency(item.ValorCotizacion)}
+                  </Text>
+                  <View
+                    style={[
+                      localStyles.badge,
+                      {
+                        backgroundColor: item.Aprobado
+                          ? COLORS.success
+                          : COLORS.primary,
+                      },
+                    ]}
+                  >
+                    <Text style={localStyles.badgeText}>
+                      {item.Aprobado ? "Aprobado" : "Sin aprobar"}
+                    </Text>
+                  </View>
+                </View>
               </View>
-              <Text style={styles.txValue}>
-                {formatCurrency(item.ValorCotizacion)}
-              </Text>
+              {/* Vistas count if available */}
+              {item.CotizacionesVistas?.length > 0 && (
+                <View style={localStyles.viewsRow}>
+                  <Ionicons name="eye-outline" size={14} color={COLORS.gray} />
+                  <Text style={localStyles.viewsText}>
+                    {item.CotizacionesVistas.length} vistas
+                  </Text>
+                </View>
+              )}
+              {/* Action buttons */}
+              <View style={localStyles.actionsRow}>
+                <TouchableOpacity
+                  style={localStyles.actionButton}
+                  onPress={() => showDevAlert("Ver PDF propuesta")}
+                >
+                  <Ionicons
+                    name="document-outline"
+                    size={18}
+                    color={COLORS.danger}
+                  />
+                  <Text style={localStyles.actionText}>PDF</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={localStyles.actionButton}
+                  onPress={() => showDevAlert("Editar propuesta")}
+                >
+                  <Ionicons
+                    name="create-outline"
+                    size={18}
+                    color={COLORS.primary}
+                  />
+                  <Text style={localStyles.actionText}>Editar</Text>
+                </TouchableOpacity>
+                {item.Aprobado && (
+                  <TouchableOpacity
+                    style={localStyles.actionButton}
+                    onPress={() => showDevAlert("Generar cupón de pago")}
+                  >
+                    <Ionicons
+                      name="cash-outline"
+                      size={18}
+                      color={COLORS.secondary}
+                    />
+                    <Text style={localStyles.actionText}>Cupón</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  style={localStyles.actionButton}
+                  onPress={() => showDevAlert("Enviar por email")}
+                >
+                  <Ionicons
+                    name="mail-outline"
+                    size={18}
+                    color={COLORS.success}
+                  />
+                  <Text style={localStyles.actionText}>Email</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           ))}
         </InfoSection>
@@ -50,22 +148,58 @@ const CrmGbiPropietarios = ({
           icon="receipt-outline"
         >
           {safeParseArray(contactDetail.PreFacturas).map((item, idx) => (
-            <View key={idx} style={styles.txRow}>
-              <Ionicons
-                name="mail-open-outline"
-                size={16}
-                color={COLORS.secondary}
-              />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.txText}>Cupón #{item.Consecutivo}</Text>
-                <Text style={localStyles.subText}>
-                  {formatDate(item.FechaCreacion, false)}
+            <TouchableOpacity
+              key={idx}
+              style={localStyles.card}
+              onPress={() => showDevAlert("Ver cupón PDF")}
+            >
+              <View style={styles.txRow}>
+                <Ionicons
+                  name="mail-open-outline"
+                  size={20}
+                  color={COLORS.secondary}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.txText}>Cupón #{item.Consecutivo}</Text>
+                  <Text style={localStyles.subText}>
+                    {formatDate(item.FechaCreacion, false)}
+                  </Text>
+                  {item.NombreCompleto && (
+                    <Text style={localStyles.subText} numberOfLines={1}>
+                      {item.NombreCompleto}
+                    </Text>
+                  )}
+                </View>
+                <Text style={styles.txValue}>
+                  {formatCurrency(item.ValorPreFactura)}
                 </Text>
               </View>
-              <Text style={styles.txValue}>
-                {formatCurrency(item.ValorPreFactura)}
-              </Text>
-            </View>
+              {/* Action buttons */}
+              <View style={localStyles.actionsRow}>
+                <TouchableOpacity
+                  style={localStyles.actionButton}
+                  onPress={() => showDevAlert("Ver cupón PDF")}
+                >
+                  <Ionicons
+                    name="document-outline"
+                    size={18}
+                    color={COLORS.danger}
+                  />
+                  <Text style={localStyles.actionText}>PDF</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={localStyles.actionButton}
+                  onPress={() => showDevAlert("Enviar cupón por email")}
+                >
+                  <Ionicons
+                    name="mail-outline"
+                    size={18}
+                    color={COLORS.success}
+                  />
+                  <Text style={localStyles.actionText}>Email</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
           ))}
         </InfoSection>
       )}
@@ -77,24 +211,60 @@ const CrmGbiPropietarios = ({
           icon="cash-outline"
         >
           {safeParseArray(contactDetail.Facturas).map((item, idx) => (
-            <View key={idx} style={styles.txRow}>
-              <Ionicons
-                name="receipt-outline"
-                size={16}
-                color={COLORS.success}
-              />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.txText}>
-                  Factura {item.Prefijo}#{item.Consecutivo}
-                </Text>
-                <Text style={localStyles.subText}>
-                  {formatDate(item.FechaCreacion, false)}
+            <TouchableOpacity
+              key={idx}
+              style={localStyles.card}
+              onPress={() => showDevAlert("Ver factura PDF")}
+            >
+              <View style={styles.txRow}>
+                <Ionicons
+                  name="receipt-outline"
+                  size={20}
+                  color={COLORS.success}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.txText}>
+                    Factura {item.Prefijo}#{item.Consecutivo}
+                  </Text>
+                  <Text style={localStyles.subText}>
+                    {formatDate(item.FechaCreacion, false)}
+                  </Text>
+                  {item.NombreCompleto && (
+                    <Text style={localStyles.subText} numberOfLines={1}>
+                      {item.NombreCompleto}
+                    </Text>
+                  )}
+                </View>
+                <Text style={styles.txValue}>
+                  {formatCurrency(item.ValorFactura)}
                 </Text>
               </View>
-              <Text style={styles.txValue}>
-                {formatCurrency(item.ValorFactura)}
-              </Text>
-            </View>
+              {/* Action buttons */}
+              <View style={localStyles.actionsRow}>
+                <TouchableOpacity
+                  style={localStyles.actionButton}
+                  onPress={() => showDevAlert("Ver factura PDF")}
+                >
+                  <Ionicons
+                    name="document-outline"
+                    size={18}
+                    color={COLORS.danger}
+                  />
+                  <Text style={localStyles.actionText}>PDF</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={localStyles.actionButton}
+                  onPress={() => showDevAlert("Enviar factura por email")}
+                >
+                  <Ionicons
+                    name="mail-outline"
+                    size={18}
+                    color={COLORS.success}
+                  />
+                  <Text style={localStyles.actionText}>Email</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
           ))}
         </InfoSection>
       )}
@@ -106,6 +276,18 @@ const CrmGbiPropietarios = ({
             safeParseArray(contactDetail.Inmuebles).length
           })`}
           icon="home-outline"
+          headerAction={
+            <TouchableOpacity
+              style={localStyles.headerButton}
+              onPress={() => showDevAlert("Nuevo inmueble")}
+            >
+              <Ionicons
+                name="add-circle-outline"
+                size={20}
+                color={COLORS.primary}
+              />
+            </TouchableOpacity>
+          }
         >
           {safeParseArray(contactDetail.Inmuebles).map((item, idx) => (
             <View key={idx} style={localStyles.propertyCard}>
@@ -120,7 +302,9 @@ const CrmGbiPropietarios = ({
                       backgroundColor:
                         item.EstadoProcesoInmuebleID == 2
                           ? COLORS.success
-                          : COLORS.primary,
+                          : item.EstadoProcesoInmuebleID == 3
+                            ? COLORS.danger
+                            : COLORS.primary,
                     },
                   ]}
                 >
@@ -129,34 +313,140 @@ const CrmGbiPropietarios = ({
                   </Text>
                 </View>
               </View>
+
+              {/* Rejection reason if exists */}
+              {item.CausalDevolucionContratoNombre && (
+                <View style={localStyles.rejectionRow}>
+                  <Ionicons
+                    name="warning-outline"
+                    size={14}
+                    color={COLORS.danger}
+                  />
+                  <Text style={localStyles.rejectionText}>
+                    {item.CausalDevolucionContratoNombre}
+                  </Text>
+                </View>
+              )}
+
               <Text style={localStyles.addressText}>{item.Direccion}</Text>
+
               <View style={styles.dataGrid}>
                 <DataItem label="Tipo" value={item.TipoInmuebleNombre} />
                 <DataItem label="Oferta" value={item.TipoOfertaNombre} />
                 <DataItem
                   label={item.TipoOfertaID == 1 ? "Canon" : "Valor Venta"}
                   value={formatCurrency(
-                    item.TipoOfertaID == 1 ? item.ValorCanon : item.ValorVenta
+                    item.TipoOfertaID == 1 ? item.ValorCanon : item.ValorVenta,
                   )}
                 />
               </View>
 
-              {/* Inventario info if applicable */}
+              {/* Inventory info for rentals */}
               {item.TipoOfertaID == 1 && (
                 <View style={localStyles.inventoryBox}>
                   <Ionicons
-                    name="list-circle-outline"
+                    name={
+                      item.InmuebleInventarioID != null
+                        ? "checkmark-circle"
+                        : "alert-circle-outline"
+                    }
                     size={20}
-                    color={COLORS.primary}
+                    color={
+                      item.InmuebleInventarioID != null
+                        ? COLORS.success
+                        : COLORS.danger
+                    }
                   />
-                  <Text style={localStyles.inventoryText}>
+                  <Text
+                    style={[
+                      localStyles.inventoryText,
+                      {
+                        color:
+                          item.InmuebleInventarioID != null
+                            ? COLORS.success
+                            : COLORS.danger,
+                      },
+                    ]}
+                  >
                     Inventario:{" "}
                     {item.InmuebleInventarioID != null
-                      ? "Cargado"
+                      ? item.RutaInventario != null
+                        ? "Cargado"
+                        : "Generado"
                       : "Sin generar"}
                   </Text>
+                  {item.InmuebleInventarioID == null ? (
+                    <TouchableOpacity
+                      style={localStyles.inventoryButton}
+                      onPress={() => showDevAlert("Generar inventario")}
+                    >
+                      <Text style={localStyles.inventoryButtonText}>
+                        Generar
+                      </Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <View style={localStyles.inventoryActions}>
+                      <TouchableOpacity
+                        style={localStyles.inventoryButton}
+                        onPress={() => showDevAlert("Modificar inventario")}
+                      >
+                        <Ionicons
+                          name="create-outline"
+                          size={14}
+                          color={COLORS.primary}
+                        />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={localStyles.inventoryButton}
+                        onPress={() => showDevAlert("Descargar PDF inventario")}
+                      >
+                        <Ionicons
+                          name="download-outline"
+                          size={14}
+                          color={COLORS.success}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
               )}
+
+              {/* Action buttons */}
+              <View style={localStyles.actionsRow}>
+                <TouchableOpacity
+                  style={localStyles.actionButton}
+                  onPress={() => showDevAlert("Ver ficha del inmueble")}
+                >
+                  <Ionicons
+                    name="home-outline"
+                    size={18}
+                    color={COLORS.primary}
+                  />
+                  <Text style={localStyles.actionText}>Ficha</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={localStyles.actionButton}
+                  onPress={() => showDevAlert("Editar inmueble")}
+                >
+                  <Ionicons
+                    name="create-outline"
+                    size={18}
+                    color={COLORS.secondary}
+                  />
+                  <Text style={localStyles.actionText}>Editar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={localStyles.actionButton}
+                  onPress={() => showDevAlert("Publicar en plataformas")}
+                >
+                  <Ionicons
+                    name="cloud-upload-outline"
+                    size={18}
+                    color={COLORS.info || "#17a2b8"}
+                  />
+                  <Text style={localStyles.actionText}>Publicar</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           ))}
         </InfoSection>
@@ -164,43 +454,74 @@ const CrmGbiPropietarios = ({
 
       {/* 5. Contratos */}
       {safeParseArray(contactDetail.Inmuebles).filter(
-        (i) => i.EnTramiteMandato == true
+        (i) => i.EnTramiteMandato == true,
       ).length > 0 && (
-        <InfoSection title="Contratos" icon="key-outline">
+        <InfoSection
+          title={`Contratos (${safeParseArray(contactDetail.Inmuebles).filter((i) => i.EnTramiteMandato == true).length})`}
+          icon="key-outline"
+        >
           {safeParseArray(contactDetail.Inmuebles)
             .filter((i) => i.EnTramiteMandato == true)
             .map((item, idx) => (
-              <View key={idx} style={styles.txRow}>
-                <Ionicons
-                  name="contract-outline"
-                  size={16}
-                  color={COLORS.dark}
-                />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.txText}>
-                    {item.ContratoMandatoAprobado
-                      ? `Contrato #${item.ContratoMandatoConsecutivo}`
-                      : "En trámite"}
-                  </Text>
-                  <Text style={localStyles.subText}>
-                    Inmueble #{item.Consecutivo}
-                  </Text>
-                </View>
-                <View
-                  style={[
-                    localStyles.badge,
-                    {
-                      backgroundColor: item.ContratoMandatoAprobado
+              <TouchableOpacity
+                key={idx}
+                style={localStyles.card}
+                onPress={() => showDevAlert("Ver contrato")}
+              >
+                <View style={styles.txRow}>
+                  <Ionicons
+                    name="document-text-outline"
+                    size={20}
+                    color={
+                      item.ContratoMandatoAprobado
                         ? COLORS.success
-                        : COLORS.danger,
-                    },
-                  ]}
-                >
-                  <Text style={localStyles.badgeText}>
-                    {item.ContratoMandatoAprobado ? "Aprobado" : "Solicitado"}
-                  </Text>
+                        : COLORS.danger
+                    }
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.txText}>
+                      {item.ContratoMandatoAprobado
+                        ? `Contrato #${item.ContratoMandatoConsecutivo}`
+                        : "En trámite"}
+                    </Text>
+                    <Text style={localStyles.subText}>
+                      Inmueble #{item.Consecutivo} - {item.TipoOfertaNombre}
+                    </Text>
+                    <Text style={localStyles.subText} numberOfLines={1}>
+                      {item.Direccion}
+                    </Text>
+                  </View>
+                  <View style={{ alignItems: "flex-end" }}>
+                    <View
+                      style={[
+                        localStyles.badge,
+                        {
+                          backgroundColor: item.ContratoMandatoAprobado
+                            ? item.ContratoMandatoRuta != null
+                              ? COLORS.success
+                              : COLORS.secondary
+                            : COLORS.danger,
+                        },
+                      ]}
+                    >
+                      <Text style={localStyles.badgeText}>
+                        {item.ContratoMandatoAprobado
+                          ? item.ContratoMandatoRuta != null
+                            ? "Aprobado"
+                            : "Pendiente firma"
+                          : "Solicitado"}
+                      </Text>
+                    </View>
+                    <Text style={[styles.txValue, { marginTop: 4 }]}>
+                      {formatCurrency(
+                        item.TipoOfertaID == 1
+                          ? item.ValorCanon
+                          : item.ValorVenta,
+                      )}
+                    </Text>
+                  </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))}
         </InfoSection>
       )}
@@ -212,6 +533,14 @@ const localStyles = StyleSheet.create({
   subText: {
     fontSize: 11,
     color: COLORS.gray,
+  },
+  card: {
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   propertyCard: {
     backgroundColor: COLORS.background,
@@ -247,6 +576,51 @@ const localStyles = StyleSheet.create({
     color: "#FFF",
     fontWeight: "600",
   },
+  headerButton: {
+    padding: 4,
+  },
+  actionsRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  actionButton: {
+    alignItems: "center",
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+  },
+  actionText: {
+    fontSize: 10,
+    color: COLORS.gray,
+    marginTop: 2,
+  },
+  viewsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 8,
+  },
+  viewsText: {
+    fontSize: 11,
+    color: COLORS.gray,
+  },
+  rejectionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 8,
+    padding: 6,
+    backgroundColor: "#FFF5F5",
+    borderRadius: 6,
+  },
+  rejectionText: {
+    fontSize: 11,
+    color: COLORS.danger,
+    flex: 1,
+  },
   inventoryBox: {
     flexDirection: "row",
     alignItems: "center",
@@ -258,8 +632,21 @@ const localStyles = StyleSheet.create({
   },
   inventoryText: {
     fontSize: 12,
-    color: COLORS.dark,
     fontWeight: "600",
+    flex: 1,
+  },
+  inventoryButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  inventoryButtonText: {
+    fontSize: 11,
+    color: COLORS.primary,
+    fontWeight: "600",
+  },
+  inventoryActions: {
+    flexDirection: "row",
+    gap: 8,
   },
 });
 
