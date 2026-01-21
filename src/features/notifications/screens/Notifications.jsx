@@ -369,8 +369,15 @@ const Notificaciones = ({ navigation }) => {
     );
   };
 
-  const renderNotificationItem = ({ item, index }) => (
-    <NotificationCard item={item} index={index} />
+  const renderNotificationItem = useCallback(
+    ({ item, index }) => <NotificationCard item={item} index={index} />,
+    [
+      filterVisto,
+      markAsRead,
+      markAsUnread,
+      deleteNotification,
+      openNotificationUrl,
+    ],
   );
 
   const counts = useMemo(() => {

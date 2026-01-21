@@ -18,7 +18,7 @@ const environments = {
 };
 
 const getEnvironmentConfig = () => {
-  return environments.production;
+  return environments.development;
 };
 
 export default getEnvironmentConfig;

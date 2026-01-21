@@ -515,6 +515,30 @@ const GestionComercialCalendar = ({
     return `${monthName}, ${year}`;
   }, [selectedDate]);
 
+  const renderListItem = useCallback(
+    ({ item }) => (
+      <View style={styles.dateGroup}>
+        <View style={styles.dateHeader}>
+          <Text style={styles.dateHeaderText}>
+            {item.dayName}, {item.dayNumber}
+          </Text>
+        </View>
+        {item.data.map((event) => (
+          <TouchableOpacity
+            key={event.id}
+            activeOpacity={0.7}
+            onPress={() => handleEventPress(event)}
+          >
+            {renderActivityCard(event, true)}
+          </TouchableOpacity>
+        ))}
+      </View>
+    ),
+    [handleEventPress, renderActivityCard],
+  );
+
+  const keyExtractor = useCallback((item) => item.date, []);
+
   return (
     <CalendarProvider
       date={selectedDate}
@@ -605,25 +629,11 @@ const GestionComercialCalendar = ({
           ) : (
             <FlatList
               data={listData}
-              keyExtractor={(item) => item.date}
-              renderItem={({ item }) => (
-                <View style={styles.dateGroup}>
-                  <View style={styles.dateHeader}>
-                    <Text style={styles.dateHeaderText}>
-                      {item.dayName}, {item.dayNumber}
-                    </Text>
-                  </View>
-                  {item.data.map((event) => (
-                    <TouchableOpacity
-                      key={event.id}
-                      activeOpacity={0.7}
-                      onPress={() => handleEventPress(event)}
-                    >
-                      {renderActivityCard(event, true)}
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
+              keyExtractor={keyExtractor}
+              renderItem={renderListItem}
+              removeClippedSubviews={true}
+              maxToRenderPerBatch={10}
+              windowSize={10}
               contentContainerStyle={styles.listContent}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>

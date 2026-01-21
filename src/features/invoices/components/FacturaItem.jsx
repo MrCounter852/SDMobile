@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-const FacturaItem = ({ item, onPress }) => {
+const FacturaItem = React.memo(({ item, onPress }) => {
   const formatCurrency = (value) => {
     if (value === null || value === undefined) return "N/A";
     try {
@@ -88,7 +88,7 @@ const FacturaItem = ({ item, onPress }) => {
       </View>
     </TouchableOpacity>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

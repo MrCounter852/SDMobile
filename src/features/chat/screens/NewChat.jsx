@@ -407,40 +407,43 @@ const NewChat = ({ navigation }) => {
     </Modal>
   );
 
-  const renderContact = ({ item }) => (
-    <TouchableOpacity
-      style={styles.contactCard}
-      onPress={() => handleContactSelect(item)}
-      activeOpacity={0.7}
-    >
-      <LinearGradient
-        colors={[COLORS.primary, COLORS.accent]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.contactAvatar}
+  const renderContact = useCallback(
+    ({ item }) => (
+      <TouchableOpacity
+        style={styles.contactCard}
+        onPress={() => handleContactSelect(item)}
+        activeOpacity={0.7}
       >
-        <Text style={styles.avatarText}>
-          {item.Nombre?.charAt(0)?.toUpperCase() || "?"}
-        </Text>
-      </LinearGradient>
-      <View style={styles.contactInfo}>
-        <Text style={styles.contactName} numberOfLines={1}>
-          {item.Nombre}
-        </Text>
-        <Text style={styles.contactPhone}>{item.Telefono}</Text>
-        <View style={styles.accountTag}>
-          <Ionicons
-            name="chatbubble-outline"
-            size={12}
-            color={COLORS.secondary}
-          />
-          <Text style={styles.contactAccount}>
-            {item.Cuenta || "Sin cuenta"}
+        <LinearGradient
+          colors={[COLORS.primary, COLORS.accent]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.contactAvatar}
+        >
+          <Text style={styles.avatarText}>
+            {item.Nombre?.charAt(0)?.toUpperCase() || "?"}
           </Text>
+        </LinearGradient>
+        <View style={styles.contactInfo}>
+          <Text style={styles.contactName} numberOfLines={1}>
+            {item.Nombre}
+          </Text>
+          <Text style={styles.contactPhone}>{item.Telefono}</Text>
+          <View style={styles.accountTag}>
+            <Ionicons
+              name="chatbubble-outline"
+              size={12}
+              color={COLORS.secondary}
+            />
+            <Text style={styles.contactAccount}>
+              {item.Cuenta || "Sin cuenta"}
+            </Text>
+          </View>
         </View>
-      </View>
-      <Ionicons name="chevron-forward" size={18} color={COLORS.lightGray} />
-    </TouchableOpacity>
+        <Ionicons name="chevron-forward" size={18} color={COLORS.lightGray} />
+      </TouchableOpacity>
+    ),
+    [handleContactSelect],
   );
 
   const renderEmptyState = () => (

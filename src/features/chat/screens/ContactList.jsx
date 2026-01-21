@@ -263,108 +263,122 @@ const ContactList = ({ navigation }) => {
     }
   };
 
-  const renderContact = ({ item }) => (
-    <TouchableOpacity
-      style={[
-        styles.contactItem,
-        selectedContactItem?.CuentaMensajeriaContactoID ===
-          item.CuentaMensajeriaContactoID && styles.selectedContactItem,
-      ]}
-      onPress={() => handleContactPress(item)}
-      onLongPress={() => {
-        setSelectedContactItem(item);
-        Vibration.vibrate(50);
-      }}
-      activeOpacity={0.7}
-    >
-      <LinearGradient
-        colors={[COLORS.primary, COLORS.accent]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.contactAvatar}
+  const renderContact = useCallback(
+    ({ item }) => (
+      <TouchableOpacity
+        style={[
+          styles.contactItem,
+          selectedContactItem?.CuentaMensajeriaContactoID ===
+            item.CuentaMensajeriaContactoID && styles.selectedContactItem,
+        ]}
+        onPress={() => handleContactPress(item)}
+        onLongPress={() => {
+          setSelectedContactItem(item);
+          Vibration.vibrate(50);
+        }}
+        activeOpacity={0.7}
       >
-        <Text style={styles.avatarText}>
-          {item.Nombre?.charAt(0)?.toUpperCase() || "?"}
-        </Text>
-      </LinearGradient>
+        <LinearGradient
+          colors={[COLORS.primary, COLORS.accent]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.contactAvatar}
+        >
+          <Text style={styles.avatarText}>
+            {item.Nombre?.charAt(0)?.toUpperCase() || "?"}
+          </Text>
+        </LinearGradient>
 
-      <View style={styles.contactInfo}>
-        <View style={styles.contactHeader}>
-          <Text style={styles.contactName} numberOfLines={1}>
-            {item.Nombre}
-          </Text>
-          <Text style={styles.contactTime}>
-            {item.Fecha ? new Date(item.Fecha).toLocaleDateString() : ""}
-          </Text>
-        </View>
-        <View style={styles.messagePreview}>
-          {item.Texto ? (
-            <Text style={styles.contactMessage} numberOfLines={1}>
-              {item.Texto}
+        <View style={styles.contactInfo}>
+          <View style={styles.contactHeader}>
+            <Text style={styles.contactName} numberOfLines={1}>
+              {item.Nombre}
             </Text>
-          ) : (
-            <View style={styles.mediaMessage}>
+            <Text style={styles.contactTime}>
+              {item.Fecha ? new Date(item.Fecha).toLocaleDateString() : ""}
+            </Text>
+          </View>
+          <View style={styles.messagePreview}>
+            {item.Texto ? (
+              <Text style={styles.contactMessage} numberOfLines={1}>
+                {item.Texto}
+              </Text>
+            ) : (
+              <View style={styles.mediaMessage}>
+                <Ionicons
+                  name={getIconName(item.TipoMensaje)}
+                  size={14}
+                  color={COLORS.gray}
+                />
+                <Text style={styles.mediaMessageText}>
+                  {getTypeText(item.TipoMensaje)}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.contactFooter}>
+            <View style={styles.accountTag}>
               <Ionicons
-                name={getIconName(item.TipoMensaje)}
-                size={14}
-                color={COLORS.gray}
+                name="chatbubble-outline"
+                size={12}
+                color={COLORS.secondary}
               />
-              <Text style={styles.mediaMessageText}>
-                {getTypeText(item.TipoMensaje)}
+              <Text style={styles.contactAccount}>
+                {item.Cuenta || "Sin cuenta"}
               </Text>
             </View>
-          )}
-        </View>
+            <View style={styles.statusBadge}>
+              <View
+                style={[
+                  styles.statusDot,
+                  {
+                    backgroundColor: getStatusColor(
+                      item.EstadoGestionContactoID,
+                    ),
+                  },
+                ]}
+              />
+              <Text style={styles.statusText}>
+                {getStatusName(item.EstadoGestionContactoID)}
+              </Text>
+            </View>
+          </View>
 
-        <View style={styles.contactFooter}>
-          <View style={styles.accountTag}>
+          <View style={styles.assignedRow}>
             <Ionicons
-              name="chatbubble-outline"
+              name="person-outline"
               size={12}
-              color={COLORS.secondary}
+              color={item.Usuario ? COLORS.gray : COLORS.lightGray}
             />
-            <Text style={styles.contactAccount}>
-              {item.Cuenta || "Sin cuenta"}
-            </Text>
-          </View>
-          <View style={styles.statusBadge}>
-            <View
+            <Text
               style={[
-                styles.statusDot,
-                {
-                  backgroundColor: getStatusColor(item.EstadoGestionContactoID),
-                },
+                styles.contactAssigned,
+                !item.Usuario && styles.notAssigned,
               ]}
-            />
-            <Text style={styles.statusText}>
-              {getStatusName(item.EstadoGestionContactoID)}
+            >
+              {item.Usuario || "Sin asignar"}
             </Text>
           </View>
         </View>
 
-        <View style={styles.assignedRow}>
-          <Ionicons
-            name="person-outline"
-            size={12}
-            color={item.Usuario ? COLORS.gray : COLORS.lightGray}
-          />
-          <Text
-            style={[
-              styles.contactAssigned,
-              !item.Usuario && styles.notAssigned,
-            ]}
-          >
-            {item.Usuario || "Sin asignar"}
-          </Text>
-        </View>
-      </View>
-
-      {item.CantidadMensajesSinLeer > 0 && (
-        <View style={styles.unreadBadge}>
-          <Text style={styles.unreadText}>{item.CantidadMensajesSinLeer}</Text>
-        </View>
-      )}
-    </TouchableOpacity>
+        {item.CantidadMensajesSinLeer > 0 && (
+          <View style={styles.unreadBadge}>
+            <Text style={styles.unreadText}>
+              {item.CantidadMensajesSinLeer}
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    ),
+    [
+      selectedContactItem,
+      handleContactPress,
+      getIconName,
+      getTypeText,
+      getStatusColor,
+      getStatusName,
+    ],
   );
 
   const renderStatusFilter = () => (

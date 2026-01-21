@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -100,6 +100,16 @@ const AprobacionFacturasCompra = ({ navigation }) => {
     filters.TerceroID !== null,
   ].filter(Boolean).length;
 
+  const renderInvoiceItem = useCallback(
+    ({ item }) => <FacturaItem item={item} onPress={handleInvoicePress} />,
+    [],
+  );
+
+  const keyExtractor = useCallback(
+    (item) => item.FacturaCompraID?.toString() || Math.random().toString(),
+    [],
+  );
+
   const renderHeader = () => (
     <LinearGradient
       colors={[COLORS.primary, COLORS.secondary, COLORS.accent]}
@@ -199,12 +209,11 @@ const AprobacionFacturasCompra = ({ navigation }) => {
 
       <FlatList
         data={invoices}
-        renderItem={({ item }) => (
-          <FacturaItem item={item} onPress={handleInvoicePress} />
-        )}
-        keyExtractor={(item) =>
-          item.FacturaCompraID?.toString() || Math.random().toString()
-        }
+        renderItem={renderInvoiceItem}
+        keyExtractor={keyExtractor}
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={10}
+        windowSize={10}
         contentContainerStyle={styles.listContainer}
         refreshControl={
           <RefreshControl
