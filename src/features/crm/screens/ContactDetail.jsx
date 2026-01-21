@@ -30,23 +30,9 @@ import CrmStorage from "../components/subviews/CrmStorage";
 import CrmStorageFull from "../components/subviews/CrmStorageFull";
 import CrmAvaluosLinea from "../components/subviews/CrmAvaluosLinea";
 import CrmAvaluosCertificados from "../components/subviews/CrmAvaluosCertificados";
+import { COLORS } from "../../../core/theme";
 
 const { width } = Dimensions.get("window");
-
-const COLORS = {
-  primary: "#337ab7",
-  secondary: "#0086C8",
-  accent: "#00ACC4",
-  success: "#00CDA7",
-  highlight: "#88E782",
-  dark: "#1E293B",
-  gray: "#64748B",
-  lightGray: "#94A3B8",
-  background: "#F8FAFC",
-  white: "#FFFFFF",
-  border: "#E2E8F0",
-  danger: "#FF3B30",
-};
 
 const ContactDetail = ({ navigation, route }) => {
   const { contact } = route.params;
@@ -132,7 +118,7 @@ const ContactDetail = ({ navigation, route }) => {
     if (!contact.OrigenPreContactoID) return;
     try {
       const response = await GestionComercialService.consultarCombosOrigenes(
-        contact.OrigenPreContactoID
+        contact.OrigenPreContactoID,
       );
       setCustomFieldsConfig(response.data || []);
     } catch (error) {
@@ -170,7 +156,7 @@ const ContactDetail = ({ navigation, route }) => {
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -520,7 +506,7 @@ const ContactDetail = ({ navigation, route }) => {
                     <View key={idx} style={styles.serviceBadge}>
                       <Text style={styles.serviceText}>{s.Nombre}</Text>
                     </View>
-                  )
+                  ),
                 )}
               </View>
             </View>
@@ -611,7 +597,7 @@ const ContactDetail = ({ navigation, route }) => {
                 <DataItem
                   label="Localidades Interés"
                   value={safeParseArray(
-                    contactDetail.ProcesosInmobiliariaLocalidades
+                    contactDetail.ProcesosInmobiliariaLocalidades,
                   )
                     .map((l) => l.LocalidadNombre)
                     .join(", ")}
@@ -979,7 +965,7 @@ const ContactDetail = ({ navigation, route }) => {
                         {formatCurrency(item.ValorOrdenServicio)}
                       </Text>
                     </View>
-                  )
+                  ),
                 )}
               </View>
             )}
@@ -1044,7 +1030,7 @@ const ContactDetail = ({ navigation, route }) => {
                         <Text style={styles.requiredText}>*</Text>
                       )}
                     </View>
-                  )
+                  ),
                 )}
               </View>
             )}

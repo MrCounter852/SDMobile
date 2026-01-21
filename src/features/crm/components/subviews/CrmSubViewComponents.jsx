@@ -1,21 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
-export const COLORS = {
-  primary: "#337ab7",
-  secondary: "#0086C8",
-  accent: "#00ACC4",
-  success: "#00CDA7",
-  highlight: "#88E782",
-  dark: "#1E293B",
-  gray: "#64748B",
-  lightGray: "#94A3B8",
-  background: "#F8FAFC",
-  white: "#FFFFFF",
-  border: "#E2E8F0",
-  danger: "#FF3B30",
-};
+import { COLORS } from "../../../../core/theme";
 
 export const InfoSection = ({ title, icon, onAdd, children }) => (
   <View style={styles.sectionCard}>

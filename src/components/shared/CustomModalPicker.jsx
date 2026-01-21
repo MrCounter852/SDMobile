@@ -8,14 +8,7 @@ import React, {
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import SearchableModal from "../../components/SearchableModal";
-
-const COLORS = {
-  primary: "#337ab7",
-  text: "#1F2937",
-  textSecondary: "#6B7280",
-  border: "#E5E7EB",
-  inputBg: "#F9FAFB",
-};
+import { COLORS } from "../../core/theme";
 
 const resolveItemValue = (item) =>
   item?.id ??

@@ -1,6 +1,6 @@
 import { useGlobal } from '../../../core/global';
-import * as SecureStore from 'expo-secure-store';
 import getEnvironmentConfig from '../../../config/environments';
+import tokenService from '../../../core/tokenService';
 
 const API_BASE_FAC = `${getEnvironmentConfig().BASE_URL_NS}/API_FAC/api`;
 const API_BASE_FIN = `${getEnvironmentConfig().BASE_URL_NS}/API_FIN/api`;
@@ -16,10 +16,9 @@ class FacturasCompraService {
 
   async getStoredToken() {
     try {
-      const accessToken = await SecureStore.getItemAsync('accessToken');
-      return accessToken || '';
+      return await tokenService.getValidToken();
     } catch (error) {
-      console.error('Error getting stored token:', error);
+      console.error('Error getting token:', error);
       return '';
     }
   }
@@ -55,14 +54,33 @@ class FacturasCompraService {
         } catch (e) {
           errorBody = "Could not read error body";
         }
-        
 
+        // Handle auth errors with token refresh
+        if (response.status === 401 || response.status === 403) {
+          const shouldRetry = await tokenService.handleApiError(null, response.status);
+          if (shouldRetry) {
+            const newHeaders = await this.getHeaders();
+            config.headers = newHeaders;
+            const retryResponse = await fetch(url, config);
+            if (retryResponse.ok) {
+              return await retryResponse.json();
+            }
+          }
+        }
 
         throw new Error(`HTTP error! status: ${response.status} - ${errorBody}`);
       }
       return await response.json();
     } catch (error) {
       console.error('API request failed:', error);
+      
+      // On network failure, ping SignalR and trigger recovery if needed
+      const SignalRService = require('../../chat/services/signalrService').default;
+      const isConnected = await SignalRService.ping();
+      if (!isConnected) {
+        await tokenService.triggerConnectionRecovery();
+      }
+      
       throw error;
     }
   }

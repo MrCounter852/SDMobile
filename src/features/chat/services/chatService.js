@@ -1,7 +1,7 @@
 import { useGlobal } from '../../../core/global';
-import * as SecureStore from 'expo-secure-store';
 import * as FileSystem from 'expo-file-system/legacy';
 import getEnvironmentConfig from '../../../config/environments';
+import tokenService from '../../../core/tokenService';
 
 const API_BASE_COM = `${getEnvironmentConfig().BASE_URL_NS}/API_COM/api`;
 
@@ -18,25 +18,18 @@ class ChatApiService {
     });
   }
 
-  // Método para obtener el token correcto del ERP de SecureStore
+  // Get valid token from tokenService (handles expiration and refresh)
   async getStoredToken() {
     try {
-      // El erpToken ahora es el token de OauthToken que funciona para las APIs
-      const erpToken = await SecureStore.getItemAsync('erpToken');
-      if (erpToken) {
-        return erpToken;
-      }
-      // Fallback al accessToken si no hay erpToken
-      const accessToken = await SecureStore.getItemAsync('accessToken');
-      return accessToken || '';
+      return await tokenService.getValidToken();
     } catch (error) {
-      console.error('Error getting stored token:', error);
+      console.error('Error getting token:', error);
       return '';
     }
   }
 
   async getHeaders() {
-    // Para las APIs del chat, siempre usar el token JWT de OauthToken almacenado como erpToken
+    // Para las APIs del chat, siempre usar el token JWT de OauthToken
     const token = await this.getStoredToken();
     return {
       'Content-Type': 'application/json',
@@ -64,6 +57,20 @@ class ChatApiService {
           statusText: response.statusText,
           body: errorText
         });
+
+        // Handle auth errors with token refresh
+        if (response.status === 401 || response.status === 403) {
+          const shouldRetry = await tokenService.handleApiError(null, response.status);
+          if (shouldRetry) {
+            const newHeaders = await this.getHeaders();
+            config.headers = newHeaders;
+            const retryResponse = await fetch(url, config);
+            if (retryResponse.ok) {
+              return await retryResponse.json();
+            }
+          }
+        }
+
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -71,6 +78,14 @@ class ChatApiService {
       return data;
     } catch (error) {
       console.error('API request failed:', error);
+      
+      // On network failure, ping SignalR and trigger recovery if needed
+      const SignalRService = require('./signalrService').default;
+      const isConnected = await SignalRService.ping();
+      if (!isConnected) {
+        await tokenService.triggerConnectionRecovery();
+      }
+      
       throw error;
     }
   }

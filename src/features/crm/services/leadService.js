@@ -1,6 +1,6 @@
 import { useGlobal } from '../../../core/global';
-import * as SecureStore from 'expo-secure-store';
 import getEnvironmentConfig from '../../../config/environments';
+import tokenService from '../../../core/tokenService';
 
 const env = getEnvironmentConfig();
 
@@ -22,12 +22,7 @@ class LeadService {
 
   async getStoredToken() {
     try {
-      const erpToken = await SecureStore.getItemAsync('erpToken');
-      if (erpToken) {
-        return erpToken;
-      }
-      const accessToken = await SecureStore.getItemAsync('accessToken');
-      return accessToken || '';
+      return await tokenService.getValidToken();
     } catch (error) {
       console.error('LeadService:getStoredToken', error);
       return '';
@@ -65,11 +60,33 @@ class LeadService {
           endpoint: url,
           errorText,
         });
+
+        // Handle auth errors with token refresh
+        if (response.status === 401 || response.status === 403) {
+          const shouldRetry = await tokenService.handleApiError(null, response.status);
+          if (shouldRetry) {
+            const newHeaders = await this.getHeaders();
+            config.headers = newHeaders;
+            const retryResponse = await fetch(url, config);
+            if (retryResponse.ok) {
+              return await retryResponse.json();
+            }
+          }
+        }
+
         throw new Error(`HTTP ${response.status}`);
       }
       return await response.json();
     } catch (error) {
       console.error('LeadService:makeRequest exception', error);
+      
+      // On network failure, ping SignalR and trigger recovery if needed
+      const SignalRService = require('../../chat/services/signalrService').default;
+      const isConnected = await SignalRService.ping();
+      if (!isConnected) {
+        await tokenService.triggerConnectionRecovery();
+      }
+      
       throw error;
     }
   }

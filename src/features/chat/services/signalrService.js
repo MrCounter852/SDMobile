@@ -13,6 +13,35 @@ class SignalRService {
         this.reconnectInterval = null;
     }
 
+    /**
+     * Pings the SignalR connection to check if it's alive.
+     * Returns true if connected, false otherwise.
+     * If disconnected, triggers a reconnection attempt.
+     */
+    async ping() {
+        if (this.isConnected && this.connection) {
+            console.log('[SignalR] Ping: Connection is alive');
+            return true;
+        }
+
+        console.log('[SignalR] Ping: Connection is down, attempting reconnect...');
+        
+        // If not connected, try to reconnect
+        if (!this.isConnecting) {
+            try {
+                await this.connect();
+                return this.isConnected;
+            } catch (error) {
+                console.error('[SignalR] Ping: Reconnection failed:', error);
+                return false;
+            }
+        }
+
+        // If already connecting, wait a bit and check status
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        return this.isConnected;
+    }
+
     async connect() {
         if (this.isConnected || this.isConnecting) return;
 

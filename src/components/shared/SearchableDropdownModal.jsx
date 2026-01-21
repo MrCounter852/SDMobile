@@ -9,21 +9,9 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import SearchableModal from "../../components/SearchableModal";
+import { COLORS } from "../../core/theme";
 
 const { width } = Dimensions.get("window");
-
-const COLORS = {
-  primary: "#337ab7",
-  secondary: "#0086C8",
-  accent: "#00ACC4",
-  success: "#00CDA7",
-  dark: "#1E293B",
-  gray: "#64748B",
-  lightGray: "#94A3B8",
-  background: "#F8FAFC",
-  white: "#FFFFFF",
-  border: "#E2E8F0",
-};
 
 const ExpandableDropdown = ({
   title,

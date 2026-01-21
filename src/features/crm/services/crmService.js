@@ -1,6 +1,6 @@
 import { useGlobal } from '../../../core/global';
-import * as SecureStore from 'expo-secure-store';
 import getEnvironmentConfig from '../../../config/environments';
+import tokenService from '../../../core/tokenService';
 
 const API_BASE_CRM = `${getEnvironmentConfig().BASE_URL_NS}/API_CRM/api`;
 const API_BASE_SIS = `${getEnvironmentConfig().BASE_URL_NS}/API_SIS/api`;
@@ -16,17 +16,12 @@ class GestionComercialService {
     });
   }
 
-  // Método para obtener el token correcto del ERP de SecureStore
+  // Get valid token from tokenService (handles expiration and refresh)
   async getStoredToken() {
     try {
-      const erpToken = await SecureStore.getItemAsync('erpToken');
-      if (erpToken) {
-        return erpToken;
-      }
-      const accessToken = await SecureStore.getItemAsync('accessToken');
-      return accessToken || '';
+      return await tokenService.getValidToken();
     } catch (error) {
-      console.error('Error getting stored token:', error);
+      console.error('Error getting token:', error);
       return '';
     }
   }
@@ -82,7 +77,6 @@ class GestionComercialService {
     try {
       const response = await fetch(url, config);
 
-
       if (!response.ok) {
         const errorText = await response.text();
         console.error('GestionComercial API Error:', {
@@ -90,6 +84,21 @@ class GestionComercialService {
           statusText: response.statusText,
           body: errorText
         });
+
+        // Handle auth errors with token refresh
+        if (response.status === 401 || response.status === 403) {
+          const shouldRetry = await tokenService.handleApiError(null, response.status);
+          if (shouldRetry) {
+            // Retry the request with new token
+            const newHeaders = await this.getHeaders();
+            config.headers = newHeaders;
+            const retryResponse = await fetch(url, config);
+            if (retryResponse.ok) {
+              return await retryResponse.json();
+            }
+          }
+        }
+
         // Try to parse error message from API response
         let errorMessage = `Error del servidor (${response.status})`;
         try {
@@ -109,6 +118,14 @@ class GestionComercialService {
       return data;
     } catch (error) {
       console.error('API request failed:', error);
+      
+      // On network failure, ping SignalR and trigger recovery if needed
+      const SignalRService = require('../../chat/services/signalrService').default;
+      const isConnected = await SignalRService.ping();
+      if (!isConnected) {
+        await tokenService.triggerConnectionRecovery();
+      }
+      
       throw error;
     }
   }

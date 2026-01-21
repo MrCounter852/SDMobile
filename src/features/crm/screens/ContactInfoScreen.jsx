@@ -19,23 +19,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useGlobal } from "../../../core/global";
 import leadService from "../services/leadService";
 import FocusAwareStatusBar from "../../../components/FocusAwareStatusBar";
+import { COLORS } from "../../../core/theme";
 
 const { width } = Dimensions.get("window");
-
-// Paleta de colores de la marca (según DESIGN_PATTERNS.md)
-const COLORS = {
-  primary: "#337ab7",
-  secondary: "#0086C8",
-  accent: "#00ACC4",
-  success: "#00CDA7",
-  highlight: "#88E782",
-  dark: "#1E293B",
-  gray: "#64748B",
-  lightGray: "#94A3B8",
-  background: "#F8FAFC",
-  white: "#FFFFFF",
-  danger: "#EF4444",
-};
 
 const EstadosProcesos = [
   { ID: null, Nombre: "Todos" },

@@ -1,15 +1,8 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import SearchableModal from './SearchableModal';
-
-const COLORS = {
-  primary: '#337ab7',
-  text: '#1F2937',
-  textSecondary: '#6B7280',
-  border: '#E5E7EB',
-  success: '#10B981',
-};
+import SearchableModal from "./SearchableModal";
+import { COLORS } from "../core/theme";
 
 const PropertySelectionModal = ({
   visible,
@@ -19,7 +12,7 @@ const PropertySelectionModal = ({
   searchTerm,
   onSearchChange,
   onSelectInmueble,
-  selectedInmuebleID
+  selectedInmuebleID,
 }) => {
   const renderItem = (item, selectedId) => {
     const isSelected = selectedId === item.InmuebleID;
@@ -30,9 +23,16 @@ const PropertySelectionModal = ({
       >
         <View style={styles.inmuebleCardHeader}>
           <Text style={styles.inmuebleTitle}>
-            {item.Descripcion || `Inmueble Nro. ${item.Consecutivo ?? item.InmuebleID}`}
+            {item.Descripcion ||
+              `Inmueble Nro. ${item.Consecutivo ?? item.InmuebleID}`}
           </Text>
-          {isSelected && <Ionicons name="checkmark-circle" size={20} color={COLORS.success} />}
+          {isSelected && (
+            <Ionicons
+              name="checkmark-circle"
+              size={20}
+              color={COLORS.success}
+            />
+          )}
         </View>
         <View style={styles.inmuebleMetaRow}>
           {item.TipoInmuebleNombre ? (
@@ -42,7 +42,9 @@ const PropertySelectionModal = ({
             <Text style={styles.inmuebleMeta}>{item.CiudadNombre}</Text>
           ) : null}
           {item.EstadoInmuebleNombre ? (
-            <Text style={styles.inmuebleStatus}>{item.EstadoInmuebleNombre}</Text>
+            <Text style={styles.inmuebleStatus}>
+              {item.EstadoInmuebleNombre}
+            </Text>
           ) : null}
         </View>
         {item.Direccion ? (
@@ -50,21 +52,23 @@ const PropertySelectionModal = ({
         ) : null}
         <View style={styles.inmuebleInfoRow}>
           <Text style={styles.inmuebleInfo}>
-            Hab: {item.Habitaciones ?? '—'}
+            Hab: {item.Habitaciones ?? "—"}
           </Text>
+          <Text style={styles.inmuebleInfo}>Baños: {item.Banos ?? "—"}</Text>
           <Text style={styles.inmuebleInfo}>
-            Baños: {item.Banos ?? '—'}
-          </Text>
-          <Text style={styles.inmuebleInfo}>
-            Parqueaderos: {item.Parqueaderos ?? '—'}
+            Parqueaderos: {item.Parqueaderos ?? "—"}
           </Text>
         </View>
         <View style={styles.inmueblePrices}>
           {item.ValorCanon ? (
-            <Text style={styles.inmueblePrice}>Canon ${Number(item.ValorCanon).toLocaleString('es-CO')}</Text>
+            <Text style={styles.inmueblePrice}>
+              Canon ${Number(item.ValorCanon).toLocaleString("es-CO")}
+            </Text>
           ) : null}
           {item.ValorVenta ? (
-            <Text style={styles.inmueblePrice}>Venta ${Number(item.ValorVenta).toLocaleString('es-CO')}</Text>
+            <Text style={styles.inmueblePrice}>
+              Venta ${Number(item.ValorVenta).toLocaleString("es-CO")}
+            </Text>
           ) : null}
         </View>
       </TouchableOpacity>
@@ -99,24 +103,24 @@ const styles = StyleSheet.create({
   },
   inmuebleCardSelected: {
     borderColor: COLORS.primary,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: "#EFF6FF",
   },
   inmuebleCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 6,
   },
   inmuebleTitle: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.text,
     flex: 1,
     marginRight: 8,
   },
   inmuebleMetaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
     marginBottom: 4,
   },
@@ -127,7 +131,7 @@ const styles = StyleSheet.create({
   inmuebleStatus: {
     fontSize: 12,
     color: COLORS.primary,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   inmuebleAddress: {
     fontSize: 13,
@@ -135,7 +139,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   inmuebleInfoRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
     marginBottom: 4,
   },
@@ -144,13 +148,13 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   inmueblePrices: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   inmueblePrice: {
     fontSize: 13,
     color: COLORS.text,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 

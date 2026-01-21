@@ -24,22 +24,9 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import FocusAwareStatusBar from "../../../components/FocusAwareStatusBar";
+import { COLORS } from "../../../core/theme";
 
 const { width } = Dimensions.get("window");
-
-const COLORS = {
-  primary: "#337ab7",
-  secondary: "#0086C8",
-  accent: "#00ACC4",
-  success: "#00CDA7",
-  highlight: "#88E782",
-  dark: "#1E293B",
-  gray: "#64748B",
-  lightGray: "#94A3B8",
-  background: "#F8FAFC",
-  white: "#FFFFFF",
-  border: "#E2E8F0",
-};
 
 const NewChat = ({ navigation }) => {
   const insets = useSafeAreaInsets();
@@ -118,9 +105,8 @@ const NewChat = ({ navigation }) => {
       return;
     }
     try {
-      const response = await ChatApiService.consultarPlantillasComunicacion(
-        cuentaID
-      );
+      const response =
+        await ChatApiService.consultarPlantillasComunicacion(cuentaID);
       if (response.rows) {
         setPlantillas(response.rows);
       }
@@ -227,7 +213,7 @@ const NewChat = ({ navigation }) => {
       if (variable.Valor && variable.Valor !== "") {
         const regex = new RegExp(
           variable.Nombre.replace(/[\[\]]/g, "\\$&"),
-          "g"
+          "g",
         );
         mensaje = mensaje.replace(regex, variable.Valor);
       }

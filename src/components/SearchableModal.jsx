@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -7,24 +7,10 @@ import {
   StyleSheet,
   Modal,
   FlatList,
-  ActivityIndicator
-} from 'react-native';
+  ActivityIndicator,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
-const COLORS = {
-  primary: '#337ab7', // User requested blue
-  secondary: '#88E782', // User requested green (for gradient)
-  background: '#F3F4F6', // Light Gray background from original
-  card: '#FFFFFF',
-  text: '#1F2937',
-  textSecondary: '#6B7280',
-  border: '#E5E7EB',
-  inputBg: '#F9FAFB', // Restored light gray input bg
-  focus: '#337ab7',
-  white: '#FFFFFF',
-  danger: '#DC2626',
-  success: '#10B981',
-};
+import { COLORS } from "../core/theme";
 
 const SearchableModal = ({
   visible,
@@ -38,7 +24,7 @@ const SearchableModal = ({
   onSelect,
   renderItem,
   selectedItemId,
-  emptyText = 'No hay elementos disponibles para mostrar.',
+  emptyText = "No hay elementos disponibles para mostrar.",
 }) => {
   return (
     <Modal
@@ -77,7 +63,9 @@ const SearchableModal = ({
           ) : (
             <FlatList
               data={data}
-              keyExtractor={(item, index) => String(item.id || item.ID || index)}
+              keyExtractor={(item, index) =>
+                String(item.id || item.ID || index)
+              }
               extraData={selectedItemId}
               contentContainerStyle={{ paddingBottom: 16 }}
               renderItem={({ item }) => renderItem(item, selectedItemId)}
@@ -92,25 +80,25 @@ const SearchableModal = ({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    justifyContent: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    justifyContent: "center",
     padding: 16,
   },
   modalContainer: {
     backgroundColor: COLORS.card,
     borderRadius: 20,
-    maxHeight: '85%',
+    maxHeight: "85%",
     padding: 20,
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.text,
   },
   searchContainer: {
@@ -129,7 +117,7 @@ const styles = StyleSheet.create({
   },
   emptyWrapper: {
     paddingVertical: 30,
-    alignItems: 'center',
+    alignItems: "center",
   },
   emptyText: {
     color: COLORS.textSecondary,
@@ -137,7 +125,7 @@ const styles = StyleSheet.create({
   },
   loadingWrapper: {
     paddingVertical: 30,
-    alignItems: 'center',
+    alignItems: "center",
   },
 });
 
