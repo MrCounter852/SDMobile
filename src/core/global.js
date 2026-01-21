@@ -45,11 +45,19 @@ export const useGlobal = create((set, get) => ({
                         sucursal.SucursalID
                     );
 
+                    // Save the new token to SecureStore
+                    await SecureStore.setItemAsync('accessToken', oauthData.accessToken);
+                    await SecureStore.setItemAsync('erpToken', oauthData.accessToken);
+
                     const sessionData = await getSessionData(oauthData.accessToken);
                     const usuarioID = sessionData.Session?.Usuario?.UsuarioID;
                     const rolID = sessionData.Session?.Usuario?.RolID;
                     const user = sessionData.Session?.Usuario || {};
                     const accesos = sessionData.Session?.Accesos || [];
+
+                    // Save usuarioID and rolID to SecureStore
+                    await SecureStore.setItemAsync('usuarioID', usuarioID?.toString() || '');
+                    await SecureStore.setItemAsync('rolID', rolID?.toString() || '');
 
                     get().login({
                         user: {
