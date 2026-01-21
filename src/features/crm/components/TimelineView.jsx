@@ -25,7 +25,7 @@ import useDragAndDrop from "../hooks/useDragAndDrop";
 import { COLORS } from "../../../core/theme";
 const GestionComercialService = require("../services/crmService").default;
 
-const COLUMN_WIDTH = 320; // 300 width + 20 total margin (10 each side)
+const COLUMN_WIDTH = 320;
 
 const TimelineView = React.memo(
   ({ navigation, searchFilters, refreshTrigger, onSelectContact }) => {
@@ -41,7 +41,6 @@ const TimelineView = React.memo(
     const containerRef = useRef(null);
     const [containerOffsetY, setContainerOffsetY] = useState(0);
 
-    // Refs to keep callback dependencies stable
     const loadStateRef = useRef({
       hasMore,
       loading,
@@ -61,13 +60,11 @@ const TimelineView = React.memo(
 
     const ROWS_PER_PAGE = 15;
 
-    // Ref to access current timeline data in stable callbacks
     const timelineDataRef = useRef(timelineData);
     React.useEffect(() => {
       timelineDataRef.current = timelineData;
     }, [timelineData]);
 
-    // Handle moving contact to a new column via drag-and-drop
     const handleMoveToColumn = useCallback((contact, targetColumnId) => {
       const targetColumn = timelineDataRef.current.find(
         (col) => col.ProcesoLineaTiempoID === targetColumnId,
@@ -92,7 +89,6 @@ const TimelineView = React.memo(
                   ProcesoID: contact.ProcesoID,
                   ProcesoLineaTiempoID: targetColumnId,
                 });
-                // Refresh after successful move
                 loadTimeline(1, true);
               } catch (error) {
                 Alert.alert(
@@ -107,13 +103,11 @@ const TimelineView = React.memo(
       );
     }, []);
 
-    // Extract column IDs for the drag hook
     const columnIds = useMemo(
       () => timelineData.map((col) => col.ProcesoLineaTiempoID),
       [timelineData],
     );
 
-    // Initialize drag-and-drop hook with new interface
     const {
       draggedContactRef,
       sourceColumnIdRef,
@@ -171,7 +165,7 @@ const TimelineView = React.memo(
 
         const filters = {
           ...currentFilters,
-          EstadoProcesoID: null, // Critical: Web version clears this for timeline
+          EstadoProcesoID: null,
           Page: pageNum,
           Rows: ROWS_PER_PAGE,
           SucursalID: user?.SucursalID,
@@ -232,7 +226,6 @@ const TimelineView = React.memo(
               }
             });
 
-            // Re-check hasMore based on the newly merged data
             const anyHasMore = nextData.some(
               (col) => (col.Procesos?.length || 0) < (col.TotalProcesos || 0),
             );
@@ -293,7 +286,6 @@ const TimelineView = React.memo(
       [navigation],
     );
 
-    // Animated style for the whole timeline zoom-out effect
     const timelineAnimatedStyle = useAnimatedStyle(() => {
       const scale = timelineScale.value;
       const invScale = 1 / scale;
@@ -306,19 +298,16 @@ const TimelineView = React.memo(
       };
     });
 
-    // Handle scroll to track offset - runs on UI thread
     const handleScroll = useAnimatedScrollHandler({
       onScroll: (event) => {
         updateScrollOffset(event.contentOffset.x);
       },
     });
 
-    // CRITICAL: Disable native scrolling while dragging to prevent lag
     const scrollViewAnimatedProps = useAnimatedProps(() => ({
       scrollEnabled: !isDraggingShared.value,
     }));
 
-    // Drag event handlers
     const handleDragStart = useCallback(
       (contact, columnId, position) => {
         startDrag(contact, columnId, position);
@@ -341,8 +330,6 @@ const TimelineView = React.memo(
       [endDrag],
     );
 
-    // Measure container position on screen for accurate overlay positioning
-    // IMPORTANT: This must be defined before any early returns to maintain hooks order
     const handleContainerLayout = useCallback(() => {
       if (containerRef.current) {
         containerRef.current.measure((x, y, width, height, pageX, pageY) => {
@@ -392,7 +379,6 @@ const TimelineView = React.memo(
                     onLoadMore={handleLoadMore}
                     hasMore={hasMore}
                     loadingMore={loadingMore}
-                    // Drag-and-drop props - using shared values to avoid re-renders
                     isDraggingShared={isDraggingShared}
                     sourceColumnIdShared={sourceColumnIdShared}
                     targetColumnIdShared={targetColumnIdShared}
@@ -416,7 +402,6 @@ const TimelineView = React.memo(
             </Animated.ScrollView>
           </Animated.View>
 
-          {/* Floating drag overlay */}
           <DragOverlay
             overlayNombre={overlayNombre}
             overlayCelular={overlayCelular}
@@ -432,13 +417,11 @@ const TimelineView = React.memo(
             containerOffsetY={containerOffsetY}
           />
 
-          {/* Auto-scroll direction indicators */}
           <AutoScrollIndicator
             isDraggingShared={isDraggingShared}
             autoScrollDirection={autoScrollDirection}
           />
 
-          {/* Cancel drop zone at bottom */}
           <CancelDropZone
             isDraggingShared={isDraggingShared}
             isHovering={cancelZoneHover}

@@ -85,7 +85,7 @@ const PropertySelectionModal = ({
       loading={loadingInmuebles}
       searchTerm={searchTerm}
       onSearchChange={onSearchChange}
-      onSelect={() => {}} // Not used since renderItem handles it
+      onSelect={() => {}}
       renderItem={renderItem}
       selectedItemId={selectedInmuebleID}
       emptyText="No hay inmuebles disponibles para mostrar."

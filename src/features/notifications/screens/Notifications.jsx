@@ -31,7 +31,7 @@ const Notificaciones = ({ navigation }) => {
     notifications,
     notificationsLoading,
     setNotifications,
-    fetchNotifications, // Import action
+    fetchNotifications,
     updateNotification,
     removeNotification,
     clearNotifications,
@@ -39,18 +39,15 @@ const Notificaciones = ({ navigation }) => {
 
   const { usuarioID } = useGlobal();
   const [refreshing, setRefreshing] = useState(false);
-  const [filterVisto, setFilterVisto] = useState(false); // Default to Unread (No Vistas)
-  // Removed local loading states that are now handled in store or not needed
+  const [filterVisto, setFilterVisto] = useState(false);
   const currentFilterRef = useRef(null);
 
-  // Reload notifications (Fetches ALL)
   const loadNotifications = useCallback(async () => {
     setRefreshing(true);
     await fetchNotifications(usuarioID);
     setRefreshing(false);
   }, [usuarioID, fetchNotifications]);
 
-  // Local Filtering
   const filteredNotifications = useMemo(() => {
     if (filterVisto === null) return notifications;
     return notifications.filter((n) => n.Visto === filterVisto);
@@ -59,7 +56,6 @@ const Notificaciones = ({ navigation }) => {
   const markAsRead = async (notificacion) => {
     if (notificacion.Visto) return;
 
-    // Optimistic Update
     updateNotification(notificacion.NotificacionUsuarioID, { Visto: true });
 
     try {
@@ -83,7 +79,6 @@ const Notificaciones = ({ navigation }) => {
   const markAsUnread = async (notificacion) => {
     if (!notificacion.Visto) return;
 
-    // Optimistic Update
     updateNotification(notificacion.NotificacionUsuarioID, { Visto: false });
 
     try {
@@ -112,7 +107,6 @@ const Notificaciones = ({ navigation }) => {
           text: "Eliminar",
           style: "destructive",
           onPress: async () => {
-            // Optimistic Delete
             removeNotification(notificacion.NotificacionUsuarioID);
 
             try {
@@ -121,18 +115,17 @@ const Notificaciones = ({ navigation }) => {
               });
 
               if (response && response.result !== 1) {
-                // Rollback (requires fetching or adding back, simplified: Alert + reload)
                 Alert.alert("Error", "No se pudo eliminar la notificación");
-                loadNotifications(); // Reload to sync
+                loadNotifications();
               }
             } catch (error) {
               console.error("Error deleting notification:", error);
               Alert.alert("Error", "No se pudo eliminar la notificación");
-              loadNotifications(); // Reload to sync
+              loadNotifications();
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -146,17 +139,15 @@ const Notificaciones = ({ navigation }) => {
           text: "Eliminar Todas",
           style: "destructive",
           onPress: async () => {
-            // Optimistic clear
-            const backupNotifications = [...notifications]; // Backup in case of error (optional but good practice)
+            const backupNotifications = [...notifications];
             clearNotifications();
 
             try {
               const response = await chatApi.eliminarTodasNotificacionesPush();
               if (response && response.result !== 1) {
-                // Error handled by reload
                 Alert.alert(
                   "Error",
-                  "No se pudieron eliminar las notificaciones"
+                  "No se pudieron eliminar las notificaciones",
                 );
                 loadNotifications();
               }
@@ -164,13 +155,13 @@ const Notificaciones = ({ navigation }) => {
               console.error("Error deleting all notifications:", error);
               Alert.alert(
                 "Error",
-                "No se pudieron eliminar las notificaciones"
+                "No se pudieron eliminar las notificaciones",
               );
               loadNotifications();
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -183,11 +174,10 @@ const Notificaciones = ({ navigation }) => {
     }
   };
 
-  // Componente de notificación con animación
   const NotificationCard = ({ item, index }) => {
     const fadeAnim = useRef(new Animated.Value(1)).current;
     const slideAnim = useRef(new Animated.Value(0)).current;
-    const heightAnim = useRef(new Animated.Value(200)).current; // Estimated initial height? Or auto?
+    const heightAnim = useRef(new Animated.Value(200)).current;
     const isUnread = !item.Visto;
     const swipeableRef = useRef(null);
 
@@ -207,10 +197,8 @@ const Notificaciones = ({ navigation }) => {
 
     const handleMarkAsRead = () => {
       if (filterVisto === false) {
-        // Unread Tab -> Exit
         animateExit(() => markAsRead(item));
       } else {
-        // All Tab -> Just update
         markAsRead(item);
         closeSwipeable();
       }
@@ -218,10 +206,8 @@ const Notificaciones = ({ navigation }) => {
 
     const handleMarkAsUnread = () => {
       if (filterVisto === true) {
-        // Read Tab -> Exit
         animateExit(() => markAsUnread(item));
       } else {
-        // All Tab -> Just update
         markAsUnread(item);
         closeSwipeable();
       }
@@ -271,13 +257,8 @@ const Notificaciones = ({ navigation }) => {
       );
     };
 
-    // Strict Rules:
-    // Unread Tab (false): Swipe Right ONLY (Mark Read).
-    // Read Tab (true): Swipe Left ONLY (Mark Unread).
-    // All Tab (null): NO Swipe.
-
-    const canSwipeRight = filterVisto === false; // Only Unread Tab
-    const canSwipeLeft = filterVisto === true; // Only Read Tab
+    const canSwipeRight = filterVisto === false;
+    const canSwipeLeft = filterVisto === true;
 
     return (
       <Animated.View
@@ -285,8 +266,8 @@ const Notificaciones = ({ navigation }) => {
           {
             opacity: fadeAnim,
             transform: [{ translateY: slideAnim }],
-            maxHeight: heightAnim, // Use maxHeight to animate collapse
-            overflow: "hidden", // Essential for collapsing
+            maxHeight: heightAnim,
+            overflow: "hidden",
           },
         ]}
       >
@@ -296,7 +277,7 @@ const Notificaciones = ({ navigation }) => {
           renderRightActions={canSwipeLeft ? renderRightActions : null}
           onSwipeableLeftOpen={canSwipeRight ? handleMarkAsRead : null}
           onSwipeableRightOpen={canSwipeLeft ? handleMarkAsUnread : null}
-          overshootFriction={8} // Add friction to make full swipe feel heavier/intentional? Or native feel.
+          overshootFriction={8}
         >
           <TouchableOpacity
             style={[
@@ -306,7 +287,6 @@ const Notificaciones = ({ navigation }) => {
             onPress={() => openNotificationUrl(item)}
             activeOpacity={0.8}
           >
-            {/* Indicador de no leída */}
             {isUnread && (
               <View style={styles.unreadIndicator}>
                 <LinearGradient
@@ -318,7 +298,6 @@ const Notificaciones = ({ navigation }) => {
               </View>
             )}
 
-            {/* Icono de notificación */}
             <View style={styles.iconContainer}>
               <LinearGradient
                 colors={
@@ -334,7 +313,6 @@ const Notificaciones = ({ navigation }) => {
               </LinearGradient>
             </View>
 
-            {/* Contenido */}
             <View style={styles.notificationContent}>
               <View style={styles.notificationHeader}>
                 <Text
@@ -372,7 +350,6 @@ const Notificaciones = ({ navigation }) => {
               </View>
             </View>
 
-            {/* Acciones */}
             <View style={styles.notificationActions}>
               <TouchableOpacity
                 style={styles.actionButton}
@@ -396,7 +373,6 @@ const Notificaciones = ({ navigation }) => {
     <NotificationCard item={item} index={index} />
   );
 
-  // Contadores para los badges
   const counts = useMemo(() => {
     return {
       unread: notifications.filter((n) => !n.Visto).length,
@@ -527,7 +503,6 @@ const Notificaciones = ({ navigation }) => {
         backgroundColor={COLORS.primary}
       />
 
-      {/* Header con gradiente */}
       <LinearGradient
         colors={[COLORS.primary, COLORS.secondary, COLORS.accent]}
         start={{ x: 0, y: 0 }}
@@ -562,10 +537,8 @@ const Notificaciones = ({ navigation }) => {
         </SafeAreaView>
       </LinearGradient>
 
-      {/* Filtros */}
       {renderFilters()}
 
-      {/* Lista de notificaciones */}
       <FlatList
         data={filteredNotifications}
         keyExtractor={(item) => item.NotificacionUsuarioID.toString()}
@@ -896,14 +869,14 @@ const styles = StyleSheet.create({
   },
   leftActionContainer: {
     flex: 1,
-    backgroundColor: COLORS.success, // Green
+    backgroundColor: COLORS.success,
     justifyContent: "center",
     marginBottom: 12,
     borderRadius: 16,
   },
   rightActionContainer: {
     flex: 1,
-    backgroundColor: COLORS.primary, // Blue
+    backgroundColor: COLORS.primary,
     justifyContent: "center",
     alignItems: "flex-end",
     marginBottom: 12,

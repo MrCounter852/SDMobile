@@ -99,7 +99,6 @@ const ChatScreen = ({ route, navigation }) => {
     confirmarLecturaMensajes,
   } = useChatMessages(contact, user);
 
-  // Effect for Navigation Options and Initial setup
   useEffect(() => {
     navigation.setOptions({
       headerTitle: () => (
@@ -150,20 +149,17 @@ const ChatScreen = ({ route, navigation }) => {
       global.currentRecording = null;
     }
 
-    // Cleanup ONLY on real unmount of the screen
     return () => {
       setSelectedContact(null);
       clearAttachments();
     };
   }, [navigation, contact, setSelectedContact, clearAttachments]);
 
-  // Effect for initial loading
   useEffect(() => {
     loadMessages();
     confirmarLecturaMensajes();
   }, [loadMessages, confirmarLecturaMensajes]);
 
-  // Effect for keyboard listeners
   useEffect(() => {
     const keyboardShowListener = Keyboard.addListener("keyboardDidShow", () => {
       if (Platform.OS === "android") {
@@ -206,7 +202,7 @@ const ChatScreen = ({ route, navigation }) => {
 
     const timeout = setTimeout(
       () => dispatch({ type: UI_ACTIONS.SET_SEND_TIMEOUT, timeout: null }),
-      500
+      500,
     );
     dispatch({ type: UI_ACTIONS.SET_SEND_TIMEOUT, timeout });
 
@@ -385,7 +381,7 @@ const ChatScreen = ({ route, navigation }) => {
           console.error("Error sending file:", error);
           Alert.alert("Error", "No se pudo enviar el archivo");
           const filteredMessages = messages.filter(
-            (m) => m._id !== optimisticMessage._id
+            (m) => m._id !== optimisticMessage._id,
           );
           setMessages(contact.CuentaMensajeriaContactoID, filteredMessages);
         }

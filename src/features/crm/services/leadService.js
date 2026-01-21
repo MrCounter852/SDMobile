@@ -61,7 +61,6 @@ class LeadService {
           errorText,
         });
 
-        // Handle auth errors with token refresh
         if (response.status === 401 || response.status === 403) {
           const shouldRetry = await tokenService.handleApiError(null, response.status);
           if (shouldRetry) {
@@ -80,7 +79,6 @@ class LeadService {
     } catch (error) {
       console.error('LeadService:makeRequest exception', error);
       
-      // On network failure, ping SignalR and trigger recovery if needed
       const SignalRService = require('../../chat/services/signalrService').default;
       const isConnected = await SignalRService.ping();
       if (!isConnected) {
@@ -164,16 +162,15 @@ class LeadService {
   }
 
   async consultarAsesores(options = '') {
-    // Soporta tanto string como objeto {NombreCompleto, Rows, SucursalID, ...}
     const isObject = typeof options === 'object' && options !== null;
     const nombreCompleto = isObject ? (options.NombreCompleto ?? '') : options;
-    const rows = isObject ? (options.Rows ?? 20) : 20; // Default 20 to avoid negative OFFSET
+    const rows = isObject ? (options.Rows ?? 20) : 20;
     const sucursalID = isObject ? (options.SucursalID ?? this.global.user?.SucursalID) : this.global.user?.SucursalID;
 
     const response = await this.makeRequest('/Asesores/AsesoresConsultar', {
       body: this.withToken({
         Rows: rows,
-        Page: 1, // Page 1 instead of 0 to avoid negative OFFSET
+        Page: 1,
         Activo: true,
         NombreCompleto: nombreCompleto,
         SucursalID: sucursalID,

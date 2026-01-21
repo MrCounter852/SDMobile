@@ -54,8 +54,6 @@ class FacturasCompraService {
         } catch (e) {
           errorBody = "Could not read error body";
         }
-
-        // Handle auth errors with token refresh
         if (response.status === 401 || response.status === 403) {
           const shouldRetry = await tokenService.handleApiError(null, response.status);
           if (shouldRetry) {
@@ -73,8 +71,6 @@ class FacturasCompraService {
       return await response.json();
     } catch (error) {
       console.error('API request failed:', error);
-      
-      // On network failure, ping SignalR and trigger recovery if needed
       const SignalRService = require('../../chat/services/signalrService').default;
       const isConnected = await SignalRService.ping();
       if (!isConnected) {
@@ -193,7 +189,7 @@ class FacturasCompraService {
     return this.makeRequest('/Seguimientos/SeguimientosConsultar', {
       method: 'POST',
       body: JSON.stringify(body),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
   async insertarSeguimiento(facturaCompraID, comentario) {
@@ -208,7 +204,7 @@ class FacturasCompraService {
     return this.makeRequest('/Seguimientos/SeguimientosInsertar', {
       method: 'POST',
       body: JSON.stringify(body),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
   getAttachmentUrl(adjuntoID) {

@@ -8,16 +8,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 
-// Overlay dimensions for offset calculation
 const OVERLAY_WIDTH = 280;
 const OVERLAY_HEIGHT = 80;
 
-/**
- * Floating overlay that shows a preview of the dragged contact
- * Position animations on UI thread, text content via React state
- * OPTIMIZED: Minimal animated calculations, no derived values
- * Hides during auto-scroll to prevent lag on low-end devices
- */
 const DragOverlay = ({
   overlayNombre,
   overlayCelular,
@@ -32,7 +25,6 @@ const DragOverlay = ({
   isAutoScrollingShared,
   containerOffsetY = 0,
 }) => {
-  // React state for text content (updated at drag start)
   const [displayData, setDisplayData] = useState({
     nombre: "Contacto",
     celular: "",
@@ -40,20 +32,16 @@ const DragOverlay = ({
     color: "#8E8E93",
   });
 
-  // Store offsetY as shared value - update synchronously from effect
   const offsetYShared = useSharedValue(containerOffsetY);
 
-  // Update shared value when prop changes (very rare - usually once on mount)
   useEffect(() => {
     offsetYShared.value = containerOffsetY;
   }, [containerOffsetY]);
 
-  // Update display data when drag starts (only once per drag)
   useAnimatedReaction(
     () => isDraggingShared.value,
     (isDragging, wasDragging) => {
       if (isDragging && !wasDragging) {
-        // Drag just started, update display data
         runOnJS(setDisplayData)({
           nombre: overlayNombre.value || "Contacto",
           celular: overlayCelular.value || "",
@@ -61,22 +49,20 @@ const DragOverlay = ({
           color: overlayColor.value || "#8E8E93",
         });
       }
-    }
+    },
   );
 
-  // OPTIMIZED: Minimal animated style - hides during auto-scroll
   const animatedStyle = useAnimatedStyle(() => {
     "worklet";
     const isDragging = isDraggingShared.value;
     const isAutoScrolling = isAutoScrollingShared?.value ?? false;
-    // Hide if not dragging, in cancel zone, OR during auto-scroll
     const isHidden = !isDragging || cancelZoneHover.value || isAutoScrolling;
 
     return {
       opacity: isHidden ? 0 : dragOpacity.value,
       transform: [
-        { translateX: dragX.value - 140 }, // OVERLAY_WIDTH / 2 = 140
-        { translateY: dragY.value - offsetYShared.value - 80 }, // OVERLAY_HEIGHT = 80
+        { translateX: dragX.value - 140 },
+        { translateY: dragY.value - offsetYShared.value - 80 },
         { scale: isDragging ? dragScale.value : 1 },
       ],
     };
@@ -95,18 +81,15 @@ const DragOverlay = ({
   return (
     <Animated.View style={[styles.overlay, animatedStyle]} pointerEvents="none">
       <View style={styles.card}>
-        {/* Color indicator */}
         <View
           style={[styles.colorIndicator, { backgroundColor: statusColor }]}
         />
 
         <View style={styles.content}>
-          {/* Name */}
           <Text style={styles.name} numberOfLines={1}>
             {displayData.nombre}
           </Text>
 
-          {/* Phone */}
           {displayData.celular ? (
             <View style={styles.detailRow}>
               <Ionicons name="call-outline" size={12} color="#8E8E93" />
@@ -116,7 +99,6 @@ const DragOverlay = ({
             </View>
           ) : null}
 
-          {/* Status badge */}
           {displayData.estado ? (
             <View
               style={[styles.statusBadge, { backgroundColor: statusColor }]}
@@ -126,7 +108,6 @@ const DragOverlay = ({
           ) : null}
         </View>
 
-        {/* Drag indicator */}
         <View style={styles.dragHandle}>
           <Ionicons name="move-outline" size={20} color="#AEAEB2" />
         </View>
@@ -150,7 +131,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 10,
     paddingLeft: 16,
-    // Reduced elevation and removed complex shadows for performance
     elevation: 4,
     borderWidth: 2,
     borderColor: "#337ab7",

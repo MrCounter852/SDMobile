@@ -77,7 +77,6 @@ const FacturaFiltersModal = ({ visible, onClose, onApply, initialFilters }) => {
           style={styles.keyboardView}
         >
           <View style={styles.modalContent}>
-            {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerTitleContainer}>
                 <View style={styles.headerIconContainer}>
@@ -99,7 +98,6 @@ const FacturaFiltersModal = ({ visible, onClose, onApply, initialFilters }) => {
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
             >
-              {/* Búsqueda General */}
               <FilterSection title="Búsqueda rápida" icon="search-outline">
                 <View style={styles.inputWithIcon}>
                   <Ionicons
@@ -120,7 +118,6 @@ const FacturaFiltersModal = ({ visible, onClose, onApply, initialFilters }) => {
                 </View>
               </FilterSection>
 
-              {/* Emisor (Tercero) */}
               <FilterSection title="Emisor (Tercero)" icon="business-outline">
                 <View style={styles.inputWithIcon}>
                   <Ionicons
@@ -144,7 +141,6 @@ const FacturaFiltersModal = ({ visible, onClose, onApply, initialFilters }) => {
                   )}
                 </View>
 
-                {/* Selected indicator */}
                 {filters.TerceroID && (
                   <View style={styles.selectedIndicator}>
                     <Ionicons
@@ -174,7 +170,6 @@ const FacturaFiltersModal = ({ visible, onClose, onApply, initialFilters }) => {
                 )}
 
                 <View style={styles.tercerosList}>
-                  {/* Option: Todos */}
                   <TouchableOpacity
                     style={[
                       styles.terceroItem,
@@ -226,7 +221,6 @@ const FacturaFiltersModal = ({ visible, onClose, onApply, initialFilters }) => {
                     )}
                   </TouchableOpacity>
 
-                  {/* Terceros list */}
                   {terceros.map((tercero) => (
                     <TouchableOpacity
                       key={tercero.TerceroID}
@@ -283,7 +277,6 @@ const FacturaFiltersModal = ({ visible, onClose, onApply, initialFilters }) => {
                     </TouchableOpacity>
                   ))}
 
-                  {/* Empty state */}
                   {searchTerm.length >= 2 &&
                     terceros.length === 0 &&
                     !loadingTerceros && (
@@ -304,7 +297,6 @@ const FacturaFiltersModal = ({ visible, onClose, onApply, initialFilters }) => {
               <View style={{ height: 40 }} />
             </ScrollView>
 
-            {/* Footer */}
             <View
               style={[
                 styles.footer,

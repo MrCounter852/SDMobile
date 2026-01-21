@@ -38,7 +38,6 @@ const TableView = React.memo(
     const loadContacts = async (pageNum = 1, isRefresh = false) => {
       if (loading && !isRefresh) return;
 
-      // Evitar cargar la misma página si no es un refresh
       if (!isRefresh && pageNum <= page && pageNum !== 1) {
         return;
       }
@@ -79,10 +78,6 @@ const TableView = React.memo(
               (c) => !existingIds.has(c.ProcesoID),
             );
             const combined = [...prev, ...uniqueNewContacts];
-
-            // Decidir si hay más:
-            // 1. Si recibimos exactamente 30, probablemente hay más.
-            // 2. Si el total nos dice que hay más de lo que tenemos acumulado.
             const stillHasMore = rowsCount === 30 || combined.length < total;
             setHasMore(stillHasMore);
 
@@ -146,7 +141,7 @@ const TableView = React.memo(
     };
 
     const renderFooter = () => {
-      if (!loading || refreshing) return null; // No mostrar si estamos refrescando o no cargando
+      if (!loading || refreshing) return null;
       if (!hasMore && contacts.length > 0) {
         return (
           <View style={styles.loadingFooter}>
@@ -197,7 +192,6 @@ const TableView = React.memo(
           contentContainerStyle={
             contacts.length === 0 ? styles.emptyList : null
           }
-          // Performance Optimizations
           initialNumToRender={10}
           maxToRenderPerBatch={10}
           windowSize={5}

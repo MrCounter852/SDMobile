@@ -8,7 +8,6 @@ import {
   RefreshControl,
   ActivityIndicator,
   Alert,
-  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -20,8 +19,6 @@ import FacturaDetailModal from "../components/FacturaDetailModal";
 import FocusAwareStatusBar from "../../../components/FocusAwareStatusBar";
 
 import { COLORS } from "../../../core/theme";
-
-const { width } = Dimensions.get("window");
 
 const AprobacionFacturasCompra = ({ navigation }) => {
   const [invoices, setInvoices] = useState([]);
@@ -249,7 +246,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
 
-  // Header
   headerGradient: {
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
@@ -334,14 +330,12 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-  // List
   listContainer: {
     paddingTop: 12,
     paddingBottom: 20,
     flexGrow: 1,
   },
 
-  // Loading footer
   loadingFooter: {
     flexDirection: "row",
     padding: 20,
@@ -355,7 +349,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // Empty state
   emptyContainer: {
     flex: 1,
     justifyContent: "center",

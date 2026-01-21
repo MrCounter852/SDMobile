@@ -51,7 +51,6 @@ const ICON_MAP = {
 
 const FONT_AWESOME_ICONS = new Set(["handshake", "child"]);
 
-// --- HELPERS (Sin cambios) ---
 const getIconName = (icon) => {
   const clean = icon.replace(/fa[lrs] fa-/g, "").trim();
   return ICON_MAP[icon] || clean;
@@ -181,7 +180,6 @@ const SubMenuView = ({
   const subMenuItems = selectedOption?.__children__ || [];
   return (
     <View style={styles.subMenuContainer}>
-      {/* Menú Vertical (Izquierda) */}
       <ScrollView
         ref={scrollRef}
         scrollEventThrottle={16}
@@ -195,7 +193,6 @@ const SubMenuView = ({
           <Ionicons name="arrow-back-circle" size={32} color="#337ab7" />
         </TouchableOpacity>
         {allOptions.map((item) => (
-          
           <VerticalMenuItem
             key={item.OpcionMenuID}
             item={item}
@@ -205,7 +202,6 @@ const SubMenuView = ({
         ))}
       </ScrollView>
 
-      {/* Grid de Sub-opciones (Derecha) */}
       <ScrollView
         style={styles.subMenuGridScrollView}
         ref={scrollRef}
@@ -226,8 +222,8 @@ const SubMenuView = ({
           </View>
           {subMenuItems.length > 0 ? (
             subMenuItems.map((item, index) => (
-              <View style={{border: 1, borderWidth: 2, flexDirection:'row'}}>
-                {<View style={styles.verticalLine}/>}
+              <View style={{ border: 1, borderWidth: 2, flexDirection: "row" }}>
+                {<View style={styles.verticalLine} />}
                 <SubMenuItem
                   key={item.OpcionMenuID}
                   item={item}
@@ -262,7 +258,7 @@ const MenuPanel = ({ scrollRef, scrollY }) => {
 
   const selectedOption = useMemo(
     () => findMenuById(processedMenuOptions, selectedMenuId),
-    [processedMenuOptions, selectedMenuId]
+    [processedMenuOptions, selectedMenuId],
   );
 
   const handleMenuAction = (item) => {
@@ -400,16 +396,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#337ab7",
     left: 10,
     top: 30,
-    height: '40%'
-    
+    height: "40%",
   },
 
   horizontalLine: {
     height: 2,
     backgroundColor: "#337ab7",
     left: 10,
-    top: 10
-
+    top: 10,
   },
 });
 

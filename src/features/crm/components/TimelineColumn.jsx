@@ -33,28 +33,22 @@ const TimelineColumn = ({
   onDragMove,
   onDragEnd,
 }) => {
-  // Single derived value for target detection
   const isTargetValue = useDerivedValue(() => {
     const isDragging = isDraggingShared?.value ?? false;
     const isAutoScrolling = isAutoScrollingShared?.value ?? false;
     const isTarget = targetColumnIdShared?.value === columnId;
     const isSource = sourceColumnIdShared?.value === columnId;
-
-    // Don't highlight if auto-scrolling
     if (isAutoScrolling) return 0;
 
     return isDragging && isTarget && !isSource ? 1 : 0;
   }, [columnId]);
 
-  // Optimized: Use a separate overlay for highlighting instead of changing borderWidth
-  // Changing borderWidth causes expensive re-layout; opacity changes run on GPU with no layout cost
   const highlightOverlayStyle = useAnimatedStyle(() => {
     return {
       opacity: isTargetValue.value,
     };
   });
 
-  // CRITICAL: Disable FlatList scrolling while dragging to prevent lag
   const flatListAnimatedProps = useAnimatedProps(() => ({
     scrollEnabled: !(isDraggingShared?.value ?? false),
   }));
@@ -68,24 +62,21 @@ const TimelineColumn = ({
     }).format(value);
   }, []);
 
-  // Memoize the contact press handler to avoid recreating functions
   const handleContactPress = React.useCallback(
     (item) => {
       if (onContactPress) {
         onContactPress(item);
       }
     },
-    [onContactPress]
+    [onContactPress],
   );
 
-  // onEndReached handler - using current prop values directly
   const handleEndReached = () => {
     if (hasMore && (linea.Procesos?.length || 0) < (linea.TotalProcesos || 0)) {
       onLoadMore();
     }
   };
 
-  // Memoize the renderContact function with stable dependencies
   const renderContact = React.useCallback(
     ({ item }) => (
       <DraggableContactItem
@@ -105,7 +96,7 @@ const TimelineColumn = ({
       onDragMove,
       onDragEnd,
       draggedContactId,
-    ]
+    ],
   );
 
   const renderFooter = React.useCallback(() => {
@@ -126,16 +117,14 @@ const TimelineColumn = ({
         <Text style={styles.emptyText}>Lista vacía</Text>
       </View>
     ),
-    []
+    [],
   );
 
-  // Memoize keyExtractor
   const keyExtractor = React.useCallback(
     (item, index) => item.ProcesoID?.toString() || index.toString(),
-    []
+    [],
   );
 
-  // Memoize RefreshControl
   const refreshControl = useMemo(
     () => (
       <RefreshControl
@@ -144,18 +133,16 @@ const TimelineColumn = ({
         colors={["#337ab7"]}
       />
     ),
-    [refreshing, onRefresh]
+    [refreshing, onRefresh],
   );
 
-  // Memoize footer value to avoid recalculating
   const formattedTotal = useMemo(
     () => formatCurrency(linea.TotalValorNegocio),
-    [linea.TotalValorNegocio, formatCurrency]
+    [linea.TotalValorNegocio, formatCurrency],
   );
 
   return (
     <View style={styles.container}>
-      {/* Highlight overlay - uses opacity only for GPU-accelerated animation */}
       <Animated.View
         style={[styles.highlightOverlay, highlightOverlayStyle]}
         pointerEvents="none"
@@ -187,7 +174,6 @@ const TimelineColumn = ({
         ListFooterComponent={renderFooter}
         ListEmptyComponent={renderEmptyComponent}
         animatedProps={flatListAnimatedProps}
-        // Performance optimizations
         removeClippedSubviews={true}
         maxToRenderPerBatch={10}
         windowSize={5}
@@ -208,11 +194,10 @@ const styles = StyleSheet.create({
   container: {
     width: 300,
     backgroundColor: "#fff",
-    borderRadius: 20, // Slightly more modern
+    borderRadius: 20,
     marginHorizontal: 10,
     marginVertical: 4,
     overflow: "hidden",
-    // NO SHADOWS - optimized for performance
     borderWidth: 1.5,
     borderColor: "#E5E5EA",
   },
@@ -318,5 +303,4 @@ const styles = StyleSheet.create({
   },
 });
 
-// Use default React.memo - linea reference changes when data updates
 export default React.memo(TimelineColumn);

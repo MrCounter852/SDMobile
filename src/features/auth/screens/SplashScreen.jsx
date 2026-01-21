@@ -1,14 +1,6 @@
 import React, { useEffect } from "react";
-import {
-  View,
-  Image,
-  ActivityIndicator,
-  StyleSheet,
-  Dimensions,
-} from "react-native";
+import { View, Image, ActivityIndicator, StyleSheet } from "react-native";
 import useGlobal from "../../../core/global";
-
-const { width, height } = Dimensions.get("window");
 
 const SplashScreen = () => {
   const init = useGlobal((state) => state.init);

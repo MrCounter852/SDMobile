@@ -31,14 +31,10 @@ export default function App() {
     init();
   }, []);
 
-  // Gestionar conexión SignalR y Permisos de Notificación
   useEffect(() => {
     if (authenticated) {
       signalrService.connect();
-      // Pedir permisos solo al estar autenticado
       registerForPushNotificationsAsync();
-
-      // Cargar notificaciones al iniciar sesión
       const useChatStore =
         require("./src/features/chat/store/chatStore").default;
       const usuarioID = useGlobal.getState().usuarioID;
@@ -50,16 +46,10 @@ export default function App() {
     }
   }, [authenticated]);
 
-  // Setup Notifications Listener
   useEffect(() => {
-    // Nota: La solicitud de permisos se movió al efecto de autenticación
-    // registerForPushNotificationsAsync();
-
-    // Listener para cuando el usuario toca la notificación
+    registerForPushNotificationsAsync();
     const responseListener =
       Notifications.addNotificationResponseReceivedListener((response) => {
-        // Navegar a la pantalla de notificaciones
-        // React Navigation manejará el cambio de Tab automáticamente si 'Notificaciones' está en un Tab
         navigate("Notificaciones");
       });
 

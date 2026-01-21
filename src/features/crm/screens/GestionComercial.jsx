@@ -15,10 +15,8 @@ import { useGlobal } from "../../../core/global";
 import FocusAwareStatusBar from "../../../components/FocusAwareStatusBar";
 import { COLORS } from "../../../core/theme";
 
-// Services
 const GestionComercialService = require("../services/crmService").default;
 
-// Components
 import FilterModal from "../components/FilterModal";
 import CalendarFilterModal from "../components/CalendarFilterModal";
 import ColorPickerModal from "../components/ColorPickerModal";
@@ -30,7 +28,6 @@ import { FILTER_OPTIONS } from "../components/FilterConstants";
 
 const Tab = createMaterialTopTabNavigator();
 
-// Main Component
 const GestionComercial = ({ navigation }) => {
   const { user, permisos } = useGlobal();
   const [filterModalVisible, setFilterModalVisible] = useState(false);
@@ -44,7 +41,6 @@ const GestionComercial = ({ navigation }) => {
     EstadoGeneral: null,
     EstadoActividadID: "3,4",
     TipoCalendarioActividadID: null,
-    // New fields from web modal
     AsesorID: user?.AsesorID || null,
     UsuarioID: user?.UsuarioID || null,
     NombreCompleto: "",
@@ -89,7 +85,6 @@ const GestionComercial = ({ navigation }) => {
     }
   }, [currentTab]);
 
-  // Sync filters once user data is available
   useEffect(() => {
     if (user?.SucursalID || user?.AsesorID) {
       setSearchFilters((prev) => ({
@@ -143,7 +138,6 @@ const GestionComercial = ({ navigation }) => {
           estadosProcesosResponse.rows || estadosProcesosResponse || [],
         );
 
-        // Load special permissions
         await GestionComercialService.loadCrmPermissions();
       } catch (error) {
         console.error("Error loading filter data:", error);
@@ -162,7 +156,6 @@ const GestionComercial = ({ navigation }) => {
     setIsSelectionMode(false);
   }, []);
 
-  // Salir automáticamente del modo selección cuando se regresa a esta pantalla
   useFocusEffect(
     useCallback(() => {
       if (!isInitialMount.current) {
@@ -218,10 +211,8 @@ const GestionComercial = ({ navigation }) => {
 
   const handleAdvisorSelected = useCallback(
     (advisor) => {
-      // Check if advisor already exists in the asesores array
       const exists = asesores.some((a) => a.AsesorID === advisor.AsesorID);
       if (!exists) {
-        // Add the new advisor to the asesores array so it can be found for tags
         setAsesores((prev) => [...prev, advisor]);
       }
     },
@@ -486,7 +477,6 @@ const GestionComercial = ({ navigation }) => {
     [getActiveFilterTags],
   );
 
-  // Stabilize query filters to prevent unnecessary re-renders in children
   const queryFilters = useMemo(
     () => ({
       ...searchFilters,
@@ -516,7 +506,6 @@ const GestionComercial = ({ navigation }) => {
     ],
   );
 
-  // Memoized render functions for Tab.Screen children to prevent remounting
   const renderTableScreen = useCallback(
     (props) => (
       <TableView
@@ -764,7 +753,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  // Header con gradiente
   headerGradient: {
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
@@ -838,7 +826,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  // Header modo selección
   selectionHeaderContainer: {
     backgroundColor: "#fff",
   },

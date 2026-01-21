@@ -84,7 +84,7 @@ const CalendarFilterModal = ({
 }) => {
   const { user, permisos } = useGlobal();
   const [filters, setFilters] = useState(initialFilters || {});
-  const [showDatePicker, setShowDatePicker] = useState(null); // 'FechaInicial', 'FechaFinal'
+  const [showDatePicker, setShowDatePicker] = useState(null);
 
   const [advisorModalVisible, setAdvisorModalVisible] = useState(false);
   const [advisorSearch, setAdvisorSearch] = useState("");
@@ -93,12 +93,9 @@ const CalendarFilterModal = ({
   const searchTimeout = useRef(null);
   const insets = useSafeAreaInsets();
 
-  // Sincronizar filtros cuando cambian los filtros iniciales
   useEffect(() => {
     setFilters({ ...initialFilters });
   }, [initialFilters, visible]);
-
-  // Reset y carga inicial de asesores remotos al abrir el modal de selección
   useEffect(() => {
     if (advisorModalVisible) {
       setAdvisorSearch("");
@@ -125,9 +122,9 @@ const CalendarFilterModal = ({
     const defaultFilters = {
       ...initialFilters,
       FullSearch: "",
-      EstadoActividadID: null, // Match web default (All)
+      EstadoActividadID: null,
       TipoCalendarioActividadID: null,
-      AsesorID: null, // Reset to all
+      AsesorID: null,
       UsuarioID: null,
       FechaInicial: null,
       FechaFinal: null,
@@ -138,7 +135,6 @@ const CalendarFilterModal = ({
   const handleDateChange = (event, selectedDate) => {
     setShowDatePicker(null);
     if (selectedDate && event.type !== "dismissed") {
-      // Use local date parts to avoid TZ shifts
       const year = selectedDate.getFullYear();
       const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
       const day = String(selectedDate.getDate()).padStart(2, "0");
@@ -149,7 +145,6 @@ const CalendarFilterModal = ({
 
   const getCalendarDate = (dateStr) => {
     if (!dateStr) return new Date();
-    // Handle "DD/MM/YYYY" or "YYYY-MM-DD"
     if (dateStr.includes("/")) {
       const [d, m, y] = dateStr.split("/");
       return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
@@ -252,7 +247,6 @@ const CalendarFilterModal = ({
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
-          {/* Header */}
           <View style={styles.header}>
             <View style={styles.headerTitleContainer}>
               <View style={styles.headerIconContainer}>
@@ -281,7 +275,6 @@ const CalendarFilterModal = ({
               </View>
             ) : (
               <>
-                {/* Buscador Rápido */}
                 <FilterSection title="Búsqueda rápida" icon="search-outline">
                   <View style={styles.inputWithIcon}>
                     <Ionicons
@@ -302,7 +295,6 @@ const CalendarFilterModal = ({
                   </View>
                 </FilterSection>
 
-                {/* Estado Actividad */}
                 <FilterSection
                   title="Estado de actividad"
                   icon="checkmark-circle-outline"
@@ -319,7 +311,6 @@ const CalendarFilterModal = ({
                   />
                 </FilterSection>
 
-                {/* Tipo de Actividad */}
                 <FilterSection title="Tipo de actividad" icon="layers-outline">
                   <ChipSelector
                     options={tiposActividadesOptions}
@@ -333,7 +324,6 @@ const CalendarFilterModal = ({
                   />
                 </FilterSection>
 
-                {/* Rango de Fechas */}
                 <FilterSection title="Rango de fechas" icon="calendar-outline">
                   <View style={styles.datesContainer}>
                     <TouchableOpacity
@@ -368,7 +358,6 @@ const CalendarFilterModal = ({
                   </View>
                 </FilterSection>
 
-                {/* Organización Section */}
                 {(permisos?.FiltroSucursal === true ||
                   permisos?.FiltroAsesor === true) && (
                   <FilterSection title="Organización" icon="business-outline">
@@ -426,7 +415,6 @@ const CalendarFilterModal = ({
             )}
           </ScrollView>
 
-          {/* Footer */}
           <View
             style={[
               styles.footer,
@@ -466,7 +454,6 @@ const CalendarFilterModal = ({
           />
         )}
 
-        {/* Modal Selección Asesor */}
         <SearchableModal
           visible={advisorModalVisible}
           onClose={() => setAdvisorModalVisible(false)}

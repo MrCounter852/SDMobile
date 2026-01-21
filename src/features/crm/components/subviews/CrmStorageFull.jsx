@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { InfoSection, styles, COLORS } from "./CrmSubViewComponents";
 
-// Helper function for "En desarrollo" alerts
 const showDevAlert = (actionName) => {
   Alert.alert(
     "En desarrollo",
@@ -23,7 +22,6 @@ const CrmStorageFull = ({
   const codigosBarras = safeParseArray(contactDetail.PreFacturas);
   const facturas = safeParseArray(contactDetail.Facturas);
 
-  // Get form status label and color
   const getFormStatus = (form) => {
     if (form.Eliminado) return { label: "Eliminada", color: COLORS.danger };
     if (form.Firmado) return { label: "Firmada", color: COLORS.success };
@@ -33,12 +31,10 @@ const CrmStorageFull = ({
 
   return (
     <View>
-      {/* 1. Formato de Vinculación & Seguro */}
       <InfoSection
         title="Formato de Vinculación & Seguro"
         icon="document-attach-outline"
       >
-        {/* Vinculación */}
         <View style={localStyles.formCard}>
           <View style={localStyles.formHeader}>
             <View>
@@ -116,7 +112,6 @@ const CrmStorageFull = ({
           )}
         </View>
 
-        {/* Seguro */}
         <View style={localStyles.formCard}>
           <View style={localStyles.formHeader}>
             <View>
@@ -205,7 +200,6 @@ const CrmStorageFull = ({
         </View>
       </InfoSection>
 
-      {/* 2. Cotizaciones */}
       <InfoSection
         title={`Cotizaciones (${cotizaciones.length})`}
         icon="calculator-outline"
@@ -260,7 +254,6 @@ const CrmStorageFull = ({
                 </Text>
               </View>
 
-              {/* Vistas count if available */}
               {item.CotizacionesVistas?.length > 0 && (
                 <View style={localStyles.viewsRow}>
                   <Ionicons name="eye-outline" size={14} color={COLORS.gray} />
@@ -270,7 +263,6 @@ const CrmStorageFull = ({
                 </View>
               )}
 
-              {/* Action buttons */}
               <View style={localStyles.actionsRow}>
                 <TouchableOpacity
                   style={localStyles.actionButton}
@@ -333,7 +325,6 @@ const CrmStorageFull = ({
         )}
       </InfoSection>
 
-      {/* 3. Ordenes de Servicio */}
       {ordenesServicio.length > 0 && (
         <InfoSection
           title={`Ordenes de Servicio (${ordenesServicio.length})`}
@@ -373,7 +364,6 @@ const CrmStorageFull = ({
                   {formatCurrency(item.ValorOrdenServicio)}
                 </Text>
               </View>
-              {/* Action buttons */}
               <View style={localStyles.actionsRow}>
                 <TouchableOpacity
                   style={localStyles.actionButton}
@@ -414,7 +404,6 @@ const CrmStorageFull = ({
         </InfoSection>
       )}
 
-      {/* 4. Código de Barras / Pre-Facturas */}
       {codigosBarras.length > 0 && (
         <InfoSection
           title={`Código de Barras / Pre-Facturas (${codigosBarras.length})`}
@@ -461,7 +450,6 @@ const CrmStorageFull = ({
                   {formatCurrency(item.ValorPreFactura)}
                 </Text>
               </View>
-              {/* Action buttons */}
               <View style={localStyles.actionsRow}>
                 <TouchableOpacity
                   style={localStyles.actionButton}
@@ -491,7 +479,6 @@ const CrmStorageFull = ({
         </InfoSection>
       )}
 
-      {/* 5. Facturas */}
       {facturas.length > 0 && (
         <InfoSection
           title={`Facturas (${facturas.length})`}
@@ -522,7 +509,6 @@ const CrmStorageFull = ({
                   {formatCurrency(item.ValorFactura)}
                 </Text>
               </View>
-              {/* Action buttons */}
               <View style={localStyles.actionsRow}>
                 <TouchableOpacity
                   style={localStyles.actionButton}

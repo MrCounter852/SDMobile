@@ -21,8 +21,6 @@ import leadService from "../services/leadService";
 import FocusAwareStatusBar from "../../../components/FocusAwareStatusBar";
 import { COLORS } from "../../../core/theme";
 
-const { width } = Dimensions.get("window");
-
 const EstadosProcesos = [
   { ID: null, Nombre: "Todos" },
   { ID: 1, Nombre: "Procesos activos" },
@@ -91,7 +89,6 @@ const ContactInfoScreen = () => {
 
   const handleEstadoChange = async (value) => {
     setEstadoID(value);
-    // TODO: Save to API
   };
 
   const handleEditContact = async () => {
@@ -99,12 +96,10 @@ const ContactInfoScreen = () => {
       Alert.alert("Error", "El nombre es requerido");
       return;
     }
-    // TODO: Save to API
     setShowEditContact(false);
   };
 
   const handleEditClient = async () => {
-    // TODO: Save to API
     setShowEditClient(false);
   };
 
@@ -225,8 +220,6 @@ const ContactInfoScreen = () => {
         barStyle="light-content"
         backgroundColor={COLORS.primary}
       />
-
-      {/* Header con Gradiente */}
       <LinearGradient
         colors={[COLORS.primary, COLORS.secondary, COLORS.accent]}
         start={{ x: 0, y: 0 }}
@@ -235,7 +228,6 @@ const ContactInfoScreen = () => {
       >
         <SafeAreaView edges={["top"]}>
           <View style={styles.headerContent}>
-            {/* Círculos decorativos */}
             <View style={styles.patternCircle1} />
             <View style={styles.patternCircle2} />
 
@@ -253,7 +245,6 @@ const ContactInfoScreen = () => {
         </SafeAreaView>
       </LinearGradient>
 
-      {/* Contact Card flotante */}
       <View style={styles.contactCardContainer}>
         <View style={styles.contactCard}>
           <LinearGradient
@@ -291,7 +282,6 @@ const ContactInfoScreen = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Client Info Card */}
         <View style={styles.infoCard}>
           <View style={styles.infoCardHeader}>
             <Ionicons
@@ -324,7 +314,6 @@ const ContactInfoScreen = () => {
           </View>
         </View>
 
-        {/* Estado Picker Card */}
         <View style={styles.infoCard}>
           <View style={styles.infoCardHeader}>
             <Ionicons name="flag-outline" size={18} color={COLORS.primary} />
@@ -349,7 +338,6 @@ const ContactInfoScreen = () => {
           </View>
         </View>
 
-        {/* Sections */}
         {renderSection(
           "Procesos comerciales",
           "funnel-outline",
@@ -357,7 +345,6 @@ const ContactInfoScreen = () => {
           renderProcesoComercial,
         )}
 
-        {/* Empty State */}
         {(!busquedas.ProcesosComerciales ||
           busquedas.ProcesosComerciales.length === 0) &&
           (!busquedas.ContratosServicios ||
@@ -380,7 +367,6 @@ const ContactInfoScreen = () => {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* Edit Contact Modal */}
       <Modal visible={showEditContact} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -445,7 +431,6 @@ const ContactInfoScreen = () => {
         </View>
       </Modal>
 
-      {/* Edit Client Modal */}
       <Modal visible={showEditClient} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -828,7 +813,6 @@ const styles = StyleSheet.create({
     color: COLORS.gray,
     fontWeight: "500",
   },
-  // Modal styles
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",

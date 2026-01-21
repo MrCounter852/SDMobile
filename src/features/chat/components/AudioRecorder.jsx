@@ -9,7 +9,7 @@ import {
   Vibration,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Audio } from "expo-av"; // Volvemos a la librería estable
+import { Audio } from "expo-av";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Reanimated, {
   useSharedValue,
@@ -19,14 +19,12 @@ import Reanimated, {
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 
-// Componente de barra individual optimizado
 const SpectrumBar = ({ level }) => {
   const animatedHeight = useSharedValue(5);
 
   useEffect(() => {
-    // Animación suave basada en el nivel de volumen (0 a 1)
     animatedHeight.value = withTiming(Math.max(5, level * 35), {
-      duration: 100, // Debe coincidir con el intervalo de actualización
+      duration: 100,
       easing: Easing.linear,
     });
   }, [level]);
@@ -34,7 +32,6 @@ const SpectrumBar = ({ level }) => {
   const style = useAnimatedStyle(() => {
     return {
       height: animatedHeight.value,
-      // Opacidad variable para efecto visual más bonito
       opacity: 0.5 + level * 0.5,
     };
   });
@@ -47,23 +44,19 @@ const AudioRecorder = ({ onSend, onCancel }) => {
   const [recording, setRecording] = useState(null);
   const [duration, setDuration] = useState(0);
 
-  // Estado para las barras visuales (Array de 30 barras)
   const [audioLevels, setAudioLevels] = useState(new Array(30).fill(0));
 
   const timerRef = useRef(null);
   const recordingRef = useRef(null);
 
   useEffect(() => {
-    // Limpieza al desmontar
     return () => {
       stopRecordingCleanup();
     };
   }, []);
 
-  // Función principal de inicio
   const startRecording = async () => {
     try {
-      // 1. Permisos
       const permission = await Audio.requestPermissionsAsync();
       if (!permission.granted) {
         Alert.alert("Permiso requerido", "Necesitamos acceso al micrófono.");
@@ -71,7 +64,6 @@ const AudioRecorder = ({ onSend, onCancel }) => {
         return;
       }
 
-      // 2. Configuración de Audio para evitar conflictos en Android
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
@@ -80,11 +72,10 @@ const AudioRecorder = ({ onSend, onCancel }) => {
         staysActiveInBackground: false,
       });
 
-      // 3. Crear instancia de grabación con Metering activado
       const { recording: newRecording } = await Audio.Recording.createAsync(
         {
           ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
-          isMeteringEnabled: true, // ¡IMPORTANTE! Esto activa la lectura de volumen real
+          isMeteringEnabled: true,
           android: {
             ...Audio.RecordingOptionsPresets.HIGH_QUALITY.android,
             extension: ".m4a",
@@ -97,30 +88,24 @@ const AudioRecorder = ({ onSend, onCancel }) => {
           },
         },
         (status) => {
-          // Callback que se ejecuta cada vez que hay datos (aprox 50-100ms)
           if (status.isRecording && status.metering !== undefined) {
-            // Normalizar dB (-160 a 0) a rango lineal (0 a 1)
-            // Filtramos ruido de fondo por debajo de -60dB
             const minDb = -60;
             const db = Math.max(status.metering, minDb);
-            const level = (db - minDb) / (0 - minDb); // Resultado entre 0 y 1
+            const level = (db - minDb) / (0 - minDb);
 
-            // Actualizamos el array de niveles (Efecto de desplazamiento)
             setAudioLevels((prev) => {
               const newLevels = [...prev.slice(1), level];
               return newLevels;
             });
           }
         },
-        100 // Intervalo de actualización en ms
+        100,
       );
 
       setRecording(newRecording);
       recordingRef.current = newRecording;
       global.currentRecording = newRecording;
       setDuration(0);
-
-      // Timer solo para el contador de segundos
       timerRef.current = setInterval(() => {
         setDuration((prev) => prev + 1);
       }, 1000);
@@ -131,7 +116,6 @@ const AudioRecorder = ({ onSend, onCancel }) => {
     }
   };
 
-  // Iniciar automáticamente al montar
   useEffect(() => {
     startRecording();
   }, []);
@@ -139,10 +123,7 @@ const AudioRecorder = ({ onSend, onCancel }) => {
   const stopRecordingCleanup = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     if (recordingRef.current) {
-      // Importante: detener y descargar para liberar memoria
-      recordingRef.current.stopAndUnloadAsync().catch((e) => {
-        // Ignorar errores si ya estaba descargado
-      });
+      recordingRef.current.stopAndUnloadAsync().catch((e) => {});
       recordingRef.current = null;
     }
     setRecording(null);
@@ -155,11 +136,10 @@ const AudioRecorder = ({ onSend, onCancel }) => {
 
       if (!recording) return;
 
-      // Detener grabación
       await recording.stopAndUnloadAsync();
 
       const uri = recording.getURI();
-      const finalDuration = Math.max(1, duration); // Mínimo 1 segundo
+      const finalDuration = Math.max(1, duration);
 
       if (uri) {
         console.log("Audio grabado exitosamente:", uri);
@@ -168,7 +148,6 @@ const AudioRecorder = ({ onSend, onCancel }) => {
         Alert.alert("Error", "No se generó el archivo de audio.");
       }
 
-      // Limpiamos estado local
       setRecording(null);
       recordingRef.current = null;
       global.currentRecording = null;
@@ -194,7 +173,6 @@ const AudioRecorder = ({ onSend, onCancel }) => {
 
   return (
     <View style={{ ...styles.wrapper, paddingBottom: insets.bottom + 10 }}>
-      {/* Burbuja Izquierda */}
       <View style={styles.leftBubble}>
         <View style={styles.leftTopRow}>
           <View style={styles.recordingIndicator}>
@@ -204,7 +182,6 @@ const AudioRecorder = ({ onSend, onCancel }) => {
           <Text style={styles.durationText}>{formatDuration(duration)}</Text>
         </View>
 
-        {/* Visualizador de Espectro (Ahora sí responde a la voz real) */}
         <View style={styles.spectrumRow}>
           <View style={styles.spectrumContainer}>
             {audioLevels.map((level, index) => (
@@ -214,7 +191,6 @@ const AudioRecorder = ({ onSend, onCancel }) => {
         </View>
       </View>
 
-      {/* Controles Derecha */}
       <View style={styles.controlsContainer}>
         <TouchableOpacity
           style={[styles.smallCircleButton, styles.cancelButton]}

@@ -3,20 +3,6 @@ import { useGlobal } from '../../../core/global';
 import { useFocusEffect } from '@react-navigation/native';
 import crmService from '../services/crmService';
 
-/**
- * Custom hook for managing Timeline data fetching and pagination
- * 
- * Features:
- * - Optimized data loading with deduplication
- * - Smart pagination
- * - Focus-based refresh
- * - Request deduplication via service
- * - Automatic cache invalidation
- * 
- * @param {object} searchFilters - Current search filters
- * @param {number} refreshTrigger - Trigger value to force refresh
- * @returns {object} Timeline state and methods
- */
 const useTimelineData = (searchFilters, refreshTrigger) => {
   const { user } = useGlobal();
   
@@ -31,10 +17,6 @@ const useTimelineData = (searchFilters, refreshTrigger) => {
   const lastFetchParams = useRef({ filters: null, refreshTrigger: null });
   
   const ROWS_PER_PAGE = 15;
-
-  /**
-   * Load timeline data
-   */
   const loadTimeline = useCallback(async (pageNum = 1, isRefresh = false) => {
     if (!searchFilters.OrigenPreContactoID) {
       setTimelineData([]);
@@ -55,7 +37,7 @@ const useTimelineData = (searchFilters, refreshTrigger) => {
 
       const filters = {
         ...searchFilters,
-        EstadoProcesoID: null, // Critical: Web version clears this for timeline
+        EstadoProcesoID: null,
         Page: pageNum,
         Rows: ROWS_PER_PAGE,
         SucursalID: user?.SucursalID,
@@ -117,7 +99,6 @@ const useTimelineData = (searchFilters, refreshTrigger) => {
             }
           });
 
-          // Re-check hasMore based on the newly merged data
           const anyHasMore = nextData.some(
             (col) => (col.Procesos?.length || 0) < (col.TotalProcesos || 0)
           );
@@ -138,25 +119,16 @@ const useTimelineData = (searchFilters, refreshTrigger) => {
     }
   }, [searchFilters, user?.SucursalID, loadingMore]);
 
-  /**
-   * Refresh timeline data
-   */
   const refresh = useCallback(() => {
     loadTimeline(1, true);
   }, [loadTimeline]);
 
-  /**
-   * Load more data (pagination)
-   */
   const loadMore = useCallback(() => {
     if (hasMore && !loading && !refreshing && !loadingMore) {
       loadTimeline(page + 1);
     }
   }, [hasMore, loading, refreshing, loadingMore, page, loadTimeline]);
 
-  /**
-   * Auto-refresh on focus if filters or trigger changed
-   */
   useFocusEffect(
     useCallback(() => {
       if (!user?.SucursalID) return;
@@ -178,15 +150,12 @@ const useTimelineData = (searchFilters, refreshTrigger) => {
   );
 
   return {
-    // State
     timelineData,
     loading,
     refreshing,
     hasMore,
     loadingMore,
     page,
-    
-    // Methods
     refresh,
     loadMore,
     loadTimeline,

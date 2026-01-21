@@ -159,7 +159,6 @@ const SearchDataSection = ({
         />
       ) : null}
 
-      {/* Area (Desde - Hasta) & Rooms/Parking */}
       {form.OrigenPreContactoID == 4 && (
         <>
           <View style={styles.row}>

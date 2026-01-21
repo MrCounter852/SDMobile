@@ -1,10 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
-/**
- * Memoized calendar event card component
- * Displays event details in the timeline
- */
 const CalendarEventCard = React.memo(
   ({ event }) => {
     return (
@@ -81,9 +77,8 @@ const CalendarEventCard = React.memo(
     );
   },
   (prevProps, nextProps) => {
-    // Only re-render if event ID changes
     return prevProps.event.id === nextProps.event.id;
-  }
+  },
 );
 
 CalendarEventCard.displayName = "CalendarEventCard";

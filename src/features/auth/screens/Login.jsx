@@ -98,8 +98,6 @@ const Login = () => {
       );
       await SecureStore.setItemAsync("accessToken", oauthData.accessToken);
       await SecureStore.setItemAsync("erpToken", oauthData.accessToken);
-
-      // Save credentials and selection for auto-login
       await SecureStore.setItemAsync(
         "auth_credentials",
         JSON.stringify({ email, password }),
@@ -152,10 +150,8 @@ const Login = () => {
     setLoading(false);
   };
 
-  // Step 1: Login Form
   const renderLoginStep = () => (
     <View style={styles.formCard}>
-      {/* Header decorativo */}
       <View style={styles.cardHeader}>
         <LinearGradient
           colors={[COLORS.primary, COLORS.secondary, COLORS.accent]}
@@ -180,7 +176,6 @@ const Login = () => {
           Ingresa tus credenciales para continuar
         </Text>
 
-        {/* Email Input */}
         <View style={styles.inputContainer}>
           <View style={styles.inputIconContainer}>
             <Ionicons name="mail-outline" size={20} color={COLORS.secondary} />
@@ -196,7 +191,6 @@ const Login = () => {
           />
         </View>
 
-        {/* Password Input */}
         <View style={styles.inputContainer}>
           <View style={styles.inputIconContainer}>
             <Ionicons
@@ -226,7 +220,6 @@ const Login = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Login Button */}
         <TouchableOpacity
           onPress={handleLogin}
           disabled={loading}
@@ -253,10 +246,8 @@ const Login = () => {
     </View>
   );
 
-  // Step 2: Company Selection
   const renderSelectionStep = () => (
     <View style={styles.formCard}>
-      {/* Header decorativo */}
       <View style={styles.cardHeader}>
         <LinearGradient
           colors={[COLORS.primary, COLORS.secondary, COLORS.accent]}
@@ -285,7 +276,6 @@ const Login = () => {
           Elige la empresa y sucursal para iniciar
         </Text>
 
-        {/* Empresa Dropdown */}
         <View style={styles.dropdownSection}>
           <View style={styles.dropdownLabel}>
             <Ionicons
@@ -310,7 +300,6 @@ const Login = () => {
           />
         </View>
 
-        {/* Sucursal Dropdown */}
         {selectedEmpresa && (
           <View style={styles.dropdownSection}>
             <View style={styles.dropdownLabel}>
@@ -333,7 +322,6 @@ const Login = () => {
           </View>
         )}
 
-        {/* Buttons */}
         {selectedSucursal && (
           <View style={styles.buttonRow}>
             {loading ? (
@@ -389,7 +377,6 @@ const Login = () => {
         backgroundColor={COLORS.background}
       />
 
-      {/* Background decoration */}
       <View style={styles.backgroundDecoration}>
         <LinearGradient
           colors={[`${COLORS.primary}15`, `${COLORS.accent}10`, "transparent"]}
@@ -411,7 +398,6 @@ const Login = () => {
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
             >
-              {/* Step indicator */}
               <View style={styles.stepIndicator}>
                 <View
                   style={[
@@ -448,7 +434,6 @@ const Login = () => {
 
               {step === "login" ? renderLoginStep() : renderSelectionStep()}
 
-              {/* Footer */}
               <View style={styles.footer}>
                 <Text style={styles.footerText}>SediMobile v0.1.0-alpha.1</Text>
                 <Text style={styles.footerSubtext}>
@@ -480,8 +465,6 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 40,
   },
-
-  // Background decoration
   backgroundDecoration: {
     position: "absolute",
     top: 0,
@@ -514,8 +497,6 @@ const styles = StyleSheet.create({
     top: 150,
     left: -80,
   },
-
-  // Step indicator
   stepIndicator: {
     flexDirection: "row",
     alignItems: "center",
@@ -556,8 +537,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     borderRadius: 2,
   },
-
-  // Form Card
   formCard: {
     backgroundColor: COLORS.white,
     borderRadius: 24,
@@ -601,7 +580,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  // Logo & titles
   logo: {
     width: 120,
     height: 80,
@@ -621,7 +599,6 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
 
-  // Input styles
   inputContainer: {
     width: "100%",
     height: 56,
@@ -652,7 +629,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  // Buttons
   buttonWrapper: {
     width: "100%",
     marginTop: 8,
@@ -672,7 +648,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 
-  // Dropdown section
   dropdownSection: {
     width: "100%",
     marginBottom: 16,
@@ -689,7 +664,6 @@ const styles = StyleSheet.create({
     color: COLORS.dark,
   },
 
-  // Button row
   buttonRow: {
     flexDirection: "row",
     width: "100%",
@@ -726,8 +700,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
   },
-
-  // Footer
   footer: {
     marginTop: 40,
     alignItems: "center",

@@ -77,7 +77,7 @@ const FilterModal = ({
   onClose,
   onApplyFilters,
   initialFilters = {},
-  mode = "table", // 'table', 'timeline', 'calendar'
+  mode = "table",
   origenes = [],
   tiposCalendarioActividades = [],
   asesores = [],
@@ -86,11 +86,11 @@ const FilterModal = ({
   estadosProcesos = [],
   loading = false,
   onSearchAsesores,
-  onAdvisorSelected, // Callback to notify parent when a new advisor is selected
+  onAdvisorSelected,
 }) => {
   const { user, permisos } = useGlobal();
   const [filters, setFilters] = useState(initialFilters || {});
-  const [showDatePicker, setShowDatePicker] = useState(null); // 'FechaInicial', 'FechaFinal', etc.
+  const [showDatePicker, setShowDatePicker] = useState(null);
 
   const [advisorModalVisible, setAdvisorModalVisible] = useState(false);
   const [advisorSearch, setAdvisorSearch] = useState("");
@@ -99,14 +99,12 @@ const FilterModal = ({
   const searchTimeout = useRef(null);
   const insets = useSafeAreaInsets();
 
-  // Sincronizar filtros cuando cambian los filtros iniciales
   useEffect(() => {
     setFilters({
       ...initialFilters,
     });
   }, [initialFilters]);
 
-  // Reset y carga inicial de asesores remotos al abrir el modal de selección
   useEffect(() => {
     if (advisorModalVisible) {
       setAdvisorSearch("");
@@ -166,7 +164,6 @@ const FilterModal = ({
     }
   };
 
-  // Opciones predefinidas
   const estadosOptions = useMemo(
     () => [
       { ID: "1,4", Nombre: "Nuevo y En gestión" },
@@ -257,7 +254,6 @@ const FilterModal = ({
 
     const result = [{ ID: null, UsuarioID: null, Nombre: "Todos" }, ...list];
 
-    // Si hay búsqueda local (por si acaso no hay onSearch), filtramos
     if (!onSearchAsesores && advisorSearch) {
       return result.filter(
         (a) =>
@@ -312,7 +308,6 @@ const FilterModal = ({
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
-          {/* Header */}
           <View style={styles.header}>
             <View style={styles.headerTitleContainer}>
               <View style={styles.headerIconContainer}>
@@ -341,7 +336,6 @@ const FilterModal = ({
               </View>
             ) : (
               <>
-                {/* Buscador General */}
                 <FilterSection title="Búsqueda rápida" icon="search-outline">
                   <View style={styles.inputWithIcon}>
                     <Ionicons
@@ -488,9 +482,6 @@ const FilterModal = ({
                   </>
                 )}
 
-                {/* --- WEB ADAPTATION FIELDS --- */}
-
-                {/* Organización Section */}
                 {(permisos?.FiltroSucursal === true ||
                   permisos?.FiltroAsesor === true) && (
                   <FilterSection title="Organización" icon="business-outline">
@@ -545,7 +536,6 @@ const FilterModal = ({
                   </FilterSection>
                 )}
 
-                {/* Información de Contacto Section */}
                 <FilterSection
                   title="Información de Contacto"
                   icon="person-outline"
@@ -703,7 +693,6 @@ const FilterModal = ({
                   />
                 </FilterSection>
 
-                {/* Fechas de Cierre Section */}
                 <FilterSection title="Fechas de Cierre" icon="calendar-outline">
                   <View style={styles.datesContainer}>
                     <TouchableOpacity
@@ -738,7 +727,6 @@ const FilterModal = ({
                   </View>
                 </FilterSection>
 
-                {/* Fechas de Servicio Section */}
                 <FilterSection
                   title="Fechas de Servicio"
                   icon="briefcase-outline"
@@ -780,7 +768,6 @@ const FilterModal = ({
                   </View>
                 </FilterSection>
 
-                {/* Original Date Ranges (Now always visible if not calendar mode) */}
                 {mode !== "calendar" && (
                   <FilterSection
                     title="Rango de Fechas"
@@ -824,8 +811,6 @@ const FilterModal = ({
 
             <View style={{ height: 40 }} />
           </ScrollView>
-
-          {/* Footer */}
           <View
             style={[
               styles.footer,
@@ -894,7 +879,6 @@ const FilterModal = ({
                 AsesorID: item.ID,
                 UsuarioID: item.UsuarioID,
               }));
-              // Notify parent component about the selected advisor
               if (onAdvisorSelected) {
                 onAdvisorSelected({
                   AsesorID: item.ID,
@@ -1004,7 +988,6 @@ const styles = StyleSheet.create({
   sectionContent: {
     paddingLeft: 4,
   },
-  // Chips
   chipsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -1031,7 +1014,6 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     fontWeight: "700",
   },
-  // Search Input
   inputWithIcon: {
     flexDirection: "row",
     alignItems: "center",
@@ -1052,7 +1034,6 @@ const styles = StyleSheet.create({
     height: "100%",
     paddingVertical: 0,
   },
-  // Dates
   datesContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -1082,7 +1063,6 @@ const styles = StyleSheet.create({
     width: 24,
     alignItems: "center",
   },
-  // Footer
   footer: {
     flexDirection: "row",
     paddingHorizontal: 24,

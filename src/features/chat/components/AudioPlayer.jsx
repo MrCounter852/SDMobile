@@ -19,7 +19,6 @@ const AudioPlayer = ({ uri }) => {
 
   useEffect(() => {
     return () => {
-      // Cleanup al desmontar
       if (sound) {
         sound.unloadAsync();
       }
@@ -39,7 +38,7 @@ const AudioPlayer = ({ uri }) => {
       const { sound: newSound } = await Audio.Sound.createAsync(
         { uri },
         { shouldPlay: false },
-        onPlaybackStatusUpdate
+        onPlaybackStatusUpdate,
       );
       setSound(newSound);
       setIsLoading(false);
@@ -56,8 +55,6 @@ const AudioPlayer = ({ uri }) => {
       setPosition(status.positionMillis);
       setDuration(status.durationMillis || 0);
       setIsPlaying(status.isPlaying);
-
-      // Si terminó de reproducir, resetear
       if (status.didJustFinish) {
         setIsPlaying(false);
         setPosition(0);

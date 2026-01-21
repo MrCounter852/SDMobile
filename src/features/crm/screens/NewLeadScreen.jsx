@@ -22,7 +22,6 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { useGlobal } from "../../../core/global";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-// Usamos require().default para asegurar la compatibilidad con el sistema de exportación
 const GestionComercialService = require("../services/leadService").default;
 import PropertySelectionModal from "../../../components/PropertySelectionModal";
 
@@ -86,14 +85,12 @@ const NewLeadScreen = () => {
   const [staticErrors, setStaticErrors] = useState({});
 
   const [form, setForm] = useState({
-    OrigenPreContactoID: preContacto?.OrigenPreContactoID || 4, // Default to Arrendatarios
+    OrigenPreContactoID: preContacto?.OrigenPreContactoID || 4,
     OrigenPreContactoNombre: preContacto?.OrigenPreContactoNombre || "",
     Nombres: preContacto?.Nombres || "",
     Apellidos: preContacto?.Apellidos || "",
     Celular: preContacto?.Celular || contact?.Telefono || "",
     Email: preContacto?.Email || "",
-
-    // Conditional Fields
     FormaContactoID: preContacto?.FormaContactoID || "",
     FormaContactoNombre: preContacto?.FormaContactoNombre || "",
     FormaComoNosConocioID: preContacto?.FormaComoNosConocioID || "",
@@ -138,8 +135,6 @@ const NewLeadScreen = () => {
     PresupuestoHasta: preContacto?.PresupuestoHasta || "",
     CantidadBanos: preContacto?.CantidadBanos || "",
     InteresesUbicacion: preContacto?.InteresesUbicacion || "",
-
-    // Checkboxes for Estrato
     Estrato1: preContacto?.Estrato1 || false,
     Estrato2: preContacto?.Estrato2 || false,
     Estrato3: preContacto?.Estrato3 || false,
@@ -151,7 +146,6 @@ const NewLeadScreen = () => {
     Observaciones: preContacto?.Observaciones || "",
     DetallarCliente: preContacto?.DetallarCliente || false,
 
-    // Detailed Client Info...
     ClienteTipoDocumentoID: preContacto?.ClienteTipoDocumentoID || "",
     ClienteDocumento: preContacto?.ClienteDocumento || "",
     ClienteNombres: preContacto?.ClienteNombres || "",
@@ -257,7 +251,6 @@ const NewLeadScreen = () => {
       }
       return updated;
     });
-    // Limpiar campos no correspondientes (mantenemos lógica de Sedi)
     setForm((prev) => ({
       ...prev,
       ClienteTipoPersonaID: value,
@@ -292,7 +285,6 @@ const NewLeadScreen = () => {
   }, [showInmuebleModal]);
 
   const loadOrigenes = useCallback(async () => {
-    // Origenes are already loaded at startup, just return them
     return origenes;
   }, [origenes]);
 
@@ -465,7 +457,6 @@ const NewLeadScreen = () => {
   }, [ciudadesLoaded]);
 
   const loadLocalidades = useCallback(async () => {
-    // Localidades are loaded in loadInitialData, so return them
     return localidades;
   }, [localidades]);
 
@@ -557,7 +548,6 @@ const NewLeadScreen = () => {
         const response = await GestionComercialService.consultarCombosOrigenes(
           form.OrigenPreContactoID,
         );
-        // Web uses response.data for CamposPreContactos
         setFormConfig(response.data || []);
       } catch (error) {
         console.error("NewLeadScreen:loadDynamicConfig", error);
@@ -692,7 +682,6 @@ const NewLeadScreen = () => {
   );
 
   const handleSave = async () => {
-    // 1. Validar campos estáticos
     const errors = {};
     if (!form.OrigenPreContactoID) errors.OrigenPreContactoID = true;
     if (!form.Nombres?.trim()) errors.Nombres = true;
@@ -702,19 +691,15 @@ const NewLeadScreen = () => {
     if (!form.FormaContactoID) errors.FormaContactoID = true;
     if (!form.FormaComoNosConocioID) errors.FormaComoNosConocioID = true;
 
-    // Validaciones específicas por Origen (Paridad Web)
     if (form.OrigenPreContactoID == 2) {
-      // Captaciones
       if (!form.TipoOfertaID) errors.TipoOfertaID = true;
       if (!form.TipoInmuebleID) errors.TipoInmuebleID = true;
-      if (!form.Direccion?.trim()) errors.Direccion = true; // Web: InmuebleDireccion
+      if (!form.Direccion?.trim()) errors.Direccion = true;
     }
 
     if (form.OrigenPreContactoID == 4) {
-      // Arrendatarios
       if (!form.TipoOfertaID) errors.TipoOfertaID = true;
       if (!form.TipoInmuebleID) errors.TipoInmuebleID = true;
-      // Web no valida explícitamente Estrato/Localidad en ValidarCampos, pero se mantienen si son críticos para mobile UI
       const hasEstrato = [1, 2, 3, 4, 5, 6].some(
         (num) => form[`Estrato${num}`],
       );
@@ -724,18 +709,15 @@ const NewLeadScreen = () => {
     }
 
     if (form.OrigenPreContactoID == 5) {
-      // Ventas
       if (!form.TipoInmuebleID) errors.TipoInmuebleID = true;
     }
 
     if (form.OrigenPreContactoID == 7) {
-      // Avaluos
       if (!form.CiudadID) errors.CiudadID = true;
       if (!form.Direccion) errors.Direccion = true;
       if (!form.TipoAvaluoID) errors.TipoAvaluoID = true;
     }
 
-    // ID 2 (Propietarios) specific
     if (form.OrigenPreContactoID == 2) {
       if (!form.LocalidadID) errors.LocalidadID = true;
       if (!form.Direccion?.trim()) errors.Direccion = true;
@@ -757,7 +739,6 @@ const NewLeadScreen = () => {
 
     setStaticErrors(errors);
 
-    // 2. Validar formularios dinámicos
     const isMainValid = mainFormRef.current?.validate();
     const isFiscalValid = form.DetallarCliente
       ? fiscalFormRef.current?.validate()
@@ -1053,7 +1034,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: "#EFF6FF", // Light blue tint
+    backgroundColor: "#EFF6FF",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 10,

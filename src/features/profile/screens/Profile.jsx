@@ -73,7 +73,6 @@ const Perfil = ({ navigation }) => {
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header con gradiente - fuera del SafeAreaView para cubrir el status bar */}
         <LinearGradient
           colors={[COLORS.primary, COLORS.secondary, COLORS.accent]}
           start={{ x: 0, y: 0 }}
@@ -133,7 +132,6 @@ const Perfil = ({ navigation }) => {
           </SafeAreaView>
         </LinearGradient>
 
-        {/* Stats rápidos */}
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Ionicons
@@ -160,7 +158,6 @@ const Perfil = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Información personal */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="person-outline" size={20} color={COLORS.primary} />
@@ -190,7 +187,6 @@ const Perfil = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Información de contacto */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="call-outline" size={20} color={COLORS.primary} />
@@ -216,7 +212,6 @@ const Perfil = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Acciones */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons
@@ -242,7 +237,6 @@ const Perfil = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>SediMobile v0.1.0-alpha.1</Text>
         </View>
@@ -263,7 +257,6 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
 
-  // Header
   headerGradient: {
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
@@ -310,7 +303,6 @@ const styles = StyleSheet.create({
     left: 50,
   },
 
-  // Avatar
   avatarContainer: {
     position: "relative",
     marginBottom: 16,
@@ -350,7 +342,6 @@ const styles = StyleSheet.create({
     borderColor: "#FFF",
   },
 
-  // User info
   userName: {
     fontSize: 26,
     fontWeight: "700",
@@ -379,7 +370,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
-  // Stats
   statsContainer: {
     flexDirection: "row",
     backgroundColor: COLORS.white,
@@ -416,7 +406,6 @@ const styles = StyleSheet.create({
     marginVertical: 4,
   },
 
-  // Sections
   section: {
     marginTop: 28,
     paddingHorizontal: 20,
@@ -433,7 +422,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
 
-  // Info cards grid
   infoGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -479,7 +467,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  // Actions
   actionsCard: {
     backgroundColor: COLORS.white,
     borderRadius: 20,
@@ -525,7 +512,6 @@ const styles = StyleSheet.create({
     marginLeft: 76,
   },
 
-  // Footer
   footer: {
     marginTop: 40,
     alignItems: "center",

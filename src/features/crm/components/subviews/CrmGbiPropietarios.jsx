@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { InfoSection, DataItem, styles, COLORS } from "./CrmSubViewComponents";
 
-// Helper function for "En desarrollo" alerts
 const showDevAlert = (actionName) => {
   Alert.alert(
     "En desarrollo",
@@ -20,7 +19,6 @@ const CrmGbiPropietarios = ({
 }) => {
   return (
     <View>
-      {/* 1. Propuestas Comerciales */}
       {safeParseArray(contactDetail.Cotizaciones).length > 0 && (
         <InfoSection
           title={`Propuestas comerciales (${
@@ -76,7 +74,6 @@ const CrmGbiPropietarios = ({
                   </View>
                 </View>
               </View>
-              {/* Vistas count if available */}
               {item.CotizacionesVistas?.length > 0 && (
                 <View style={localStyles.viewsRow}>
                   <Ionicons name="eye-outline" size={14} color={COLORS.gray} />
@@ -85,7 +82,6 @@ const CrmGbiPropietarios = ({
                   </Text>
                 </View>
               )}
-              {/* Action buttons */}
               <View style={localStyles.actionsRow}>
                 <TouchableOpacity
                   style={localStyles.actionButton}
@@ -139,7 +135,6 @@ const CrmGbiPropietarios = ({
         </InfoSection>
       )}
 
-      {/* 2. Cupones de Pago */}
       {safeParseArray(contactDetail.PreFacturas).length > 0 && (
         <InfoSection
           title={`Cupones de pagos (${
@@ -174,7 +169,6 @@ const CrmGbiPropietarios = ({
                   {formatCurrency(item.ValorPreFactura)}
                 </Text>
               </View>
-              {/* Action buttons */}
               <View style={localStyles.actionsRow}>
                 <TouchableOpacity
                   style={localStyles.actionButton}
@@ -204,7 +198,6 @@ const CrmGbiPropietarios = ({
         </InfoSection>
       )}
 
-      {/* 3. Facturas */}
       {safeParseArray(contactDetail.Facturas).length > 0 && (
         <InfoSection
           title={`Facturas (${safeParseArray(contactDetail.Facturas).length})`}
@@ -239,7 +232,7 @@ const CrmGbiPropietarios = ({
                   {formatCurrency(item.ValorFactura)}
                 </Text>
               </View>
-              {/* Action buttons */}
+
               <View style={localStyles.actionsRow}>
                 <TouchableOpacity
                   style={localStyles.actionButton}
@@ -269,7 +262,6 @@ const CrmGbiPropietarios = ({
         </InfoSection>
       )}
 
-      {/* 4. Captación del Inmueble */}
       {safeParseArray(contactDetail.Inmuebles).length > 0 && (
         <InfoSection
           title={`Captación del inmueble (${
@@ -314,7 +306,6 @@ const CrmGbiPropietarios = ({
                 </View>
               </View>
 
-              {/* Rejection reason if exists */}
               {item.CausalDevolucionContratoNombre && (
                 <View style={localStyles.rejectionRow}>
                   <Ionicons
@@ -341,7 +332,6 @@ const CrmGbiPropietarios = ({
                 />
               </View>
 
-              {/* Inventory info for rentals */}
               {item.TipoOfertaID == 1 && (
                 <View style={localStyles.inventoryBox}>
                   <Ionicons
@@ -411,7 +401,6 @@ const CrmGbiPropietarios = ({
                 </View>
               )}
 
-              {/* Action buttons */}
               <View style={localStyles.actionsRow}>
                 <TouchableOpacity
                   style={localStyles.actionButton}
@@ -452,7 +441,6 @@ const CrmGbiPropietarios = ({
         </InfoSection>
       )}
 
-      {/* 5. Contratos */}
       {safeParseArray(contactDetail.Inmuebles).filter(
         (i) => i.EnTramiteMandato == true,
       ).length > 0 && (

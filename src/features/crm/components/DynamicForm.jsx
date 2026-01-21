@@ -15,14 +15,14 @@ const DynamicForm = forwardRef(
     {
       origenId,
       config: initialConfig = null,
-      initialValues = {}, // This is the 'form' state from parent
-      onStateChange, // This is the 'setForm' or similar from parent
+      initialValues = {},
+      onStateChange,
       onConfigLoaded,
       dataLoaders = {},
       slots = {},
       filter = null,
     },
-    ref
+    ref,
   ) => {
     const [config, setConfig] = useState(initialConfig || []);
     const [loading, setLoading] = useState(!initialConfig && !!origenId);
@@ -32,11 +32,10 @@ const DynamicForm = forwardRef(
       if (!origenId || initialConfig) return;
       setLoading(true);
       try {
-        // Use the correct service name (it's the same file but exported as default)
         const service = LeadService || GestionComercialService;
         const data = await service.consultarCombosOrigenes(origenId);
         const sortedData = (data || []).sort(
-          (a, b) => (a.Orden || 0) - (b.Orden || 0)
+          (a, b) => (a.Orden || 0) - (b.Orden || 0),
         );
         setConfig(sortedData);
         if (onConfigLoaded) onConfigLoaded(sortedData);
@@ -50,7 +49,7 @@ const DynamicForm = forwardRef(
     useEffect(() => {
       if (initialConfig) {
         const sortedData = [...initialConfig].sort(
-          (a, b) => (a.Orden || 0) - (b.Orden || 0)
+          (a, b) => (a.Orden || 0) - (b.Orden || 0),
         );
         setConfig(sortedData);
         setLoading(false);
@@ -59,12 +58,7 @@ const DynamicForm = forwardRef(
       }
     }, [loadConfig, initialConfig]);
 
-    // We no longer keep a local formState.
-    // We use initialValues (which is the parent's form state) directly.
-    // This eliminates the circular sync loop.
-
     const handleFieldChange = (name, value) => {
-      // Clear error when field changes
       if (errors[name]) {
         setErrors((prev) => {
           const newErrors = { ...prev };
@@ -73,7 +67,6 @@ const DynamicForm = forwardRef(
         });
       }
 
-      // Notify parent of the change
       if (onStateChange) {
         onStateChange({ [name]: value });
       }
@@ -154,7 +147,7 @@ const DynamicForm = forwardRef(
         })}
       </View>
     );
-  }
+  },
 );
 
 const styles = StyleSheet.create({

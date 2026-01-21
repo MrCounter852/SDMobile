@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../../../../core/theme";
+export { COLORS };
 
 export const InfoSection = ({ title, icon, onAdd, children }) => (
   <View style={styles.sectionCard}>
@@ -119,7 +120,6 @@ export const styles = StyleSheet.create({
     color: COLORS.gray,
     lineHeight: 22,
   },
-  // Property Stats
   propertyStats: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -147,7 +147,6 @@ export const styles = StyleSheet.create({
     color: COLORS.dark,
     marginTop: 2,
   },
-  // Transactional items
   txGroup: {
     marginBottom: 16,
   },

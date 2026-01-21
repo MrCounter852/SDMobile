@@ -21,7 +21,6 @@ import FocusAwareStatusBar from "../../../components/FocusAwareStatusBar";
 
 const GestionComercialService = require("../services/crmService").default;
 
-// CRM Sub-views
 import CrmStandard from "../components/subviews/CrmStandard";
 import CrmGbiPropietarios from "../components/subviews/CrmGbiPropietarios";
 import CrmGbiArrendatarios from "../components/subviews/CrmGbiArrendatarios";
@@ -53,7 +52,6 @@ const ContactDetail = ({ navigation, route }) => {
 
   const loadAllData = async () => {
     setLoading(true);
-    // Limpiar datos previos para evitar "ghosting"
     setActivities([]);
     setFollowups([]);
 
@@ -267,14 +265,9 @@ const ContactDetail = ({ navigation, route }) => {
           return <CrmAvaluosCertificados {...props} />;
         }
       default:
-        // Por defecto, si no hay un origen específico o es uno genérico,
-        // podríamos mostrar CrmStandard si queremos asegurar que siempre haya algo extra.
-        // O simplemente no renderizar nada adicional.
         return null;
     }
   };
-
-  // --- RENDER FUNCTIONS --- //
 
   const renderHeader = () => {
     const contactName =
@@ -389,7 +382,6 @@ const ContactDetail = ({ navigation, route }) => {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* 1. Summary Badge Section */}
         <View style={styles.summaryContainer}>
           <View style={styles.statusBadge}>
             <View
@@ -413,7 +405,6 @@ const ContactDetail = ({ navigation, route }) => {
           )}
         </View>
 
-        {/* 2. General Information */}
         <InfoSection
           title="Información General"
           icon="information-circle-outline"
@@ -461,7 +452,6 @@ const ContactDetail = ({ navigation, route }) => {
             />
           </View>
 
-          {/* Binding Form (Formato Vinculacion) & Initial Services moved here */}
           {(contactDetail.FormatoVinculacion?.Consecutivo ||
             contactDetail.FormatoSeguro?.Consecutivo) && (
             <View style={styles.observationBox}>
@@ -522,7 +512,6 @@ const ContactDetail = ({ navigation, route }) => {
           )}
         </InfoSection>
 
-        {/* 3. Client Information (If applicable) */}
         {contactDetail.ClienteNombreCompleto && (
           <InfoSection title="Información del Cliente" icon="person-outline">
             <View style={styles.dataGrid}>
@@ -557,7 +546,6 @@ const ContactDetail = ({ navigation, route }) => {
           </InfoSection>
         )}
 
-        {/* 4. Property Search Preferences */}
         {(contactDetail.PresupuestoDesde ||
           contactDetail.AreaDesde ||
           contactDetail.CondicionInmuebleNombre ||
@@ -616,7 +604,6 @@ const ContactDetail = ({ navigation, route }) => {
           </InfoSection>
         )}
 
-        {/* 5. Property Details (If applicable) */}
         {(contactDetail.OrigenPreContactoID == 2 ||
           contactDetail.OrigenPreContactoID == 4 ||
           contactDetail.OrigenPreContactoID == 5) && (
@@ -685,7 +672,6 @@ const ContactDetail = ({ navigation, route }) => {
           </InfoSection>
         )}
 
-        {/* 6. Dynamic Custom Fields */}
         {getDynamicFields().length > 0 && (
           <InfoSection title="Información Adicional" icon="list-outline">
             <View style={styles.dataGrid}>
@@ -696,10 +682,8 @@ const ContactDetail = ({ navigation, route }) => {
           </InfoSection>
         )}
 
-        {/* 7. CRM MODAL 3 SUB-VIEWS */}
         {renderSubView()}
 
-        {/* 8. Associated Properties */}
         {safeParseArray(contactDetail.InmueblesProcesos).length > 0 && (
           <InfoSection
             title={`Inmuebles Asociados (${
@@ -820,7 +804,6 @@ const ContactDetail = ({ navigation, route }) => {
           </InfoSection>
         )}
 
-        {/* 6. Activities */}
         <InfoSection
           title={`Actividades (${activities.length})`}
           icon="calendar-outline"
@@ -875,7 +858,6 @@ const ContactDetail = ({ navigation, route }) => {
           )}
         </InfoSection>
 
-        {/* 8. Follow-ups */}
         <InfoSection
           title={`Seguimientos (${followups.length})`}
           icon="chatbubble-ellipses-outline"
@@ -912,7 +894,6 @@ const ContactDetail = ({ navigation, route }) => {
           )}
         </InfoSection>
 
-        {/* 11. Transactional History & Documents */}
         {(safeParseArray(contactDetail.Cotizaciones).length > 0 ||
           safeParseArray(contactDetail.OrdenesServicios).length > 0 ||
           safeParseArray(contactDetail.PreFacturas).length > 0 ||
@@ -923,7 +904,6 @@ const ContactDetail = ({ navigation, route }) => {
             title="Historial y Documentos"
             icon="document-text-outline"
           >
-            {/* Cotizaciones */}
             {safeParseArray(contactDetail.Cotizaciones).length > 0 && (
               <View style={styles.txGroup}>
                 <Text style={styles.txGroupLabel}>Cotizaciones</Text>
@@ -945,8 +925,6 @@ const ContactDetail = ({ navigation, route }) => {
                 ))}
               </View>
             )}
-
-            {/* Ordenes Servicios */}
             {safeParseArray(contactDetail.OrdenesServicios).length > 0 && (
               <View style={styles.txGroup}>
                 <Text style={styles.txGroupLabel}>Ordenes de Servicio</Text>
@@ -969,8 +947,7 @@ const ContactDetail = ({ navigation, route }) => {
                 )}
               </View>
             )}
-
-            {/* Contratos */}
+            |
             {safeParseArray(contactDetail.Contratos).length > 0 && (
               <View style={styles.txGroup}>
                 <Text style={styles.txGroupLabel}>Contratos</Text>
@@ -988,8 +965,6 @@ const ContactDetail = ({ navigation, route }) => {
                 ))}
               </View>
             )}
-
-            {/* Facturas */}
             {safeParseArray(contactDetail.Facturas).length > 0 && (
               <View style={styles.txGroup}>
                 <Text style={styles.txGroupLabel}>Facturas</Text>
@@ -1012,8 +987,6 @@ const ContactDetail = ({ navigation, route }) => {
                 ))}
               </View>
             )}
-
-            {/* Documentos */}
             {safeParseArray(contactDetail.ProcesosDocumentos).length > 0 && (
               <View style={styles.txGroup}>
                 <Text style={styles.txGroupLabel}>Documentos Requeridos</Text>
@@ -1053,7 +1026,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
 
-  // Header
   headerGradient: {
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
@@ -1124,7 +1096,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
 
-  // Scroll
   scrollView: {
     flex: 1,
   },
@@ -1132,7 +1103,6 @@ const styles = StyleSheet.create({
     padding: 16,
   },
 
-  // Summary Badges
   summaryContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -1175,7 +1145,6 @@ const styles = StyleSheet.create({
     color: COLORS.secondary,
   },
 
-  // Sections
   sectionCard: {
     backgroundColor: COLORS.white,
     borderRadius: 20,
@@ -1222,7 +1191,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  // Data Display
   dataGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -1266,7 +1234,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
-  // Property Stats
   propertyStats: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -1295,7 +1262,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // Associated Properties
   associatedCard: {
     backgroundColor: COLORS.background,
     borderRadius: 16,
@@ -1377,7 +1343,6 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
   },
 
-  // Row items (Activities)
   itemRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -1407,7 +1372,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // Follow-ups
   followupCard: {
     marginBottom: 16,
     paddingBottom: 16,
@@ -1459,7 +1423,7 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     marginVertical: 10,
   },
-  // Transactional History
+
   txGroup: {
     marginBottom: 16,
   },
@@ -1492,7 +1456,7 @@ const styles = StyleSheet.create({
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255, 255, 255, 0.9)", // Más opaco para ocultar el contenido anterior
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
     justifyContent: "center",
     alignItems: "center",
     zIndex: 1000,

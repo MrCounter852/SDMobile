@@ -24,7 +24,6 @@ const PdfViewerModal = ({ visible, onClose, url, title }) => {
     if (visible && url) {
       downloadPdf();
     } else {
-      // Clear session
       setLocalUri(null);
       setError(null);
       setLoading(true);
@@ -47,7 +46,9 @@ const PdfViewerModal = ({ visible, onClose, url, title }) => {
       });
 
       if (downloadRes.status !== 200) {
-        throw new Error(`Error descargando el PDF (Status: ${downloadRes.status})`);
+        throw new Error(
+          `Error descargando el PDF (Status: ${downloadRes.status})`,
+        );
       }
 
       setLocalUri(downloadRes.uri);
@@ -66,7 +67,10 @@ const PdfViewerModal = ({ visible, onClose, url, title }) => {
         dialogTitle: title || "Compartir PDF",
       });
     } else {
-      Alert.alert("Error", "El intercambio de archivos no está disponible en este dispositivo.");
+      Alert.alert(
+        "Error",
+        "El intercambio de archivos no está disponible en este dispositivo.",
+      );
     }
   };
 
@@ -78,7 +82,6 @@ const PdfViewerModal = ({ visible, onClose, url, title }) => {
       transparent={false}
     >
       <View style={styles.container}>
-        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.backButton}>
             <Ionicons name="close-outline" size={28} color="#1E293B" />
@@ -86,12 +89,19 @@ const PdfViewerModal = ({ visible, onClose, url, title }) => {
           <Text style={styles.title} numberOfLines={1}>
             {title || "Documento PDF"}
           </Text>
-          <TouchableOpacity onPress={handleShare} style={styles.shareButton} disabled={!localUri}>
-            <Ionicons name="share-outline" size={24} color={localUri ? "#337ab7" : "#CBD5E1"} />
+          <TouchableOpacity
+            onPress={handleShare}
+            style={styles.shareButton}
+            disabled={!localUri}
+          >
+            <Ionicons
+              name="share-outline"
+              size={24}
+              color={localUri ? "#337ab7" : "#CBD5E1"}
+            />
           </TouchableOpacity>
         </View>
 
-        {/* Content */}
         <View style={styles.content}>
           {loading ? (
             <View style={styles.centerContainer}>
@@ -102,7 +112,10 @@ const PdfViewerModal = ({ visible, onClose, url, title }) => {
             <View style={styles.centerContainer}>
               <Ionicons name="alert-circle-outline" size={60} color="#FF3B30" />
               <Text style={styles.errorText}>{error}</Text>
-              <TouchableOpacity style={styles.retryButton} onPress={downloadPdf}>
+              <TouchableOpacity
+                style={styles.retryButton}
+                onPress={downloadPdf}
+              >
                 <Text style={styles.retryText}>Reintentar</Text>
               </TouchableOpacity>
             </View>
@@ -119,7 +132,8 @@ const PdfViewerModal = ({ visible, onClose, url, title }) => {
               {Platform.OS === "android" && (
                 <View style={styles.androidWarning}>
                   <Text style={styles.androidWarningText}>
-                    Si el documento no se visualiza, usa el botón de compartir arriba.
+                    Si el documento no se visualiza, usa el botón de compartir
+                    arriba.
                   </Text>
                 </View>
               )}

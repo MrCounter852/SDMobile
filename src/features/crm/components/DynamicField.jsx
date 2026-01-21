@@ -17,12 +17,7 @@ const DynamicField = ({ config, value, onChange, onLoadData, error }) => {
     ArrayLista,
   } = config;
 
-  // Mapping based on Web ControllerGestion.js
-  // 1: Date, 2: Int, 3: Decimal, 4: Text, 5: TextArea, 6: Select, 7: Bool
-
-  // Type 6: Select / List
   if (TipoDatoID === 6 || EsLista) {
-    // If ArrayLista is provided directly in config (as per web implementation where it's embedded)
     const loadData = ArrayLista
       ? () => Promise.resolve(ArrayLista)
       : onLoadData || (() => Promise.resolve([]));
@@ -41,7 +36,6 @@ const DynamicField = ({ config, value, onChange, onLoadData, error }) => {
     );
   }
 
-  // Type 7: Boolean
   if (TipoDatoID === 7 || TipoCampo === "Boolean" || TipoCampo === "Bit") {
     return (
       <View style={styles.switchContainer}>
@@ -59,12 +53,6 @@ const DynamicField = ({ config, value, onChange, onLoadData, error }) => {
     );
   }
 
-  // Type 1: Date (For now, text input with hints, or use specific component if available)
-  // Mobile assumes Text for simplicity unless we import a DatePicker.
-  // Web uses date-time-picker for ID 1.
-  // For now, let's treat as text but maybe add a date mask logic later if requested.
-
-  // Type 2, 3: Numeric
   const isNumeric =
     TipoDatoID === 2 ||
     TipoDatoID === 3 ||
@@ -72,7 +60,6 @@ const DynamicField = ({ config, value, onChange, onLoadData, error }) => {
     TipoCampo === "Decimal" ||
     TipoCampo === "Number";
 
-  // Type 5: TextArea
   const isTextArea =
     TipoDatoID === 5 || TipoCampo === "Memo" || TipoCampo === "TextoLargo";
 

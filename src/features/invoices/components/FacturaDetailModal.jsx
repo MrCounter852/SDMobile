@@ -28,8 +28,6 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
   const [detail, setDetail] = useState(null);
   const [activeTab, setActiveTab] = useState("info");
   const [observacion, setObservacion] = useState("");
-
-  // New states for added features
   const [seguimientos, setSeguimientos] = useState([]);
   const [newSeguimiento, setNewSeguimiento] = useState("");
   const [centrosCostos, setCentrosCostos] = useState([]);
@@ -129,7 +127,6 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
     try {
       const response = await facturasCompraService.consultarCentrosCostos(term);
       const rows = response.rows || [];
-      // Filter out maestro (parent) cost centers as they are usually not transacting
       setCentrosCostos(rows.filter((cc) => !cc.Maestro));
     } catch (error) {
       console.error("Error searching CC:", error);
@@ -582,7 +579,6 @@ const FacturaDetailModal = ({ visible, onClose, item, onActionSuccess }) => {
           keyboardVerticalOffset={Platform.OS === "ios" ? 0 : keyboardOffset}
         >
           <View style={styles.modalContent}>
-            {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerTitleContainer}>
                 <View style={styles.headerIconContainer}>

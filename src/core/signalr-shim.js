@@ -1,4 +1,3 @@
-// Este archivo debe importarse ANTES de usar signalr-no-jquery
 
 const locationShim = {
   protocol: 'https:',
@@ -9,12 +8,9 @@ const locationShim = {
   href: 'https://admin.sedierp.com/'
 };
 
-// 1. WINDOW SHIM
 if (typeof global.window === 'undefined') {
   global.window = global;
 }
-
-// Asegurar que window tenga addEventListener
 if (!global.window.addEventListener) {
   global.window.addEventListener = (event, handler) => {
   };
@@ -24,12 +20,9 @@ if (!global.window.removeEventListener) {
   global.window.removeEventListener = () => { };
 }
 
-// Asegurar location en window
 if (!global.window.location) {
   global.window.location = locationShim;
 }
-
-// 2. DOCUMENT SHIM
 if (typeof global.document === 'undefined') {
   global.document = {
     readyState: 'complete',
@@ -41,12 +34,10 @@ if (typeof global.document === 'undefined') {
           _href: '',
           set href(val) {
             this._href = val;
-            // Parseo simple para evitar errores en la librería
             try {
               if (val && val.startsWith('//')) {
                 val = 'https:' + val;
               }
-              // React Native tiene URL disponible
               if (typeof URL !== 'undefined') {
                 const parsed = new URL(val, 'http://localhost');
                 this.protocol = parsed.protocol;
@@ -61,7 +52,6 @@ if (typeof global.document === 'undefined') {
                 this.host = 'localhost';
               }
             } catch (e) {
-              // Ignorar errores de parseo
             }
           },
           get href() {
@@ -75,7 +65,6 @@ if (typeof global.document === 'undefined') {
   };
 }
 
-// 3. NAVIGATOR SHIM
 if (typeof global.navigator === 'undefined') {
   global.navigator = {
     userAgent: 'react-native',

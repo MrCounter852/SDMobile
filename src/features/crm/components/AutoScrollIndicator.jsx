@@ -8,13 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../../../core/theme";
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-/**
- * Static indicator that shows auto-scroll direction
- * Uses NO animations to avoid lag on low-end devices
- * Shows arrow on left or right edge during auto-scroll
- */
 const AutoScrollIndicator = ({ isDraggingShared, autoScrollDirection }) => {
-  // Derive visibility and direction from shared values
   const showLeft = useDerivedValue(() => {
     return isDraggingShared.value && autoScrollDirection.value === -1;
   });
@@ -23,19 +17,15 @@ const AutoScrollIndicator = ({ isDraggingShared, autoScrollDirection }) => {
     return isDraggingShared.value && autoScrollDirection.value === 1;
   });
 
-  // Left indicator style
   const leftStyle = useAnimatedStyle(() => ({
     opacity: showLeft.value ? 1 : 0,
   }));
-
-  // Right indicator style
   const rightStyle = useAnimatedStyle(() => ({
     opacity: showRight.value ? 1 : 0,
   }));
 
   return (
     <>
-      {/* Left indicator */}
       <Animated.View
         style={[styles.indicator, styles.leftIndicator, leftStyle]}
         pointerEvents="none"
@@ -51,7 +41,6 @@ const AutoScrollIndicator = ({ isDraggingShared, autoScrollDirection }) => {
         </View>
       </Animated.View>
 
-      {/* Right indicator */}
       <Animated.View
         style={[styles.indicator, styles.rightIndicator, rightStyle]}
         pointerEvents="none"

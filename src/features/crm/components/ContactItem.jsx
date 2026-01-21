@@ -4,7 +4,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { Vibration } from "react-native";
 
 const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
-  // Normalize data to handle inconsistent field names from different API endpoints
   const d = useMemo(() => {
     const getEstadoNombre = (item) => {
       if (item.EstadoProcesoNombre) return item.EstadoProcesoNombre;
@@ -23,7 +22,7 @@ const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
             ? `${item.Nombres || item.nombres} ${
                 item.Apellidos || item.apellidos || ""
               }`.trim()
-            : "Contacto sin nombre")
+            : "Contacto sin nombre"),
       ),
       estado: String(getEstadoNombre(item)),
       celular: String(
@@ -31,21 +30,21 @@ const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
           item.celular ||
           item.Telefono ||
           item.telefono ||
-          "Sin celular"
+          "Sin celular",
       ),
       asesor: String(
-        item.AsesorNombreCompleto || item.asesorNombreCompleto || ""
+        item.AsesorNombreCompleto || item.asesorNombreCompleto || "",
       ),
       fecha: String(
         item.Fecha ||
           item.fecha ||
           item.FechaRegistro ||
           item.fechaRegistro ||
-          ""
+          "",
       ),
       valor: item.ValorNegocio || item.valorNegocio || 0,
       seguimientos: String(
-        item.CountSeguimientos || item.countSeguimientos || 0
+        item.CountSeguimientos || item.countSeguimientos || 0,
       ),
       actividades: String(item.CountActividades || item.countActividades || 0),
       estadoGeneral: String(item.EstadoGeneral || item.estadoGeneral || ""),
@@ -54,9 +53,7 @@ const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
     };
   }, [item]);
 
-  // Render specific content based on OrigenPreContactoID
   const renderOriginSpecificContent = () => {
-    // Arrendatarios (4) & Ventas (5): Show property details
     if (d.origenID === 4 || d.origenID === 5) {
       const habitaciones = item.Habitaciones || 0;
       const banos = item.Banos || 0;
@@ -106,7 +103,6 @@ const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
       );
     }
 
-    // Avaluos (7): Show TipoAvaluoNombre
     if (d.origenID === 7) {
       const tipoAvaluo = item.TipoAvaluoNombre || "";
       if (tipoAvaluo) {
@@ -127,7 +123,6 @@ const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
       }
     }
 
-    // Captaciones (2): Show TipoOfertaNombre
     if (d.origenID === 2) {
       const tipoOferta = item.TipoOfertaNombre || "";
       if (tipoOferta) {
@@ -144,7 +139,6 @@ const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
       }
     }
 
-    // Clientes (3): Show custom fields ValorCampo1, ValorCampo2
     if (d.origenID === 3) {
       const campo1 = item.ValorCampo1 || "";
       const campo2 = item.ValorCampo2 || "";
@@ -184,7 +178,6 @@ const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
       }
     }
 
-    // Storage estandar (6): Show custom fields ValorCampo1, ValorCampo3
     if (d.origenID === 6) {
       const campo1 = item.ValorCampo1 || "";
       const campo3 = item.ValorCampo3 || "";
@@ -308,8 +301,8 @@ const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
                     d.estadoGeneral === "V"
                       ? "#88E782"
                       : d.estadoGeneral === "A"
-                      ? "#00ACC4"
-                      : "#337ab7"
+                        ? "#00ACC4"
+                        : "#337ab7"
                   }
                 />
                 <Text style={styles.badgeText}>{String(d.actividades)}</Text>
@@ -340,8 +333,6 @@ const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
               </Text>
             </View>
           )}
-
-          {/* Origin-specific content */}
           {renderOriginSpecificContent()}
         </View>
 
@@ -357,8 +348,6 @@ const ContactItem = ({ item, onPress, onLongPress, isSelected }) => {
           )}
         </View>
       </View>
-
-      {/* Re-implemented color indicator with proper clipping and border radius support */}
       <View style={[styles.colorIndicator, { backgroundColor: statusColor }]} />
     </TouchableOpacity>
   );
@@ -378,11 +367,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E5E5EA",
     minHeight: 110,
-    overflow: "hidden", // Essential for shadow rounding and indicator clipping
+    overflow: "hidden",
   },
   content: {
     padding: 16,
-    paddingLeft: 22, // Space for the 6px indicator
+    paddingLeft: 22,
   },
   header: {
     flexDirection: "row",
@@ -487,7 +476,6 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 6,
-    // The overflow: 'hidden' on the container will clip this to the container's radius
   },
   selectedContainer: {
     backgroundColor: "#e0f7fa",

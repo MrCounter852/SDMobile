@@ -8,9 +8,6 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-/**
- * Component to display active filters as discardable tags
- */
 const ActiveFilterTags = ({ tags = [], onClear }) => {
   if (tags.length === 0) return null;
 

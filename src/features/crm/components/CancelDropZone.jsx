@@ -3,15 +3,9 @@ import { StyleSheet, Dimensions, View } from "react-native";
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CANCEL_ZONE_HEIGHT = 80;
 
-/**
- * Simplified Drop zone at the bottom of the screen to cancel a drag operation
- * Highlighting is minimal, focusing on a dashed border and a circular X button
- */
 const CancelDropZone = ({ isDraggingShared, isHovering }) => {
-  // Simple visibility style without complex springs
   const animatedStyle = useAnimatedStyle(() => {
     const isVisible = isDraggingShared?.value ?? false;
     return {
@@ -23,12 +17,7 @@ const CancelDropZone = ({ isDraggingShared, isHovering }) => {
   return (
     <Animated.View style={[styles.container, animatedStyle]}>
       <View style={styles.dashedZone}>
-        <View
-          style={[
-            styles.circleButton,
-            // Minor visual feedback for hovering remains via background color or shadow
-          ]}
-        >
+        <View style={[styles.circleButton]}>
           <Ionicons name="close-outline" size={32} color="#7c7c7cff" />
         </View>
       </View>
@@ -62,7 +51,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
-    // Premium shadow for the button
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,

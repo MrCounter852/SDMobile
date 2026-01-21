@@ -34,8 +34,6 @@ const ChatMessageList = ({
 
   const renderItem = ({ item, index }) => {
     const isSentByMe = item.user._id === currentUserId;
-    // In inverted list, messages are [Newest ... Oldest]
-    // So the "previous" (chronologically older) message is at index + 1
     const olderMessage = messages[index + 1];
     const showDaySeparator = shouldShowDaySeparator(item, olderMessage);
 

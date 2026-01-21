@@ -3,6 +3,8 @@ import { View, Text, TextInput, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../../../core/theme";
 
+export { COLORS };
+
 export const CustomInput = ({
   label,
   required,

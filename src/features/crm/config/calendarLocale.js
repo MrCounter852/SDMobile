@@ -1,6 +1,5 @@
 import { LocaleConfig } from "react-native-calendars";
 
-// Configure Spanish locale for calendar
 LocaleConfig.locales["es"] = {
   monthNames: [
     "Enero",
@@ -45,7 +44,6 @@ LocaleConfig.locales["es"] = {
 
 LocaleConfig.defaultLocale = "es";
 
-// Calendar theme configuration
 export const calendarTheme = {
   todayTextColor: "#337ab7",
   selectedDayBackgroundColor: "#337ab7",
@@ -54,7 +52,6 @@ export const calendarTheme = {
   arrowColor: "#337ab7",
 };
 
-// Timeline styles configuration
 export const timelineStyles = {
   container: { backgroundColor: "transparent" },
   line: { backgroundColor: "#eee", height: 1 },

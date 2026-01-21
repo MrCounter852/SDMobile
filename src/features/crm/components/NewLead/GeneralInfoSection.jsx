@@ -142,9 +142,7 @@ const GeneralInfoSection = ({
                 },
                 staticErrors.Direccion && { borderColor: COLORS.danger },
               ]}
-              onPress={() => {
-                /* Modal dirección logic */
-              }}
+              onPress={() => {}}
             >
               <Text
                 style={[

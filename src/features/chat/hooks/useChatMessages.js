@@ -30,7 +30,6 @@ export const useChatMessages = (contact, user) => {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   
-  // Use a ref to prevent concurrent executions of loadPendingMedia that could cause race conditions
   const isSyncingMedia = useRef(false);
 
   const loadPendingMedia = useCallback(async (currentMessages) => {

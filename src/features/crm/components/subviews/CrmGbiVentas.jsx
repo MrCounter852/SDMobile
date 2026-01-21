@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { InfoSection, DataItem, styles, COLORS } from "./CrmSubViewComponents";
 
-// Helper function for "En desarrollo" alerts
 const showDevAlert = (actionName) => {
   Alert.alert(
     "En desarrollo",
@@ -12,7 +11,6 @@ const showDevAlert = (actionName) => {
   );
 };
 
-// Helper function to get Estado color
 const getEstadoColor = (item) => {
   if (item.EstadoProcesoInmuebleNombre === "Rentando") return COLORS.primary;
   if ([1, 4, 5].includes(item.EstadoProcesoInmuebleID)) return COLORS.success;
@@ -30,12 +28,10 @@ const CrmGbiVentas = ({
   const actividades = safeParseArray(contactDetail.ActividadesCalendario);
   const facturas = safeParseArray(contactDetail.Facturas);
 
-  // Check if there's no InmuebleCompra selected yet
   const canAssociateProperties = !inmuebleCompra.InmuebleConsecutivo;
 
   return (
     <View>
-      {/* 1. Inmuebles de Interés */}
       {safeParseArray(contactDetail.InmueblesProcesos).length > 0 && (
         <InfoSection
           title={`Inmuebles de interés (${
@@ -59,7 +55,6 @@ const CrmGbiVentas = ({
         >
           {safeParseArray(contactDetail.InmueblesProcesos).map((item, idx) => (
             <View key={idx} style={localStyles.propertyCard}>
-              {/* Header with property number and badges */}
               <View style={localStyles.propertyHeader}>
                 <View style={localStyles.propertyTitleRow}>
                   <Text style={localStyles.propertyTitle}>
@@ -69,7 +64,6 @@ const CrmGbiVentas = ({
                     <Ionicons name="star" size={16} color={COLORS.secondary} />
                   )}
                 </View>
-                {/* Estado Badge */}
                 {item.EstadoProcesoInmuebleNombre && (
                   <View
                     style={[
@@ -88,7 +82,6 @@ const CrmGbiVentas = ({
                 {item.InmuebleDireccion}
               </Text>
 
-              {/* Property characteristics row */}
               <View style={localStyles.characteristicsRow}>
                 <View style={localStyles.characteristicItem}>
                   <Ionicons name="bed-outline" size={14} color={COLORS.gray} />
@@ -139,7 +132,6 @@ const CrmGbiVentas = ({
                 </View>
               </View>
 
-              {/* Action buttons row */}
               <View style={localStyles.actionsRow}>
                 <TouchableOpacity
                   style={localStyles.actionButton}
@@ -180,7 +172,6 @@ const CrmGbiVentas = ({
         </InfoSection>
       )}
 
-      {/* 2. Ofertas del Inmueble */}
       {inmuebleCompra.InmuebleConsecutivo && (
         <InfoSection
           title="Ofertas del inmueble"
@@ -205,7 +196,6 @@ const CrmGbiVentas = ({
             <Text style={localStyles.addressText}>
               {inmuebleCompra.InmuebleDireccion}
             </Text>
-            {/* Additional property details */}
             <View style={localStyles.characteristicsRow}>
               <View style={localStyles.characteristicItem}>
                 <Ionicons name="bed-outline" size={14} color={COLORS.gray} />
@@ -301,7 +291,6 @@ const CrmGbiVentas = ({
         </InfoSection>
       )}
 
-      {/* 3. Condiciones de Pago */}
       {ofertaAceptada.InmuebleProcesoProcesoOfertaID && (
         <InfoSection
           title="Condiciones de pago"
@@ -340,7 +329,6 @@ const CrmGbiVentas = ({
             />
           </View>
 
-          {/* Action buttons for condiciones */}
           <View style={localStyles.condicionesActions}>
             <TouchableOpacity
               style={localStyles.condicionButton}
@@ -417,7 +405,6 @@ const CrmGbiVentas = ({
         </InfoSection>
       )}
 
-      {/* 4. Compradores / Vendedores */}
       {safeParseArray(ofertaAceptada.CompradoresVendedores).length > 0 && (
         <InfoSection title="Compradores y Propietarios" icon="people-outline">
           {safeParseArray(ofertaAceptada.CompradoresVendedores).map(
@@ -450,7 +437,6 @@ const CrmGbiVentas = ({
                       {item.Comprador ? "Comprador" : "Propietario"}
                     </Text>
                   </View>
-                  {/* Sarglaft indicator */}
                   {item.AprobacionSarglaft !== undefined && (
                     <Ionicons
                       name={
@@ -478,7 +464,6 @@ const CrmGbiVentas = ({
         </InfoSection>
       )}
 
-      {/* 5. Actividades del proceso de venta */}
       {actividades.length > 0 && (
         <InfoSection
           title="Actividades del proceso"
@@ -541,7 +526,6 @@ const CrmGbiVentas = ({
                   {item.Direccion}
                 </Text>
               )}
-              {/* Activity actions */}
               <View style={localStyles.activityActions}>
                 {!item.Completada && item.CalendarioActividadID && (
                   <>
@@ -594,7 +578,6 @@ const CrmGbiVentas = ({
         </InfoSection>
       )}
 
-      {/* 6. Documentos */}
       {(ofertaAceptada.ProcesosDocumentos?.length > 0 ||
         inmuebleCompra.RutaPromesaCompraventa) && (
         <InfoSection
@@ -653,7 +636,6 @@ const CrmGbiVentas = ({
         </InfoSection>
       )}
 
-      {/* 7. Facturas */}
       {facturas.length > 0 && (
         <InfoSection
           title={`Facturas (${facturas.length})`}

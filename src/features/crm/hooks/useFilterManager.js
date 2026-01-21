@@ -3,28 +3,10 @@ import { useGlobal } from '../../../core/global';
 import { FILTER_OPTIONS } from '../components/FilterConstants';
 import crmService from '../services/crmService';
 
-/**
- * Custom hook for managing CRM filters
- * 
- * Encapsulates all filter-related logic:
- * - Filter state management
- * - Active filter tags generation
- * - Filter application/clearing
- * - Filter data loading (lazy)
- * 
- * Features:
- * - Optimized memoization
- * - Lazy loading of filter data
- * - Automatic mode detection
- * - Clean filter tag generation
- * 
- * @param {string} mode - Current view mode ('table', 'timeline', 'calendar')
- * @returns {object} Filter state and methods
- */
+
 const useFilterManager = (mode = 'table') => {
   const { user } = useGlobal();
 
-  // Filter state
   const [searchFilters, setSearchFilters] = useState({
     OrigenPreContactoID: null,
     EstadoProcesoID: "1,4",
@@ -49,7 +31,6 @@ const useFilterManager = (mode = 'table') => {
     FechaFinalPosibleServicio: null,
   });
 
-  // Filter dropdown data
   const [filterData, setFilterData] = useState({
     origenes: [],
     tiposCalendarioActividades: [],
@@ -61,12 +42,8 @@ const useFilterManager = (mode = 'table') => {
     loaded: false,
   });
 
-  // Has active filters (excluding defaults)
   const [hasFilters, setHasFilters] = useState(false);
 
-  /**
-   * Sync filter defaults with user data
-   */
   useEffect(() => {
     if (user?.SucursalID || user?.AsesorID) {
       setSearchFilters((prev) => ({
@@ -77,9 +54,6 @@ const useFilterManager = (mode = 'table') => {
     }
   }, [user?.SucursalID, user?.AsesorID]);
 
-  /**
-   * Load filter dropdown data (lazy - only when needed)
-   */
   const loadFilterData = useCallback(async () => {
     if (filterData.loaded || filterData.loading) return;
 
@@ -130,9 +104,7 @@ const useFilterManager = (mode = 'table') => {
     }
   }, [user?.SucursalID, user?.UsuarioID, filterData.loaded, filterData.loading]);
 
-  /**
-   * Search asesores (for remote search in filter modal)
-   */
+
   const searchAsesores = useCallback(
     async (text) => {
       try {
@@ -150,13 +122,10 @@ const useFilterManager = (mode = 'table') => {
     [searchFilters.SucursalID, user?.SucursalID]
   );
 
-  /**
-   * Apply filters
-   */
+
   const applyFilters = useCallback((filters) => {
     setSearchFilters(filters);
 
-    // Determine default values based on mode
     const defaultValues = {};
     if (mode === 'table' || mode === 'timeline') {
       defaultValues.EstadoProcesoID = "1,4";
@@ -164,7 +133,6 @@ const useFilterManager = (mode = 'table') => {
       defaultValues.EstadoActividadID = "3,4";
     }
 
-    // Check if has non-default filters
     const hasActive = Object.keys(filters).some(
       (key) =>
         filters[key] !== null &&
@@ -174,9 +142,6 @@ const useFilterManager = (mode = 'table') => {
     setHasFilters(hasActive);
   }, [mode]);
 
-  /**
-   * Clear specific filter
-   */
   const clearFilter = useCallback((key) => {
     const newFilters = { ...searchFilters };
 
@@ -212,10 +177,6 @@ const useFilterManager = (mode = 'table') => {
     applyFilters(newFilters);
   }, [searchFilters, applyFilters]);
 
-  /**
-   * Generate active filter tags
-   * OPTIMIZED: Memoized to prevent recalculation on every render
-   */
   const activeFilterTags = useMemo(() => {
     if (filterData.loading || !filterData.loaded) return [];
 
@@ -227,13 +188,10 @@ const useFilterManager = (mode = 'table') => {
       sucursales,
       formasContacto,
     } = filterData;
-
-    // Full search
     if (searchFilters.FullSearch) {
       tags.push({ key: "FullSearch", label: `"${searchFilters.FullSearch}"` });
     }
 
-    // Origen
     if (searchFilters.OrigenPreContactoID) {
       const origen = origenes.find(
         (o) => o.OrigenPreContactoID === searchFilters.OrigenPreContactoID
@@ -243,7 +201,6 @@ const useFilterManager = (mode = 'table') => {
       }
     }
 
-    // Tipo calendario actividad
     if (searchFilters.TipoCalendarioActividadID) {
       const tipo = tiposCalendarioActividades.find(
         (t) =>
@@ -255,7 +212,6 @@ const useFilterManager = (mode = 'table') => {
       }
     }
 
-    // Asesor
     if (searchFilters.AsesorID) {
       const asesor = asesores.find(
         (a) => a.AsesorID === searchFilters.AsesorID
@@ -268,7 +224,6 @@ const useFilterManager = (mode = 'table') => {
       }
     }
 
-    // Sucursal
     if (searchFilters.SucursalID) {
       const sucursal = sucursales.find(
         (s) => s.SucursalID === searchFilters.SucursalID
@@ -278,7 +233,6 @@ const useFilterManager = (mode = 'table') => {
       }
     }
 
-    // Forma contacto
     if (searchFilters.FormaContactoID) {
       const forma = formasContacto.find(
         (f) => f.FormaContactoID === searchFilters.FormaContactoID
@@ -288,7 +242,6 @@ const useFilterManager = (mode = 'table') => {
       }
     }
 
-    // Text filters
     if (searchFilters.NombreCompleto) {
       tags.push({
         key: "NombreCompleto",
@@ -318,7 +271,6 @@ const useFilterManager = (mode = 'table') => {
       tags.push({ key: "Email", label: searchFilters.Email });
     }
 
-    // Date ranges
     if (searchFilters.FechaInicial || searchFilters.FechaFinal) {
       const start = searchFilters.FechaInicial
         ? searchFilters.FechaInicial.split(" ")[0]
@@ -352,7 +304,6 @@ const useFilterManager = (mode = 'table') => {
       tags.push({ key: "DatesServicio", label: `Servicio: ${start} a ${end}` });
     }
 
-    // Estado filters (mode-specific)
     if (mode === "table" || mode === "timeline") {
       if (
         searchFilters.EstadoProcesoID &&
@@ -399,20 +350,13 @@ const useFilterManager = (mode = 'table') => {
   ]);
 
   return {
-    // State
     searchFilters,
     hasFilters,
-    
-    // Filter data
     filterData,
-    
-    // Methods
     applyFilters,
     clearFilter,
     loadFilterData,
     searchAsesores,
-    
-    // Computed
     activeFilterTags,
   };
 };

@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { InfoSection, DataItem, styles, COLORS } from "./CrmSubViewComponents";
 
-// Helper function for "En desarrollo" alerts
 const showDevAlert = (actionName) => {
   Alert.alert(
     "En desarrollo",
@@ -12,7 +11,6 @@ const showDevAlert = (actionName) => {
   );
 };
 
-// Helper function to get Estado color based on EstadoProcesoInmuebleID
 const getEstadoColor = (item) => {
   if (item.EstadoProcesoInmuebleNombre === "Corretaje")
     return COLORS.info || "#17a2b8";
@@ -27,7 +25,6 @@ const CrmGbiArrendatarios = ({
   formatCurrency,
   safeParseArray,
 }) => {
-  // Count uploaded documents
   const documentosSubidos = safeParseArray(
     contactDetail.ProcesosDocumentos,
   ).filter((d) => d.Ruta != null).length;
@@ -35,14 +32,12 @@ const CrmGbiArrendatarios = ({
     contactDetail.CountDocumentosRequeridos ||
     safeParseArray(contactDetail.ProcesosDocumentos).length;
 
-  // Check if there are contracts not annulled
   const hasActiveContracts = safeParseArray(contactDetail.Contratos).some(
     (c) => c.Anulado === false,
   );
 
   return (
     <View>
-      {/* 1. Inmuebles de Interés */}
       {safeParseArray(contactDetail.InmueblesProcesos).length > 0 && (
         <InfoSection
           title={`Inmuebles de interés (${
@@ -52,7 +47,6 @@ const CrmGbiArrendatarios = ({
         >
           {safeParseArray(contactDetail.InmueblesProcesos).map((item, idx) => (
             <View key={idx} style={localStyles.propertyCard}>
-              {/* Header with property number and badges */}
               <View style={localStyles.propertyHeader}>
                 <View style={localStyles.propertyTitleRow}>
                   <Text style={localStyles.propertyTitle}>
@@ -62,7 +56,6 @@ const CrmGbiArrendatarios = ({
                     <Ionicons name="star" size={16} color={COLORS.secondary} />
                   )}
                 </View>
-                {/* Estado Badge */}
                 {item.EstadoProcesoInmuebleNombre && (
                   <View
                     style={[
@@ -77,12 +70,10 @@ const CrmGbiArrendatarios = ({
                 )}
               </View>
 
-              {/* Address */}
               <Text style={localStyles.addressText}>
                 {item.InmuebleDireccion}
               </Text>
 
-              {/* Property characteristics row */}
               <View style={localStyles.characteristicsRow}>
                 <View style={localStyles.characteristicItem}>
                   <Ionicons name="bed-outline" size={14} color={COLORS.gray} />
@@ -108,7 +99,6 @@ const CrmGbiArrendatarios = ({
                 </View>
               </View>
 
-              {/* Data grid */}
               <View style={styles.dataGrid}>
                 <DataItem label="Tipo" value={item.TipoInmueble} />
                 <DataItem
@@ -138,7 +128,6 @@ const CrmGbiArrendatarios = ({
                 </View>
               </View>
 
-              {/* Action buttons row */}
               <View style={localStyles.actionsRow}>
                 <TouchableOpacity
                   style={localStyles.actionButton}
@@ -190,7 +179,6 @@ const CrmGbiArrendatarios = ({
         </InfoSection>
       )}
 
-      {/* 2. Cupones de Pago Procesos */}
       {safeParseArray(contactDetail.PreFacturas).length > 0 && (
         <InfoSection
           title={`Cupones de pagos (${
@@ -237,7 +225,6 @@ const CrmGbiArrendatarios = ({
         </InfoSection>
       )}
 
-      {/* 2b. Cupones de Pago Contratos */}
       {safeParseArray(contactDetail.PreFacturasContratos).length > 0 && (
         <InfoSection
           title={`Cupones de pagos contratos (${
@@ -286,7 +273,6 @@ const CrmGbiArrendatarios = ({
         </InfoSection>
       )}
 
-      {/* 3. Documentos */}
       {safeParseArray(contactDetail.ProcesosDocumentos).length > 0 && (
         <InfoSection
           title={`Documentos solicitud contrato (${documentosSubidos} de ${documentosRequeridos})`}
@@ -336,7 +322,6 @@ const CrmGbiArrendatarios = ({
         </InfoSection>
       )}
 
-      {/* 4. Proceso Arrendamiento (Highlight) */}
       {contactDetail.Inmueble && (
         <View
           style={[
@@ -393,7 +378,6 @@ const CrmGbiArrendatarios = ({
               </Text>
             </View>
           )}
-          {/* Enviar operaciones button */}
           {!hasActiveContracts &&
             !contactDetail.Inmueble.ArrendamientoCausalDevolucionContratoID && (
               <TouchableOpacity
@@ -418,7 +402,6 @@ const CrmGbiArrendatarios = ({
         </View>
       )}
 
-      {/* 5. Contratos y Documentos */}
       {safeParseArray(contactDetail.Contratos).length > 0 && (
         <InfoSection
           title="Contratos y Documentos"
@@ -474,10 +457,8 @@ const CrmGbiArrendatarios = ({
                 <DataItem label="Tipo" value={item.TipoInmuebleNombre} />
               </View>
 
-              {/* Inventario and Acta info with actions */}
               {!item.Anulado && (
                 <View style={localStyles.docsGrid}>
-                  {/* Inventario */}
                   <View style={localStyles.docItemCard}>
                     <View style={localStyles.docItemHeader}>
                       <Ionicons
@@ -554,7 +535,6 @@ const CrmGbiArrendatarios = ({
                     </View>
                   </View>
 
-                  {/* Acta Entrega */}
                   <View style={localStyles.docItemCard}>
                     <View style={localStyles.docItemHeader}>
                       <Ionicons
@@ -610,7 +590,6 @@ const CrmGbiArrendatarios = ({
         </InfoSection>
       )}
 
-      {/* 6. Facturas */}
       {safeParseArray(contactDetail.Facturas).length > 0 && (
         <InfoSection
           title={`Facturas (${safeParseArray(contactDetail.Facturas).length})`}

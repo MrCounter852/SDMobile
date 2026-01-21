@@ -19,7 +19,6 @@ import { COLORS } from "../../../core/theme";
 
 const GestionComercialService = require("../services/crmService").default;
 
-// Configure Spanish locale
 LocaleConfig.locales["es"] = {
   monthNames: [
     "Enero",
@@ -63,9 +62,6 @@ LocaleConfig.locales["es"] = {
 };
 LocaleConfig.defaultLocale = "es";
 
-/**
- * Helper to get YYYY-MM-DD string for local today
- */
 const getLocalTodayStr = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
@@ -74,9 +70,6 @@ const getLocalTodayStr = () => {
   )}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
-/**
- * ISO Week number calculator
- */
 const getWeekNumber = (dateStr) => {
   const d = new Date(dateStr + "T12:00:00");
   d.setHours(0, 0, 0, 0);
@@ -93,30 +86,23 @@ const getWeekNumber = (dateStr) => {
   );
 };
 
-/**
- * Helper to format date as DD/MM/YYYY
- */
 const formatDateDMY = (date) => {
   return `${String(date.getDate()).padStart(2, "0")}/${String(
     date.getMonth() + 1,
   ).padStart(2, "0")}/${date.getFullYear()}`;
 };
 
-/**
- * Get range (Monday to Sunday) for the week of a given date,
- * plus one additional week back (14-15 days total).
- */
 const getWeekRange = (dateStr) => {
   const date = new Date(dateStr + "T12:00:00");
   const day = date.getDay();
-  const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Monday of current week
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1);
   const monday = new Date(new Date(date).setDate(diff));
 
   const startRange = new Date(monday);
-  startRange.setDate(startRange.getDate() - 7); // One additional week back
+  startRange.setDate(startRange.getDate() - 7);
 
   const sunday = new Date(monday);
-  sunday.setDate(sunday.getDate() + 6); // End of current week
+  sunday.setDate(sunday.getDate() + 6);
 
   return {
     start: formatDateDMY(startRange),
@@ -124,9 +110,6 @@ const getWeekRange = (dateStr) => {
   };
 };
 
-/**
- * Get range for the whole month of a given date
- */
 const getMonthRange = (dateStr) => {
   const [y, m, d] = dateStr.split("-").map(Number);
   const firstDay = new Date(y, m - 1, 1);
@@ -138,10 +121,6 @@ const getMonthRange = (dateStr) => {
   };
 };
 
-/**
- * Commercial Management Calendar Component
- * Simplified to show permanent Week/Timeline view.
- */
 const GestionComercialCalendar = ({
   navigation,
   searchFilters = {},
@@ -150,7 +129,7 @@ const GestionComercialCalendar = ({
   const { user } = useGlobal();
   const todayStr = useMemo(() => getLocalTodayStr(), []);
   const [selectedDate, setSelectedDate] = useState(todayStr);
-  const [viewMode, setViewMode] = useState("timeline"); // 'timeline' or 'list'
+  const [viewMode, setViewMode] = useState("timeline");
   const [initialScrollDone, setInitialScrollDone] = useState(false);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -161,7 +140,6 @@ const GestionComercialCalendar = ({
 
     setLoading(true);
     try {
-      // Use different range based on view mode
       const range =
         viewMode === "list"
           ? getMonthRange(selectedDate)
@@ -169,22 +147,18 @@ const GestionComercialCalendar = ({
 
       const filters = {
         ...searchFilters,
-        // Use UsuarioID from filters if present (supports null for "All"), otherwise fallback to logged-in user
         UsuarioID: Object.prototype.hasOwnProperty.call(
           searchFilters,
           "UsuarioID",
         )
           ? searchFilters.UsuarioID
           : user?.UsuarioID,
-        // Prioritize SucursalID from filters
         SucursalID: Object.prototype.hasOwnProperty.call(
           searchFilters,
           "SucursalID",
         )
           ? searchFilters.SucursalID
           : user?.SucursalID,
-        // Priority to manually selected dates from FilterModal (which can be null),
-        // fallback to current view range only if property is missing
         FechaInicial: Object.prototype.hasOwnProperty.call(
           searchFilters,
           "FechaInicial",
@@ -217,27 +191,24 @@ const GestionComercialCalendar = ({
     loadCalendarData();
   }, [searchFilters, refreshTrigger, selectedDate]);
 
-  // Status color mapping
   const getStatusColors = (statusID) => {
     switch (statusID) {
       case 1:
-        return { primary: "#2e6da4", secondary: "#e3effa" }; // Finalizadas
+        return { primary: "#2e6da4", secondary: "#e3effa" };
       case 2:
-        return { primary: "#006400", secondary: "#e6ffe6" }; // Vigentes
+        return { primary: "#006400", secondary: "#e6ffe6" };
       case 3:
-        return { primary: "#ad2121", secondary: "#fae3e3" }; // Vencidas
+        return { primary: "#ad2121", secondary: "#fae3e3" };
       default:
-        return { primary: "#e3bc08", secondary: "#fdf1ba" }; // Pendientes
+        return { primary: "#e3bc08", secondary: "#fdf1ba" };
     }
   };
 
-  // Pre-process events to clean titles and extract date parts
   const activities = useMemo(() => {
     return events
       .map((event) => {
         if (!event.FechaInicio || !event.FechaVencimiento) return null;
 
-        // Robust parsing for "YYYY-MM-DDTHH:mm:ss" or "YYYY-MM-DD HH:mm:ss"
         const startRaw = event.FechaInicio.trim();
         const endRaw = event.FechaVencimiento.trim();
 
@@ -247,7 +218,6 @@ const GestionComercialCalendar = ({
         const startStr = startParts[0];
         const endStr = endParts[0];
 
-        // Ensure time is at least HH:mm:ss
         const startTimeStr = startParts[1]?.substring(0, 8) || "00:00:00";
         const endTimeStr = endParts[1]?.substring(0, 8) || "23:59:59";
 
@@ -278,7 +248,6 @@ const GestionComercialCalendar = ({
       .filter(Boolean);
   }, [events]);
 
-  // Generate multi-dot markers for the calendar
   const baseMarks = useMemo(() => {
     const marks = {};
     activities.forEach((event) => {
@@ -320,7 +289,6 @@ const GestionComercialCalendar = ({
     return marks;
   }, [activities]);
 
-  // Add selection highlights to markers
   const markedDates = useMemo(() => {
     const marks = { ...baseMarks };
     marks[selectedDate] = {
@@ -331,7 +299,6 @@ const GestionComercialCalendar = ({
     return marks;
   }, [baseMarks, selectedDate]);
 
-  // Data for the timeline (just selected day)
   const dayEvents = useMemo(() => {
     const selDate = selectedDate.trim();
     return activities
@@ -382,7 +349,6 @@ const GestionComercialCalendar = ({
       .sort((a, b) => a.start.localeCompare(b.start));
   }, [activities, selectedDate]);
 
-  // Data for the scrolling list (grouped by date)
   const listData = useMemo(() => {
     if (viewMode !== "list") return [];
 
@@ -435,7 +401,6 @@ const GestionComercialCalendar = ({
     setInitialScrollDone(false);
   };
 
-  // Custom activity card renderer (used in both views)
   const renderActivityCard = useCallback((event, isListMode = false) => {
     return (
       <View
@@ -559,7 +524,6 @@ const GestionComercialCalendar = ({
       }}
     >
       <View style={styles.container}>
-        {/* Header with Month and Actions */}
         <View style={styles.topHeader}>
           <TouchableOpacity
             onPress={handleGoToToday}
@@ -777,7 +741,7 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 40,
   },
-  // Base Card Styles
+
   eventCard: {
     flex: 1,
     height: "100%",
@@ -828,7 +792,6 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     fontStyle: "italic",
   },
-  // Details Grid
   detailsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -853,7 +816,6 @@ const styles = StyleSheet.create({
     color: COLORS.dark,
     fontWeight: "500",
   },
-  // Footer
   cardFooter: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -875,7 +837,6 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 4,
   },
-  // Utilities
   emptyContainer: {
     flex: 1,
     alignItems: "center",
@@ -901,7 +862,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     zIndex: 100,
   },
-  // List View specific
   dateGroup: {
     marginBottom: 20,
   },

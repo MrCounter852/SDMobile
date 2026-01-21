@@ -2,8 +2,6 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { InfoSection, styles, COLORS } from "./CrmSubViewComponents";
-
-// Helper function for "En desarrollo" alerts
 const showDevAlert = (actionName) => {
   Alert.alert(
     "En desarrollo",
@@ -24,7 +22,6 @@ const CrmStandard = ({
 
   return (
     <View>
-      {/* 1. Cotizaciones */}
       <InfoSection
         title={`Cotizaciones (${cotizaciones.length})`}
         icon="calculator-outline"
@@ -79,7 +76,6 @@ const CrmStandard = ({
                 </Text>
               </View>
 
-              {/* Vistas count if available */}
               {item.CotizacionesVistas?.length > 0 && (
                 <View style={localStyles.viewsRow}>
                   <Ionicons name="eye-outline" size={14} color={COLORS.gray} />
@@ -89,7 +85,6 @@ const CrmStandard = ({
                 </View>
               )}
 
-              {/* Action buttons */}
               <View style={localStyles.actionsRow}>
                 <TouchableOpacity
                   style={localStyles.actionButton}
@@ -150,7 +145,6 @@ const CrmStandard = ({
         )}
       </InfoSection>
 
-      {/* 2. Facturas */}
       {facturas.length > 0 && (
         <InfoSection
           title={`Facturas (${facturas.length})`}
@@ -181,7 +175,6 @@ const CrmStandard = ({
                   {formatCurrency(item.ValorFactura)}
                 </Text>
               </View>
-              {/* Action buttons */}
               <View style={localStyles.actionsRow}>
                 <TouchableOpacity
                   style={localStyles.actionButton}
@@ -211,7 +204,6 @@ const CrmStandard = ({
         </InfoSection>
       )}
 
-      {/* 3. Documentos */}
       {documentos.length > 0 && (
         <InfoSection
           title={`Documentos (${documentos.length})`}

@@ -36,8 +36,6 @@ const SettingsScreen = () => {
 
   useEffect(() => {
     checkStatus();
-
-    // Re-check permissions when app comes back to foreground (in case user changed them in settings)
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       if (
         appState.current.match(/inactive|background/) &&
@@ -72,7 +70,6 @@ const SettingsScreen = () => {
         backgroundColor={COLORS.primary}
       />
 
-      {/* Header con Gradiente */}
       <LinearGradient
         colors={[COLORS.primary, COLORS.secondary, COLORS.accent]}
         start={{ x: 0, y: 0 }}
@@ -81,7 +78,6 @@ const SettingsScreen = () => {
       >
         <SafeAreaView edges={["top"]}>
           <View style={styles.headerContent}>
-            {/* Círculos decorativos */}
             <View style={styles.patternCircle1} />
             <View style={styles.patternCircle2} />
 
@@ -104,7 +100,6 @@ const SettingsScreen = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Sección de Notificaciones */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons
@@ -178,7 +173,6 @@ const SettingsScreen = () => {
           </View>
         </View>
 
-        {/* Nota informativa */}
         <View style={styles.infoCard}>
           <View style={styles.infoIconContainer}>
             <Ionicons
@@ -194,7 +188,6 @@ const SettingsScreen = () => {
           </Text>
         </View>
 
-        {/* Versión de la app */}
         <View style={styles.versionContainer}>
           <Text style={styles.versionText}>SEDI Mobile v1.0.0</Text>
         </View>

@@ -181,7 +181,6 @@ const ContactList = ({ navigation }) => {
     }
   };
 
-  // Action handlers
   const handleUpdateName = async () => {
     if (newName && newName.trim()) {
       try {
@@ -278,7 +277,6 @@ const ContactList = ({ navigation }) => {
       }}
       activeOpacity={0.7}
     >
-      {/* Avatar */}
       <LinearGradient
         colors={[COLORS.primary, COLORS.accent]}
         start={{ x: 0, y: 0 }}
@@ -291,7 +289,6 @@ const ContactList = ({ navigation }) => {
       </LinearGradient>
 
       <View style={styles.contactInfo}>
-        {/* Header: Name & Time */}
         <View style={styles.contactHeader}>
           <Text style={styles.contactName} numberOfLines={1}>
             {item.Nombre}
@@ -300,8 +297,6 @@ const ContactList = ({ navigation }) => {
             {item.Fecha ? new Date(item.Fecha).toLocaleDateString() : ""}
           </Text>
         </View>
-
-        {/* Message preview */}
         <View style={styles.messagePreview}>
           {item.Texto ? (
             <Text style={styles.contactMessage} numberOfLines={1}>
@@ -321,7 +316,6 @@ const ContactList = ({ navigation }) => {
           )}
         </View>
 
-        {/* Footer: Account & Status */}
         <View style={styles.contactFooter}>
           <View style={styles.accountTag}>
             <Ionicons
@@ -348,7 +342,6 @@ const ContactList = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Assigned user */}
         <View style={styles.assignedRow}>
           <Ionicons
             name="person-outline"
@@ -366,7 +359,6 @@ const ContactList = ({ navigation }) => {
         </View>
       </View>
 
-      {/* Unread badge */}
       {item.CantidadMensajesSinLeer > 0 && (
         <View style={styles.unreadBadge}>
           <Text style={styles.unreadText}>{item.CantidadMensajesSinLeer}</Text>
@@ -521,7 +513,7 @@ const ContactList = ({ navigation }) => {
                     [
                       { text: "Cancelar" },
                       { text: "Aceptar", onPress: handleSelfAssign },
-                    ]
+                    ],
                   )
                 }
               >
@@ -559,7 +551,6 @@ const ContactList = ({ navigation }) => {
               <Text style={styles.actionBtnLabel}>Asignar</Text>
             </TouchableOpacity>
 
-            {/* Status Actions */}
             {currentStatus !== 1 && (
               <TouchableOpacity
                 style={styles.actionBtn}
@@ -617,7 +608,7 @@ const ContactList = ({ navigation }) => {
                   [
                     { text: "Cancelar" },
                     { text: "Aceptar", onPress: handleMarkUnread },
-                  ]
+                  ],
                 )
               }
             >
@@ -693,16 +684,14 @@ const ContactList = ({ navigation }) => {
         backgroundColor={COLORS.primary}
       />
 
-      {/* Header */}
       {selectedContactItem
         ? showNameInput
           ? renderNameInputHeader()
           : showUserList
-          ? renderUserListHeader()
-          : renderSelectedHeader()
+            ? renderUserListHeader()
+            : renderSelectedHeader()
         : renderMainHeader()}
 
-      {/* Search */}
       <View style={styles.searchSection}>
         <View style={styles.searchContainer}>
           <View style={styles.searchIconContainer}>
@@ -730,10 +719,8 @@ const ContactList = ({ navigation }) => {
         </View>
       </View>
 
-      {/* Status filter */}
       {renderStatusFilter()}
 
-      {/* Contact list */}
       {contactsLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.accent} />
@@ -770,7 +757,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
 
-  // Header
   headerGradient: {
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
@@ -834,7 +820,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  // Action headers
   actionHeaderContainer: {
     backgroundColor: COLORS.white,
     borderBottomWidth: 1,
@@ -882,7 +867,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // Selected header
   selectionHeaderContainer: {
     backgroundColor: COLORS.white,
     borderBottomWidth: 1,
@@ -917,7 +901,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // Search
   searchSection: {
     paddingHorizontal: 20,
     paddingTop: 16,
@@ -954,7 +937,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  // Status filter
   statusFilterContainer: {
     paddingVertical: 12,
     paddingLeft: 20,
@@ -993,7 +975,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // Contact list
   contactsList: {
     flex: 1,
   },
@@ -1132,7 +1113,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-  // Loading
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
@@ -1145,7 +1125,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // Empty state
   emptyContainer: {
     flex: 1,
     justifyContent: "center",

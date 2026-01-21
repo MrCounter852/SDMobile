@@ -59,24 +59,20 @@ const ChatBubble = React.memo(
     const openDocument = async (fileUrl, fileName) => {
       try {
         if (Platform.OS === "android") {
-          // On Android, get content URI to avoid FileUriExposedException
           const contentUri = await FileSystem.getContentUriAsync(fileUrl);
-          // Use IntentLauncher to show "Open with" dialog
           await IntentLauncher.startActivityAsync(
             "android.intent.action.VIEW",
             {
               data: contentUri,
               type: getMimeType(fileName),
-              flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
-            }
+              flags: 1,
+            },
           );
         } else {
-          // On iOS, Linking.openURL will show the share sheet with "Open in" options
           await Linking.openURL(fileUrl);
         }
       } catch (error) {
         console.error("Error opening document:", error);
-        // Fallback to regular Linking
         try {
           await Linking.openURL(fileUrl);
         } catch (fallbackError) {
@@ -278,7 +274,6 @@ const ChatBubble = React.memo(
     );
   },
   (prevProps, nextProps) => {
-    // Comparación personalizada para evitar re-renders innecesarios
     return (
       prevProps.message._id === nextProps.message._id &&
       prevProps.message.text === nextProps.message.text &&
@@ -294,7 +289,7 @@ const ChatBubble = React.memo(
       prevProps.message.pending === nextProps.message.pending &&
       prevProps.isSentByMe === nextProps.isSentByMe
     );
-  }
+  },
 );
 
 const styles = StyleSheet.create({

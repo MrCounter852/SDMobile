@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { InfoSection, DataItem, styles, COLORS } from "./CrmSubViewComponents";
 
-// Helper function for "En desarrollo" alerts
 const showDevAlert = (actionName) => {
   Alert.alert(
     "En desarrollo",
@@ -21,16 +20,13 @@ const CrmAvaluosCertificados = ({
   const cotizaciones = safeParseArray(contactDetail.Cotizaciones);
   const preFacturas = safeParseArray(contactDetail.PreFacturasCotizaciones);
 
-  // Check if any prefactura is paid to show "Cerrar proceso" button
   const hasAllPaid =
     preFacturas.length > 0 && preFacturas.every((pf) => pf.PagadaPSE);
-  // Check if we can show "Reversar cupones" (some exist and none paid)
   const canReversarCupones =
     preFacturas.length > 0 && preFacturas.some((pf) => !pf.PagadaPSE);
 
   return (
     <View>
-      {/* 1. Cotizaciones */}
       <InfoSection
         title={`Cotizaciones (${cotizaciones.length})`}
         icon="file-tray-full-outline"
@@ -50,7 +46,6 @@ const CrmAvaluosCertificados = ({
         {cotizaciones.length > 0 ? (
           cotizaciones.map((item, idx) => (
             <View key={idx} style={localStyles.card}>
-              {/* Card Header */}
               <TouchableOpacity
                 style={styles.txRow}
                 onPress={() => showDevAlert("Ver PDF de cotización")}
@@ -78,8 +73,6 @@ const CrmAvaluosCertificados = ({
                   </Text>
                 </View>
               </TouchableOpacity>
-
-              {/* Data Grid */}
               <View style={styles.dataGrid}>
                 <DataItem
                   label="Valor"
@@ -91,7 +84,6 @@ const CrmAvaluosCertificados = ({
                 />
               </View>
 
-              {/* Views indicator */}
               {safeParseArray(item.CotizacionesVistas).length > 0 && (
                 <TouchableOpacity
                   style={localStyles.viewsIndicator}
@@ -108,7 +100,6 @@ const CrmAvaluosCertificados = ({
                 </TouchableOpacity>
               )}
 
-              {/* Action Buttons */}
               <View style={localStyles.actionsRow}>
                 <TouchableOpacity
                   style={localStyles.actionButton}
@@ -162,13 +153,11 @@ const CrmAvaluosCertificados = ({
         )}
       </InfoSection>
 
-      {/* 2. Cupones de Pago */}
       {preFacturas.length > 0 && (
         <InfoSection
           title={`Cupones de pago (${preFacturas.length})`}
           icon="receipt-outline"
         >
-          {/* Action buttons for section */}
           <View style={localStyles.sectionActions}>
             {canReversarCupones && (
               <TouchableOpacity
@@ -235,7 +224,6 @@ const CrmAvaluosCertificados = ({
                   />
                 </View>
               </View>
-              {/* PDF indicator */}
               <View style={localStyles.pdfHint}>
                 <Ionicons
                   name="document-outline"
@@ -247,7 +235,6 @@ const CrmAvaluosCertificados = ({
             </TouchableOpacity>
           ))}
 
-          {/* Close process button */}
           {hasAllPaid && (
             <TouchableOpacity
               style={localStyles.closeProcessButton}

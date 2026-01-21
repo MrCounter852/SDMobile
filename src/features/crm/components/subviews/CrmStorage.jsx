@@ -2,8 +2,6 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { InfoSection, styles, COLORS } from "./CrmSubViewComponents";
-
-// Helper function for "En desarrollo" alerts
 const showDevAlert = (actionName) => {
   Alert.alert(
     "En desarrollo",
@@ -25,7 +23,6 @@ const CrmStorage = ({
 
   return (
     <View>
-      {/* 1. Cotizaciones */}
       <InfoSection
         title={`Cotizaciones (${cotizaciones.length})`}
         icon="calculator-outline"
@@ -80,7 +77,6 @@ const CrmStorage = ({
                 </Text>
               </View>
 
-              {/* Vistas count if available */}
               {item.CotizacionesVistas?.length > 0 && (
                 <View style={localStyles.viewsRow}>
                   <Ionicons name="eye-outline" size={14} color={COLORS.gray} />
@@ -90,7 +86,6 @@ const CrmStorage = ({
                 </View>
               )}
 
-              {/* Action buttons */}
               <View style={localStyles.actionsRow}>
                 <TouchableOpacity
                   style={localStyles.actionButton}
@@ -153,7 +148,6 @@ const CrmStorage = ({
         )}
       </InfoSection>
 
-      {/* 2. Ordenes de Servicio */}
       {ordenesServicio.length > 0 && (
         <InfoSection
           title={`Ordenes de Servicio (${ordenesServicio.length})`}
@@ -193,7 +187,6 @@ const CrmStorage = ({
                   {formatCurrency(item.ValorOrdenServicio)}
                 </Text>
               </View>
-              {/* Action buttons */}
               <View style={localStyles.actionsRow}>
                 <TouchableOpacity
                   style={localStyles.actionButton}
@@ -234,7 +227,6 @@ const CrmStorage = ({
         </InfoSection>
       )}
 
-      {/* 3. Código de Barras / Pre-Facturas */}
       {codigosBarras.length > 0 && (
         <InfoSection
           title={`Código de Barras / Pre-Facturas (${codigosBarras.length})`}
@@ -281,7 +273,6 @@ const CrmStorage = ({
                   {formatCurrency(item.ValorPreFactura)}
                 </Text>
               </View>
-              {/* Action buttons */}
               <View style={localStyles.actionsRow}>
                 <TouchableOpacity
                   style={localStyles.actionButton}
@@ -322,7 +313,6 @@ const CrmStorage = ({
         </InfoSection>
       )}
 
-      {/* 4. Facturas */}
       {facturas.length > 0 && (
         <InfoSection
           title={`Facturas (${facturas.length})`}
@@ -353,7 +343,6 @@ const CrmStorage = ({
                   {formatCurrency(item.ValorFactura)}
                 </Text>
               </View>
-              {/* Action buttons */}
               <View style={localStyles.actionsRow}>
                 <TouchableOpacity
                   style={localStyles.actionButton}

@@ -1,6 +1,3 @@
-// Centralized theme for SediMobile app
-// Based on DESIGN_PATTERNS.md
-
 export const COLORS = {
   // Colores primarios de marca
   primary: "#337ab7", // Azul principal - headers, acciones primarias

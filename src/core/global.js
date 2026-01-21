@@ -11,7 +11,7 @@ export const useGlobal = create((set, get) => ({
     sucursal: null,
     asesorID: null,
     accesos: [],
-    permisos: {}, // Special CRM permissions
+    permisos: {},
     menuOptions: [],
     signalrConnected: false,
     cdnEndPoint: null,
@@ -22,13 +22,10 @@ export const useGlobal = create((set, get) => ({
         const useChatStore = require('../features/chat/store/chatStore').default;
         const ChatApiService = require('../features/chat/services/chatService').default;
         const { loginUser, getOauthToken, getSessionData } = require('../features/auth/services/authService');
-
         useChatStore.getState().init();
-        // Fire-and-forget cache maintenance (non-blocking)
         ChatApiService.manageCache();
 
         try {
-            // Attempt auto-login
             const credentialsStr = await SecureStore.getItemAsync('auth_credentials');
             const selectionStr = await SecureStore.getItemAsync('auth_selection');
 
@@ -45,7 +42,6 @@ export const useGlobal = create((set, get) => ({
                         sucursal.SucursalID
                     );
 
-                    // Save the new token to SecureStore
                     await SecureStore.setItemAsync('accessToken', oauthData.accessToken);
                     await SecureStore.setItemAsync('erpToken', oauthData.accessToken);
 
@@ -55,7 +51,6 @@ export const useGlobal = create((set, get) => ({
                     const user = sessionData.Session?.Usuario || {};
                     const accesos = sessionData.Session?.Accesos || [];
 
-                    // Save usuarioID and rolID to SecureStore
                     await SecureStore.setItemAsync('usuarioID', usuarioID?.toString() || '');
                     await SecureStore.setItemAsync('rolID', rolID?.toString() || '');
 
@@ -74,7 +69,6 @@ export const useGlobal = create((set, get) => ({
             }
         } catch (error) {
             console.error("Auto-login failed:", error);
-            // If auto-login fails, clear stored credentials to force manual login
             await SecureStore.deleteItemAsync('auth_credentials');
             await SecureStore.deleteItemAsync('auth_selection');
             await SecureStore.deleteItemAsync('accessToken');
@@ -104,12 +98,10 @@ export const useGlobal = create((set, get) => ({
     }),
     setPermisos: (permisos) => set((state) => ({ 
         permisos: { ...state.permisos, ...permisos },
-        // Also sync to user object for components using user.Permiso
         user: { ...state.user, ...permisos } 
     })),
     setMenuOptions: (menuOptions) => set({ menuOptions }),
     logout: async () => {
-        // Clear secure storage
         await SecureStore.deleteItemAsync('auth_credentials');
         await SecureStore.deleteItemAsync('auth_selection');
         await SecureStore.deleteItemAsync('accessToken');
@@ -117,13 +109,10 @@ export const useGlobal = create((set, get) => ({
         await SecureStore.deleteItemAsync('usuarioID');
         await SecureStore.deleteItemAsync('rolID');
 
-        // Clear chat storage
         const ChatStorageService = require('../features/chat/services/chatStorageService').default;
         ChatStorageService.clearAll();
-        // Clear media cache
         const ChatApiService = require('../features/chat/services/chatService').default;
         ChatApiService.clearCache();
-        // Reset chat store
         const useChatStore = require('../features/chat/store/chatStore').default;
         useChatStore.getState().reset();
 

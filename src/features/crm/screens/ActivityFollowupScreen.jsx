@@ -33,8 +33,6 @@ const Tab = createMaterialTopTabNavigator();
 const { width } = Dimensions.get("window");
 import { COLORS } from "../../../core/theme";
 
-// --- Helper Components ---
-
 const CustomInput = ({
   label,
   required,
@@ -146,7 +144,7 @@ const DateTimePicker = ({ label, required, value, onChange, placeholder }) => {
     const currentDate = selectedDate || new Date();
 
     if (Platform.OS === "android" && mode === "date") {
-      setShow(false); // Hide date picker before showing time picker
+      setShow(false);
       setTimeout(() => {
         setMode("time");
         setShow(true);
@@ -202,8 +200,6 @@ const DateTimePicker = ({ label, required, value, onChange, placeholder }) => {
     </View>
   );
 };
-
-// --- Sub-components ---
 
 const ContactInfoHeader = ({ contact }) => {
   const [showInfo, setShowInfo] = useState(false);
@@ -434,11 +430,9 @@ const ActivityForm = ({
         TipoActividadID: selectedType.TipoActividadID,
         Entregable: isEntregable,
         TipoCalendarioActividadNombre: selectedType.Nombre,
-        // Limpiar campos si es entregable
         Direccion: isEntregable ? "" : prev.Direccion,
         Telefono: isEntregable ? "" : prev.Telefono,
         Celular: isEntregable ? "" : prev.Celular,
-        // Auto-poblar email si es TipoActividadID == 1
         Email: isNotifyProp ? contact?.Email || prev.Email : prev.Email,
         NotificarPropietario: isNotifyProp ? true : prev.NotificarPropietario,
       }));
@@ -1291,8 +1285,6 @@ const ActivityList = ({ contact, refreshKey }) => {
   );
 };
 
-// --- Main Screen ---
-
 const ActivityFollowupScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
@@ -1474,8 +1466,6 @@ const ActivityFollowupScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-
-  // Header
   headerGradient: {
     paddingBottom: 40,
     borderBottomLeftRadius: 32,
@@ -1529,7 +1519,6 @@ const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: 18, fontWeight: "800", color: "#FFF" },
 
-  // Context Card
   contextCard: {
     backgroundColor: COLORS.white,
     marginHorizontal: 16,
@@ -1603,7 +1592,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // Alerts
   inviableAlert: {
     marginHorizontal: 16,
     marginBottom: 12,
@@ -1626,11 +1614,9 @@ const styles = StyleSheet.create({
   alertText: { fontSize: 13, color: COLORS.gray, marginBottom: 4 },
   boldLabel: { fontWeight: "800", color: COLORS.dark },
 
-  // Tabs
   tabContainer: { flex: 1, backgroundColor: COLORS.background },
   tabSectionDivider: { height: 12, backgroundColor: "rgba(0,0,0,0.02)" },
 
-  // Forms
   formContent: { padding: 16 },
   formCard: {
     backgroundColor: COLORS.white,
@@ -1656,7 +1642,6 @@ const styles = StyleSheet.create({
   },
   cardTitle: { fontSize: 15, fontWeight: "800", color: COLORS.dark },
 
-  // Inputs
   inputContainer: { marginBottom: 16 },
   labelContainer: { flexDirection: "row", marginBottom: 6, paddingLeft: 4 },
   label: {
@@ -1741,7 +1726,6 @@ const styles = StyleSheet.create({
 
   row: { flexDirection: "row" },
 
-  // Checkbox
   checkboxLine: {
     flexDirection: "row",
     alignItems: "center",
@@ -1761,7 +1745,6 @@ const styles = StyleSheet.create({
   checkboxActive: { backgroundColor: COLORS.primary },
   checkboxText: { fontSize: 14, color: COLORS.gray, fontWeight: "600" },
 
-  // Buttons
   buttonWrapper: { marginTop: 8 },
   submitBtn: {
     height: 54,
@@ -1777,7 +1760,6 @@ const styles = StyleSheet.create({
   },
   submitBtnText: { color: COLORS.white, fontSize: 16, fontWeight: "800" },
 
-  // Collapsible
   collapseToggle: {
     marginBottom: 12,
     borderRadius: 20,
@@ -1815,7 +1797,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  // Lists
   listSection: { padding: 16 },
   listSectionTitle: {
     fontSize: 16,
@@ -1861,7 +1842,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // Activity Item
   activityItem: {
     backgroundColor: COLORS.white,
     borderRadius: 20,

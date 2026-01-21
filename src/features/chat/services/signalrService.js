@@ -13,11 +13,6 @@ class SignalRService {
         this.reconnectInterval = null;
     }
 
-    /**
-     * Pings the SignalR connection to check if it's alive.
-     * Returns true if connected, false otherwise.
-     * If disconnected, triggers a reconnection attempt.
-     */
     async ping() {
         if (this.isConnected && this.connection) {
             console.log('[SignalR] Ping: Connection is alive');
@@ -26,7 +21,6 @@ class SignalRService {
 
         console.log('[SignalR] Ping: Connection is down, attempting reconnect...');
         
-        // If not connected, try to reconnect
         if (!this.isConnecting) {
             try {
                 await this.connect();
@@ -37,7 +31,6 @@ class SignalRService {
             }
         }
 
-        // If already connecting, wait a bit and check status
         await new Promise(resolve => setTimeout(resolve, 2000));
         return this.isConnected;
     }
@@ -48,9 +41,6 @@ class SignalRService {
         this.isConnecting = true;
         const state = useGlobal.getState();
 
-        // Construir query string con datos de la sesión (MATCHING WEB CLIENT FORMAT)
-        // La web usa PascalCase en las LLAVES, pero minúsculas en los VALORES.
-        // NOTA: 'UniqueID' viene del login como el UUID del usuario.
         const qs = {
             EmpresaUniqueID: (state.empresa?.EmpresaUniqueID || state.user?.EmpresaUniqueID || state.empresa?.EmpresaID || '').toLowerCase(),
             UsuarioUniqueID: (state.user?.UsuarioUniqueID || state.user?.UniqueID || state.usuarioID || '').toLowerCase(),
@@ -70,7 +60,6 @@ class SignalRService {
 
         this.setupListeners();
 
-        // Validar IDs para debugging
         if (!qs.EmpresaUniqueID || !qs.UsuarioUniqueID) {
             console.warn('[SignalR] WARNING: EmpresaUniqueID or UsuarioUniqueID is missing. Notifications may not work.');
         } else if (qs.EmpresaUniqueID.toString().length < 30) {
@@ -82,11 +71,9 @@ class SignalRService {
             this.isConnected = true;
             this.isConnecting = false;
 
-            // Actualizar estado global
             state.setSignalRConnected(true);
-            state.setInitialized(true); // Ocultar splash screen si estaba visible
+            state.setInitialized(true); 
 
-            // Limpiar intervalo de reconexión si existe
             if (this.reconnectInterval) {
                 clearInterval(this.reconnectInterval);
                 this.reconnectInterval = null;
@@ -102,29 +89,19 @@ class SignalRService {
     setupListeners() {
         if (!this.hubProxy) return;
 
-        // Notificaciones push
-        // Notificaciones push
-        // Firma exacta web: function (Notificaciones, IfPush)
         this.hubProxy.on('NotificacionPush', async (data, IfPush) => {
             const chatStore = require('../store/chatStore').default;
             if (data && Array.isArray(data)) {
 
-                // NOTA: La web hace un filtro complejo para unificar filas y actualizar "TotalRows".
-                // Por ahora mantenemos la lógica simple de agregar al store, pero la web hace:
-                // 1. Si IfPush es true -> Lanza la notificación visual (Banner).
-                // 2. Hace un merge de listas.
-
                 const currentNotifications = chatStore.getState().notifications;
-                // Filtrar notificaciones nuevas para evitar duplicados
                 const newNotifications = data.filter(newNotif =>
                     !currentNotifications.some(existing => existing.NotificacionUsuarioID === newNotif.NotificacionUsuarioID)
                 );
                 const updatedNotifications = [...newNotifications, ...currentNotifications];
                 chatStore.getState().setNotifications(updatedNotifications);
 
-                // --- Lógica de Notificación Local ---
                 const currentRoute = getCurrentRouteName();
-                const notifData = data[0]; // Tomamos la primera para análisis
+                const notifData = data[0];
 
                 const shouldNotify = (notifData?.Visto === false) && currentRoute !== 'Notificaciones';
 
@@ -149,17 +126,13 @@ class SignalRService {
             }
         });
 
-        // Sincronización de opción de menú
         this.hubProxy.on('SincronizarOpcionMenuEmpresa', (data) => {
             const chatStore = require('../store/chatStore').default;
             chatStore.getState().handleSignalRUpdate(data);
         });
-
-        // Sincronización
         this.hubProxy.on('SyncNotificacionPush', (data) => {
         });
 
-        // Eventos de conexión
         this.connection.stateChanged((change) => {
             const states = { 0: 'connecting', 1: 'connected', 2: 'reconnecting', 4: 'disconnected' };
         });
@@ -177,21 +150,16 @@ class SignalRService {
         this.isConnected = false;
         const state = useGlobal.getState();
 
-        // Solo intentar reconectar si el usuario sigue autenticado
         if (state.authenticated) {
-
             state.setSignalRConnected(false);
-            state.setInitialized(false); // Mostrar splash screen
+            state.setInitialized(false); 
 
-            // Iniciar reconexión si no está ya en proceso
             if (!this.reconnectInterval) {
                 this.reconnectInterval = setInterval(() => {
-
                     this.connect();
-                }, 5000); // Intentar cada 5 segundos
+                }, 5000); 
             }
         } else {
-            // Si no está autenticado, no intentar reconectar
             this.stop();
         }
     }

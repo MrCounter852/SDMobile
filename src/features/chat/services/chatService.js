@@ -12,13 +12,11 @@ const API_BASE_SIS = `${getEnvironmentConfig().BASE_URL_NS}/API_SIS/api`;
 class ChatApiService {
   constructor() {
     this.global = useGlobal.getState();
-    // Suscribirse a cambios en el estado global
     useGlobal.subscribe((state) => {
       this.global = state;
     });
   }
 
-  // Get valid token from tokenService (handles expiration and refresh)
   async getStoredToken() {
     try {
       return await tokenService.getValidToken();
@@ -29,7 +27,6 @@ class ChatApiService {
   }
 
   async getHeaders() {
-    // Para las APIs del chat, siempre usar el token JWT de OauthToken
     const token = await this.getStoredToken();
     return {
       'Content-Type': 'application/json',
@@ -58,7 +55,6 @@ class ChatApiService {
           body: errorText
         });
 
-        // Handle auth errors with token refresh
         if (response.status === 401 || response.status === 403) {
           const shouldRetry = await tokenService.handleApiError(null, response.status);
           if (shouldRetry) {
@@ -79,7 +75,6 @@ class ChatApiService {
     } catch (error) {
       console.error('API request failed:', error);
       
-      // On network failure, ping SignalR and trigger recovery if needed
       const SignalRService = require('./signalrService').default;
       const isConnected = await SignalRService.ping();
       if (!isConnected) {
@@ -90,7 +85,6 @@ class ChatApiService {
     }
   }
 
-  // Consultar contactos de mensajería
   async consultarContactos(filtros) {
     const endpoint = '/CuentasMensajeriaContactos/CuentasMensajeriaContactosConsultar';
     return this.makeRequest(endpoint, {
@@ -108,7 +102,6 @@ class ChatApiService {
     });
   }
 
-  // Consultar mensajes de un contacto
   async consultarMensajes(filtros) {
     const endpoint = '/CuentasMensajeriaMensajes/CuentasMensajeriaMensajesConsultar';
     return this.makeRequest(endpoint, {
@@ -125,7 +118,6 @@ class ChatApiService {
     });
   }
 
-  // Enviar mensaje
   async enviarMensaje(mensaje) {
     const endpoint = '/CuentasMensajeriaMensajes/CuentasMensajeriaMensajesEnviar';
     return this.makeRequest(endpoint, {
@@ -141,7 +133,6 @@ class ChatApiService {
     });
   }
 
-  // Iniciar nuevo chat
   async iniciarNuevoChat(chatData) {
     const endpoint = '/CuentasMensajeriaMensajes/CuentasMensajeriaMensajesNuevoChat';
     return this.makeRequest(endpoint, {
@@ -157,7 +148,6 @@ class ChatApiService {
     });
   }
 
-  // Consultar cuentas de mensajería disponibles
   async consultarCuentasMensajeria() {
     const endpoint = '/CuentasMensajeria/CuentasMensajeriaConsultar';
     return this.makeRequest(endpoint, {
@@ -173,7 +163,6 @@ class ChatApiService {
     });
   }
 
-  // Consultar plantillas de comunicación
   async consultarPlantillasComunicacion(cuentaMensajeriaID) {
     const endpoint = '/PlantillasComunicaciones/PlantillasComunicacionesComboConsultar';
     return this.makeRequest(endpoint, {
@@ -181,7 +170,7 @@ class ChatApiService {
       body: JSON.stringify({
         Page: 0,
         Rows: 0,
-        CanalComunicacionID: 2, // WhatsApp
+        CanalComunicacionID: 2,
         CuentaMensajeriaID: cuentaMensajeriaID,
         Activo: true,
         Token: this.global.user?.Token,
@@ -189,7 +178,6 @@ class ChatApiService {
     }, false);
   }
 
-  // Consultar detalle de plantilla
   async consultarPlantillaDetalle(plantilla) {
     const endpoint = '/PlantillasComunicaciones/PlantillasComunicacionesDetalladoConsultar';
     return this.makeRequest(endpoint, {
@@ -201,7 +189,6 @@ class ChatApiService {
     }, false);
   }
 
-  // Asignar usuario a contacto
   async asignarUsuario(contacto) {
     const endpoint = '/CuentasMensajeriaContactos/AsociarUsuario';
     return this.makeRequest(endpoint, {
@@ -213,7 +200,6 @@ class ChatApiService {
     });
   }
 
-  // Consultar usuarios
   async consultarUsuarios(filtros) {
     const endpoint = '/Usuarios/UsuariosConsultar';
     return this.makeRequest(endpoint, {
@@ -226,10 +212,9 @@ class ChatApiService {
         FullSearch: filtros?.FullSearch || null,
         Token: this.global.user?.Token,
       }),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
-  // Actualizar estado de contacto
   async actualizarEstadoContacto(contacto) {
     const endpoint = '/CuentasMensajeriaContactos/CuentasMensajeriaContactosActualizar';
     return this.makeRequest(endpoint, {
@@ -241,7 +226,6 @@ class ChatApiService {
     });
   }
 
-  // Confirmar lectura de mensajes
   async confirmarLectura(contacto) {
     const endpoint = '/CuentasMensajeriaContactos/ConfirmarLecturas';
     return this.makeRequest(endpoint, {
@@ -253,7 +237,6 @@ class ChatApiService {
     });
   }
 
-  // Marcar mensajes como leídos/no leídos
   async marcacionMensajes(contacto) {
     const endpoint = '/CuentasMensajeriaContactos/MarcacionMensajes';
     return this.makeRequest(endpoint, {
@@ -265,7 +248,6 @@ class ChatApiService {
     });
   }
 
-  // Consultar relaciones del contacto (procesos, contratos, etc.)
   async consultarRelacionesContacto(contacto) {
     const endpoint = '/CuentasMensajeriaContactos/ConsultaRelacionesDelContacto';
     return this.makeRequest(endpoint, {
@@ -277,14 +259,11 @@ class ChatApiService {
     });
   }
 
-  // Subir archivo al CDN
   async subirArchivoAlCDN(fileData) {
     const cdnUrl = `${this.global.user?.CDNEndPoint || ''}/api/Files/UploadFile/`;
 
-    // Leer archivo como base64
     const base64 = await FileSystem.readAsStringAsync(fileData.uri, { encoding: FileSystem.EncodingType.Base64 });
 
-    // Convertir base64 a byte array
     const byteArray = this.base64ToByteArray(base64);
 
     const payload = {
@@ -313,7 +292,6 @@ class ChatApiService {
     return result;
   }
 
-  // Convertir base64 a byte array
   base64ToByteArray(base64) {
     const binaryString = atob(base64);
     const len = binaryString.length;
@@ -324,7 +302,6 @@ class ChatApiService {
     return bytes;
   }
 
-  // Commit archivo en CDN
   async commitArchivoCDN(archivos) {
     const cdnUrl = `${this.global.user?.CDNEndPoint || ''}/api/Files/CommitFile/`;
     const response = await fetch(cdnUrl, {
@@ -347,7 +324,6 @@ class ChatApiService {
     return response.json();
   }
 
-  // Eliminar archivo del CDN
   async eliminarArchivoCDN(archivos) {
     const cdnUrl = `${this.global.user?.CDNEndPoint || ''}/api/Files/DeleteFile/`;
     const response = await fetch(cdnUrl, {
@@ -368,14 +344,10 @@ class ChatApiService {
     return response.json();
   }
 
-  // Constants for Cache Manager
   CACHE_DIR = FileSystem.documentDirectory + 'sedi_media/';
-  MAX_CACHE_SIZE = 500 * 1024 * 1024; // 500 MB
-  MAX_FILE_AGE = 30 * 24 * 60 * 60 * 1000; // 30 Days
+  MAX_CACHE_SIZE = 500 * 1024 * 1024;
+  MAX_FILE_AGE = 30 * 24 * 60 * 60 * 1000;
 
-  /**
-   * Clear all cached media files
-   */
   async clearCache() {
     try {
       const dirInfo = await FileSystem.getInfoAsync(this.CACHE_DIR);
@@ -387,20 +359,14 @@ class ChatApiService {
     }
   }
 
-  /**
-   * Initialize and Clean Cache
-   * Should be called on App Startup
-   */
   async manageCache() {
     try {
-      // 1. Ensure directory exists
       const dirInfo = await FileSystem.getInfoAsync(this.CACHE_DIR);
       if (!dirInfo.exists) {
         await FileSystem.makeDirectoryAsync(this.CACHE_DIR, { intermediates: true });
-        return; // New directory, nothing to clean
+        return;
       }
 
-      // 2. Read all files
       const files = await FileSystem.readDirectoryAsync(this.CACHE_DIR);
       if (files.length === 0) return;
 
@@ -408,13 +374,11 @@ class ChatApiService {
       let totalSize = 0;
       const now = Date.now();
 
-      // 3. Gather stats for all files
       for (const file of files) {
         const fileUri = this.CACHE_DIR + file;
         const info = await FileSystem.getInfoAsync(fileUri);
 
         if (info.exists) {
-          // Delete if expired (Age check)
           if (now - info.modificationTime * 1000 > this.MAX_FILE_AGE) {
             await FileSystem.deleteAsync(fileUri, { idempotent: true });
           } else {
@@ -428,9 +392,7 @@ class ChatApiService {
         }
       }
 
-      // 4. Delete if Total Size exceeded (Size check)
       if (totalSize > this.MAX_CACHE_SIZE) {
-        // Sort by oldest first
         fileStats.sort((a, b) => a.time - b.time);
 
         for (const file of fileStats) {
@@ -448,11 +410,6 @@ class ChatApiService {
     }
   }
 
-  /**
-   * Verifica si un archivo ya existe en el cache y retorna su URI
-   * @param {string} fileName 
-   * @returns {Promise<string|null>} URI si existe, null si no
-   */
   async checkMediaCache(fileName) {
     try {
       const fileUri = `${this.CACHE_DIR}${fileName}`;
@@ -465,24 +422,19 @@ class ChatApiService {
     }
   }
 
-  // Obtener media desde WhatsApp (Managed Cache)
   async obtenerMediaWhatsApp(mediaData) {
     const endpoint = '/WhatsApp/ObtenerMediaFile';
     const headers = await this.getHeaders();
 
     try {
-      // Ensure cache dir exists
       const dirInfo = await FileSystem.getInfoAsync(this.CACHE_DIR);
       if (!dirInfo.exists) {
         await FileSystem.makeDirectoryAsync(this.CACHE_DIR, { intermediates: true });
       }
-
-      // Crear nombre de archivo único
       const fileExtension = mediaData.FileMime?.split('/')[1] || 'jpg';
       const fileName = `${mediaData.MediaID}.${fileExtension}`;
       const fileUri = `${this.CACHE_DIR}${fileName}`;
 
-      // Verificar si el archivo ya existe en caché (Persistente)
       const fileInfo = await FileSystem.getInfoAsync(fileUri);
       if (fileInfo.exists) {
         console.log('Media found in persistent cache:', fileName);
@@ -506,10 +458,8 @@ class ChatApiService {
       const blob = await response.blob();
       const base64 = await this.blobToBase64(blob);
 
-      // Guardar el archivo usando FileSystem (Persistente)
       await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: FileSystem.EncodingType.Base64 });
 
-      // Retornar la URI local del archivo
       return fileUri;
     } catch (error) {
       console.error('Error obtaining media from WhatsApp:', error);
@@ -517,7 +467,6 @@ class ChatApiService {
     }
   }
 
-  // Convertir blob a base64
   blobToBase64(blob) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -529,7 +478,6 @@ class ChatApiService {
 
   // === NOTIFICACIONES PUSH ===
 
-  // Consultar notificaciones push
   async consultarNotificacionesPush(filtros) {
     const endpoint = '/NotificacionesPush/NotificacionesPushConsultar';
     return this.makeRequest(endpoint, {
@@ -547,7 +495,6 @@ class ChatApiService {
     });
   }
 
-  // Actualizar notificación (marcar como visto/no visto)
   async actualizarNotificacionPush(notificacion) {
     const endpoint = '/NotificacionesPush/NotificacionesPushActualizar';
     return this.makeRequest(endpoint, {
@@ -560,7 +507,6 @@ class ChatApiService {
     });
   }
 
-  // Eliminar notificación específica
   async eliminarNotificacionPush(notificacion) {
     const endpoint = '/NotificacionesPush/NotificacionesPushEliminar';
     return this.makeRequest(endpoint, {
@@ -572,7 +518,6 @@ class ChatApiService {
     });
   }
 
-  // Eliminar todas las notificaciones del usuario
   async eliminarTodasNotificacionesPush() {
     const endpoint = '/NotificacionesPush/NotificacionesUsuariosPushEliminar';
     return this.makeRequest(endpoint, {

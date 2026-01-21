@@ -1,16 +1,11 @@
 import { create } from "zustand";
 
 export const useChatStore = create((set, get) => ({
-  // Estado de contactos
   contacts: [],
   selectedContact: null,
   contactsLoading: false,
-
-  // Estado de mensajes
   chats: {},
   messagesLoading: false,
-
-  // Estado de filtros
   searchFilters: {
     Page: 1,
     Rows: 15,
@@ -20,15 +15,9 @@ export const useChatStore = create((set, get) => ({
     TodasCuentas: true,
     FullSearch: null,
   },
-
-  // Estado de envío de mensajes
   sendingMessage: false,
   messageInput: "",
-
-  // Estado de archivos adjuntos
   attachments: [],
-
-  // Estado de notificaciones
   notifications: [],
   notificationsLoading: false,
   hasMoreNotifications: true,
@@ -39,8 +28,6 @@ export const useChatStore = create((set, get) => ({
     Visto: null,
     FullSearch: null,
   },
-
-  // Acciones para contactos
   setContacts: (contacts) => set({ contacts }),
   setSelectedContact: (contact) => set({ selectedContact: contact }),
   setContactsLoading: (loading) => set({ contactsLoading: loading }),
@@ -54,7 +41,6 @@ export const useChatStore = create((set, get) => ({
       )
     })),
 
-  // Acciones para mensajes
   init: async () => {
     const ChatStorageService = require('../services/chatStorageService').default;
     const chats = await ChatStorageService.getAllChats();
@@ -69,7 +55,6 @@ export const useChatStore = create((set, get) => ({
     })),
   setMessagesLoading: (loading) => set({ messagesLoading: loading }),
 
-  // Acciones para filtros
   updateSearchFilters: (filters) =>
     set((state) => ({
       searchFilters: { ...state.searchFilters, ...filters },
@@ -87,11 +72,9 @@ export const useChatStore = create((set, get) => ({
       },
     }),
 
-  // Acciones para envío de mensajes
   setSendingMessage: (sending) => set({ sendingMessage: sending }),
   setMessageInput: (text) => set({ messageInput: text }),
 
-  // Acciones para archivos adjuntos
   addAttachment: (attachment) =>
     set((state) => ({
       attachments: [...state.attachments, attachment],
@@ -102,7 +85,6 @@ export const useChatStore = create((set, get) => ({
     })),
   clearAttachments: () => set({ attachments: [] }),
 
-  // Acciones para notificaciones
   setNotifications: (notifications) => set({ notifications }),
   setNotificationsLoading: (loading) => set({ notificationsLoading: loading }),
   updateNotification: (notificationId, updates) =>
@@ -139,14 +121,12 @@ export const useChatStore = create((set, get) => ({
       const response = await ChatApiService.consultarNotificacionesPush(filters);
 
       if (response.result === 1) {
-        // Filter unique notifications by NotificacionUsuarioID to prevent duplicates
         const uniqueRows = response.rows.filter((item, index, self) =>
           index === self.findIndex(i => i.NotificacionUsuarioID === item.NotificacionUsuarioID)
         );
 
         if (append && page > 1) {
           const currentNotifications = state.notifications;
-          // Filter out duplicates when appending
           const newUnique = uniqueRows.filter(newItem =>
             !currentNotifications.some(existing => existing.NotificacionUsuarioID === newItem.NotificacionUsuarioID)
           );
@@ -155,7 +135,6 @@ export const useChatStore = create((set, get) => ({
           set({ notifications: uniqueRows });
         }
 
-        // Check if there are more notifications to load
         if (uniqueRows.length < filters.Rows) {
           set({ hasMoreNotifications: false });
         } else {
@@ -184,7 +163,6 @@ export const useChatStore = create((set, get) => ({
       hasMoreNotifications: true,
     }),
 
-  // Manejo de actualizaciones en tiempo real (SignalR)
   handleSignalRUpdate: async (data) => {
     const { Contactos, Mensajes } = data;
     const state = get();
@@ -192,7 +170,6 @@ export const useChatStore = create((set, get) => ({
     let newChats = { ...state.chats };
     let updatedSelectedContact = state.selectedContact;
 
-    // 1. Actualizar Contactos
     if (Contactos && Contactos.length > 0) {
       Contactos.forEach((updatedContact) => {
         const index = newContacts.findIndex(
@@ -202,16 +179,13 @@ export const useChatStore = create((set, get) => ({
         );
 
         if (index !== -1) {
-          // Actualizar existente y mover al inicio
           const existingContact = newContacts[index];
           newContacts.splice(index, 1);
           newContacts.unshift({ ...existingContact, ...updatedContact });
         } else {
-          // Agregar nuevo al inicio
           newContacts.unshift(updatedContact);
         }
 
-        // Actualizar contacto seleccionado si coincide
         if (
           updatedSelectedContact &&
           updatedSelectedContact.CuentaMensajeriaContactoID ===
@@ -225,9 +199,7 @@ export const useChatStore = create((set, get) => ({
       });
     }
 
-    // 2. Actualizar Mensajes
     if (Mensajes && Mensajes.length > 0) {
-      // Agrupar mensajes por contacto
       const messagesByContact = Mensajes.reduce((acc, msg) => {
         const contactId = msg.CuentaMensajeriaContactoID;
         if (!acc[contactId]) acc[contactId] = [];
@@ -235,14 +207,10 @@ export const useChatStore = create((set, get) => ({
         return acc;
       }, {});
 
-      // Importar dinámicamente para evitar ciclos
       const ChatApiService = require('../services/chatService').default;
 
-      // Procesar cada grupo de mensajes
       for (const [contactId, contactMessages] of Object.entries(messagesByContact)) {
         const currentMessages = newChats[contactId] || [];
-
-        // Formatear mensajes para GiftedChat con descarga de media
         const formattedNewMessages = await Promise.all(
           contactMessages.map(async (msg) => {
             const formattedMsg = {
@@ -250,8 +218,8 @@ export const useChatStore = create((set, get) => ({
               text: msg.Texto || "",
               createdAt: new Date(msg.Fecha),
               user: {
-                _id: msg.Recepcion ? 2 : 1, // 2: Contacto, 1: Usuario
-                name: msg.Recepcion ? "Contacto" : "Yo", // Simplificado, el nombre real se muestra en UI
+                _id: msg.Recepcion ? 2 : 1,
+                name: msg.Recepcion ? "Contacto" : "Yo",
               },
               status: msg.Status,
               pending: msg.Status === "accepted" || msg.Status === "pending",
@@ -261,7 +229,6 @@ export const useChatStore = create((set, get) => ({
               isIncoming: msg.Recepcion,
             };
 
-            // Marcar media como pendiente para descarga on-demand (evita bloqueo en SignalR)
             if (msg.FileID && msg.Recepcion) {
               const contact = newContacts.find(c => c.CuentaMensajeriaContactoID == contactId);
               const accessToken = contact?.AccessToken;
@@ -280,7 +247,6 @@ export const useChatStore = create((set, get) => ({
                 };
               }
             } else if (msg.HttpUrl && !msg.Recepcion) {
-              // Mensajes enviados usan HttpUrl directamente
               if (msg.TipoMensaje === "image" || msg.TipoMensaje === "sticker") {
                 formattedMsg.image = msg.HttpUrl;
               } else if (msg.TipoMensaje === "document") {
@@ -301,33 +267,27 @@ export const useChatStore = create((set, get) => ({
 
         let updatedContactMessages = [...currentMessages];
 
-        // Actualizar mensajes existentes o agregar nuevos
         formattedNewMessages.forEach((newMsg) => {
           const existingIndex = updatedContactMessages.findIndex(
             (m) => m._id === newMsg._id
           );
 
           if (existingIndex !== -1) {
-            // Actualizar mensaje existente
             updatedContactMessages[existingIndex] = {
               ...updatedContactMessages[existingIndex],
               ...newMsg,
             };
           } else {
-            // Para mensajes enviados (no incoming), reemplazar el mensaje pendiente si existe
             if (!newMsg.isIncoming) {
               const pendingIndex = updatedContactMessages.findIndex(
                 (m) => m.pending === true
               );
               if (pendingIndex !== -1) {
-                // Reemplazar el mensaje pendiente con el mensaje real
                 updatedContactMessages[pendingIndex] = newMsg;
               } else {
-                // Agregar mensaje nuevo al principio
                 updatedContactMessages = [newMsg, ...updatedContactMessages];
               }
             } else {
-              // Agregar mensaje nuevo al principio
               updatedContactMessages = [newMsg, ...updatedContactMessages];
             }
           }
@@ -335,15 +295,11 @@ export const useChatStore = create((set, get) => ({
 
         newChats[contactId] = updatedContactMessages;
 
-        // Confirmar lectura automáticamente si el usuario está viendo este chat
         if (updatedSelectedContact &&
           updatedSelectedContact.CuentaMensajeriaContactoID == contactId &&
           formattedNewMessages.some(msg => msg.isIncoming && !msg.read)) {
-
-          // Importar dinámicamente para evitar problemas de dependencias circulares
           const ChatApiService = require('../services/chatService').default;
 
-          // Confirmar lectura en segundo plano
           setTimeout(async () => {
             try {
               await ChatApiService.confirmarLectura({
@@ -354,7 +310,7 @@ export const useChatStore = create((set, get) => ({
             } catch (error) {
               console.error('Error confirmando lectura automática:', error);
             }
-          }, 100); // Pequeño delay para asegurar que la UI se actualice primero
+          }, 100);
         }
       }
     }
@@ -366,7 +322,6 @@ export const useChatStore = create((set, get) => ({
     });
   },
 
-  // Reset completo del store
   reset: () =>
     set({
       contacts: [],

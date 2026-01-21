@@ -10,13 +10,11 @@ const API_BASE_STRG = `${getEnvironmentConfig().BASE_URL_NS}/API_STRG/api`;
 class GestionComercialService {
   constructor() {
     this.global = useGlobal.getState();
-    // Suscribirse a cambios en el estado global
     useGlobal.subscribe((state) => {
       this.global = state;
     });
   }
 
-  // Get valid token from tokenService (handles expiration and refresh)
   async getStoredToken() {
     try {
       return await tokenService.getValidToken();
@@ -36,7 +34,6 @@ class GestionComercialService {
     };
   }
 
-  // Utility to remove empty strings, nulls, and undefined from request body
   cleanObject(obj) {
     if (!obj || typeof obj !== 'object') return obj;
     const cleaned = {};
@@ -69,7 +66,6 @@ class GestionComercialService {
         const bodyObj = typeof config.body === 'string' ? JSON.parse(config.body) : config.body;
         config.body = JSON.stringify(this.cleanObject(bodyObj));
       } catch (e) {
-        // Not JSON, leave as is
       }
     }
 
@@ -85,11 +81,9 @@ class GestionComercialService {
           body: errorText
         });
 
-        // Handle auth errors with token refresh
         if (response.status === 401 || response.status === 403) {
           const shouldRetry = await tokenService.handleApiError(null, response.status);
           if (shouldRetry) {
-            // Retry the request with new token
             const newHeaders = await this.getHeaders();
             config.headers = newHeaders;
             const retryResponse = await fetch(url, config);
@@ -99,16 +93,13 @@ class GestionComercialService {
           }
         }
 
-        // Try to parse error message from API response
         let errorMessage = `Error del servidor (${response.status})`;
         try {
           const errorJson = JSON.parse(errorText);
           if (errorJson.Message) {
-            // Extract clean message, remove "Error de modelo:" prefix if present
             errorMessage = errorJson.Message.replace(/^Error de modelo:\s*|^Error:\s*/i, '').trim();
           }
         } catch (e) {
-          // If parsing fails, use raw text
           errorMessage = errorText || errorMessage;
         }
         throw new Error(errorMessage);
@@ -119,7 +110,6 @@ class GestionComercialService {
     } catch (error) {
       console.error('API request failed:', error);
       
-      // On network failure, ping SignalR and trigger recovery if needed
       const SignalRService = require('../../chat/services/signalrService').default;
       const isConnected = await SignalRService.ping();
       if (!isConnected) {
@@ -130,7 +120,6 @@ class GestionComercialService {
     }
   }
 
-  // Consultar pre-contactos por origen
   async consultarPreContactos(filtros) {
     let endpoint = '/PreContactos/PreContactosPorOrigenConsultar';
     if (filtros.OrigenPreContactoID == 2) {
@@ -162,7 +151,6 @@ class GestionComercialService {
       FullSearch: filtros?.FullSearch ?? null,
       SortColumn: filtros?.SortColumn ?? null,
       SortDirection: filtros?.SortDirection ?? null,
-      // Nuevos campos de búsqueda detallada
       NombreCompleto: filtros?.NombreCompleto ?? null,
       Documento: filtros?.Documento ?? null,
       Telefono: filtros?.Telefono ?? null,
@@ -180,7 +168,6 @@ class GestionComercialService {
       method: 'POST',
       body: JSON.stringify(body),
     }).then(response => {
-      // Ensure Color is set from API response
       if (response.rows && Array.isArray(response.rows)) {
         response.rows = response.rows.map(contact => ({
           ...contact,
@@ -191,7 +178,6 @@ class GestionComercialService {
     });
   }
 
-  // Consultar líneas de tiempo
   async consultarLineasTiempo(filtros) {
     const estadoProcesoID = filtros && 'EstadoProcesoID' in filtros ? filtros.EstadoProcesoID : "1,4";
     const estadoProcesoNombre = estadoProcesoID === "1,4" ? "Nuevo y En gestión" : (estadoProcesoID || "");
@@ -208,7 +194,6 @@ class GestionComercialService {
       FechaFinal: filtros?.FechaFinal ?? null,
       FullSearch: filtros?.FullSearch ?? null,
       ProcesoLineaTiempoID: filtros?.ProcesoLineaTiempoID ?? null,
-      // Nuevos campos de búsqueda detallada para Timeline
       EstadoGeneral: filtros?.EstadoGeneral ?? null,
       NombreCompleto: filtros?.NombreCompleto ?? null,
       Documento: filtros?.Documento ?? null,
@@ -231,7 +216,6 @@ class GestionComercialService {
     });
   }
 
-  // Consultar actividades del calendario
   async consultarActividadesCalendario(filtros) {
     const endpoint = '/CalendariosActividades/CalendariosActividadesConsultar';
     const body = {
@@ -247,10 +231,9 @@ class GestionComercialService {
       body: JSON.stringify(body),
     }, false, true).then(response => {
       return response;
-    }); // useSIS
+    });
   }
 
-  // Consultar mi calendario
   async consultarMiCalendario(filtros) {
     const endpoint = '/CalendariosActividades/MiCalendarioConsultar';
     return this.makeRequest(endpoint, {
@@ -273,7 +256,6 @@ class GestionComercialService {
   }
 
 
-  // Consultar mi calendario tabla
   async consultarMiCalendarioTabla(filtros) {
     const endpoint = '/CalendariosActividades/MiCalendarioTablaConsultar';
     return this.makeRequest(endpoint, {
@@ -298,7 +280,6 @@ class GestionComercialService {
     });
   }
 
-  // Insertar pre-contacto
   async insertarPreContacto(contacto) {
     const endpoint = '/PreContactos/PreContactosInsertar';
     return this.makeRequest(endpoint, {
@@ -310,7 +291,6 @@ class GestionComercialService {
     });
   }
 
-  // Actualizar pre-contacto
   async actualizarPreContacto(contacto) {
     const endpoint = '/PreContactos/PreContactosActualizar';
     return this.makeRequest(endpoint, {
@@ -322,7 +302,6 @@ class GestionComercialService {
     });
   }
 
-  // Consultar detalle de pre-contacto
   async consultarPreContactoDetallado(filtros) {
     const endpoint = '/PreContactos/PreContatoDetalladoConsultar';
     return this.makeRequest(endpoint, {
@@ -334,7 +313,6 @@ class GestionComercialService {
     });
   }
 
-  // Consultar estados de procesos
   async consultarEstadosProcesos(filtros) {
     const endpoint = '/PreContactos/EstadosProcesosConsultar';
     return this.makeRequest(endpoint, {
@@ -349,7 +327,6 @@ class GestionComercialService {
     });
   }
 
-  // Consultar líneas de tiempos procesos
   async consultarProcesosLineasTiempos(filtros) {
     const endpoint = '/ProcesosLineasTiempos/ProcesosLineasTiemposEstadosConsultar';
     return this.makeRequest(endpoint, {
@@ -358,10 +335,9 @@ class GestionComercialService {
         OrigenPreContactoID: filtros?.OrigenPreContactoID,
         Token: this.global.user?.Token,
       }),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
-  // Cambiar estado del proceso
   async cambiarEstadoProceso(proceso) {
     const endpoint = '/PreContactos/CambiarEstadoDelProceso';
     return this.makeRequest(endpoint, {
@@ -373,7 +349,6 @@ class GestionComercialService {
     });
   }
 
-  // Inviabilizar pre-contacto
   async inviabilizarPreContacto(contacto) {
     const endpoint = '/PreContactos/PreContactosInviabilizar';
     return this.makeRequest(endpoint, {
@@ -385,7 +360,6 @@ class GestionComercialService {
     });
   }
 
-  // Habilitar proceso (viabilizar)
   async habilitarProceso(contacto) {
     const endpoint = '/PreContactos/HabilitarProceso';
     return this.makeRequest(endpoint, {
@@ -397,7 +371,6 @@ class GestionComercialService {
     });
   }
 
-  // Eliminar pre-contacto
   async eliminarPreContacto(contacto) {
     const endpoint = '/PreContactos/PreContactosEliminar';
     return this.makeRequest(endpoint, {
@@ -409,7 +382,6 @@ class GestionComercialService {
     });
   }
 
-  // Duplicar proceso comercial
   async duplicarProcesoComercial(contacto) {
     const endpoint = '/PreContactos/DuplicarProcesoComercial';
     return this.makeRequest(endpoint, {
@@ -421,7 +393,6 @@ class GestionComercialService {
     });
   }
 
-  // Cambiar color del proceso
   async cambiarColorProceso(contacto) {
     const endpoint = '/PreContactos/CambiarColorProceso';
     return this.makeRequest(endpoint, {
@@ -433,21 +404,19 @@ class GestionComercialService {
     });
   }
 
-  // Mover línea de tiempo
   async moverLineaTiempo(data) {
     const endpoint = '/PreContactos/MoverLineaTiempo';
     return this.makeRequest(endpoint, {
       method: 'POST',
       body: JSON.stringify({
         ...data,
-        DirIP: '0.0.0.0', // Required field (mobile doesn't have real IP)
+        DirIP: '0.0.0.0',
         Usuario: this.global.user?.UsuarioID,
         Token: this.global.user?.Token,
       }),
     });
   }
 
-  // Líneas de tiempos automáticas
   async lineasTiemposAutomaticas(data) {
     const endpoint = '/PreContactos/LineasTiemposAutomaticas';
     return this.makeRequest(endpoint, {
@@ -459,7 +428,6 @@ class GestionComercialService {
     });
   }
 
-  // Consultar combos de origen
   async consultarCombosOrigenes(origenID) {
     const endpoint = '/CamposPreContactos/ConfiguracionCamposPrecontactosConsultar';
     return this.makeRequest(endpoint, {
@@ -471,7 +439,6 @@ class GestionComercialService {
     });
   }
 
-  // Consultar origenes pre-contactos sucursales
   async consultarOrigenesPreContactosSucursales(filtros) {
     const endpoint = '/OrigenesPreContactosSucursales/OrigenesPreContactosSucursalesConsultar';
     return this.makeRequest(endpoint, {
@@ -483,7 +450,6 @@ class GestionComercialService {
     });
   }
 
-  // Consultar asesores
   async consultarAsesores(filtros) {
     const endpoint = '/Asesores/AsesoresConsultar';
     return this.makeRequest(endpoint, {
@@ -500,7 +466,6 @@ class GestionComercialService {
     });
   }
 
-  // Consultar formas de contacto
   async consultarFormasContacto(filtros) {
     const endpoint = '/FormasFormasContactos/FormasContactosConsultar';
     return this.makeRequest(endpoint, {
@@ -517,7 +482,6 @@ class GestionComercialService {
     });
   }
 
-  // Consultar formas de como nos conocieron
   async consultarFormasComoNosConocio(filtros) {
     const endpoint = '/FormasComoNosConocio/FormasComoNosConocioConsultar';
     return this.makeRequest(endpoint, {
@@ -534,7 +498,6 @@ class GestionComercialService {
     });
   }
 
-  // Consultar detalles de formas de como nos conocieron
   async consultarFormasComoNosConocioDetalles(filtros) {
     const endpoint = '/FormasComoNosConocioDetalles/FormasComoNosConocioDetallesConsultar';
     return this.makeRequest(endpoint, {
@@ -551,7 +514,6 @@ class GestionComercialService {
     });
   }
 
-  // Consultar tipos de ofertas
   async consultarTiposOfertas(filtros) {
     const endpoint = '/TiposOfertas/TiposOfertasConsultar';
     return this.makeRequest(endpoint, {
@@ -561,10 +523,9 @@ class GestionComercialService {
         Rows: filtros?.Rows || 0,
         Token: this.global.user?.Token,
       }),
-    }, false, false, true); // useGBI
+    }, false, false, true);
   }
 
-  // Consultar condiciones inmuebles
   async consultarCondicionesInmuebles() {
     const endpoint = '/CondicionesInmuebles/CondicionesInmueblesConsultar';
     return this.makeRequest(endpoint, {
@@ -572,10 +533,9 @@ class GestionComercialService {
       body: JSON.stringify({
         Token: this.global.user?.Token,
       }),
-    }, false, false, true); // useGBI
+    }, false, false, true);
   }
 
-  // Consultar tipos inmuebles
   async consultarTiposInmuebles(filtros) {
     const endpoint = '/TiposInmuebles/TiposInmueblesConsultar';
     return this.makeRequest(endpoint, {
@@ -585,10 +545,9 @@ class GestionComercialService {
         Rows: filtros?.Rows || 0,
         Token: this.global.user?.Token,
       }),
-    }, false, false, true); // useGBI
+    }, false, false, true);
   }
 
-  // Consultar tipos avaluos
   async consultarTiposAvaluos(filtros) {
     const endpoint = '/TiposAvaluos/TiposAvaluosConsultar';
     return this.makeRequest(endpoint, {
@@ -598,10 +557,9 @@ class GestionComercialService {
         Rows: filtros?.Rows || 0,
         Token: this.global.user?.Token,
       }),
-    }, false, false, true); // useGBI
+    }, false, false, true);
   }
 
-  // Consultar localidades
   async consultarLocalidades(filtros) {
     const endpoint = '/Localidades/LocalidadesConsultar';
     return this.makeRequest(endpoint, {
@@ -609,13 +567,12 @@ class GestionComercialService {
       body: JSON.stringify({
         Page: filtros?.Page || 0,
         Rows: filtros?.Rows || 0,
-        CiudadID: filtros?.CiudadID || 1204, // Bogotá
+        CiudadID: filtros?.CiudadID || 1204,
         Token: this.global.user?.Token,
       }),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
-  // Consultar antiguedades inmuebles
   async consultarAntiguedadesInmuebles() {
     const endpoint = '/AntiguedadesInmuebles/AntiguedadesInmueblesConsultar';
     return this.makeRequest(endpoint, {
@@ -623,10 +580,9 @@ class GestionComercialService {
       body: JSON.stringify({
         Token: this.global.user?.Token,
       }),
-    }, false, false, true); // useGBI
+    }, false, false, true);
   }
 
-  // Consultar tipos productos (servicios)
   async consultarTiposProductos(filtros) {
     const endpoint = '/TiposProductos/TiposProductosConsultar';
     return this.makeRequest(endpoint, {
@@ -638,10 +594,9 @@ class GestionComercialService {
         Nombre: filtros?.Nombre || null,
         Token: this.global.user?.Token,
       }),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
-  // Consultar causales inviabilidad
   async consultarCausalesInviabilidad(filtros) {
     const endpoint = '/CausalesInviabilidad/CausalesInviabilidadConsultar';
     return this.makeRequest(endpoint, {
@@ -657,7 +612,6 @@ class GestionComercialService {
     });
   }
 
-  // Consultar tipos calendario actividades
   async consultarTiposCalendarioActividades(filtros) {
     const endpoint = '/TiposCalendariosActividades/TiposCalendariosActividadesConsultar';
     return this.makeRequest(endpoint, {
@@ -667,10 +621,9 @@ class GestionComercialService {
         Rows: filtros?.Rows || 0,
         Token: this.global.user?.Token,
       }),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
-  // Insertar actividad calendario
   async insertarActividadCalendario(actividad) {
     const endpoint = '/CalendariosActividades/CalendariosActividadesInsertar';
     return this.makeRequest(endpoint, {
@@ -679,10 +632,9 @@ class GestionComercialService {
         ...actividad,
         Token: this.global.user?.Token,
       }),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
-  // Actualizar actividad calendario
   async actualizarActividadCalendario(actividad) {
     const endpoint = '/CalendariosActividades/CalendariosActividadesActualizar';
     return this.makeRequest(endpoint, {
@@ -691,10 +643,9 @@ class GestionComercialService {
         ...actividad,
         Token: this.global.user?.Token,
       }),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
-  // Cerrar actividad calendario
   async cerrarActividadCalendario(actividad) {
     const endpoint = '/CalendariosActividades/CalendariosActividadesCerrar';
     return this.makeRequest(endpoint, {
@@ -703,10 +654,9 @@ class GestionComercialService {
         ...actividad,
         Token: this.global.user?.Token,
       }),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
-  // Eliminar actividad calendario
   async eliminarActividadCalendario(actividad) {
     const endpoint = '/CalendariosActividades/CalendariosActividadesEliminar';
     return this.makeRequest(endpoint, {
@@ -715,10 +665,9 @@ class GestionComercialService {
         ...actividad,
         Token: this.global.user?.Token,
       }),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
-  // Consultar actividades por fecha
   async consultarActividadesPorFecha(filtros) {
     const endpoint = '/CalendariosActividades/CalendariosActividadesConsultarPorFecha';
     return this.makeRequest(endpoint, {
@@ -728,10 +677,9 @@ class GestionComercialService {
         Fecha: filtros?.Fecha,
         Completada: filtros?.Completada || false,
       }),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
-  // Consultar cierres detalles actividades
   async consultarCalendariosActividadesCierresDetalles(filtros) {
     const endpoint = '/CalendariosActividadesCierresDetalles/CalendariosActividadesCierresDetallesConsultar';
     return this.makeRequest(endpoint, {
@@ -744,10 +692,9 @@ class GestionComercialService {
         SucursalID: filtros?.SucursalID || null,
         Token: this.global.user?.Token,
       }),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
-  // Consultar inmuebles disponibles
   async consultarInmueblesDisponibles(filtros) {
     const endpoint = '/Inmuebles/InmueblesDisponiblesConsultar';
     return this.makeRequest(endpoint, {
@@ -764,7 +711,6 @@ class GestionComercialService {
     });
   }
 
-  // Consultar complejos
   async consultarComplejos(filtros) {
     const endpoint = '/Complejos/ComplejosConsultar';
     return this.makeRequest(endpoint, {
@@ -774,10 +720,9 @@ class GestionComercialService {
         Rows: filtros?.Rows || 0,
         Token: this.global.user?.Token,
       }),
-    }, false, false, false, true); // useSTRG
+    }, false, false, false, true);
   }
 
-  // Consultar ciudades combo
   async consultarCiudadesCombo(filtros) {
     const endpoint = '/Ciudades/CiudadesComboConsultar';
     return this.makeRequest(endpoint, {
@@ -789,10 +734,9 @@ class GestionComercialService {
         Nombre: filtros?.Nombre || null,
         Token: this.global.user?.Token,
       }),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
-  // Consultar tipos documentos
   async consultarTiposDocumentos(filtros) {
     const endpoint = '/TipoDocumentos/TipoDocumentosConsultar';
     return this.makeRequest(endpoint, {
@@ -803,10 +747,9 @@ class GestionComercialService {
         Activo: filtros?.Activo !== false,
         Token: this.global.user?.Token,
       }),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
-  // Consultar tipos personas
   async consultarTiposPersonas(filtros) {
     const endpoint = '/TipoPersonas/TipoPersonasConsultar';
     return this.makeRequest(endpoint, {
@@ -817,10 +760,9 @@ class GestionComercialService {
         Activo: filtros?.Activo !== false,
         Token: this.global.user?.Token,
       }),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
-  // Consultar responsabilidades tributarias
   async consultarResponsabilidadesTributarias(filtros) {
     const endpoint = '/ResponsabilidadesTributarias/ResponsabilidadesTributariasConsultar';
     return this.makeRequest(endpoint, {
@@ -830,10 +772,9 @@ class GestionComercialService {
         Rows: filtros?.Rows || 0,
         Token: this.global.user?.Token,
       }),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
-  // Consultar terceros detallado
   async consultarTerceroDetallado(filtros) {
     const endpoint = '/Terceros/TerceroDetalladoConsultar';
     return this.makeRequest(endpoint, {
@@ -843,10 +784,9 @@ class GestionComercialService {
         Documento: filtros?.Documento,
         Token: this.global.user?.Token,
       }),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
-  // Consultar campos especiales pre-contactos
   async consultarCamposEspecialesPreContactos(filtros) {
     const endpoint = '/CamposPreContactos/CamposEspecialesPreContactosConsultar';
     return this.makeRequest(endpoint, {
@@ -862,7 +802,6 @@ class GestionComercialService {
     });
   }
 
-  // Consultar pre-contactos existentes
   async consultarPreContactosExistentes(filtros) {
     const endpoint = '/PreContactos/PreContactosExistentesConsultar';
     return this.makeRequest(endpoint, {
@@ -878,7 +817,6 @@ class GestionComercialService {
     });
   }
 
-  // Consultar seguimientos
   async consultarSeguimientos(filtros) {
     const endpoint = '/Seguimientos/SeguimientosConsultar';
     return this.makeRequest(endpoint, {
@@ -890,12 +828,9 @@ class GestionComercialService {
         OrigenSeguimientoID: filtros?.OrigenSeguimientoID || null,
         Token: this.global.user?.Token,
       }),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
-  // --- MÉTODOS ADICIONALES PARA SUB-VISTAS ---
-
-  // Consultar cotizaciones (SIS)
   async consultarCotizaciones(filtros) {
     const endpoint = '/Cotizaciones/CotizacionesConsultar';
     return this.makeRequest(endpoint, {
@@ -906,10 +841,9 @@ class GestionComercialService {
         ...filtros,
         Token: this.global.user?.Token,
       }),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
-  // Consultar cotizaciones bodegaje (STRG)
   async consultarCotizacionesBodegaje(filtros) {
     const endpoint = '/CotizacionesBodegaje/CotizacionesBodegajeConsultar';
     return this.makeRequest(endpoint, {
@@ -920,10 +854,9 @@ class GestionComercialService {
         ...filtros,
         Token: this.global.user?.Token,
       }),
-    }, false, false, false, true); // useSTRG
+    }, false, false, false, true); 
   }
 
-  // Consultar órdenes de servicio (STRG)
   async consultarOrdenesServicio(filtros) {
     const endpoint = '/OrdenesServiciosBodegaje/OrdenesServiciosBodegajeConsultar';
     return this.makeRequest(endpoint, {
@@ -934,10 +867,9 @@ class GestionComercialService {
         ...filtros,
         Token: this.global.user?.Token,
       }),
-    }, false, false, false, true); // useSTRG
+    }, false, false, false, true);
   }
 
-  // Consultar cupones de pago / pre-facturas (FAC)
   async consultarCuponesPago(filtros) {
     const endpoint = '/PreFacturas/PreFacturasConsultar';
     return this.makeRequest(endpoint, {
@@ -948,10 +880,9 @@ class GestionComercialService {
         ...filtros,
         Token: this.global.user?.Token,
       }),
-    }, false, false, false, false, true); // useFAC
+    }, false, false, false, false, true);
   }
 
-  // Insertar seguimiento
   async insertarSeguimiento(seguimiento) {
     const endpoint = '/Seguimientos/SeguimientosInsertar';
     return this.makeRequest(endpoint, {
@@ -960,10 +891,9 @@ class GestionComercialService {
         ...seguimiento,
         Token: this.global.user?.Token,
       }),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
-  // Consultar usuarios sucursales
   async consultarSucursalesUsuarios(filtros) {
     const endpoint = '/Usuarios/SucursalesUsuariosConsultar';
     return this.makeRequest(endpoint, {
@@ -975,10 +905,9 @@ class GestionComercialService {
         Activo: filtros?.Activo !== false,
         Token: this.global.user?.Token,
       }),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
-  // Consultar permisos especiales usuario
   async consultarPermisosEspecialesUsuario(filtros) {
     const endpoint = '/UsuariosPermisosEspeciales/PermisoEspecialAcceso';
     return this.makeRequest(endpoint, {
@@ -986,13 +915,12 @@ class GestionComercialService {
       body: JSON.stringify({
         UsuarioID: filtros?.UsuarioID || this.global.user?.UsuarioID,
         Ruta: filtros?.Ruta || '/CRM/PreContactos/Gestion',
-        ModuloID: filtros?.ModuloID || 8, // CRM
+        ModuloID: filtros?.ModuloID || 8,
         Token: this.global.user?.Token,
       }),
-    }, false, true); // useSIS
+    }, false, true);
   }
 
-  // Load and map CRM permissions to global state
   async loadCrmPermissions() {
     try {
       const response = await this.consultarPermisosEspecialesUsuario();
@@ -1009,7 +937,7 @@ class GestionComercialService {
           9: 'PermiteEdicionActividades',
           10: 'EdicionEstadoProceso',
           11: 'EdicionLineaTiempo',
-          // 12 is not implemented
+          // 12 no implementado en sedi aún
           13: 'PermiteQuitarFirmaActa',
           14: 'PermiteQuitarInventario',
           15: 'PermiteCargarInventario',
@@ -1035,7 +963,6 @@ class GestionComercialService {
     }
   }
 
-  // Consultar estados de procesos
   async consultarEstadosProcesos(filtros = {}) {
     const endpoint = '/PreContactos/EstadosProcesosConsultar';
     return this.makeRequest(endpoint, {

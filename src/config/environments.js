@@ -17,22 +17,7 @@ const environments = {
   }
 };
 
-/**
- * Get current environment configuration
- * @returns {Object} Environment configuration object
- */
 const getEnvironmentConfig = () => {
-  // You can customize this logic based on your needs
-  // For example, check process.env.NODE_ENV, or use a custom variable
-
-  // Default to development if __DEV__ is true (React Native dev mode)
-  /*  
-  if (__DEV__) {
-    return environments.development;
-  }
-*/
-  // For production builds, you might want to check app.json or other indicators
-  // For now, default to production
   return environments.production;
 };
 

@@ -31,23 +31,20 @@ const { width } = Dimensions.get("window");
 const NewChat = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { user } = useGlobal();
-  const [currentView, setCurrentView] = useState("contacts"); // 'contacts' or 'template'
+  const [currentView, setCurrentView] = useState("contacts");
 
-  // Contacts State
   const [contacts, setContacts] = useState([]);
   const [loadingContacts, setLoadingContacts] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [showManualInput, setShowManualInput] = useState(false);
   const [manualPhone, setManualPhone] = useState("");
 
-  // Template/Chat State
   const [selectedContact, setSelectedContact] = useState(null);
   const [loading, setLoading] = useState(false);
   const [cuentas, setCuentas] = useState([]);
   const [plantillas, setPlantillas] = useState([]);
   const [plantillaSeleccionada, setPlantillaSeleccionada] = useState(null);
 
-  // UI State for Template View
   const [templateModalVisible, setTemplateModalVisible] = useState(false);
   const [loadingTemplate, setLoadingTemplate] = useState(false);
 
@@ -65,7 +62,7 @@ const NewChat = ({ navigation }) => {
     loadCuentasMensajeria();
 
     navigation.setOptions({
-      headerShown: false, // Use our custom header
+      headerShown: false,
     });
   }, [currentView, searchText, navigation, selectedContact]);
 
@@ -269,8 +266,6 @@ const NewChat = ({ navigation }) => {
       setLoading(false);
     }
   };
-
-  // --- RENDER FUNCTIONS --- //
 
   const renderHeader = () => {
     const title =
@@ -556,7 +551,6 @@ const NewChat = ({ navigation }) => {
     );
   }
 
-  // --- TEMPLATE VIEW ---
   return (
     <View style={styles.container}>
       <FocusAwareStatusBar
@@ -573,7 +567,6 @@ const NewChat = ({ navigation }) => {
           contentContainerStyle={styles.chatContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* 1. Account Selection */}
           <View style={styles.card}>
             <View style={styles.cardHeaderSmall}>
               <Ionicons
@@ -605,7 +598,6 @@ const NewChat = ({ navigation }) => {
             </View>
           </View>
 
-          {/* 2. Template Selection */}
           <View style={styles.card}>
             <View style={styles.cardHeaderSmall}>
               <Ionicons
@@ -650,7 +642,6 @@ const NewChat = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          {/* 3. Message Preview */}
           {formData.MensajeEnvio ? (
             <View style={styles.bubbleWrapper}>
               <View style={styles.bubble}>
@@ -679,7 +670,6 @@ const NewChat = ({ navigation }) => {
             </View>
           )}
 
-          {/* 4. Variables */}
           {formData.Variables.length > 0 && (
             <View style={styles.variablesCard}>
               <Text style={styles.variablesTitle}>Completar información</Text>
@@ -738,7 +728,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
 
-  // Header
   headerGradient: {
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
@@ -812,7 +801,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  // Search
   searchSection: {
     padding: 16,
   },
@@ -838,7 +826,6 @@ const styles = StyleSheet.create({
     color: COLORS.dark,
   },
 
-  // Manual Input
   manualInputSection: {
     paddingHorizontal: 16,
     marginBottom: 16,
@@ -906,7 +893,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  // List
   contactsList: {
     flex: 1,
   },
@@ -962,7 +948,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  // Empty State
   emptyContainer: {
     alignItems: "center",
     justifyContent: "center",
@@ -990,7 +975,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
 
-  // Template View
   chatContent: {
     padding: 16,
   },
@@ -1051,7 +1035,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
 
-  // Bubble
   bubbleWrapper: {
     alignItems: "flex-end",
     marginBottom: 20,
@@ -1101,7 +1084,6 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
   },
 
-  // Variables
   variablesCard: {
     backgroundColor: COLORS.white,
     borderRadius: 20,
@@ -1135,7 +1117,6 @@ const styles = StyleSheet.create({
     color: COLORS.dark,
   },
 
-  // FAB
   fabWrapper: {
     position: "absolute",
     bottom: 24,
@@ -1156,7 +1137,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  // Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(30, 41, 59, 0.7)",

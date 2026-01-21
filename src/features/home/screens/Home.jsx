@@ -14,13 +14,11 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-// import Menu from "../Menu/Menu";
 import Perfil from "../../profile/screens/Profile";
 import GestionComercial from "../../crm/screens/GestionComercial";
 import Notificaciones from "../../notifications/screens/Notifications";
 import Favoritos from "../../favorites/screens/Favoritos";
 import useGlobal from "../../../core/global";
-// import MenuPanel from "../../../components/MenuPanel";
 import AprobacionFacturasCompra from "../../invoices/screens/AprobacionFacturasCompra";
 import { ContactList } from "../../chat/screens";
 import { useChatStore } from "../../chat/store/chatStore";
@@ -33,8 +31,8 @@ const Home = () => {
   const unreadMessagesCount = useChatStore((state) =>
     state.contacts.reduce(
       (acc, contact) => acc + (contact.CantidadMensajesSinLeer || 0),
-      0
-    )
+      0,
+    ),
   );
 
   const { height } = useWindowDimensions();
@@ -67,7 +65,7 @@ const Home = () => {
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({ RolID: parseInt(rolID, 10) }),
-          }
+          },
         );
         const data = await response.json();
         if (response.ok && data.result === 1) {

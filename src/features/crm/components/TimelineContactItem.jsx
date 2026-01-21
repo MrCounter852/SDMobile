@@ -5,16 +5,8 @@ import { Vibration } from "react-native";
 import { useGlobal } from "../../../core/global";
 import { COLORS } from "../../../core/theme";
 
-/**
- * Modernized version of TimelineContactItem
- * - Follows DESIGN_PATTERNS.md
- * - Compact but comprehensive information
- * - Premium aesthetics with shadow and rounded corners
- */
 const TimelineContactItem = ({ item, onPress, onLongPress, isSelected }) => {
   const { user } = useGlobal();
-
-  // Normalize data to handle inconsistent field names from different API endpoints
   const d = useMemo(() => {
     const estado = (
       item.EstadoProcesoNombre ||
@@ -22,7 +14,6 @@ const TimelineContactItem = ({ item, onPress, onLongPress, isSelected }) => {
       "Nuevo"
     ).toLowerCase();
 
-    // Previous color logic restoration
     const getStatusColor = () => {
       if (item.Color) return item.Color;
       if (estado.includes("nuevo")) return COLORS.primary;
@@ -108,9 +99,9 @@ const TimelineContactItem = ({ item, onPress, onLongPress, isSelected }) => {
   }, [d.valor]);
 
   const getActividadColor = () => {
-    if (d.estadoGeneral === "V") return COLORS.highlight; // green
-    if (d.estadoGeneral === "A") return "#FFB020"; // warning yellow
-    return "#FF4842"; // error red
+    if (d.estadoGeneral === "V") return COLORS.highlight;
+    if (d.estadoGeneral === "A") return "#FFB020";
+    return "#FF4842";
   };
 
   return (
@@ -123,7 +114,6 @@ const TimelineContactItem = ({ item, onPress, onLongPress, isSelected }) => {
         onLongPress && onLongPress(item);
       }}
     >
-      {/* Corner Status Indicator */}
       <View style={[styles.statusStrip, { backgroundColor: d.color }]} />
 
       <View style={styles.content}>
@@ -132,7 +122,6 @@ const TimelineContactItem = ({ item, onPress, onLongPress, isSelected }) => {
             {d.nombre}
           </Text>
           <View style={styles.actions}>
-            {/* Seguimientos Badge */}
             {d.seguimientos > 0 && (
               <View style={styles.miniBadge}>
                 <Ionicons
@@ -146,7 +135,6 @@ const TimelineContactItem = ({ item, onPress, onLongPress, isSelected }) => {
               </View>
             )}
 
-            {/* Actividades Badge */}
             {d.actividades > 0 && (
               <View
                 style={[
@@ -167,7 +155,6 @@ const TimelineContactItem = ({ item, onPress, onLongPress, isSelected }) => {
               </View>
             )}
 
-            {/* Lock Action */}
             {canEditTimeline && (
               <Ionicons
                 name={
@@ -187,7 +174,6 @@ const TimelineContactItem = ({ item, onPress, onLongPress, isSelected }) => {
         </View>
 
         <View style={styles.detailGrid}>
-          {/* Valor & Asesor Row */}
           <View style={styles.fieldRow}>
             {!!formattedCurrency && (
               <View style={styles.field}>
@@ -213,7 +199,6 @@ const TimelineContactItem = ({ item, onPress, onLongPress, isSelected }) => {
             )}
           </View>
 
-          {/* Dates Section */}
           <View style={styles.datesGrid}>
             <View style={styles.dateItem}>
               <Ionicons
@@ -249,7 +234,6 @@ const TimelineContactItem = ({ item, onPress, onLongPress, isSelected }) => {
             )}
           </View>
 
-          {/* Contact Info Row */}
           <View style={styles.fieldRow}>
             {!!d.celular && (
               <View style={styles.field}>
@@ -288,7 +272,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: "#F1F5F9",
-    // Premium soft shadow
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,

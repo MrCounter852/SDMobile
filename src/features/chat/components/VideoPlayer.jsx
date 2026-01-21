@@ -24,7 +24,6 @@ const VideoPlayer = ({ uri, onFullScreen }) => {
   };
 
   const handleFullScreen = async () => {
-    // Pausar el video del chat antes de abrir fullscreen
     await videoRef.current.pauseAsync();
     setIsPlaying(false);
     if (onFullScreen) {
