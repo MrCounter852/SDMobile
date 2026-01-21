@@ -327,7 +327,6 @@ const Login = () => {
             {loading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={COLORS.primary} />
-                <Text style={styles.loadingText}>Iniciando sesión...</Text>
               </View>
             ) : (
               <>
@@ -720,11 +719,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 10,
     gap: 12,
-  },
-  loadingText: {
-    fontSize: 15,
-    color: COLORS.primary,
-    fontWeight: "600",
   },
 });
 
